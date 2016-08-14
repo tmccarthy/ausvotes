@@ -2,7 +2,6 @@ package au.id.tmm.senatedb.database.entityconstruction
 
 import au.id.tmm.senatedb.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.model.SenateElection
-import com.github.tototoshi.csv.CSVReader
 
 import scala.io.Source
 import scala.util.Try
@@ -14,14 +13,10 @@ private[database] object parseFirstPreferencesCsv extends ((SenateElection, Sour
   private type CandidatesAndRows = (Set[GroupsRow], Set[CandidatesRow])
 
   override def apply(election: SenateElection, csvLines: Source): Try[(Set[GroupsRow], Set[CandidatesRow])] = Try {
-    val reader = CSVReader.open(csvLines)
+    val lineIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, ignoredLineIndexes)
 
-    reader.iterator
-      .zipWithIndex
-      .filterNot{ case (_, lineIndex) => ignoredLineIndexes contains lineIndex }
-      .map{ case(csvLine, _) => csvLine }
-      .filterNot(_.isEmpty)
-      .filterNot(csvLine => csvLine.size == 1 && csvLine.head.isEmpty)
+    lineIterator
+      .filterNot(CsvParseUtil.lineIsBlank)
       .map(csvLine => firstPreferencesCsvLineToEntity(election, csvLine).get) // Any thrown exceptions will go up to the encompassing Try
       .foldLeft(emptyAccumulator)(accumulate)
   }

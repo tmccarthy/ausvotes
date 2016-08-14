@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.util.Try
 
 // TODO ListMap -> OrderedMap
-object preferencesCsvLineToEntities
+object formalPreferencesCsvLineToEntities
   extends ((SenateElection, State, ListMap[String, Int], Seq[String]) => Try[(BallotRow, Set[AtlPreferencesRow], Set[BtlPreferencesRow])]) {
 
   override def apply(election: SenateElection,
@@ -49,7 +49,7 @@ object preferencesCsvLineToEntities
   private def preferencesRowsOf(ballotId: String,
                                 numCandidatesPerGroup: ListMap[String, Int],
                                 preferencesString: String): (Set[AtlPreferencesRow], Set[BtlPreferencesRow]) = {
-    val (groupPreferencesArray, candidatePreferencesArray) = preferencesString.split(',')
+    val (groupPreferencesArray, candidatePreferencesArray) = preferencesString.split(",", -1)
       .toStream
       .map(parsePreferenceFromString)
       .toVector
@@ -90,7 +90,7 @@ object preferencesCsvLineToEntities
     def accumulateIntoCandidateIndexMap(groupPositionPerCandidateIndex: mutable.LinkedHashMap[Int, GroupAndGroupPosition],
                                         group: String,
                                         numCandidatesInThisGroup: Int): mutable.LinkedHashMap[Int, GroupAndGroupPosition] = {
-      val largestExistingIndex = if (groupPositionPerCandidateIndex.isEmpty) 0 else groupPositionPerCandidateIndex.keySet.max
+      val largestExistingIndex = if (groupPositionPerCandidateIndex.isEmpty) -1 else groupPositionPerCandidateIndex.keySet.max
 
       val nextCandidateIndex = largestExistingIndex + 1
 

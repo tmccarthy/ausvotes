@@ -21,7 +21,7 @@ class LoadingFirstPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter w
 
     val numLines = source.get.size
 
-    assert(numLines === 4505)
+    assert(numLines === 62547)
   }
 
 }
