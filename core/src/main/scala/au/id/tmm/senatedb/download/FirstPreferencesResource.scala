@@ -16,7 +16,7 @@ private[download] final case class FirstPreferencesResource(election: SenateElec
 
 object FirstPreferencesResource {
   val `2016` = FirstPreferencesResource(SenateElection.`2016`,
-    Digest("e970c6201bcfe15948c2e0a356c5a537ffb31b0fd0d38103cc4e849e75c10148"))
+    Digest("02a679c33881fbef59ccdd0ea86b8c58951a1f22069a1a99691181c96b0a66af"))
 
   def of(election: SenateElection) = election match {
     case SenateElection.`2016` => Some(`2016`)

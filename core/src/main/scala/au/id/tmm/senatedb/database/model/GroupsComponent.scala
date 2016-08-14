@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.database.model
 final case class GroupsRow(groupId: String,
                            election: String,
                            state: String,
-                           groupPosition: Int)
+                           party: String)
 
 trait GroupsComponent { this: DriverComponent =>
 
@@ -14,11 +14,11 @@ trait GroupsComponent { this: DriverComponent =>
     def election = column[String]("election")
     def state = column[String]("state")
 
-    def groupPosition = column[Int]("groupPosition")
+    def party = column[String]("party")
 
     def pk = primaryKey("PK_GROUPS", (groupId, election, state))
 
-    def * = (groupId, election, state, groupPosition) <> (GroupsRow.tupled, GroupsRow.unapply)
+    def * = (groupId, election, state, party) <> (GroupsRow.tupled, GroupsRow.unapply)
 
   }
 
