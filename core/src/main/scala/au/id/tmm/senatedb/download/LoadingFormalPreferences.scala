@@ -5,11 +5,10 @@ import java.nio.file.{Files, Path}
 import java.util.zip.{ZipEntry, ZipFile}
 
 import au.id.tmm.senatedb.model.{SenateElection, State}
-import au.id.tmm.utilities.files.FileUtils.ImprovedPath
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 object LoadingFormalPreferences {
 
@@ -32,11 +31,11 @@ object LoadingFormalPreferences {
     val expectedPath = expectedLocalPathOf(dataDir, resource)
 
     if (Files.exists(expectedPath)) {
-      localResourceIntegrityCheck(resource, expectedPath).map(_ => expectedPath)
+      localResourceIntegrityCheck(expectedPath, resource.digest).map(_ => expectedPath)
 
     } else if (shouldDownloadIfNeeded) {
       downloadRawDataFor(resource, expectedPath)
-        .flatMap(_ => localResourceIntegrityCheck(resource, expectedPath))
+        .flatMap(_ => localResourceIntegrityCheck(expectedPath, resource.digest))
         .map(_ => expectedPath)
 
     } else {
@@ -47,30 +46,10 @@ object LoadingFormalPreferences {
   }
 
   private def expectedLocalPathOf(dataDir: Path, resource: FormalPreferencesResource): Path = dataDir
-    .resolve(s"aec-senate-formalpreferences-${resource.election.aecID}-${resource.state.shortName}.zip")
+    .resolve(resource.localFileName)
 
-  private def localResourceIntegrityCheck(resource: FormalPreferencesResource, dataFile: Path): Try[Unit] = {
-    dataFile.sha256Checksum
-      .flatMap(actualDigest => {
-        val digestsMatch = actualDigest == resource.digest
-
-        if (digestsMatch) {
-          Success(Unit)
-        } else {
-          Failure(
-            new DataIntegrityException(s"Data integrity check failed for file at $dataFile",
-              resource.digest, actualDigest)
-          )
-        }
-      })
-  }
-
-  private def downloadRawDataFor(preferencesResource: FormalPreferencesResource, dataFileLocation: Path): Try[Unit] =
-    Try {
-      for (downloadStream <- resource.managed(preferencesResource.url.openStream())) {
-        Files.copy(downloadStream, dataFileLocation)
-      }
-    }
+  private def downloadRawDataFor(resource: FormalPreferencesResource, target: Path): Try[Unit] =
+    downloadUrlToFile(resource.url, target)
 
   private def csvInputStreamFrom(resource: FormalPreferencesResource, zipFilePath: Path): Try[InputStream] =
     for {

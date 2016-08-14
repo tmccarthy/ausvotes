@@ -1,20 +1,10 @@
 package au.id.tmm.senatedb.download
 
-import java.nio.file.{Files, Paths}
-
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
-import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfter
 
-class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter {
-
-  val testingRawDataDir = Paths.get("testingRawData")
-
-  before {
-    FileUtils.deleteDirectory(testingRawDataDir.toFile)
-    Files.createDirectory(testingRawDataDir)
-  }
+class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter with TestingRawData {
 
   behaviour of "the loading of raw formal preferences data"
 
