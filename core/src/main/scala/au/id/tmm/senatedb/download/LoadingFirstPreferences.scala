@@ -8,6 +8,8 @@ import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 import scala.io.Source
 import scala.util.{Failure, Try}
 
+// Note that we don't perform a data integrity check here because this file is generated dynamically on download, and
+// has a timestamp
 object LoadingFirstPreferences {
 
   def csvLinesOf(dataDir: Path, election: SenateElection,
@@ -27,11 +29,10 @@ object LoadingFirstPreferences {
     val expectedPath = expectedLocalPathOf(dataDir, resource)
 
     if (Files.exists(expectedPath)) {
-      localResourceIntegrityCheck(expectedPath, resource.digest).map(_ => expectedPath)
+      Try(expectedPath)
 
     } else if (shouldDownloadIfNeeded) {
       downloadRawDataFor(resource, expectedPath)
-        .flatMap(_ => localResourceIntegrityCheck(expectedPath, resource.digest))
         .map(_ => expectedPath)
 
     } else {

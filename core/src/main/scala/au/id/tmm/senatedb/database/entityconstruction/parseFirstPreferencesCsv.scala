@@ -7,13 +7,13 @@ import com.github.tototoshi.csv.CSVReader
 import scala.io.Source
 import scala.util.Try
 
-private[database] object parseFirstPreferencesCsv {
+private[database] object parseFirstPreferencesCsv extends ((SenateElection, Source) => Try[(Set[GroupsRow], Set[CandidatesRow])]) {
 
   private val ignoredLineIndexes = Set(0, 1)
 
   private type CandidatesAndRows = (Set[GroupsRow], Set[CandidatesRow])
 
-  def apply(election: SenateElection, csvLines: Source): Try[(Set[GroupsRow], Set[CandidatesRow])] = Try {
+  override def apply(election: SenateElection, csvLines: Source): Try[(Set[GroupsRow], Set[CandidatesRow])] = Try {
     val reader = CSVReader.open(csvLines)
 
     reader.iterator
