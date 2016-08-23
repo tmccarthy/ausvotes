@@ -8,14 +8,11 @@ scalaVersion in ThisBuild := "2.11.8"
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 
-val countEngineProjectRoot = file("native")
-
 lazy val root = (project in file("."))
   .enablePlugins(GitVersioning)
-  .aggregate(core, native)
+  .aggregate(core)
 
 lazy val core = (project in file("core"))
-  .dependsOn(native % Runtime)
   .settings(
     libraryDependencies ++= Seq(
       "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
@@ -35,14 +32,5 @@ lazy val core = (project in file("core"))
 
       "commons-io" % "commons-io" % "2.4"
     ),
-    target in javah := countEngineProjectRoot / "include",
     parallelExecution in Test := false
-  )
-
-lazy val native = (project in countEngineProjectRoot)
-  .enablePlugins(JniNative)
-  .settings(
-    target in javah := countEngineProjectRoot / "include",
-    sourceDirectory in nativeCompile := countEngineProjectRoot,
-    target in nativeCompile := countEngineProjectRoot / "target"
   )
