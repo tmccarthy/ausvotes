@@ -28,5 +28,7 @@ trait BtlPreferencesComponent { this: DriverComponent with BallotComponent =>
 
   val btlPreferences: TableQuery[BtlPreferencesTable] = TableQuery[BtlPreferencesTable]
 
+  def btlPreferencesFor(ballotId: String) = btlPreferences.filter(_.ballotId === ballotId)
+
   def insertBtlPreferences(toInsert: Iterable[BtlPreferencesRow]) = btlPreferences ++= toInsert
 }

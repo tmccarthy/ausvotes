@@ -20,9 +20,9 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-      "au.id.tmm" %% "tmmtestutils" % "0.1-9545e1db668393887553946076e387655cc4beb2" % "test",
+      "au.id.tmm" %% "tmmtestutils" % "0.1-a5a5ec8d670c34276636de629353be6147110ac6" % "test",
 
-      "au.id.tmm" %% "tmmutils" % "0.1-9545e1db668393887553946076e387655cc4beb2",
+      "au.id.tmm" %% "tmmutils" % "0.1-a5a5ec8d670c34276636de629353be6147110ac6",
 
       "org.slf4j" % "slf4j-simple" % "1.7.19",
       "com.github.scopt" %% "scopt" % "3.4.0",

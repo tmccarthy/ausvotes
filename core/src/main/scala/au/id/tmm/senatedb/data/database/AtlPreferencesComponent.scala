@@ -26,5 +26,7 @@ trait AtlPreferencesComponent { this: DriverComponent with BallotComponent =>
 
   val atlPreferences: TableQuery[AtlPreferencesTable] = TableQuery[AtlPreferencesTable]
 
+  def atlPreferencesFor(ballotId: String) = atlPreferences.filter(_.ballotId === ballotId)
+
   def insertAtlPreferences(toInsert: Iterable[AtlPreferencesRow]) = atlPreferences ++= toInsert
 }

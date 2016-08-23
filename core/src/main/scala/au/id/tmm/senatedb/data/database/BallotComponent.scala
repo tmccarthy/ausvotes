@@ -33,6 +33,8 @@ trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with 
 
   val ballots: TableQuery[BallotTable] = TableQuery[BallotTable]
 
+  def ballotsWithId(id: String) = ballots.filter(_.ballotId === id)
+
   def insertBallot(toInsert: BallotRow) = ballots += toInsert
 
   def insertBallots(toInsert: Iterable[BallotRow]) = ballots ++= toInsert
