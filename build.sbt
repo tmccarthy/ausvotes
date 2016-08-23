@@ -35,7 +35,8 @@ lazy val core = (project in file("core"))
 
       "commons-io" % "commons-io" % "2.4"
     ),
-    target in javah := countEngineProjectRoot / "include"
+    target in javah := countEngineProjectRoot / "include",
+    parallelExecution in Test := false
   )
 
 lazy val native = (project in countEngineProjectRoot)

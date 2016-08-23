@@ -4,7 +4,7 @@ import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.scalatest.BeforeAndAfter
 
-class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter with TestingRawData {
+class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter with TestsRawData {
 
   behaviour of "the loading of raw formal preferences data"
 
@@ -14,7 +14,7 @@ class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter 
       State.NT,
       shouldDownloadIfNeeded = false)
 
-    assert(source.failed.get.isInstanceOf[IllegalStateException])
+    assert(source.failed.get.isInstanceOf[DataMissingDownloadDisallowedException])
   }
 
   it should "download the data" in {

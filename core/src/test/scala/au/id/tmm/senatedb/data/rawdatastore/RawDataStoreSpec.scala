@@ -1,13 +1,11 @@
 package au.id.tmm.senatedb.data.rawdatastore
 
 import au.id.tmm.senatedb.data.TestData
-import au.id.tmm.senatedb.data.rawdatastore.download.TestingRawData
+import au.id.tmm.senatedb.data.rawdatastore.download.TestsRawData
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class RawDataStoreSpec extends ImprovedFlatSpec with TestingRawData {
-
-  val rawDataStore = RawDataStore(testingRawDataDir)
+class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
 
   behaviour of "the raw data store"
 

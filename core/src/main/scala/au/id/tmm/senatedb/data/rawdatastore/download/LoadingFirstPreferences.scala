@@ -36,8 +36,7 @@ private[rawdatastore] object LoadingFirstPreferences {
         .map(_ => expectedPath)
 
     } else {
-      Failure(new IllegalStateException(s"Raw data for ${resource.election} at " +
-        s"${resource.election} has not been downloaded"))
+      Failure(new DataMissingDownloadDisallowedException(resource.url))
 
     }
   }

@@ -9,15 +9,15 @@ import slick.jdbc.JdbcBackend._
 import scala.concurrent.{ExecutionContext, Future}
 
 class Persistence private (private[data] val dal: DAL, private[data] val database: Database)
-                          (implicit executionContext: ExecutionContext)
+                          (implicit val executionContext: ExecutionContext)
   extends Closeable
     with PersistenceLifecycle
     with StoresGroupsAndCandidates
     with StoresBallots {
 
-  implicit val ec = executionContext // Needed so the traits can use the executionContext
-
   import dal.driver.api._
+
+  def runQuery[R](query: Rep[R]): Future[R] = execute(query.result)
 
   def runQuery[T, R](query: Query[T, R, Seq]): Future[Seq[R]] = execute(query.result)
 

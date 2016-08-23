@@ -29,6 +29,30 @@ class StoresGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPersisten
     assert(candidatesToStore === storedCandidates)
   }
 
+  "deleting groups" should "delete groups for an election" in {
+    val existingGroups = TestData.allActGroups
+
+    Await.result(persistence.storeGroups(existingGroups), Inf)
+
+    Await.result(persistence.deleteGroupsFor(SenateElection.`2016`), Inf)
+
+    val storedGroups = Await.result(persistence.runQuery(persistence.dal.groups), Inf).toSet
+
+    assert(storedGroups.isEmpty)
+  }
+
+  "deleting candidates" should "delete candidates for an election" in {
+    val existingCandidates = TestData.allActCandidates
+
+    Await.result(persistence.storeCandidates(existingCandidates), Inf)
+
+    Await.result(persistence.deleteCandidatesFor(SenateElection.`2016`), Inf)
+
+    val storedCandidates = Await.result(persistence.runQuery(persistence.dal.groups), Inf).toSet
+
+    assert(storedCandidates.isEmpty)
+  }
+
   behaviour of "the hasGroupsFor check"
 
   it should "return false if no groups have been stored" in {

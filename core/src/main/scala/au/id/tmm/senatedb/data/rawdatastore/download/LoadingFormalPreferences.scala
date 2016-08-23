@@ -39,8 +39,7 @@ object LoadingFormalPreferences {
         .map(_ => expectedPath)
 
     } else {
-      Failure(new IllegalStateException(s"Raw data for ${resource.state} at " +
-        s"${resource.election} has not been downloaded"))
+      Failure(new DataMissingDownloadDisallowedException(resource.url))
 
     }
   }
