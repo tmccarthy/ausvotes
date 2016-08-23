@@ -25,6 +25,21 @@ class StoresBallotsSpec extends ImprovedFlatSpec with TestsPersistence {
     assert(storedBallotWithPreferences === ballotWithPreferences)
   }
 
+  "deleting ballots" should "delete the ballots from the database" in {
+    // We only want the ballot, not the preferences
+    val ballotWithPreferences = TestData.aTestBallot
+
+    Await.result(persistence.storeBallotData(Set(ballotWithPreferences).toCloseableIterator), Inf)
+
+    Await.result(persistence.deleteBallotsAndPreferencesFor(SenateElection.`2016`, State.ACT), Inf)
+
+    val numBallots = Await.result(persistence.runQuery(persistence.dal.ballots.size), Inf)
+    val numAtlPreferences = Await.result(persistence.runQuery(persistence.dal.atlPreferences.size), Inf)
+    val numBtlPreferences = Await.result(persistence.runQuery(persistence.dal.btlPreferences.size), Inf)
+
+    assert(numBallots === 0)
+  }
+
   behaviour of "the hasBallotsFor check"
 
   it should "return false when there've been no ballots loaded" in {

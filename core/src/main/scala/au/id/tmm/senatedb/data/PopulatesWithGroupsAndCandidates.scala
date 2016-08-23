@@ -8,12 +8,23 @@ trait PopulatesWithGroupsAndCandidates { this: PersistencePopulator =>
   def loadGroupsAndCandidates(election: SenateElection,
                               allowDownloading: Boolean = true,
                               forceReload: Boolean = false): Future[Unit] = {
-    def deleteIfNeeded(): Future[Unit] = if (forceReload) deleteFor(election) else Future.successful(Unit)
+
+    def deleteIfReloading() = if (forceReload) {
+      deleteFor(election)
+    } else {
+      Future.successful(Unit)
+    }
+
+    def loadIfNeeded(alreadyLoaded: Boolean) = if (alreadyLoaded) {
+      Future.successful(Unit)
+    } else {
+      doLoadFor(election, allowDownloading)
+    }
 
     for {
-      _ <- deleteIfNeeded()
-      alreadyLoaded <- checkIfAlreadyLoadedFor(election)
-      _ <- if (alreadyLoaded) Future.successful(Unit) else doLoadFor(election, allowDownloading)
+      _ <- deleteIfReloading()
+      alreadyLoaded <- hasGroupsAndCandidatesFor(election)
+      _ <- loadIfNeeded(alreadyLoaded)
     } yield ()
   }
 
@@ -24,7 +35,7 @@ trait PopulatesWithGroupsAndCandidates { this: PersistencePopulator =>
     } yield ()
   }
 
-  private def checkIfAlreadyLoadedFor(election: SenateElection): Future[Boolean] = {
+  def hasGroupsAndCandidatesFor(election: SenateElection): Future[Boolean] = {
     val alreadyHasGroupsFuture = persistence.hasGroupsFor(election)
     val alreadyHasCandidatesFuture = persistence.hasCandidatesFor(election)
 

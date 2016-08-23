@@ -29,6 +29,9 @@ private[database] trait StoresGroupsAndCandidates { this: Persistence =>
     execute(query.result)
   }
 
+  def retrieveCandidatesFor(election: SenateElection): Future[Seq[CandidatesRow]] =
+    runQuery(dal.candidatesForElection(election))
+
   def deleteGroupsFor(election: SenateElection): Future[Unit] = {
     val deleteStatement = dal.groups
       .filter(_.election === election.aecID)

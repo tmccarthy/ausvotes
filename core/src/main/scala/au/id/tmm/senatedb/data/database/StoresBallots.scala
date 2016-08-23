@@ -24,14 +24,34 @@ private[database] trait StoresBallots { this: Persistence =>
     Future.sequence(chunkInsertFutures).map(_ => Unit)
   }
 
-  def hasBallotsFor(election: SenateElection, state: State): Future[Boolean] = {
-    import dal.driver.api._
+  import dal.driver.api._
 
+  def hasBallotsFor(election: SenateElection, state: State): Future[Boolean] = {
     val query = dal.ballots
       .filter(_.electionId === election.aecID)
       .filter(_.state === state.shortName)
 
     execute(query.exists.result)
+  }
+
+  def deleteBallotsAndPreferencesFor(election: SenateElection, state: State): Future[Unit] = {
+    val ballotIdsToDelete = dal.ballots
+      .filter(_.electionId === election.aecID)
+      .filter(_.state === state.shortName)
+      .map(_.ballotId)
+
+    val atlPreferencesDeleteStatement = dal.atlPreferences.filter(_.ballotId in ballotIdsToDelete).delete
+
+    val btlPreferencesDeleteStatement = dal.btlPreferences.filter(_.ballotId in ballotIdsToDelete).delete
+
+    val ballotsDeleteStatement = dal.ballots
+      .filter(_.electionId === election.aecID)
+      .filter(_.state === state.shortName)
+      .delete
+
+    val deleteStatement = atlPreferencesDeleteStatement andThen btlPreferencesDeleteStatement andThen ballotsDeleteStatement
+
+    execute(deleteStatement).map(_ => Unit)
   }
 }
 

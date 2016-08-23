@@ -10,16 +10,26 @@ import scala.concurrent.duration.Duration.Inf
 
 class PopulatesWithGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPersistencePopulator {
 
-  behaviour of "loadGroupsAndCandidatesIntoPersistence"
+  def assertGroupsLoadedCorrectly(): Unit = {
+    val actualNumGroups = Await.result(persistence.runQuery(persistence.dal.groups.size), Inf)
+
+    assert(206 === actualNumGroups)
+  }
+
+  def assertCandidatesLoadedCorrectly(): Unit = {
+    val actualNumCandidates = Await.result(persistence.runQuery(persistence.dal.candidates.size), Inf)
+
+    assert(631 === actualNumCandidates)
+  }
+
+  behaviour of "loadGroupsAndCandidates"
 
   it can "load the groups from the 2016 election into an empty persistence" in {
     val loadFuture = persistencePopulator.loadGroupsAndCandidates(SenateElection.`2016`)
 
     Await.result(loadFuture, Inf)
 
-    val actualNumGroups = Await.result(persistence.runQuery(persistence.dal.groups.size), Inf)
-
-    assert(206 === actualNumGroups)
+    assertGroupsLoadedCorrectly()
   }
 
   it can "load the candidates from the 2016 election into an empty persistence" in {
@@ -27,9 +37,20 @@ class PopulatesWithGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPe
 
     Await.result(loadFuture, Inf)
 
-    val actualNumCandidates = Await.result(persistence.runQuery(persistence.dal.candidates.size), Inf)
+    assertCandidatesLoadedCorrectly()
+  }
 
-    assert(631 === actualNumCandidates)
+  it should "not reload groups or candidates if a candidate or group is already loaded from that election" in {
+    val preLoadedGroups = Set(GroupsRow("A", SenateElection.`2016`.aecID, "NT", "None"))
+    persistence.execute(persistence.dal.insertGroups(preLoadedGroups))
+
+    val loadFuture = persistencePopulator.loadGroupsAndCandidates(SenateElection.`2016`, forceReload = false)
+
+    Await.result(loadFuture, Inf)
+
+    val actualNumGroups = Await.result(persistence.runQuery(persistence.dal.groups.size), Inf)
+
+    assert(1 === actualNumGroups)
   }
 
   it should "reload the groups if requested" in {
@@ -40,9 +61,7 @@ class PopulatesWithGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPe
 
     Await.result(loadFuture, Inf)
 
-    val actualNumGroups = Await.result(persistence.runQuery(persistence.dal.groups.size), Inf)
-
-    assert(206 === actualNumGroups)
+    assertGroupsLoadedCorrectly()
   }
 
   it should "fail if no raw data exists and downloading is disallowed" in {
