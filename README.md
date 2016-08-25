@@ -1,5 +1,5 @@
-
-
+[![Build Status](https://travis-ci.org/tmccarthy/SenateDB.svg?branch=master)](https://travis-ci.org/tmccarthy/SenateDB)
+[![Coverage Status](https://coveralls.io/repos/github/tmccarthy/SenateDB/badge.svg?branch=master)](https://coveralls.io/github/tmccarthy/SenateDB?branch=master)
 
 # SenateDB
 
