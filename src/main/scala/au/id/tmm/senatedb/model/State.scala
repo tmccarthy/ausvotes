@@ -17,4 +17,6 @@ object State {
   val ACT = State("Australian Capital Territory", "ACT", isTerritory = true, numSenators = 2)
 
   val ALL_STATES = Set(NSW, QLD, SA, TAS, VIC, WA, NT, ACT)
+
+  def fromShortName(shortName: String): Option[State] = ALL_STATES.find(_.shortName == shortName.trim.toUpperCase)
 }
