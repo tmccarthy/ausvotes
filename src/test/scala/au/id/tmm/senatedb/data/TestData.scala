@@ -41,7 +41,9 @@ private[data] object TestData {
       BtlPreferencesRow(ballotId, "C", 0, Some(2), None)
     )
 
-    BallotWithPreferences(ballot, atlPreferences, btlPreferences)
+    val ballotFacts = BallotFactsRow(ballotId, 6, 12, false, true)
+
+    BallotWithPreferences(ballot, ballotFacts, atlPreferences, btlPreferences)
   }
 
   val allNtCandidates: Set[CandidatesRow] = Set(

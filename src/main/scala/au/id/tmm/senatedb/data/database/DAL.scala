@@ -9,10 +9,11 @@ private[data] final class DAL(val driver: JdbcProfile) extends DriverComponent
   with GroupsComponent
   with CandidatesComponent
   with BallotComponent
+  with BallotFactsComponent
   with AtlPreferencesComponent
   with BtlPreferencesComponent {
 
-  private val allTables = Vector(groups, candidates, ballots, atlPreferences, btlPreferences)
+  private val allTables = Vector(groups, candidates, ballots, ballotFacts, atlPreferences, btlPreferences)
 
   import driver.api._
 

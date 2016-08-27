@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.data.database
 final case class AtlPreferencesRow(ballotId: String,
                                    group: String,
                                    preference: Option[Int],
-                                   specialChar: Option[Char])
+                                   mark: Option[Char])
 
 trait AtlPreferencesComponent { this: DriverComponent with BallotComponent =>
   import driver.api._

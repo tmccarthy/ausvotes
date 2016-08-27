@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
-import au.id.tmm.senatedb.data.database.{AtlPreferencesRow, BallotRow, BtlPreferencesRow}
+import au.id.tmm.senatedb.data.database.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -28,7 +28,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec {
   behaviour of formalPreferencesCsvLineToEntities.getClass.getSimpleName
 
   it should "create a ballot row as expected" in {
-    val (actualBallot, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
+    val (actualBallot, _, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
 
     val expectedBallot = BallotRow(ballotId = expectedBallotId,
       electionId = "20499",
@@ -42,9 +42,17 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec {
     assert(actualBallot === expectedBallot)
   }
 
+  it should "create the ballot facts as expected" in {
+    val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
+
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 12, false, true)
+
+    assert(actualBallotFacts === expectedBallotFacts)
+  }
+
   it should "create the above the line preferences rows as expected" in {
 
-    val (_, actualPreferences, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
+    val (_, _, actualPreferences, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
 
     val expectedPreferences = Set(
       AtlPreferencesRow(expectedBallotId, "C", Some(1), None),
@@ -59,7 +67,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec {
   }
 
   it should "create the below the line preferences rows as expected" in {
-    val (_, _, actualPreferences) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
+    val (_, _, _, actualPreferences) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT, numCandidatesPerGroup, csvLine).get.unapply
 
     val expectedPreferences = Set(
       BtlPreferencesRow(expectedBallotId, "I", 1, Some(11), None),

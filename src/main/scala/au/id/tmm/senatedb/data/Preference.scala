@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.data
 
 sealed trait Preference {
   def asNumber: Option[Int] = None
-  def asSpecialChar: Option[Char] = None
+  def asMark: Option[Char] = None
 }
 
 object Preference {
@@ -31,9 +31,9 @@ object Preference {
     }
   }
 
-  private def asSpecialChar(trimmedRawValue: String): Option[SpecialChar] = {
+  private def asSpecialChar(trimmedRawValue: String): Option[Mark] = {
     if (trimmedRawValue.length == 1) {
-      Some(SpecialChar(trimmedRawValue.charAt(0)))
+      Some(Mark(trimmedRawValue.charAt(0)))
     } else {
       None
     }
@@ -44,8 +44,8 @@ final case class Numbered(preference: Int) extends Preference {
   override def asNumber: Option[Int] = Some(preference)
 }
 
-final case class SpecialChar(char: Char) extends Preference {
-  override def asSpecialChar: Option[Char] = Some(char)
+final case class Mark(char: Char) extends Preference {
+  override def asMark: Option[Char] = Some(char)
 }
 
 case object Missing extends Preference

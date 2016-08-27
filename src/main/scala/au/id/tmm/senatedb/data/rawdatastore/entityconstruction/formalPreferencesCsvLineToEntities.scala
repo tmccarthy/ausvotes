@@ -21,8 +21,9 @@ object formalPreferencesCsvLineToEntities
 
     val preferenceString = row(5)
     val (atlPreferences, btlPreferences) = preferencesRowsOf(ballot.ballotId, numCandidatesPerGroup, preferenceString)
+    val ballotFacts = ballotFactsOf(ballot, atlPreferences, btlPreferences)
 
-    BallotWithPreferences(ballot, atlPreferences, btlPreferences)
+    BallotWithPreferences(ballot, ballotFacts, atlPreferences, btlPreferences)
   }
 
   private def ballotRowOf(election: SenateElection, state: State, row: Seq[String]): BallotRow = {
@@ -49,7 +50,7 @@ object formalPreferencesCsvLineToEntities
                                 numCandidatesPerGroup: ListMap[String, Int],
                                 preferencesString: String): (Set[AtlPreferencesRow], Set[BtlPreferencesRow]) = {
     val (groupPreferencesArray, candidatePreferencesArray) = preferencesString.split(",", -1)
-      .map(parsePreferenceFromString)
+      .map(Preference(_))
       .toVector
       .splitAt(numCandidatesPerGroup.keySet.size)
 
@@ -60,10 +61,6 @@ object formalPreferencesCsvLineToEntities
     (atlPreferences, btlPreferences)
   }
 
-  private def parsePreferenceFromString(preferenceAsString: String): Preference = {
-    Preference(preferenceAsString)
-  }
-
   private def atlPreferencesFrom(ballotId: String,
                                  numCandidatesPerGroup: ListMap[String, Int],
                                  groupPreferences: Vector[Preference]) = {
@@ -71,7 +68,7 @@ object formalPreferencesCsvLineToEntities
 
     (numCandidatesPerGroup.keys zip groupPreferences)
       .filter { case (_, preference) => preference != Missing }
-      .map { case (group, preference) => AtlPreferencesRow(ballotId, group, preference.asNumber, preference.asSpecialChar) }
+      .map { case (group, preference) => AtlPreferencesRow(ballotId, group, preference.asNumber, preference.asMark) }
       .toSet
   }
 
@@ -109,9 +106,20 @@ object formalPreferencesCsvLineToEntities
         case (preference, candidateIndex) => {
           val groupAndGroupPosition = groupAndGroupPositionPerCandidateIndex(candidateIndex)
 
-          BtlPreferencesRow(ballotId, groupAndGroupPosition._1, groupAndGroupPosition._2, preference.asNumber, preference.asSpecialChar)
+          BtlPreferencesRow(ballotId, groupAndGroupPosition._1, groupAndGroupPosition._2, preference.asNumber, preference.asMark)
         }
       }
       .toSet
+  }
+
+  private def ballotFactsOf(ballotRow: BallotRow,
+                            atlPreferences: Set[AtlPreferencesRow],
+                            btlPreferences: Set[BtlPreferencesRow]) = {
+    val numAtlPreferences = atlPreferences.flatMap(_.preference).reduceOption(_ max _).getOrElse(0)
+    val numBtlPreferences = btlPreferences.flatMap(_.preference).reduceOption(_ max _).getOrElse(0)
+    val usedSymbolAtl = atlPreferences.exists(_.mark.isDefined)
+    val usedSymbolBtl = btlPreferences.exists(_.mark.isDefined)
+
+    BallotFactsRow(ballotRow.ballotId, numAtlPreferences, numBtlPreferences, usedSymbolAtl, usedSymbolBtl)
   }
 }

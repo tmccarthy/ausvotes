@@ -17,10 +17,11 @@ class StoresBallotsSpec extends ImprovedFlatSpec with TestsPersistence {
     Await.result(persistence.storeBallotData(Set(ballotWithPreferences).toCloseableIterator), Inf)
 
     val storedBallot = Await.result(persistence.runQuery(persistence.dal.ballotsWithId(ballotId)), Inf).head
+    val storedBallotFacts = Await.result(persistence.runQuery(persistence.dal.ballotFactsFor(ballotId)), Inf).head
     val storedAtlPreferences = Await.result(persistence.runQuery(persistence.dal.atlPreferencesFor(ballotId)), Inf).toSet
     val storedBtlPreferences = Await.result(persistence.runQuery(persistence.dal.btlPreferencesFor(ballotId)), Inf).toSet
 
-    val storedBallotWithPreferences = BallotWithPreferences(storedBallot, storedAtlPreferences, storedBtlPreferences)
+    val storedBallotWithPreferences = BallotWithPreferences(storedBallot, storedBallotFacts, storedAtlPreferences, storedBtlPreferences)
 
     assert(storedBallotWithPreferences === ballotWithPreferences)
   }

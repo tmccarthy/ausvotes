@@ -18,26 +18,31 @@ private[database] trait StoresBallots { this: Persistence =>
       for {
         session <- managed(database.createSession())
         ballotInsertStatement <- managed(session.prepareInsertStatement(dal.ballots.insertStatement))
+        ballotFactsInsertStatement <- managed(session.prepareInsertStatement(dal.ballotFacts.insertStatement))
         atlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.atlPreferences.insertStatement))
         btlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.btlPreferences.insertStatement))
       } {
         for (ballots <- ballots.grouped(StoresBallots.INSERT_CHUNK_SIZE)) {
           session.prepareStatement("BEGIN;").execute()
           for (ballotWithPreferences <- ballots) {
-            fillStatement[BallotRow](ballotInsertStatement, row => BallotRow.unapply(row).get.productIterator, ballotWithPreferences.ballot)
+            fillStatement[BallotRow](ballotInsertStatement, BallotRow.unapply(_).get.productIterator, ballotWithPreferences.ballot)
             ballotInsertStatement.addBatch()
 
+            fillStatement[BallotFactsRow](ballotFactsInsertStatement, BallotFactsRow.unapply(_).get.productIterator, ballotWithPreferences.ballotFacts)
+            ballotFactsInsertStatement.addBatch()
+
             for (atlPreference <- ballotWithPreferences.atlPreferences) {
-              fillStatement[AtlPreferencesRow](atlPreferencesInsertStatement, row => AtlPreferencesRow.unapply(row).get.productIterator, atlPreference)
+              fillStatement[AtlPreferencesRow](atlPreferencesInsertStatement, AtlPreferencesRow.unapply(_).get.productIterator, atlPreference)
               atlPreferencesInsertStatement.addBatch()
             }
 
             for (btlPreference <- ballotWithPreferences.btlPreferences) {
-              fillStatement[BtlPreferencesRow](btlPreferencesInsertStatement, row => BtlPreferencesRow.unapply(row).get.productIterator, btlPreference)
+              fillStatement[BtlPreferencesRow](btlPreferencesInsertStatement, BtlPreferencesRow.unapply(_).get.productIterator, btlPreference)
               btlPreferencesInsertStatement.addBatch()
             }
           }
           ballotInsertStatement.executeBatch()
+          ballotFactsInsertStatement.executeBatch()
           atlPreferencesInsertStatement.executeBatch()
           btlPreferencesInsertStatement.executeBatch()
           session.prepareStatement("COMMIT;").execute()

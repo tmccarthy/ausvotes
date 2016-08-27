@@ -4,7 +4,7 @@ final case class BtlPreferencesRow(ballotId: String,
                                    group: String,
                                    groupPosition: Int,
                                    preference: Option[Int],
-                                   specialChar: Option[Char])
+                                   mark: Option[Char])
 
 trait BtlPreferencesComponent { this: DriverComponent with BallotComponent =>
   import driver.api._
