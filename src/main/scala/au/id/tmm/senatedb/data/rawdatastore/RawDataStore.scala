@@ -25,10 +25,15 @@ final class RawDataStore private (val location: Path) {
 
   def retrieveGroupsAndCandidates(election: SenateElection,
                                   downloadAllowed: Boolean = true): Try[(Set[GroupsRow], Set[CandidatesRow])] = {
-    for {
-      csvSource <- LoadingFirstPreferences.csvLinesOf(location, election, downloadAllowed)
-      groupsAndCandidates <- parseFirstPreferencesCsv(election, csvSource)
-    } yield groupsAndCandidates
+
+    LoadingFirstPreferences.csvLinesOf(location, election, downloadAllowed)
+      .flatMap { csvSource =>
+        try {
+          parseFirstPreferencesCsv(election, csvSource)
+        } finally {
+          csvSource.close()
+        }
+      }
   }
 
 }

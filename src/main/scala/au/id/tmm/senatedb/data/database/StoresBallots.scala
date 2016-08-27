@@ -14,34 +14,37 @@ private[database] trait StoresBallots { this: Persistence =>
   import dal.driver.api._
 
   def storeBallotData(ballots: CloseableIterator[BallotWithPreferences]): Future[Unit] = Future {
+    try {
+      for {
+        session <- managed(database.createSession())
+        ballotInsertStatement <- managed(session.prepareInsertStatement(dal.ballots.insertStatement))
+        atlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.atlPreferences.insertStatement))
+        btlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.btlPreferences.insertStatement))
+      } {
+        for (ballots <- ballots.grouped(StoresBallots.INSERT_CHUNK_SIZE)) {
+          session.prepareStatement("BEGIN;").execute()
+          for (ballotWithPreferences <- ballots) {
+            fillStatement[BallotRow](ballotInsertStatement, row => BallotRow.unapply(row).get.productIterator, ballotWithPreferences.ballot)
+            ballotInsertStatement.addBatch()
 
-    for {
-      session <- managed(database.createSession())
-      ballotInsertStatement <- managed(session.prepareInsertStatement(dal.ballots.insertStatement))
-      atlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.atlPreferences.insertStatement))
-      btlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.btlPreferences.insertStatement))
-    } {
-      for (ballots <- ballots.grouped(StoresBallots.INSERT_CHUNK_SIZE)) {
-        session.prepareStatement("BEGIN;").execute()
-        for (ballotWithPreferences <- ballots) {
-          fillStatement[BallotRow](ballotInsertStatement, row => BallotRow.unapply(row).get.productIterator, ballotWithPreferences.ballot)
-          ballotInsertStatement.addBatch()
+            for (atlPreference <- ballotWithPreferences.atlPreferences) {
+              fillStatement[AtlPreferencesRow](atlPreferencesInsertStatement, row => AtlPreferencesRow.unapply(row).get.productIterator, atlPreference)
+              atlPreferencesInsertStatement.addBatch()
+            }
 
-          for (atlPreference <- ballotWithPreferences.atlPreferences) {
-            fillStatement[AtlPreferencesRow](atlPreferencesInsertStatement, row => AtlPreferencesRow.unapply(row).get.productIterator, atlPreference)
-            atlPreferencesInsertStatement.addBatch()
+            for (btlPreference <- ballotWithPreferences.btlPreferences) {
+              fillStatement[BtlPreferencesRow](btlPreferencesInsertStatement, row => BtlPreferencesRow.unapply(row).get.productIterator, btlPreference)
+              btlPreferencesInsertStatement.addBatch()
+            }
           }
-
-          for (btlPreference <- ballotWithPreferences.btlPreferences) {
-            fillStatement[BtlPreferencesRow](btlPreferencesInsertStatement, row => BtlPreferencesRow.unapply(row).get.productIterator, btlPreference)
-            btlPreferencesInsertStatement.addBatch()
-          }
+          ballotInsertStatement.executeBatch()
+          atlPreferencesInsertStatement.executeBatch()
+          btlPreferencesInsertStatement.executeBatch()
+          session.prepareStatement("COMMIT;").execute()
         }
-        ballotInsertStatement.executeBatch()
-        atlPreferencesInsertStatement.executeBatch()
-        btlPreferencesInsertStatement.executeBatch()
-        session.prepareStatement("COMMIT;").execute()
       }
+    } finally {
+      ballots.close()
     }
   }
 
