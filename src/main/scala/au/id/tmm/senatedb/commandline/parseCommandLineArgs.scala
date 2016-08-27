@@ -35,6 +35,7 @@ object parseCommandLineArgs {
       }
 
     arg[String]("verb")
+      .text("the action to perform, one of LOAD or RELOAD")
       .action {
         case (verbName, accumulatedArgs) => {
           val parsedVerb = Verb.fromString(verbName)

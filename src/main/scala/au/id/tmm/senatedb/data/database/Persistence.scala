@@ -33,6 +33,7 @@ object Persistence {
     Class.forName(dbPlatform.jdbcDriverClassName)
     val database = dbPlatform match {
       case InMemoryH2(name) => Database.forURL(s"jdbc:h2:mem:$name;DB_CLOSE_DELAY=-1")
+      case SQLite(location) => Database.forURL(s"jdbc:sqlite:$location")
       case _ => throw new UnsupportedOperationException(s"Unsupported $dbPlatform")
     }
 

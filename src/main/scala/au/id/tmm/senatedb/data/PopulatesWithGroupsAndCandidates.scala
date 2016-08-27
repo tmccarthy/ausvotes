@@ -22,6 +22,7 @@ trait PopulatesWithGroupsAndCandidates { this: PersistencePopulator =>
     }
 
     for {
+      _ <- persistence.initialiseIfNeeded()
       _ <- deleteIfReloading()
       alreadyLoaded <- hasGroupsAndCandidatesFor(election)
       _ <- loadIfNeeded(alreadyLoaded)

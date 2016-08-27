@@ -9,7 +9,7 @@ class PersistencePopulator private (val persistence: Persistence,
                                     val rawDataStore: RawDataStore)
                                    (implicit val executionContext: ExecutionContext)
   extends PopulatesWithGroupsAndCandidates
-    with PopulatesWithBallots{
+    with PopulatesWithBallots {
 
 
 }

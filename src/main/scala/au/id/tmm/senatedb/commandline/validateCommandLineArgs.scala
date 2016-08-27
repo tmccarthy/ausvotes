@@ -5,7 +5,7 @@ import java.nio.file.Files
 import au.id.tmm.senatedb.commandline.Verb.UNSPECIFIED
 import au.id.tmm.senatedb.model.SenateElection
 
-object validateCommandLineArgs {
+object validateCommandLineArgs extends (CommandLineArgs => ErrorsOrArgs) {
 
   val supportedElections = Set(SenateElection.`2016`)
 
