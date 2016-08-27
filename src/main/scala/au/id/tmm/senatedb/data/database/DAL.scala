@@ -39,6 +39,10 @@ private[data] final class DAL(val driver: JdbcProfile) extends DriverComponent
     .map(_.schema)
     .reduce(_ ++ _)
     .drop
+
+  // So we can use .transactionally
+  implicit class ExtensionMethods[E <: Effect, R, S <: NoStream](a: DBIOAction[R, S, E])
+    extends driver.JdbcActionExtensionMethods[E, R, S](a)
 }
 
 private[data] object DAL {

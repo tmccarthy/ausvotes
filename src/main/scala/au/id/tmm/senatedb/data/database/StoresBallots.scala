@@ -1,30 +1,68 @@
 package au.id.tmm.senatedb.data.database
 
+import java.sql.PreparedStatement
+
 import au.id.tmm.senatedb.data.BallotWithPreferences
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
+import resource.managed
 
 import scala.concurrent.Future
 
 private[database] trait StoresBallots { this: Persistence =>
-  def storeBallotData(ballots: CloseableIterator[BallotWithPreferences]): Future[Unit] = {
-    val chunkInsertFutures = ballots
-      .grouped(StoresBallots.INSERT_CHUNK_SIZE)
-      .map(toInsert => {
-        val ballotRows = toInsert.map(_.ballot)
-        val atlPreferenceRows = toInsert.flatMap(_.atlPreferences)
-        val btlPreferenceRows = toInsert.flatMap(_.btlPreferences)
-
-        // TODO do this in a transaction?
-        execute(dal.insertBallots(ballotRows)
-          andThen dal.insertAtlPreferences(atlPreferenceRows)
-          andThen dal.insertBtlPreferences(btlPreferenceRows))
-      })
-
-    Future.sequence(chunkInsertFutures).map(_ => Unit)
-  }
 
   import dal.driver.api._
+
+  def storeBallotData(ballots: CloseableIterator[BallotWithPreferences]): Future[Unit] = Future {
+
+    for {
+      session <- managed(database.createSession())
+      ballotInsertStatement <- managed(session.prepareInsertStatement(dal.ballots.insertStatement))
+      atlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.atlPreferences.insertStatement))
+      btlPreferencesInsertStatement <- managed(session.prepareInsertStatement(dal.btlPreferences.insertStatement))
+    } {
+      for (ballots <- ballots.grouped(StoresBallots.INSERT_CHUNK_SIZE)) {
+        session.prepareStatement("BEGIN;").execute()
+        for (ballotWithPreferences <- ballots) {
+          fillStatement[BallotRow](ballotInsertStatement, row => BallotRow.unapply(row).get.productIterator, ballotWithPreferences.ballot)
+          ballotInsertStatement.addBatch()
+
+          for (atlPreference <- ballotWithPreferences.atlPreferences) {
+            fillStatement[AtlPreferencesRow](atlPreferencesInsertStatement, row => AtlPreferencesRow.unapply(row).get.productIterator, atlPreference)
+            atlPreferencesInsertStatement.addBatch()
+          }
+
+          for (btlPreference <- ballotWithPreferences.btlPreferences) {
+            fillStatement[BtlPreferencesRow](btlPreferencesInsertStatement, row => BtlPreferencesRow.unapply(row).get.productIterator, btlPreference)
+            btlPreferencesInsertStatement.addBatch()
+          }
+        }
+        ballotInsertStatement.executeBatch()
+        atlPreferencesInsertStatement.executeBatch()
+        btlPreferencesInsertStatement.executeBatch()
+        session.prepareStatement("COMMIT;").execute()
+      }
+    }
+  }
+
+  private def fillStatement[A](statement: PreparedStatement, toArray: (A => Iterator[Any]), row: A): Unit = {
+    val values = toArray(row)
+
+    values
+      .zipWithIndex
+      .foreach {
+        case (value, index) => setOnStatement(statement, index + 1, value)
+      }
+  }
+
+  @scala.annotation.tailrec
+  private def setOnStatement(statement: PreparedStatement, index: Int, value: Any): Unit = {
+    value match {
+      case None => statement.setObject(index, null)
+      case Some(internal) => setOnStatement(statement, index, internal)
+      case _ => statement.setObject(index, value)
+    }
+  }
 
   def hasBallotsFor(election: SenateElection, state: State): Future[Boolean] = {
     val query = dal.ballots
@@ -56,5 +94,5 @@ private[database] trait StoresBallots { this: Persistence =>
 }
 
 object StoresBallots {
-  private val INSERT_CHUNK_SIZE = 100
+  private val INSERT_CHUNK_SIZE = 100000
 }

@@ -8,7 +8,7 @@ final case class AtlPreferencesRow(ballotId: String,
 trait AtlPreferencesComponent { this: DriverComponent with BallotComponent =>
   import driver.api._
 
-  class AtlPreferencesTable(tag: Tag) extends Table[AtlPreferencesRow](tag, "AtlPreferencesTable") {
+  class AtlPreferencesTable(tag: Tag) extends Table[AtlPreferencesRow](tag, "AtlPreferences") {
     def ballotId = column[String]("ballotId")
 
     def group = column[String]("group")
