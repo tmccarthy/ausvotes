@@ -7,22 +7,20 @@ import scopt.OptionParser
 
 object parseCommandLineArgs {
 
-  type ErrorOrArgs = Either[List[CommandLineError], CommandLineArgs]
+  private val initialValue: ErrorsOrArgs = CommandLineArgs()
 
-  private val initialValue: ErrorOrArgs = Right(CommandLineArgs())
+  def apply(argsString: String): ErrorsOrArgs = parseCommandLineArgs(argsString.split("\\s+"))
 
-  def apply(argsString: String): ErrorOrArgs = parseCommandLineArgs(argsString.split("\\s+"))
+  def apply(args: Array[String]): ErrorsOrArgs = parser.parse(args, initialValue)
+    .getOrElse(CommandLineErrors(List(CommandLineError.InvalidFlagProvided)))
 
-  def apply(args: Array[String]): ErrorOrArgs = parser.parse(args, initialValue)
-    .getOrElse(Left(List(CommandLineError.InvalidFlagProvided)))
-
-  private val parser = new OptionParser[ErrorOrArgs]("SenateDB") {
+  private val parser = new OptionParser[ErrorsOrArgs]("SenateDB") {
     override def terminate(exitState: Either[String, Unit]): Unit = {}
 
-    private def addError(accumulated: ErrorOrArgs, error: CommandLineError): ErrorOrArgs = {
+    private def addError(accumulated: ErrorsOrArgs, error: CommandLineError): ErrorsOrArgs = {
       accumulated match {
-        case Left(existingErrors) => Left(existingErrors :+ error)
-        case Right(accumulatedArgs) => Left(List(error))
+        case CommandLineErrors(existingErrors) => CommandLineErrors(existingErrors :+ error)
+        case args: CommandLineArgs => CommandLineErrors(List(error))
       }
     }
 
@@ -42,7 +40,7 @@ object parseCommandLineArgs {
           val parsedVerb = Verb.fromString(verbName)
 
           parsedVerb match {
-            case Some(verb) => accumulatedArgs.right.map(_.copy(verb = verb))
+            case Some(verb) => accumulatedArgs.map(_.copy(verb = verb))
             case None => addError(accumulatedArgs, CommandLineError.UnrecognisedVerb(verbName))
           }
         }
@@ -51,19 +49,19 @@ object parseCommandLineArgs {
     opt[Unit]("forbidDownload")
       .text("forbids the downloading of raw data, failing if this is required")
       .action {
-        case (_, accumulatedArgs) => accumulatedArgs.right.map(_.copy(forbidDownload = true))
+        case (_, accumulatedArgs) => accumulatedArgs.map(_.copy(forbidDownload = true))
       }
 
     opt[File]("rawData")
       .text("specifies the raw data directory, which will be created if missing (defaults to './rawData')")
       .action {
-        case (directory, accumulatedArgs) => accumulatedArgs.right.map(_.copy(rawDataDirectory = directory.toPath))
+        case (directory, accumulatedArgs) => accumulatedArgs.map(_.copy(rawDataDirectory = directory.toPath))
       }
 
     opt[File]("sqlite")
       .text("specifies the location of an sqlite database, into which data will be loaded (defaults to '.SenateDB.db')")
       .action {
-        case (database, accumulatedArgs) => accumulatedArgs.right.map(_.copy(sqliteLocation = Some(database.toPath)))
+        case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(sqliteLocation = Some(database.toPath)))
       }
 
     opt[String]("election")
@@ -73,7 +71,7 @@ object parseCommandLineArgs {
           val parsedElection = SenateElection.fromCommonName(electionName)
 
           parsedElection match {
-            case Some(election) => accumulatedArgs.right.map(_.copy(election = election))
+            case Some(election) => accumulatedArgs.map(_.copy(election = election))
             case None => addError(accumulatedArgs, CommandLineError.UnrecognisedElection(electionName))
           }
         }
@@ -82,7 +80,7 @@ object parseCommandLineArgs {
     opt[Unit]("allStates")
       .text("requests that all states from the specified election be loaded")
       .action {
-        case (_, accumulatedArgs) => accumulatedArgs.right.map(args => args.copy(statesToLoad = args.election.states))
+        case (_, accumulatedArgs) => accumulatedArgs.map(args => args.copy(statesToLoad = args.election.states))
       }
 
     arg[String]("stateNames")
@@ -93,7 +91,7 @@ object parseCommandLineArgs {
           val parsedState = State.fromShortName(stateName)
 
           parsedState match {
-            case Some(state) => accumulatedArgs.right.map(args => args.copy(statesToLoad = args.statesToLoad + state))
+            case Some(state) => accumulatedArgs.map(args => args.copy(statesToLoad = args.statesToLoad + state))
             case None => addError(accumulatedArgs, CommandLineError.UnrecognisedState(stateName))
           }
         }

@@ -13,4 +13,5 @@ object SenateElection {
   }
 
   val `2016` = SenateElection(LocalDate.of(2016, Month.JULY, 2), State.ALL_STATES, "20499")
+  val `2013` = SenateElection(LocalDate.of(2013, Month.SEPTEMBER, 7), State.ALL_STATES, "17496")
 }

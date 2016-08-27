@@ -33,4 +33,7 @@ object CommandLineError {
 
   case class UnrecognisedVerb(verbName: String)
     extends CommandLineError
+
+  case object MissingVerb
+    extends CommandLineError
 }
