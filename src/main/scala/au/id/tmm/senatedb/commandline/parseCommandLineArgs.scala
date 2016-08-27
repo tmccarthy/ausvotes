@@ -59,7 +59,7 @@ object parseCommandLineArgs {
       }
 
     opt[File]("sqlite")
-      .text("specifies the location of an sqlite database, into which data will be loaded (defaults to '.SenateDB.db')")
+      .text("specifies the location of an sqlite database, into which data will be loaded (defaults to 'SenateDB.db')")
       .action {
         case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(sqliteLocation = Some(database.toPath)))
       }

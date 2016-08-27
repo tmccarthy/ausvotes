@@ -104,7 +104,7 @@ class parseCommandLineArgsSpec extends ImprovedFlatSpec {
   it should "return an error if the election cannot be parsed" in {
     val result = parseCommandLineArgs("load --election blah NSW")
 
-    assert(result === Left(List(CommandLineError.UnrecognisedElection("blah"))))
+    assert(result === CommandLineErrors(List(CommandLineError.UnrecognisedElection("blah"))))
   }
 
   behaviour of "the states"
@@ -133,6 +133,6 @@ class parseCommandLineArgsSpec extends ImprovedFlatSpec {
   "requesting help" should "prevent further parsing" in {
     val result = parseCommandLineArgs("--help load --allStates")
 
-    assert(result === Left(List(CommandLineError.HelpRequested)))
+    assert(result === CommandLineErrors(List(CommandLineError.HelpRequested)))
   }
 }
