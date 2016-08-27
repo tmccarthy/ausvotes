@@ -31,5 +31,3 @@ libraryDependencies ++= Seq(
 
   "commons-io" % "commons-io" % "2.4"
 )
-
-parallelExecution in Test := false
