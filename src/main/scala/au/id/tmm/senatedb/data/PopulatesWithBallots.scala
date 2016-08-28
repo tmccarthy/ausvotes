@@ -2,7 +2,8 @@ package au.id.tmm.senatedb.data
 
 import au.id.tmm.senatedb.model.{SenateElection, State}
 
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 trait PopulatesWithBallots { this: PersistencePopulator =>
 
@@ -33,7 +34,9 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
       .toStream
       .map(state => loadOnlyBallotsForState(election, state, allowDownloading, forceReload))
 
-    Future.sequence(loadingFuturesPerState).map(_ => Unit)
+    Future {
+      loadingFuturesPerState.foreach(Await.result(_, Duration.Inf))
+    }
   }
 
   private def loadOnlyBallotsForState(election: SenateElection,
