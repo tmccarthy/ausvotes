@@ -90,6 +90,8 @@ private[database] trait StoresBallots { this: Persistence =>
 
     val btlPreferencesDeleteStatement = dal.btlPreferences.filter(_.ballotId in ballotIdsToDelete).delete
 
+    val ballotFactsDeleteStatement = dal.ballotFacts.filter(_.ballotId in ballotIdsToDelete).delete
+
     val ballotsDeleteStatement = dal.ballots
       .filter(_.electionId === election.aecID)
       .filter(_.state === state.shortName)
