@@ -8,6 +8,9 @@ final case class CommandLineArgs(verb: Verb = Verb.UNSPECIFIED,
                                  rawDataDirectory: Path = Paths.get("rawData"),
                                  forbidDownload: Boolean = false,
                                  sqliteLocation: Option[Path] = Some(Paths.get("senateDB.db")),
+                                 mySqlHost: Option[String] = None,
+                                 mySqlUser: Option[String] = None,
+                                 mySqlDatabase: Option[String] = Some("senatedb"),
                                  election: SenateElection = SenateElection.`2016`,
                                  statesToLoad: Set[State] = Set()) extends ErrorsOrArgs {
   override def map(f: (CommandLineArgs) => CommandLineArgs): ErrorsOrArgs = f(this)

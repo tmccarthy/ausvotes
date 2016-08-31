@@ -29,6 +29,21 @@ object CommandLineError {
     lazy val message = "No database was specified"
   }
 
+  case object MySqlHostNotSpecified
+    extends CommandLineError {
+    lazy val message = "No host was specified for the MySQL connection"
+  }
+
+  case object MySqlUserNotSpecified
+    extends CommandLineError {
+    lazy val message = "No user was specified for the MySQL connection"
+  }
+
+  case object MySqlDatabaseNotSpecified
+    extends CommandLineError {
+    lazy val message = "No database was specified for the MySQL connection"
+  }
+
   case class UnsupportedElection(election: SenateElection)
     extends CommandLineError {
     lazy val message = "The specified election is not supported"

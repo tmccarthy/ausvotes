@@ -13,7 +13,7 @@ object validateCommandLineArgs extends (CommandLineArgs => ErrorsOrArgs) {
     val validationErrors = List(
       checkVerb(args),
       checkRawData(args),
-      checkHasDatabase(args),
+      checkDatabase(args),
       checkStates(args),
       checkElection(args)
     ).flatten
@@ -43,9 +43,15 @@ object validateCommandLineArgs extends (CommandLineArgs => ErrorsOrArgs) {
     }
   }
 
-  private def checkHasDatabase(args: CommandLineArgs): Set[CommandLineError] = {
-    if (args.sqliteLocation.isEmpty) {
+  private def checkDatabase(args: CommandLineArgs): Set[CommandLineError] = {
+    if (args.mySqlHost.isEmpty && args.mySqlUser.isEmpty && args.sqliteLocation.isEmpty) {
       Set(CommandLineError.NoDatabaseSpecified)
+    } else if (args.mySqlHost.isDefined && args.mySqlUser.isEmpty) {
+      Set(CommandLineError.MySqlUserNotSpecified)
+    } else if (args.mySqlHost.isEmpty && args.mySqlUser.isDefined) {
+      Set(CommandLineError.MySqlHostNotSpecified)
+    } else if (args.mySqlDatabase.isEmpty) {
+      Set(CommandLineError.MySqlDatabaseNotSpecified)
     } else {
       Set()
     }

@@ -3,7 +3,8 @@ package au.id.tmm.senatedb.data.database
 import java.io.Closeable
 import java.nio.file.Path
 
-import slick.driver.{H2Driver, JdbcDriver, SQLiteDriver}
+import au.id.tmm.utilities.string.CharArrayUtils.ImprovedCharArray
+import slick.driver.{H2Driver, JdbcDriver, MySQLDriver, SQLiteDriver}
 import slick.jdbc.JdbcBackend._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,6 +35,11 @@ object Persistence {
     val database = dbPlatform match {
       case InMemoryH2(name) => Database.forURL(s"jdbc:h2:mem:$name;DB_CLOSE_DELAY=-1")
       case SQLite(location) => Database.forURL(s"jdbc:sqlite:$location")
+      case MySql(host, user, databaseName, password) => {
+        val passwordAsString = new String(password)
+        password.zeroOut()
+        Database.forURL(s"jdbc:mysql://$host/$databaseName", user, passwordAsString)
+      }
       case _ => throw new UnsupportedOperationException(s"Unsupported $dbPlatform")
     }
 
@@ -41,6 +47,13 @@ object Persistence {
   }
 
   sealed abstract class DbPlatform(val slickDriver: JdbcDriver, val jdbcDriverClassName: String)
-  case class InMemoryH2(name: String) extends DbPlatform(H2Driver, "org.h2.Driver")
-  case class SQLite(location: Path) extends DbPlatform(SQLiteDriver, "org.sqlite.JDBC")
+
+  case class InMemoryH2(name: String)
+    extends DbPlatform(H2Driver, "org.h2.Driver")
+
+  case class SQLite(location: Path)
+    extends DbPlatform(SQLiteDriver, "org.sqlite.JDBC")
+
+  case class MySql(host: String, user: String, database: String, password: Array[Char])
+    extends DbPlatform(MySQLDriver, "com.mysql.jdbc.Driver")
 }

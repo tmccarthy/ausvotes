@@ -43,12 +43,6 @@ class validateCommandLineArgsSpec extends ImprovedFlatSpec {
     assertMissingError(result, RawDataIsntDirectory(missingFile))
   }
 
-  "the sqlite location" must "be specified" in {
-    val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None))
-
-    assertHasError(result, NoDatabaseSpecified)
-  }
-
   "the states" must "include at least one state" in {
     val result = validateCommandLineArgs(CommandLineArgs(statesToLoad = Set()))
 
@@ -59,5 +53,33 @@ class validateCommandLineArgsSpec extends ImprovedFlatSpec {
     val result = validateCommandLineArgs(CommandLineArgs(election = SenateElection.`2013`))
 
     assertHasError(result, UnsupportedElection(SenateElection.`2013`))
+  }
+
+  "a database connection" must "be specified" in {
+    val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
+      mySqlDatabase = None, mySqlHost = None, mySqlUser = None))
+
+    assertHasError(result, NoDatabaseSpecified)
+  }
+
+  "a mysql connection" must "have the user specified" in {
+    val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
+      mySqlHost = Some("localhost"), mySqlUser = None))
+
+    assertHasError(result, MySqlUserNotSpecified)
+  }
+
+  it must "have the host specified" in {
+    val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
+      mySqlHost = None, mySqlUser = Some("test")))
+
+    assertHasError(result, MySqlHostNotSpecified)
+  }
+
+  it must "have the database specified" in {
+    val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
+      mySqlHost = Some("localhost"), mySqlUser = Some("test"), mySqlDatabase = None))
+
+    assertHasError(result, MySqlDatabaseNotSpecified)
   }
 }

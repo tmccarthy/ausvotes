@@ -69,6 +69,54 @@ class parseCommandLineArgsSpec extends ImprovedFlatSpec {
     assert(result.asArgs.sqliteLocation === Some(Paths.get("/tmp/db.db")))
   }
 
+  behaviour of "the mysql host"
+
+  it should "default to nothing" in {
+    val result = parseCommandLineArgs("load NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlHost === None)
+  }
+
+  it should "be specified with the --mysql-host flag" in {
+    val result = parseCommandLineArgs("load --mysql-host localhost NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlHost === Some("localhost"))
+  }
+
+  behaviour of "the mysql user"
+
+  it should "default to nothing" in {
+    val result = parseCommandLineArgs("load NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlUser === None)
+  }
+
+  it should "be specified with the --mysql-user flag" in {
+    val result = parseCommandLineArgs("load --mysql-user test NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlUser === Some("test"))
+  }
+
+  behaviour of "the mysql database"
+
+  it should "default to 'senatedb'" in {
+    val result = parseCommandLineArgs("load NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlDatabase === Some("senatedb"))
+  }
+
+  it should "be specified with the --mysql-db flag" in {
+    val result = parseCommandLineArgs("load --mysql-db thing NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.mySqlDatabase === Some("thing"))
+  }
+
   behaviour of "the forbidDownload switch"
 
   it should "default to false" in {

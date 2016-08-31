@@ -65,6 +65,24 @@ object parseCommandLineArgs {
         case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(sqliteLocation = Some(database.toPath)))
       }
 
+    opt[String]("mysql-host")
+      .text("specifies the mysql host to connect to (not enabled by default)")
+      .action {
+        case (host, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlHost = Some(host)))
+      }
+
+    opt[String]("mysql-user")
+      .text("specifies the mysql user to connect as (not enabled by default")
+      .action {
+        case (user, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlUser = Some(user)))
+      }
+
+    opt[String]("mysql-db")
+      .text("specifies the mysql database to connect to (defaults to 'senatedb')")
+      .action {
+        case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlDatabase = Some(database)))
+      }
+
     opt[String]("election")
       .text("specifies the election for which data will be loaded (defaults to '2016')")
       .action {
