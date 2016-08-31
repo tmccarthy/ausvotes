@@ -10,11 +10,11 @@ trait GroupsComponent { this: DriverComponent =>
   import driver.api._
 
   class GroupsTable(tag: Tag) extends Table[GroupsRow](tag, "Groups") {
-    def groupId = column[String]("groupId")
-    def election = column[String]("election")
-    def state = column[String]("state")
+    def groupId = column[String]("groupId", O.Length(2, varying = false))
+    def election = column[String]("election", O.Length(5, varying = false))
+    def state = column[String]("state", O.Length(3, varying = false))
 
-    def party = column[String]("party")
+    def party = column[String]("party", O.Length(100, varying = true))
 
     def pk = primaryKey("PK_GROUPS", (groupId, election, state))
 

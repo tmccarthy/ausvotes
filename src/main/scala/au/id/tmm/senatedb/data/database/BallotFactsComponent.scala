@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.BallotId
+
 case class BallotFactsRow(ballotId: String,
                           numAtlPreferences: Int,
                           numBtlPreferences: Int,
@@ -10,7 +12,7 @@ trait BallotFactsComponent { this: DriverComponent with BallotComponent =>
   import driver.api._
 
   class BallotFactsTable(tag: Tag) extends Table[BallotFactsRow](tag, "BallotFacts") {
-    def ballotId = column[String]("ballotId", O.PrimaryKey)
+    def ballotId = column[String]("ballotId", O.PrimaryKey, O.Length(BallotId.length, varying = false))
 
     def numAtlPreferences = column[Int]("numAtlPreferences")
     def numBtlPreferences = column[Int]("numBtlPreferences")

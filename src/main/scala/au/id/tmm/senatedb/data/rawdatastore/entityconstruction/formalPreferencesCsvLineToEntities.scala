@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
 import au.id.tmm.senatedb.data.database._
-import au.id.tmm.senatedb.data.{BallotWithPreferences, Missing, Preference, computeBallotId}
+import au.id.tmm.senatedb.data.{BallotId, BallotWithPreferences, Missing, Preference}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 
 import scala.collection.immutable.ListMap
@@ -32,7 +32,7 @@ object formalPreferencesCsvLineToEntities
     val batchNo = row(3).toInt
     val paperNo = row(4).toInt
 
-    val ballotId = computeBallotId(election.aecID, state.shortName, voteCollectionPointId, batchNo, paperNo)
+    val ballotId = BallotId.computeFor(election.aecID, state.shortName, voteCollectionPointId, batchNo, paperNo)
 
     BallotRow(
       ballotId,

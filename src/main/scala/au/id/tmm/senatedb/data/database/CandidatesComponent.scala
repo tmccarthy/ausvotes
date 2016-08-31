@@ -14,16 +14,16 @@ trait CandidatesComponent { this: DriverComponent with GroupsComponent =>
   import driver.api._
 
   class CandidatesTable(tag: Tag) extends Table[CandidatesRow](tag, "Candidates") {
-    def candidateId = column[String]("candidateId", O.PrimaryKey)
+    def candidateId = column[String]("candidateId", O.PrimaryKey, O.Length(5, varying = false))
 
-    def election = column[String]("electionId")
-    def state = column[String]("state")
+    def election = column[String]("electionId", O.Length(5, varying = false))
+    def state = column[String]("state", O.Length(3, varying = false))
 
-    def group = column[String]("group")
+    def group = column[String]("group", O.Length(2, varying = false))
     def positionInGroup = column[Int]("positionInGroup")
 
-    def name = column[String]("name")
-    def party = column[String]("party")
+    def name = column[String]("name", O.Length(100, varying = true))
+    def party = column[String]("party", O.Length(100, varying = true))
 
     def * = (candidateId, election, state, group, positionInGroup, name, party) <> (CandidatesRow.tupled, CandidatesRow.unapply)
 

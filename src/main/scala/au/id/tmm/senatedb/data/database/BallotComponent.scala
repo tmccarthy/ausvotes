@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.BallotId
+
 final case class BallotRow(ballotId: String,
                            electionId: String,
                            state: String,
@@ -12,12 +14,12 @@ trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with 
   import driver.api._
 
   class BallotTable(tag: Tag) extends Table[BallotRow](tag, "Ballots") {
-    def ballotId = column[String]("ballotId")
+    def ballotId = column[String]("ballotId", O.Length(BallotId.length, varying = false))
 
-    def electionId = column[String]("electionId")
-    def state = column[String]("state")
+    def electionId = column[String]("electionId", O.Length(5, varying = false))
+    def state = column[String]("state", O.Length(3, varying = false))
 
-    def electorate = column[String]("electorate")
+    def electorate = column[String]("electorate", O.Length(15, varying = true))
     def voteCollectionPointId = column[Int]("voteCollectionPointId")
     def batchNo = column[Int]("batchNo")
     def paperNo = column[Int]("paperNo")

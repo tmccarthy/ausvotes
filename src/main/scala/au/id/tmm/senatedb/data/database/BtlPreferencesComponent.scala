@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.BallotId
+
 final case class BtlPreferencesRow(ballotId: String,
                                    group: String,
                                    groupPosition: Int,
@@ -10,9 +12,9 @@ trait BtlPreferencesComponent { this: DriverComponent with BallotComponent =>
   import driver.api._
 
   class BtlPreferencesTable(tag: Tag) extends Table[BtlPreferencesRow](tag, "BtlPreferences") {
-    def ballotId = column[String]("ballotId")
+    def ballotId = column[String]("ballotId", O.Length(BallotId.length, varying = false))
 
-    def group = column[String]("group")
+    def group = column[String]("group", O.Length(2, varying = false))
     def groupPosition = column[Int]("groupPosition")
 
     def preference = column[Option[Int]]("preference")
