@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
 import au.id.tmm.senatedb.data.BallotWithPreferences
-import au.id.tmm.senatedb.data.database._
+import au.id.tmm.senatedb.data.database.model.CandidatesRow
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
 

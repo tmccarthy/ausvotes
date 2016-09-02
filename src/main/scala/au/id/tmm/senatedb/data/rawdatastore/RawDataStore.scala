@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.data.rawdatastore
 import java.nio.file.Path
 
 import au.id.tmm.senatedb.data.BallotWithPreferences
-import au.id.tmm.senatedb.data.database.{CandidatesRow, GroupsRow}
+import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.data.rawdatastore.download.{LoadingFirstPreferences, LoadingFormalPreferences}
 import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.{parseFirstPreferencesCsv, parseFormalPreferencesCsv}
 import au.id.tmm.senatedb.model.{SenateElection, State}

@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
-import au.id.tmm.senatedb.data.database._
+import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
 import au.id.tmm.senatedb.data.{BallotId, BallotWithPreferences, Missing, Preference}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 

@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.data.database
 import java.sql.PreparedStatement
 
 import au.id.tmm.senatedb.data.BallotWithPreferences
+import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
 import resource.managed

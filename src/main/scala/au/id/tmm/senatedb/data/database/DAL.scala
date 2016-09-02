@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.database.model._
 import slick.driver.JdbcProfile
 import slick.jdbc.meta.MTable
 

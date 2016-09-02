@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data
 
-import au.id.tmm.senatedb.data.database._
+import au.id.tmm.senatedb.data.database.model._
 
 private[data] object TestData {
   val aTestBallot: BallotWithPreferences = {

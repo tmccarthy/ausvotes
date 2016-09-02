@@ -1,6 +1,7 @@
-package au.id.tmm.senatedb.data.database
+package au.id.tmm.senatedb.data.database.model
 
 import au.id.tmm.senatedb.data.BallotId
+import au.id.tmm.senatedb.data.database.DriverComponent
 
 case class BallotFactsRow(ballotId: String,
                           numAtlPreferences: Int,

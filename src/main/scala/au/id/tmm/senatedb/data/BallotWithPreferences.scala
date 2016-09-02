@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data
 
-import au.id.tmm.senatedb.data.database.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
+import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
 
 private[data] final case class BallotWithPreferences(ballot: BallotRow,
                                                      ballotFacts: BallotFactsRow,

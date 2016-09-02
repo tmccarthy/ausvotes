@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data
 
-import au.id.tmm.senatedb.data.database.BallotRow
+import au.id.tmm.senatedb.data.database.model.BallotRow
 import au.id.tmm.senatedb.data.rawdatastore.download.DataMissingDownloadDisallowedException
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec

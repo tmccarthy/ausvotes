@@ -1,6 +1,7 @@
-package au.id.tmm.senatedb.data.database
+package au.id.tmm.senatedb.data.database.model
 
 import au.id.tmm.senatedb.data.BallotId
+import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 final case class AtlPreferencesRow(ballotId: String,

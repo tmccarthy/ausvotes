@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
-import au.id.tmm.senatedb.data.database.{CandidatesRow, GroupsRow}
+import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.model.SenateElection
 
 import scala.util.Try

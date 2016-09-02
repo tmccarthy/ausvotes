@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.model.SenateElection
 
 import scala.concurrent.Future
