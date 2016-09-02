@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.data
 
 import au.id.tmm.senatedb.model.{SenateElection, State}
+import slick.driver.SQLiteDriver
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -34,8 +35,12 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
       .toStream
       .map(state => loadOnlyBallotsForState(election, state, allowDownloading, forceReload))
 
-    Future {
-      loadingFuturesPerState.foreach(Await.result(_, Duration.Inf))
+    if (this.persistence.dal.driver == SQLiteDriver) {
+      Future {
+        loadingFuturesPerState.foreach(Await.result(_, Duration.Inf))
+      }
+    } else {
+      Future.sequence(loadingFuturesPerState).map(_ => Unit)
     }
   }
 
