@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.commandline
 
 import au.id.tmm.senatedb.data.PersistencePopulator
 import au.id.tmm.senatedb.data.database.Persistence
-import au.id.tmm.senatedb.data.database.Persistence.{DbPlatform, MySql, SQLite}
+import au.id.tmm.senatedb.data.database.Persistence.{DbPlatform, Postgres, SQLite}
 import au.id.tmm.senatedb.data.rawdatastore.RawDataStore
 
 import scala.concurrent.duration.Duration.Inf
@@ -37,19 +37,21 @@ object CommandLineApp {
   }
 
   private def dbPlatformOf(args: CommandLineArgs): DbPlatform = {
-    if (args.mySqlHost.isDefined && args.mySqlUser.isDefined && args.mySqlDatabase.isDefined) {
-      val host = args.mySqlHost.get
-      val user = args.mySqlUser.get
-      val database = args.mySqlDatabase.get
+    if (args.postgresHost.isDefined && args.postgresUser.isDefined && args.postgresDatabase.isDefined) {
+      val host = args.postgresHost.get
+      val user = args.postgresUser.get
+      val database = args.postgresDatabase.get
 
-      val password = System.console().readPassword(s"MySql password for $user@$host: ")
+      val password = args.postgresPassword getOrElse askUserForPassword(user, host)
 
-      MySql(host, user, database, password)
+      Postgres(host, user, database, password)
     } else {
       SQLite(args.sqliteLocation.get)
     }
   }
 
+  private def askUserForPassword(user: String, host: String): Array[Char] =
+    System.console().readPassword(s"Postgres password for $user@$host: ")
 
   private def handle(e: CommandLineErrors): Unit = {
     if (e.errors.contains(CommandLineError.HelpRequested)) {

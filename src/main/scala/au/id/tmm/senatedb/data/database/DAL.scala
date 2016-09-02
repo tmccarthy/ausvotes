@@ -15,13 +15,16 @@ private[data] final class DAL(val driver: JdbcProfile) extends DriverComponent
 
   private val allTables = Vector(groups, candidates, ballots, ballotFacts, atlPreferences, btlPreferences)
 
+  private lazy val allTableNames = allTables.map(_.baseTableRow.tableName)
+
   import driver.api._
 
   def listTables = MTable.getTables
 
   def listTableNames(implicit executionContext: ExecutionContext) = listTables.map(_.map(_.name.name))
 
-  def isInitialised(implicit executionContext: ExecutionContext) = listTables.map(_.nonEmpty)
+  def isInitialised(implicit executionContext: ExecutionContext) =
+    listTableNames.map(tableNames => allTableNames.forall(tableNames.contains))
 
   def initialise() = {
     createAllTables()

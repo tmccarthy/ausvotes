@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.data.database
 
 import au.id.tmm.senatedb.data.BallotId
+import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 final case class BallotRow(ballotId: String,
                            electionId: String,
@@ -9,6 +10,13 @@ final case class BallotRow(ballotId: String,
                            voteCollectionPointId: Int,
                            batchNo: Int,
                            paperNo: Int)
+
+object BallotRow {
+  def tupled(tuple: (String, String, String, String, Int, Int, Int)): BallotRow = tuple match {
+    case (ballotId, electionId, state, electorate, voteCollectionPointId, batchNo, paperNo) =>
+      BallotRow(ballotId, electionId, state.rtrim, electorate.rtrim, voteCollectionPointId, batchNo, paperNo)
+  }
+}
 
 trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with AtlPreferencesComponent =>
   import driver.api._
@@ -24,13 +32,8 @@ trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with 
     def batchNo = column[Int]("batchNo")
     def paperNo = column[Int]("paperNo")
 
-    def * = (ballotId,
-      electionId,
-      state,
-      electorate,
-      voteCollectionPointId,
-      batchNo,
-      paperNo) <> (BallotRow.tupled, BallotRow.unapply)
+    def * = (ballotId, electionId, state, electorate, voteCollectionPointId, batchNo, paperNo) <>
+      (BallotRow.tupled, BallotRow.unapply)
   }
 
   val ballots: TableQuery[BallotTable] = TableQuery[BallotTable]

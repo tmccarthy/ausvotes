@@ -29,17 +29,17 @@ object CommandLineError {
     lazy val message = "No database was specified"
   }
 
-  case object MySqlHostNotSpecified
+  case object PostgresHostNotSpecified
     extends CommandLineError {
     lazy val message = "No host was specified for the MySQL connection"
   }
 
-  case object MySqlUserNotSpecified
+  case object PostgresUserNotSpecified
     extends CommandLineError {
     lazy val message = "No user was specified for the MySQL connection"
   }
 
-  case object MySqlDatabaseNotSpecified
+  case object PostgresDatabaseNotSpecified
     extends CommandLineError {
     lazy val message = "No database was specified for the MySQL connection"
   }

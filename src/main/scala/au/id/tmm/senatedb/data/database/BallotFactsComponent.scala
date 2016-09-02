@@ -21,8 +21,6 @@ trait BallotFactsComponent { this: DriverComponent with BallotComponent =>
 
     def * = (ballotId, numAtlPreferences, numBtlPreferences, atlUsedSymbols, btlUsedSymbols) <>
       (BallotFactsRow.tupled, BallotFactsRow.unapply)
-
-    def joinedBallot = foreignKey("FK_BALLOT_FACTS", ballotId, ballots)(_.ballotId)
   }
 
   val ballotFacts = TableQuery[BallotFactsTable]

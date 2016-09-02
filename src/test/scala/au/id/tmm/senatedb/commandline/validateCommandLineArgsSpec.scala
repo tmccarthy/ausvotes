@@ -57,29 +57,29 @@ class validateCommandLineArgsSpec extends ImprovedFlatSpec {
 
   "a database connection" must "be specified" in {
     val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
-      mySqlDatabase = None, mySqlHost = None, mySqlUser = None))
+      postgresDatabase = None, postgresHost = None, postgresUser = None))
 
     assertHasError(result, NoDatabaseSpecified)
   }
 
   "a mysql connection" must "have the user specified" in {
     val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
-      mySqlHost = Some("localhost"), mySqlUser = None))
+      postgresHost = Some("localhost"), postgresUser = None))
 
-    assertHasError(result, MySqlUserNotSpecified)
+    assertHasError(result, PostgresUserNotSpecified)
   }
 
   it must "have the host specified" in {
     val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
-      mySqlHost = None, mySqlUser = Some("test")))
+      postgresHost = None, postgresUser = Some("test")))
 
-    assertHasError(result, MySqlHostNotSpecified)
+    assertHasError(result, PostgresHostNotSpecified)
   }
 
   it must "have the database specified" in {
     val result = validateCommandLineArgs(CommandLineArgs(sqliteLocation = None,
-      mySqlHost = Some("localhost"), mySqlUser = Some("test"), mySqlDatabase = None))
+      postgresHost = Some("localhost"), postgresUser = Some("test"), postgresDatabase = None))
 
-    assertHasError(result, MySqlDatabaseNotSpecified)
+    assertHasError(result, PostgresDatabaseNotSpecified)
   }
 }

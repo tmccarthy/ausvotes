@@ -4,7 +4,7 @@ import java.io.Closeable
 import java.nio.file.Path
 
 import au.id.tmm.utilities.string.CharArrayUtils.ImprovedCharArray
-import slick.driver.{H2Driver, JdbcDriver, MySQLDriver, SQLiteDriver}
+import slick.driver._
 import slick.jdbc.JdbcBackend._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,10 +35,10 @@ object Persistence {
     val database = dbPlatform match {
       case InMemoryH2(name) => Database.forURL(s"jdbc:h2:mem:$name;DB_CLOSE_DELAY=-1")
       case SQLite(location) => Database.forURL(s"jdbc:sqlite:$location")
-      case MySql(host, user, databaseName, password) => {
+      case Postgres(host, user, databaseName, password) => {
         val passwordAsString = new String(password)
         password.zeroOut()
-        Database.forURL(s"jdbc:mysql://$host/$databaseName", user, passwordAsString)
+        Database.forURL(s"jdbc:postgresql://$host/$databaseName", user, passwordAsString)
       }
       case _ => throw new UnsupportedOperationException(s"Unsupported $dbPlatform")
     }
@@ -54,6 +54,6 @@ object Persistence {
   case class SQLite(location: Path)
     extends DbPlatform(SQLiteDriver, "org.sqlite.JDBC")
 
-  case class MySql(host: String, user: String, database: String, password: Array[Char])
-    extends DbPlatform(MySQLDriver, "com.mysql.jdbc.Driver")
+  case class Postgres(host: String, user: String, database: String, password: Array[Char])
+    extends DbPlatform(PostgresDriver, "org.postgresql.Driver")
 }

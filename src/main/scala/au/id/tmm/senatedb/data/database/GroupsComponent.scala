@@ -1,9 +1,17 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.utilities.string.StringUtils.ImprovedString
+
 final case class GroupsRow(groupId: String,
                            election: String,
                            state: String,
                            party: String)
+
+object GroupsRow {
+  def tupled(tuple: (String, String, String, String)): GroupsRow = tuple match {
+    case (groupId, election, state, party) => GroupsRow(groupId.rtrim, election, state.rtrim, party.rtrim)
+  }
+}
 
 trait GroupsComponent { this: DriverComponent =>
 

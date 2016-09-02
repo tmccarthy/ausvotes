@@ -44,14 +44,14 @@ object validateCommandLineArgs extends (CommandLineArgs => ErrorsOrArgs) {
   }
 
   private def checkDatabase(args: CommandLineArgs): Set[CommandLineError] = {
-    if (args.mySqlHost.isEmpty && args.mySqlUser.isEmpty && args.sqliteLocation.isEmpty) {
+    if (args.postgresHost.isEmpty && args.postgresUser.isEmpty && args.sqliteLocation.isEmpty) {
       Set(CommandLineError.NoDatabaseSpecified)
-    } else if (args.mySqlHost.isDefined && args.mySqlUser.isEmpty) {
-      Set(CommandLineError.MySqlUserNotSpecified)
-    } else if (args.mySqlHost.isEmpty && args.mySqlUser.isDefined) {
-      Set(CommandLineError.MySqlHostNotSpecified)
-    } else if (args.mySqlDatabase.isEmpty) {
-      Set(CommandLineError.MySqlDatabaseNotSpecified)
+    } else if (args.postgresHost.isDefined && args.postgresUser.isEmpty) {
+      Set(CommandLineError.PostgresUserNotSpecified)
+    } else if (args.postgresHost.isEmpty && args.postgresUser.isDefined) {
+      Set(CommandLineError.PostgresHostNotSpecified)
+    } else if (args.postgresDatabase.isEmpty) {
+      Set(CommandLineError.PostgresDatabaseNotSpecified)
     } else {
       Set()
     }

@@ -65,22 +65,28 @@ object parseCommandLineArgs {
         case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(sqliteLocation = Some(database.toPath)))
       }
 
-    opt[String]("mysql-host")
-      .text("specifies the mysql host to connect to (not enabled by default)")
+    opt[String]("postgres-host")
+      .text("specifies the Postgres host to connect to (not enabled by default)")
       .action {
-        case (host, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlHost = Some(host)))
+        case (host, accumulatedArgs) => accumulatedArgs.map(_.copy(postgresHost = Some(host)))
       }
 
-    opt[String]("mysql-user")
-      .text("specifies the mysql user to connect as (not enabled by default")
+    opt[String]("postgres-user")
+      .text("specifies the Postgres user to connect as (not enabled by default")
       .action {
-        case (user, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlUser = Some(user)))
+        case (user, accumulatedArgs) => accumulatedArgs.map(_.copy(postgresUser = Some(user)))
       }
 
-    opt[String]("mysql-db")
-      .text("specifies the mysql database to connect to (defaults to 'senatedb')")
+    opt[String]("postgres-db")
+      .text("specifies the Postgres database to connect to (defaults to 'senatedb')")
       .action {
-        case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(mySqlDatabase = Some(database)))
+        case (database, accumulatedArgs) => accumulatedArgs.map(_.copy(postgresDatabase = Some(database)))
+      }
+
+    opt[String]("postgres-password")
+      .text("specifies the password for the Postgres database (defaults to empty, in which case user is prompted for password)")
+      .action {
+        case (password, accumulatedArgs) => accumulatedArgs.map(_.copy(postgresPassword = Some(password.toCharArray)))
       }
 
     opt[String]("election")

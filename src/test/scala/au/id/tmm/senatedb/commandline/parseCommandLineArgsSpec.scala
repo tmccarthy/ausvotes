@@ -69,52 +69,68 @@ class parseCommandLineArgsSpec extends ImprovedFlatSpec {
     assert(result.asArgs.sqliteLocation === Some(Paths.get("/tmp/db.db")))
   }
 
-  behaviour of "the mysql host"
+  behaviour of "the postgres host"
 
   it should "default to nothing" in {
     val result = parseCommandLineArgs("load NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlHost === None)
+    assert(result.asArgs.postgresHost === None)
   }
 
-  it should "be specified with the --mysql-host flag" in {
-    val result = parseCommandLineArgs("load --mysql-host localhost NSW")
+  it should "be specified with the --postgres-host flag" in {
+    val result = parseCommandLineArgs("load --postgres-host localhost NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlHost === Some("localhost"))
+    assert(result.asArgs.postgresHost === Some("localhost"))
   }
 
-  behaviour of "the mysql user"
+  behaviour of "the postgres user"
 
   it should "default to nothing" in {
     val result = parseCommandLineArgs("load NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlUser === None)
+    assert(result.asArgs.postgresUser === None)
   }
 
-  it should "be specified with the --mysql-user flag" in {
-    val result = parseCommandLineArgs("load --mysql-user test NSW")
+  it should "be specified with the --postgres-user flag" in {
+    val result = parseCommandLineArgs("load --postgres-user test NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlUser === Some("test"))
+    assert(result.asArgs.postgresUser === Some("test"))
   }
 
-  behaviour of "the mysql database"
+  behaviour of "the postgres database"
 
   it should "default to 'senatedb'" in {
     val result = parseCommandLineArgs("load NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlDatabase === Some("senatedb"))
+    assert(result.asArgs.postgresDatabase === Some("senatedb"))
   }
 
-  it should "be specified with the --mysql-db flag" in {
-    val result = parseCommandLineArgs("load --mysql-db thing NSW")
+  it should "be specified with the --postgres-db flag" in {
+    val result = parseCommandLineArgs("load --postgres-db thing NSW")
 
     assert(result.isArgs, result)
-    assert(result.asArgs.mySqlDatabase === Some("thing"))
+    assert(result.asArgs.postgresDatabase === Some("thing"))
+  }
+
+  behaviour of "the postgres password"
+
+  it should "default to empty" in {
+    val result = parseCommandLineArgs("load NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.postgresPassword === None)
+  }
+
+  it should "be specified with the --postgres-password flag" in {
+    val result = parseCommandLineArgs("load --postgres-password password NSW")
+
+    assert(result.isArgs, result)
+    assert(result.asArgs.postgresPassword.map(_.toList) === Some("password".toCharArray).map(_.toList))
   }
 
   behaviour of "the forbidDownload switch"
