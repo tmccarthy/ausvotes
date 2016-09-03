@@ -14,5 +14,6 @@ case class DistributeSurplus(subsequentSnapshot: StvCountSnapshot,
 
 case class ExcludeCandidate(subsequentSnapshot: StvCountSnapshot,
                             candidate: Candidate,
+                            transferValue: Double,
                             votesTransferringPerCandidate: Map[Candidate, Int],
                             votesExhausting: Int)

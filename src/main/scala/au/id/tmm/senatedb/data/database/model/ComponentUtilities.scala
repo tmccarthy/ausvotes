@@ -17,12 +17,15 @@ trait ComponentUtilities { this: DriverComponent =>
   val partyLength = driver.columnOptions.Length(100, varying = true)
   val electorateLength = driver.columnOptions.Length(15, varying = true)
 
+  val groupColumnName = "group"
+  val positionInGroupColumnName = "positionInGroup"
+
   trait CommonColumns { this: Table[_] =>
     def electionIdColumn(extraOptions: ColumnOption[String]*)(implicit tt: slick.ast.TypedType[String]) =
       column[String]("electionId", List(electionIdLength) ++ extraOptions: _*)
 
     def groupColumn(extraOptions: ColumnOption[String]*)(implicit tt: slick.ast.TypedType[String]) =
-      column[String]("group", List(groupLength) ++ extraOptions: _*)
+      column[String](groupColumnName, List(groupLength) ++ extraOptions: _*)
 
     def candidateIdColumn(extraOptions: ColumnOption[String]*)(implicit tt: slick.ast.TypedType[String]) =
       column[String]("candidateId", List(candidateIdLength) ++ extraOptions: _*)
@@ -52,6 +55,9 @@ trait ComponentUtilities { this: DriverComponent =>
       column[Int]("voteCollectionPointId", extraOptions: _*)
 
     def positionInGroupColumn(extraOptions: ColumnOption[Int]*)(implicit tt: slick.ast.TypedType[Int]) =
-      column[Int]("positionInGroup", extraOptions: _*)
+      column[Int](positionInGroupColumnName, extraOptions: _*)
+
+    def countColumn(extraOptions: ColumnOption[Int]*)(implicit tt: slick.ast.TypedType[Int]) =
+      column[Int]("count", extraOptions: _*)
   }
 }
