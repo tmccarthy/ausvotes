@@ -9,7 +9,7 @@ import au.id.tmm.utilities.hashing.Digest
 private[this] final case class DistributionOfPreferencesResource(election: SenateElection, digest: Digest) {
   private val nameSansExtension = s"SenateDopDownload-${election.aecID}"
 
-  val url: URL = new URL(s"http://vtr.aec.gov.au/External/$nameSansExtension")
+  val url: URL = new URL(s"http://vtr.aec.gov.au/External/$nameSansExtension.zip")
 
   val localFilePath: Path = Paths.get(s"$nameSansExtension.zip")
 
@@ -20,7 +20,8 @@ private[this] object DistributionOfPreferencesResource {
   val `2016` = DistributionOfPreferencesResource(SenateElection.`2016`,
     Digest("c55be91a1c8d7f9b06ff2b3d3f128947c5c807f0ac4efd6045318eeecaa05f37"))
 
-  def of(election: SenateElection): DistributionOfPreferencesResource = election match {
-    case SenateElection.`2016` => `2016`
+  def of(election: SenateElection): Option[DistributionOfPreferencesResource] = election match {
+    case SenateElection.`2016` => Some(`2016`)
+    case _ => None
   }
 }

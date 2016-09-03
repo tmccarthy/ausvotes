@@ -11,31 +11,31 @@ import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 import scala.io.Source
 import scala.util.{Failure, Try}
 
-object LoadingFormalPreferences {
+private[rawdatastore] object LoadingDistributionsOfPreferences {
 
   def csvLinesOf(dataDir: Path, election: SenateElection, state: State,
                  shouldDownloadIfNeeded: Boolean = true): Try[Source] = {
     for {
-      matchingResource <- resourceMatching(election, state)
+      matchingResource <- resourceMatching(election)
       dataFilePath <- findRawDataFor(dataDir, matchingResource, shouldDownloadIfNeeded)
-      inputStream <- csvInputStreamFrom(matchingResource, dataFilePath)
+      inputStream <- csvInputStreamFrom(matchingResource, dataFilePath, state)
       source <- Try(Source.fromInputStream(inputStream, "UTF-8"))
     } yield source
   }
 
-  private def resourceMatching(election: SenateElection, state: State): Try[FormalPreferencesResource] =
-    FormalPreferencesResource.of(election, state)
-      .failIfAbsent(new UnsupportedOperationException(s"Could not find raw data for $state at $election"))
+  private def resourceMatching(election: SenateElection): Try[DistributionOfPreferencesResource] =
+    DistributionOfPreferencesResource.of(election)
+      .failIfAbsent(new UnsupportedOperationException(s"Could not find a distribution of preferences for $election"))
 
-  private def findRawDataFor(dataDir: Path, resource: FormalPreferencesResource,
+  private def findRawDataFor(dataDir: Path, resource: DistributionOfPreferencesResource,
                              shouldDownloadIfNeeded: Boolean): Try[Path] = {
-    val expectedPath = expectedLocalPathOf(dataDir, resource)
+    val expectedPath = dataDir.resolve(resource.localFilePath)
 
     if (Files.exists(expectedPath)) {
       localResourceIntegrityCheck(expectedPath, resource.digest).map(_ => expectedPath)
 
     } else if (shouldDownloadIfNeeded) {
-      downloadRawDataFor(resource, expectedPath)
+      downloadUrlToFile(resource.url, expectedPath)
         .flatMap(_ => localResourceIntegrityCheck(expectedPath, resource.digest))
         .map(_ => expectedPath)
 
@@ -45,25 +45,22 @@ object LoadingFormalPreferences {
     }
   }
 
-  private def expectedLocalPathOf(dataDir: Path, resource: FormalPreferencesResource): Path = dataDir
-    .resolve(resource.localFileName)
-
-  private def downloadRawDataFor(resource: FormalPreferencesResource, target: Path): Try[Unit] =
-    downloadUrlToFile(resource.url, target)
-
-  private def csvInputStreamFrom(resource: FormalPreferencesResource, zipFilePath: Path): Try[InputStream] =
+  private def csvInputStreamFrom(resource: DistributionOfPreferencesResource, zipFilePath: Path, state: State): Try[InputStream] =
     for {
       zipFile <- Try(zipFilePath.asZipFile)
-      zipEntry <- findMatchingZipEntry(resource, zipFilePath, zipFile)
+      zipEntry <- findMatchingZipEntry(resource, state, zipFilePath, zipFile)
       inputStream <- Try(zipFile.getInputStream(zipEntry))
     } yield inputStream
 
-  private def findMatchingZipEntry(resource: FormalPreferencesResource,
+  private def findMatchingZipEntry(resource: DistributionOfPreferencesResource,
+                                   state: State,
                                    zipFilePath: Path,
                                    zipFile: ZipFile): Try[ZipEntry] = {
+    val zipEntryName = resource.zipEntryNameOf(state)
+
     zipFile
-      .entryWithName(resource.zipEntryName)
-      .failIfAbsent(throw new IllegalStateException(s"Could not find expected zip file '${resource.zipEntryName}'" +
+      .entryWithName(zipEntryName)
+      .failIfAbsent(throw new IllegalStateException(s"Could not find expected zip file '${zipEntryName}'" +
         s" in file at $zipFilePath"))
   }
 }

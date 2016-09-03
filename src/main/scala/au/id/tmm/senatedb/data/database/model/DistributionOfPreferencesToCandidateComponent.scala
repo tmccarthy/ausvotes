@@ -58,8 +58,8 @@ trait DistributionOfPreferencesToCandidateComponent { this: DriverComponent with
     def papers = column[Int]("papers")
     def votesTransferred = column[Int]("votesTranferred")
     def votesTotal = column[Int]("votesTotal")
-    def status = column[CandidateStatus]
-    def orderElected = column[Int]
+    def status = column[CandidateStatus]("status")
+    def orderElected = column[Int]("orderElected")
 
     def pk = primaryKey("DOP_TO_CANDIDATE_PK", (election, state, count, group, positionInGroup))
 
