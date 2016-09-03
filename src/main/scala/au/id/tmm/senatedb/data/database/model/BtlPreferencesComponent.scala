@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.data.database.model
 
-import au.id.tmm.senatedb.data.BallotId
 import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
@@ -17,21 +16,21 @@ object BtlPreferencesRow {
   }
 }
 
-trait BtlPreferencesComponent { this: DriverComponent with BallotComponent =>
+trait BtlPreferencesComponent { this: DriverComponent with BallotComponent with ComponentUtilities =>
   import driver.api._
 
-  class BtlPreferencesTable(tag: Tag) extends Table[BtlPreferencesRow](tag, "BtlPreferences") {
-    def ballotId = column[String]("ballotId", O.Length(BallotId.length, varying = false))
+  class BtlPreferencesTable(tag: Tag) extends Table[BtlPreferencesRow](tag, "BtlPreferences") with CommonColumns {
+    def ballotId = ballotIdColumn()
 
-    def group = column[String]("group", O.Length(2, varying = false))
-    def groupPosition = column[Int]("groupPosition")
+    def group = groupColumn()
+    def groupPosition = positionInGroupColumn()
 
-    def preference = column[Option[Int]]("preference")
-    def specialChar = column[Option[Char]]("specialChar")
+    def preference = preferenceColumn()
+    def mark = markColumn()
 
     def pk = primaryKey("PK_BTL_PREFERENCE", (ballotId, group, groupPosition))
 
-    def * = (ballotId, group, groupPosition, preference, specialChar) <>
+    def * = (ballotId, group, groupPosition, preference, mark) <>
       (BtlPreferencesRow.tupled, BtlPreferencesRow.unapply)
   }
 

@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.data.database.model
 
-import au.id.tmm.senatedb.data.BallotId
 import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
@@ -15,20 +14,20 @@ object AtlPreferencesRow {
   }
 }
 
-trait AtlPreferencesComponent { this: DriverComponent with BallotComponent =>
+trait AtlPreferencesComponent { this: DriverComponent with BallotComponent with ComponentUtilities =>
   import driver.api._
 
-  class AtlPreferencesTable(tag: Tag) extends Table[AtlPreferencesRow](tag, "AtlPreferences") {
-    def ballotId = column[String]("ballotId", O.Length(BallotId.length, varying = false))
+  class AtlPreferencesTable(tag: Tag) extends Table[AtlPreferencesRow](tag, "AtlPreferences") with CommonColumns {
+    def ballotId = ballotIdColumn()
 
-    def group = column[String]("group", O.Length(2, varying = false))
+    def group = groupColumn()
 
-    def preference = column[Option[Int]]("preference")
-    def specialChar = column[Option[Char]]("specialChar")
+    def preference = preferenceColumn()
+    def mark = markColumn()
 
     def pk = primaryKey("PK_ATL_BALLOT", (ballotId, group))
 
-    def * = (ballotId, group, preference, specialChar) <> (AtlPreferencesRow.tupled, AtlPreferencesRow.unapply)
+    def * = (ballotId, group, preference, mark) <> (AtlPreferencesRow.tupled, AtlPreferencesRow.unapply)
   }
 
   val atlPreferences: TableQuery[AtlPreferencesTable] = TableQuery[AtlPreferencesTable]

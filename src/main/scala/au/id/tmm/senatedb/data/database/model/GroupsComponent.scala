@@ -14,16 +14,16 @@ object GroupsRow {
   }
 }
 
-trait GroupsComponent { this: DriverComponent =>
+trait GroupsComponent { this: DriverComponent with ComponentUtilities =>
 
   import driver.api._
 
-  class GroupsTable(tag: Tag) extends Table[GroupsRow](tag, "Groups") {
-    def groupId = column[String]("groupId", O.Length(2, varying = false))
-    def election = column[String]("election", O.Length(5, varying = false))
-    def state = column[String]("state", O.Length(3, varying = false))
+  class GroupsTable(tag: Tag) extends Table[GroupsRow](tag, "Groups") with CommonColumns {
+    def groupId = groupColumn()
+    def election = electionIdColumn()
+    def state = stateColumn()
 
-    def party = column[String]("party", O.Length(100, varying = true))
+    def party = partyColumn()
 
     def pk = primaryKey("PK_GROUPS", (groupId, election, state))
 

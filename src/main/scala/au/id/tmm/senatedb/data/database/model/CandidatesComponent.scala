@@ -19,20 +19,20 @@ object CandidatesRow {
   }
 }
 
-trait CandidatesComponent { this: DriverComponent with GroupsComponent =>
+trait CandidatesComponent { this: DriverComponent with GroupsComponent with ComponentUtilities =>
   import driver.api._
 
-  class CandidatesTable(tag: Tag) extends Table[CandidatesRow](tag, "Candidates") {
-    def candidateId = column[String]("candidateId", O.PrimaryKey, O.Length(5, varying = false))
+  class CandidatesTable(tag: Tag) extends Table[CandidatesRow](tag, "Candidates") with CommonColumns {
+    def candidateId = candidateIdColumn(O.PrimaryKey)
 
-    def election = column[String]("electionId", O.Length(5, varying = false))
-    def state = column[String]("state", O.Length(3, varying = false))
+    def election = electionIdColumn()
+    def state = stateColumn()
 
-    def group = column[String]("group", O.Length(2, varying = false))
-    def positionInGroup = column[Int]("positionInGroup")
+    def group = groupColumn()
+    def positionInGroup = positionInGroupColumn()
 
-    def name = column[String]("name", O.Length(100, varying = true))
-    def party = column[String]("party", O.Length(100, varying = true))
+    def name = nameColumn()
+    def party = partyColumn()
 
     def * = (candidateId, election, state, group, positionInGroup, name, party) <>
       (CandidatesRow.tupled, CandidatesRow.unapply)

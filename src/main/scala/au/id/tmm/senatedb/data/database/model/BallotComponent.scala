@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.data.database.model
 
-import au.id.tmm.senatedb.data.BallotId
 import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
@@ -19,17 +18,17 @@ object BallotRow {
   }
 }
 
-trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with AtlPreferencesComponent =>
+trait BallotComponent { this: DriverComponent with BtlPreferencesComponent with AtlPreferencesComponent with ComponentUtilities =>
   import driver.api._
 
-  class BallotTable(tag: Tag) extends Table[BallotRow](tag, "Ballots") {
-    def ballotId = column[String]("ballotId", O.Length(BallotId.length, varying = false))
+  class BallotTable(tag: Tag) extends Table[BallotRow](tag, "Ballots") with CommonColumns {
+    def ballotId = ballotIdColumn()
 
-    def electionId = column[String]("electionId", O.Length(5, varying = false))
-    def state = column[String]("state", O.Length(3, varying = false))
+    def electionId = electionIdColumn()
+    def state = stateColumn()
 
-    def electorate = column[String]("electorate", O.Length(15, varying = true))
-    def voteCollectionPointId = column[Int]("voteCollectionPointId")
+    def electorate = electorateColumn()
+    def voteCollectionPointId = voteCollectionPointIdColumn()
     def batchNo = column[Int]("batchNo")
     def paperNo = column[Int]("paperNo")
 
