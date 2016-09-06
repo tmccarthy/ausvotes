@@ -23,7 +23,7 @@ trait CandidatesComponent { this: DriverComponent with GroupsComponent with Comp
   import driver.api._
 
   class CandidatesTable(tag: Tag) extends Table[CandidatesRow](tag, "Candidates") with CommonColumns {
-    def candidateId = candidateIdColumn(O.PrimaryKey)
+    def candidateId = candidateIdColumn()
 
     def election = electionIdColumn()
     def state = stateColumn()
@@ -33,6 +33,8 @@ trait CandidatesComponent { this: DriverComponent with GroupsComponent with Comp
 
     def name = nameColumn()
     def party = partyColumn()
+
+    def pl = primaryKey("CANDIDATES_PK", (candidateId, election, state))
 
     def * = (candidateId, election, state, group, positionInGroup, name, party) <>
       (CandidatesRow.tupled, CandidatesRow.unapply)
