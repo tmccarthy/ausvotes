@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.data.database.model
 
+import au.id.tmm.senatedb.data.CandidatePosition
 import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
@@ -10,7 +11,9 @@ final case class CandidatesRow(candidateId: String,
                                group: String,
                                positionInGroup: Int,
                                name: String,
-                               party: String)
+                               party: String) {
+  lazy val position: CandidatePosition = CandidatePosition(group, positionInGroup)
+}
 
 object CandidatesRow {
   def tupled(tuple: (String, String, String, String, Int, String, String)): CandidatesRow = tuple match {

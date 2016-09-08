@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.data
 
 import au.id.tmm.senatedb.data.CountData.CountStepData
-import au.id.tmm.senatedb.data.database.model.{CountOutcomesPerCandidateRow, CountStepRow, CountTransfersPerCandidateRow}
+import au.id.tmm.senatedb.data.database.model.{CountOutcomesPerCandidateRow, CountStepRow, CountTransferPerCandidateRow}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 
 final case class CountData(election: SenateElection,
@@ -11,5 +11,5 @@ final case class CountData(election: SenateElection,
                            outcomes: Set[CountOutcomesPerCandidateRow])
 
 object CountData {
-  final case class CountStepData(stepRow: CountStepRow, transfers: Set[CountTransfersPerCandidateRow])
+  final case class CountStepData(stepRow: CountStepRow, transfers: Set[CountTransferPerCandidateRow])
 }
