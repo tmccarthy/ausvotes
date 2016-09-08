@@ -42,7 +42,7 @@ class PopulatesWithGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPe
 
   it should "not reload groups or candidates if a candidate or group is already loaded from that election" in {
     val preLoadedGroups = Set(GroupsRow("A", SenateElection.`2016`.aecID, "NT", "None"))
-    persistence.execute(persistence.dal.insertGroups(preLoadedGroups))
+    Await.result(persistence.execute(persistence.dal.insertGroups(preLoadedGroups)), Inf)
 
     val loadFuture = persistencePopulator.loadGroupsAndCandidates(SenateElection.`2016`, forceReload = false)
 
@@ -55,7 +55,7 @@ class PopulatesWithGroupsAndCandidatesSpec extends ImprovedFlatSpec with TestsPe
 
   it should "reload the groups if requested" in {
     val preLoadedGroups = Set(GroupsRow("A", SenateElection.`2016`.aecID, "NT", "None"))
-    persistence.execute(persistence.dal.insertGroups(preLoadedGroups))
+    Await.result(persistence.execute(persistence.dal.insertGroups(preLoadedGroups)), Inf)
 
     val loadFuture = persistencePopulator.loadGroupsAndCandidates(SenateElection.`2016`, forceReload = true)
 
