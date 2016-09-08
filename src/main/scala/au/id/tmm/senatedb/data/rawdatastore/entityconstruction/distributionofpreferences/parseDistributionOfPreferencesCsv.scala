@@ -44,7 +44,11 @@ object parseDistributionOfPreferencesCsv {
                                       ): CountData = {
     require(csvLines.hasNext, "Distribution of preferences file ended unexpectedly")  // TODO this is repeated too much
 
-    val (firstCountStep, rawCandidateRows) = parseOneCount(election, state, allCandidates.size, firstTransfer, csvLines)
+    val candidateIdPerPosition: Map[CandidatePosition, String] = allCandidates
+      .map(candidate => candidate.position -> candidate.candidateId)
+      .toMap
+
+    val (firstCountStep, rawCandidateRows) = parseOneCount(election, state, candidateIdPerPosition, firstTransfer, csvLines)
 
     val thisCount = firstCountStep.stepRow.count
 
@@ -62,9 +66,6 @@ object parseDistributionOfPreferencesCsv {
         previousCountSteps :+ firstCountStep)
     } else {
       val numExcludedSoFar = countExcludedCandidatesIn(rawCandidateRows)
-      val candidateIdPerPosition: Map[CandidatePosition, String] = allCandidates
-        .map(candidate => candidate.position -> candidate.candidateId)
-        .toMap
 
       val outcomes = updatedCandidateOutcomes
         .toStream
@@ -95,10 +96,11 @@ object parseDistributionOfPreferencesCsv {
 
   private def parseOneCount(election: SenateElection,
                             state: State,
-                            numCandidates: Int,
+                            candidateIdsPerPosition: Map[CandidatePosition, String],
                             transferSummary: VoteTransferSummary,
                             lines: CloseableIterator[Seq[String]]): (CountStepData, Vector[DopCsvRow]) = {
-    val candidateTallyRows = readCandidateTallyRows(lines, numCandidates)
+    val candidateTallyRows = readCandidateTallyRows(lines,
+      numCandidates = candidateIdsPerPosition.size)
 
     require(lines.hasNext, "Distribution of preferences file ended unexpectedly")
 
@@ -114,8 +116,8 @@ object parseDistributionOfPreferencesCsv {
     def isGainLossDataRow(row: DopCsvRow) = row.ballotPosition == 1002
     require(isGainLossDataRow(gainLossRow), "Expected a gain/loss row")
 
-    val countStepData = composeCountStepDataFrom(election, state, transferSummary, candidateTallyRows,
-      exhaustedRow, gainLossRow)
+    val countStepData = composeCountStepDataFrom(election, state, transferSummary, candidateIdsPerPosition,
+      candidateTallyRows, exhaustedRow, gainLossRow)
 
     (countStepData, candidateTallyRows)
   }
@@ -152,10 +154,12 @@ object parseDistributionOfPreferencesCsv {
   private def composeCountStepDataFrom(election: SenateElection,
                                        state: State,
                                        transferSummary: VoteTransferSummary,
+                                       candidateIdsPerPosition: Map[CandidatePosition, String],
                                        candidateTallyRows: Vector[DopCsvRow],
                                        exhaustedRow: DopCsvRow,
                                        gainLossRow: DopCsvRow): CountStepData = {
-    val (candidateTransferRows, transferValue) = composeCandidateTransferRowsFrom(election, state, candidateTallyRows)
+    val (candidateTransferRows, transferValue) = composeCandidateTransferRowsFrom(election, state,
+      candidateIdsPerPosition, candidateTallyRows)
 
     val stepRow = CountStepRow(
       election.aecID,
@@ -176,7 +180,11 @@ object parseDistributionOfPreferencesCsv {
     CountStepData(stepRow, candidateTransferRows)
   }
 
-  private def composeCandidateTransferRowsFrom(election: SenateElection, state: State, candidateTallyRows: Vector[DopCsvRow]): (Set[CountTransferPerCandidateRow], Double) = {
+  private def composeCandidateTransferRowsFrom(election: SenateElection,
+                                               state: State,
+                                               candidateIdsPerPosition: Map[CandidatePosition, String],
+                                               candidateTallyRows: Vector[DopCsvRow]
+                                              ): (Set[CountTransferPerCandidateRow], Double) = {
     var rowsToReturn = mutable.HashSet[CountTransferPerCandidateRow]()
 
     var currentGroup: Option[String] = None
@@ -194,14 +202,16 @@ object parseDistributionOfPreferencesCsv {
       }
 
       rowsToReturn += CountTransferPerCandidateRow(
-        election.aecID,
-        state.shortName,
-        csvRow.count,
-        csvRow.group,
-        positionInGroup,
-        csvRow.papers,
-        csvRow.votesTransferred,
-        csvRow.progressiveVoteTotal)
+        election = election.aecID,
+        state = state.shortName,
+        count = csvRow.count,
+        group = csvRow.group,
+        positionInGroup = positionInGroup,
+        candidateId = candidateIdsPerPosition(CandidatePosition(csvRow.group, positionInGroup)),
+        papers = csvRow.papers,
+        votesTransferred = csvRow.votesTransferred,
+        votesTotal = csvRow.progressiveVoteTotal
+      )
 
       if (csvRow.transferValue != 0) {
         transferValue = csvRow.transferValue

@@ -13,5 +13,6 @@ will be analysing the 2016 election.
 With the exception of some AEC data included as test resources, this project is licenced under the terms outlined in 
 the LICENCE file.
 
-The raw AEC data included in the test resources is © Commonwealth of Australia 2014, and is licenced under the 
-[Creative Commons Attribution 3.0 Australia Licence](http://www.aec.gov.au/footer/Copyright.htm).
+The raw AEC data included in the test resources is © Commonwealth of Australia 2014, and is 
+[licenced](http://www.aec.gov.au/footer/Copyright.htm) under the 
+[Creative Commons Attribution 3.0 Australia Licence](http://creativecommons.org/licenses/by/3.0/au/).
