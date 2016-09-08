@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpr
 import au.id.tmm.senatedb.data.CountData.CountStepData
 import au.id.tmm.senatedb.data.database.model._
 import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.CsvParseUtil
-import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences.TrackedCandidateStatus.Undetermined
+import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences.TrackedCandidateStatus.{Determined, Undetermined}
 import au.id.tmm.senatedb.data.{CandidatePosition, CountData}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
@@ -42,19 +42,19 @@ object parseDistributionOfPreferencesCsv {
                                        previousCountSteps: List[CountStepData] = Nil,
                                        candidateOutcomesSoFar: Map[CandidatePosition, TrackedCandidateStatus] = Map()
                                       ): CountData = {
-    require(csvLines.hasNext, "Distribution of preferences file ended unexpectedly")  // TODO this is repeated too much
+    val count = previousCountSteps.lastOption.map(_.stepRow.count + 1).getOrElse(1)
+    requireNotFinished(csvLines, count)
 
     val candidateIdPerPosition: Map[CandidatePosition, String] = allCandidates
       .map(candidate => candidate.position -> candidate.candidateId)
       .toMap
 
-    val (firstCountStep, rawCandidateRows) = parseOneCount(election, state, candidateIdPerPosition, firstTransfer, csvLines)
-
-    val thisCount = firstCountStep.stepRow.count
+    val (firstCountStep, rawCandidateRows) = parseOneCount(election, state, candidateIdPerPosition, firstTransfer,
+      count, csvLines)
 
     val nextTransfer = determineNextTransfer(firstTransfer, rawCandidateRows)
 
-    val updatedCandidateOutcomes = updateCandidateOutcomes(thisCount, rawCandidateRows, candidateOutcomesSoFar)
+    val updatedCandidateOutcomes = updateCandidateOutcomes(count, rawCandidateRows, candidateOutcomesSoFar)
 
     if (csvLines.hasNext) {
       parseRemainingCountSteps(
@@ -70,7 +70,7 @@ object parseDistributionOfPreferencesCsv {
       val outcomes = updatedCandidateOutcomes
         .toStream
         .map {
-          case (position, trackedStatus: TrackedCandidateStatus.Determined) =>
+          case (position, trackedStatus: Determined) =>
             CountOutcomesPerCandidateRow(
               election = election.aecID,
               state = state.shortName,
@@ -86,7 +86,7 @@ object parseDistributionOfPreferencesCsv {
               candidateId = candidateIdPerPosition(position),
               outcome = CandidateOutcome.EXCLUDED,
               outcomeOrder = numExcludedSoFar + 1,
-              outcomeAtCount = thisCount)
+              outcomeAtCount = count)
         }
         .toSet
 
@@ -98,23 +98,23 @@ object parseDistributionOfPreferencesCsv {
                             state: State,
                             candidateIdsPerPosition: Map[CandidatePosition, String],
                             transferSummary: VoteTransferSummary,
+                            count: Int,
                             lines: CloseableIterator[Seq[String]]): (CountStepData, Vector[DopCsvRow]) = {
-    val candidateTallyRows = readCandidateTallyRows(lines,
-      numCandidates = candidateIdsPerPosition.size)
+    val candidateTallyRows = readCandidateTallyRows(lines, numCandidates = candidateIdsPerPosition.size)
 
-    require(lines.hasNext, "Distribution of preferences file ended unexpectedly")
+    requireNotFinished(lines, count)
 
     val exhaustedRow = new DopCsvRow(lines.next(), candidatePosition = None)
 
     def isExhaustedDataRow(row: DopCsvRow) = row.ballotPosition == 1001
-    require(isExhaustedDataRow(exhaustedRow), "Expected an exhausted ballots row")
+    require(isExhaustedDataRow(exhaustedRow), s"Expected an exhausted ballots row, but one was missing for count $count")
 
-    require(lines.hasNext, "Distribution of preferences file ended unexpectedly")
+    requireNotFinished(lines, count)
 
     val gainLossRow = new DopCsvRow(lines.next(), candidatePosition = None)
 
     def isGainLossDataRow(row: DopCsvRow) = row.ballotPosition == 1002
-    require(isGainLossDataRow(gainLossRow), "Expected a gain/loss row")
+    require(isGainLossDataRow(gainLossRow), s"Expected a gain/loss row, but one was missing for count $count")
 
     val countStepData = composeCountStepDataFrom(election, state, transferSummary, candidateIdsPerPosition,
       candidateTallyRows, exhaustedRow, gainLossRow)
@@ -155,11 +155,13 @@ object parseDistributionOfPreferencesCsv {
                                        state: State,
                                        transferSummary: VoteTransferSummary,
                                        candidateIdsPerPosition: Map[CandidatePosition, String],
-                                       candidateTallyRows: Vector[DopCsvRow],
+                                       rawCandidateTallyRows: Vector[DopCsvRow],
                                        exhaustedRow: DopCsvRow,
                                        gainLossRow: DopCsvRow): CountStepData = {
     val (candidateTransferRows, transferValue) = composeCandidateTransferRowsFrom(election, state,
-      candidateIdsPerPosition, candidateTallyRows)
+      candidateIdsPerPosition, rawCandidateTallyRows)
+
+    val numCandidatesElected = rawCandidateTallyRows.count(_.status == CandidateStatus.ELECTED)
 
     val stepRow = CountStepRow(
       election.aecID,
@@ -174,7 +176,8 @@ object parseDistributionOfPreferencesCsv {
       gainLossRow.progressiveVoteTotal,
       transferSummary.stepType,
       transferSummary.fromCandidate.map(_.group),
-      transferSummary.fromCandidate.map(_.positionInGroup)
+      transferSummary.fromCandidate.map(_.positionInGroup),
+      numCandidatesElected
     )
 
     CountStepData(stepRow, candidateTransferRows)
@@ -302,4 +305,8 @@ object parseDistributionOfPreferencesCsv {
 
   private def countExcludedCandidatesIn(rawCandidateRows: Vector[DopCsvRow]): Int =
     rawCandidateRows.count(_.status == CandidateStatus.EXCLUDED)
+
+  private def requireNotFinished(lines: CloseableIterator[Seq[String]], count: Int): Unit = {
+    require(lines.hasNext, s"Distribution of preferences file ended unexpectedly at count $count")
+  }
 }

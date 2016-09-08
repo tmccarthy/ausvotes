@@ -5,6 +5,7 @@ import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
+// TODO separate given and surnames
 final case class CandidatesRow(candidateId: String,
                                election: String,
                                state: String,

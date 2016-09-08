@@ -21,15 +21,16 @@ final case class CountStepRow(election: String,
 
                               stepType: StepType,
                               votesDistributedFromGroup: Option[String],
-                              votesDistributedFromPositionInGroup: Option[Int])
+                              votesDistributedFromPositionInGroup: Option[Int],
+                              progressiveNumCandidatesElected: Int)
 
 object CountStepRow {
 
-  def tupled(tuple: (String, String, Int, Double, Int, Int, Int, Int, Int, Int, StepType, Option[String], Option[Int])): CountStepRow = {
+  def tupled(tuple: (String, String, Int, Double, Int, Int, Int, Int, Int, Int, StepType, Option[String], Option[Int], Int)): CountStepRow = {
     tuple match {
       case (election, state, count, transferValue, exhaustedPapers, exhaustedVotesTransferred,
       exhaustedProgressiveVoteTotal, gainLossPapers, gainLossVoteTransferred, gainLossProgressiveVoteTotal, stepType,
-      votesDistributedFromGroup, votesDistributedFromPositionInGroup) => CountStepRow(
+      votesDistributedFromGroup, votesDistributedFromPositionInGroup, progressiveNumCandidatesElected) => CountStepRow(
         election.rtrim,
         state.rtrim,
         count,
@@ -42,7 +43,8 @@ object CountStepRow {
         gainLossProgressiveVoteTotal,
         stepType,
         votesDistributedFromGroup.map(_.rtrim),
-        votesDistributedFromPositionInGroup
+        votesDistributedFromPositionInGroup,
+        progressiveNumCandidatesElected
       )
     }
   }
@@ -83,6 +85,7 @@ trait CountStepsComponent { this: DriverComponent with ComponentUtilities =>
     def stepType = column[StepType]("stepType")
     def votesDistributedFromGroup = column[Option[String]](groupColumnName, groupLength)
     def votesDistributedFromPositionInGroup = column[Option[Int]](positionInGroupColumnName)
+    def progressiveNumCandidatesElected = column[Int]("progressiveNumCandidatesElected")
 
     def pk = primaryKey("DOP_STEP_PK", (election, state, count))
 
@@ -98,6 +101,7 @@ trait CountStepsComponent { this: DriverComponent with ComponentUtilities =>
       gainLossProgressiveVoteTotal,
       stepType,
       votesDistributedFromGroup,
-      votesDistributedFromPositionInGroup) <> (CountStepRow.tupled, CountStepRow.unapply)
+      votesDistributedFromPositionInGroup,
+      progressiveNumCandidatesElected) <> (CountStepRow.tupled, CountStepRow.unapply)
   }
 }
