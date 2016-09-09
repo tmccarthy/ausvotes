@@ -51,4 +51,6 @@ trait CountTransfersPerCandidateComponent { this: DriverComponent with Component
       (CountTransferPerCandidateRow.tupled, CountTransferPerCandidateRow.unapply)
 
   }
+
+  val countTransfersPerCandidate = TableQuery[CountTransfersPerCandidateTable]
 }

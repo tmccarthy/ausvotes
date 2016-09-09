@@ -43,6 +43,13 @@ trait CountOutcomesPerCandidateComponent { this: DriverComponent with ComponentU
 
     def * = (election, state, candidate, outcome, outcomeOrder, outcomeAtCount) <>
       (CountOutcomesPerCandidateRow.tupled, CountOutcomesPerCandidateRow.unapply)
-
   }
+
+  val outcomesPerCandidate = TableQuery[CountOutcomesPerCandidateTable]
+
+  def outcomeForCandidate(electionId: String, state: String, candidateId: String) =
+    outcomesPerCandidate
+      .filter(_.election === electionId)
+      .filter(_.state === state)
+      .filter(_.candidate === candidateId)
 }

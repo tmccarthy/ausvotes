@@ -104,4 +104,10 @@ trait CountStepsComponent { this: DriverComponent with ComponentUtilities =>
       votesDistributedFromPositionInGroup,
       progressiveNumCandidatesElected) <> (CountStepRow.tupled, CountStepRow.unapply)
   }
+
+  val countSteps = TableQuery[CountStepsTable]
+
+  def countStepsFor(election: String, state: String) = countSteps
+    .filter(_.election === election)
+    .filter(_.state === state)
 }

@@ -13,9 +13,13 @@ private[data] final class DAL(val driver: JdbcProfile) extends DriverComponent
   with BallotFactsComponent
   with AtlPreferencesComponent
   with BtlPreferencesComponent
+  with CountOutcomesPerCandidateComponent
+  with CountStepsComponent
+  with CountTransfersPerCandidateComponent
   with ComponentUtilities {
 
-  private val allTables = Vector(groups, candidates, ballots, ballotFacts, atlPreferences, btlPreferences)
+  private val allTables = Vector(groups, candidates, ballots, ballotFacts, atlPreferences, btlPreferences,
+    outcomesPerCandidate, countSteps, countTransfersPerCandidate)
 
   private lazy val allTableNames = allTables.map(_.baseTableRow.tableName)
 
