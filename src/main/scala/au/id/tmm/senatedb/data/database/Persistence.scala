@@ -14,7 +14,8 @@ class Persistence private (private[data] val dal: DAL, private[data] val databas
   extends Closeable
     with PersistenceLifecycle
     with StoresGroupsAndCandidates
-    with StoresBallots {
+    with StoresBallots
+    with StoresCountData {
 
   import dal.driver.api._
 

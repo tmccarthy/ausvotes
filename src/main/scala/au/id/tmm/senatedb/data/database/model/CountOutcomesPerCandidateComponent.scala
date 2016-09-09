@@ -47,9 +47,11 @@ trait CountOutcomesPerCandidateComponent { this: DriverComponent with ComponentU
 
   val outcomesPerCandidate = TableQuery[CountOutcomesPerCandidateTable]
 
-  def outcomeForCandidate(electionId: String, state: String, candidateId: String) =
+  def outcomesAtElection(electionId: String, state: String) =
     outcomesPerCandidate
-      .filter(_.election === electionId)
-      .filter(_.state === state)
+    .filter(_.election === electionId)
+    .filter(_.state === state)
+
+  def outcomeForCandidate(electionId: String, state: String, candidateId: String) = outcomesAtElection(electionId, state)
       .filter(_.candidate === candidateId)
 }

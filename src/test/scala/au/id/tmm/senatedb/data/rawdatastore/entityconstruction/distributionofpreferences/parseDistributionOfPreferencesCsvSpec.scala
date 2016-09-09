@@ -3,21 +3,12 @@ package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpr
 import au.id.tmm.senatedb.data.TestData
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType._
 import au.id.tmm.senatedb.data.database.model.{CountStepRow, CountTransferPerCandidateRow}
-import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.State.{apply => _, _}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 import scala.io.Source
 
-class parseDistributionOfPreferencesCsvSpec extends ImprovedFlatSpec {
-
-  val actCsvResource = getClass.getResource("SenateStateDOPDownload-20499-ACT.csv")
-  val tasCsvResource = getClass.getResource("SenateStateDOPDownload-20499-TAS.csv")
-
-  val testElection = SenateElection.`2016`
-
-  lazy val parsedActCountData = parseDistributionOfPreferencesCsv(testElection, ACT, TestData.allActCandidates,
-    Source.fromURL(actCsvResource)).get
+class parseDistributionOfPreferencesCsvSpec extends ImprovedFlatSpec with UsesDopData {
 
   "the parsed count data" should "have the correct election" in {
     assert(parsedActCountData.election === testElection)

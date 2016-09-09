@@ -53,4 +53,8 @@ trait CountTransfersPerCandidateComponent { this: DriverComponent with Component
   }
 
   val countTransfersPerCandidate = TableQuery[CountTransfersPerCandidateTable]
+
+  def countTransfersFor(election: String, state: String) = countTransfersPerCandidate
+    .filter(_.election === election)
+    .filter(_.state === state)
 }
