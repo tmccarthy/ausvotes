@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.model
 
 final case class State private(fullName: String, shortName: String,
                                isTerritory: Boolean = false, numSenators: Int = 12) {
-
+  override def toString: String = shortName
 }
 
 object State {

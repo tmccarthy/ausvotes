@@ -2,10 +2,11 @@ package au.id.tmm.senatedb.data.rawdatastore
 
 import java.nio.file.Path
 
-import au.id.tmm.senatedb.data.BallotWithPreferences
 import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
-import au.id.tmm.senatedb.data.rawdatastore.download.{LoadingFirstPreferences, LoadingFormalPreferences}
+import au.id.tmm.senatedb.data.rawdatastore.download.{LoadingDistributionsOfPreferences, LoadingFirstPreferences, LoadingFormalPreferences}
+import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences.parseDistributionOfPreferencesCsv
 import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.{parseFirstPreferencesCsv, parseFormalPreferencesCsv}
+import au.id.tmm.senatedb.data.{BallotWithPreferences, CountData}
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
 
@@ -36,6 +37,15 @@ final class RawDataStore private (val location: Path) {
       }
   }
 
+  def retrieveCountData(election: SenateElection,
+                        state: State,
+                        allCandidates: Set[CandidatesRow],
+                        downloadAllowed: Boolean = true): Try[CountData] = {
+    for {
+      csvSource <- LoadingDistributionsOfPreferences.csvLinesOf(location, election, state, downloadAllowed)
+      countData <- parseDistributionOfPreferencesCsv(election, state, allCandidates, csvSource)
+    } yield countData
+  }
 }
 
 object RawDataStore {

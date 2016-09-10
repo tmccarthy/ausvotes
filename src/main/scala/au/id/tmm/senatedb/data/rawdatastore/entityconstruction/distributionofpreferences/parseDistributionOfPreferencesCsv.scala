@@ -30,7 +30,7 @@ object parseDistributionOfPreferencesCsv {
       .filter(_.state == state.shortName)
       .toSet
 
-    parseRemainingCountSteps(election, state, allCandidates, csvLinesIterator)
+    parseRemainingCountSteps(election, state, relevantCandidates, csvLinesIterator)
   }
 
   @tailrec

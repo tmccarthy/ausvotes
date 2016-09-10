@@ -110,4 +110,6 @@ trait CountStepsComponent { this: DriverComponent with ComponentUtilities =>
   def countStepsFor(election: String, state: String) = countSteps
     .filter(_.election === election)
     .filter(_.state === state)
+
+  def insertCountStep(countStepRow: CountStepRow) = countSteps += countStepRow
 }

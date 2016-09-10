@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.model
 import java.time.{LocalDate, Month}
 
 final case class SenateElection private (date: LocalDate, states: Set[State], aecID: String) {
-
+  override def toString: String = s"${date.getYear} election"
 }
 
 object SenateElection {

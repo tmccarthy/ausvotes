@@ -1,10 +1,8 @@
 package au.id.tmm.senatedb.data
 
 import au.id.tmm.senatedb.model.{SenateElection, State}
-import slick.driver.SQLiteDriver
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 trait PopulatesWithBallots { this: PersistencePopulator =>
 
@@ -15,7 +13,6 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
     loadBallotsForStates(election, Set(state), allowDownloading, forceReload)
   }
 
-
   def loadBallotsForStates(election: SenateElection,
                            states: Set[State],
                            allowDownloading: Boolean = true,
@@ -23,6 +20,7 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
     for {
       _ <- persistence.initialiseIfNeeded()
       _ <- loadGroupsAndCandidates(election, allowDownloading, forceReload)
+      _ <- loadCountDataForStates(election, states, allowDownloading, forceReload)
       _ <- loadOnlyBallotsForStates(election, states, allowDownloading, forceReload)
     } yield ()
   }
@@ -35,13 +33,7 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
       .toStream
       .map(state => loadOnlyBallotsForState(election, state, allowDownloading, forceReload))
 
-    if (this.persistence.dal.driver == SQLiteDriver) {
-      Future {
-        loadingFuturesPerState.foreach(Await.result(_, Duration.Inf))
-      }
-    } else {
-      Future.sequence(loadingFuturesPerState).map(_ => Unit)
-    }
+    sequenceWritingFutures(loadingFuturesPerState).map(_ => Unit)
   }
 
   private def loadOnlyBallotsForState(election: SenateElection,
@@ -73,6 +65,7 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
                         forceReload: Boolean): Future[Unit] = {
     for {
       candidates <- persistence.retrieveCandidatesFor(election)
+      countData <- persistence.retrieveCountDataFor(election, state) // TODO use this for the ballots
       ballotsWithPreferences <- Future(rawDataStore.retrieveBallots(election, state, candidates.toSet, allowDownloading).get)
       _ <- persistence.storeBallotData(ballotsWithPreferences)
     } yield ()
