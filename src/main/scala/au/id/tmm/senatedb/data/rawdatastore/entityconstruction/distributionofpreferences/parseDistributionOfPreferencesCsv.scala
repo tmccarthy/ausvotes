@@ -254,7 +254,7 @@ object parseDistributionOfPreferencesCsv {
         case VoteTransferComment.Excluded(numCandidatesExcluded, originatingCounts, transferValue) => previousTransfer
         case VoteTransferComment.ElectedWithSurplus(candidateName, _, _) => electedTransferResultFor(candidateName)
         case VoteTransferComment.ElectedWithQuotaNoSurplus(candidateName) => electedTransferResultFor(candidateName)
-        case VoteTransferComment.ElectedLastRemaining(candidateName) => electedTransferResultFor(candidateName)
+        case VoteTransferComment.ElectedLastRemaining => VoteTransferSummary.None
       }
     }
   }

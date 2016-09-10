@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences
 
-private[this] sealed trait VoteTransferComment
+private[distributionofpreferences] sealed trait VoteTransferComment
 
-private[this] object VoteTransferComment {
+private[distributionofpreferences] object VoteTransferComment {
   private val excludedPattern = ("Preferences with a transfer value of ([\\d\\.]+) will be distributed in " +
     "count # (\\d+) after the exclusion of (\\d+) candidate\\(s\\). Preferences received at count\\(s\\) ([\\d,]+)\\.")
     .r("transferValue", "count", "numExcluded", "originatingCounts")
@@ -14,7 +14,7 @@ private[this] object VoteTransferComment {
   private val electedWithQuotaNoSurplusPattern = "(\\w+), (\\w) has been elected at count (\\d+) with (\\d+) votes\\."
     .r("surname", "initial", "count", "votes")
 
-  private val electedLastRemainingPattern = "(\\w+), (\\w) have been elected to the remaining positions\\."
+  private val electedLastRemainingPattern = ".* have been elected to the remaining positions\\."
     .r("surname", "initial")
 
   def from(rawComment: String): VoteTransferComment = {
@@ -28,8 +28,7 @@ private[this] object VoteTransferComment {
       case electedWithQuotaNoSurplusPattern(surname, initial, count, votes) =>
         ElectedWithQuotaNoSurplus(ShortCandidateName(surname, initial))
 
-      case electedLastRemainingPattern(surname, initial) =>
-        ElectedLastRemaining(ShortCandidateName(surname, initial))
+      case electedLastRemainingPattern() => ElectedLastRemaining
 
       case _ => throw new IllegalArgumentException(s"Couldn't parse comment $rawComment")
     }
@@ -44,6 +43,5 @@ private[this] object VoteTransferComment {
   final case class ElectedWithQuotaNoSurplus(candidate: ShortCandidateName)
     extends VoteTransferComment
 
-  final case class ElectedLastRemaining(candidate: ShortCandidateName)
-    extends VoteTransferComment
+  case object ElectedLastRemaining extends VoteTransferComment
 }
