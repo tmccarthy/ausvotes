@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences
 
-import au.id.tmm.senatedb.data.CandidatePosition
+import au.id.tmm.senatedb.model.CandidatePosition
 
 private[this] final class DopCsvRow(private val row: Seq[String], val candidatePosition: Option[CandidatePosition]) {
   lazy val state = row(0).trim

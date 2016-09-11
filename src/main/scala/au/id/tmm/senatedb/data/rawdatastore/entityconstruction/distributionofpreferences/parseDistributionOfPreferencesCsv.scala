@@ -1,11 +1,11 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences
 
+import au.id.tmm.senatedb.data.CountData
 import au.id.tmm.senatedb.data.CountData.CountStepData
 import au.id.tmm.senatedb.data.database.model._
 import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.CsvParseUtil
 import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences.TrackedCandidateStatus.{Determined, Undetermined}
-import au.id.tmm.senatedb.data.{CandidatePosition, CountData}
-import au.id.tmm.senatedb.model.{SenateElection, State}
+import au.id.tmm.senatedb.model.{CandidatePosition, SenateElection, State}
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.collection.IteratorUtils.ImprovedIterator
 

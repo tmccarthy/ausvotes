@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
 import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
-import au.id.tmm.senatedb.data.{BallotId, BallotWithPreferences, Missing, Preference}
-import au.id.tmm.senatedb.model.{SenateElection, State}
+import au.id.tmm.senatedb.data.{BallotId, BallotWithPreferences}
+import au.id.tmm.senatedb.model.{Preference, SenateElection, State}
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
@@ -63,12 +63,12 @@ object formalPreferencesCsvLineToEntities
 
   private def atlPreferencesFrom(ballotId: String,
                                  numCandidatesPerGroup: ListMap[String, Int],
-                                 groupPreferences: Vector[Preference]) = {
+                                 groupPreferences: Vector[Preference]): Set[AtlPreferencesRow] = {
     assert(numCandidatesPerGroup.keySet.size == groupPreferences.size)
 
     (numCandidatesPerGroup.keys zip groupPreferences)
-      .filter { case (_, preference) => preference != Missing }
-      .map { case (group, preference) => AtlPreferencesRow(ballotId, group, preference.asNumber, preference.asMark) }
+      .filter { case (_, preference) => preference != Preference.Missing }
+      .map { case (group, preference) => AtlPreferencesRow(ballotId, group, preference.asNumber, preference.asChar) }
       .toSet
   }
 
@@ -100,13 +100,13 @@ object formalPreferencesCsvLineToEntities
 
     candidatePreferences.zipWithIndex
       .filter {
-        case (preference, _) => preference != Missing
+        case (preference, _) => preference != Preference.Missing
       }
       .map {
         case (preference, candidateIndex) => {
           val groupAndGroupPosition = groupAndGroupPositionPerCandidateIndex(candidateIndex)
 
-          BtlPreferencesRow(ballotId, groupAndGroupPosition._1, groupAndGroupPosition._2, preference.asNumber, preference.asMark)
+          BtlPreferencesRow(ballotId, groupAndGroupPosition._1, groupAndGroupPosition._2, preference.asNumber, preference.asChar)
         }
       }
       .toSet

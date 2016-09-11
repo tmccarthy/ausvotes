@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.data
 
 import au.id.tmm.senatedb.data.database.model._
 
-private[data] object TestData {
+object TestData {
   val aTestBallot: BallotWithPreferences = {
     val ballotId = "PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0="
 

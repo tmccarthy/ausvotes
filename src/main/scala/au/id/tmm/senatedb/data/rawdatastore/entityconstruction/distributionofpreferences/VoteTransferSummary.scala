@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences
 
-import au.id.tmm.senatedb.data.CandidatePosition
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType.StepType
+import au.id.tmm.senatedb.model.CandidatePosition
 
 private[distributionofpreferences] sealed trait VoteTransferSummary {
   def fromCandidate: Option[CandidatePosition]

@@ -1,12 +1,15 @@
 package au.id.tmm.senatedb.data.database.model
 
 import au.id.tmm.senatedb.data.database.DriverComponent
+import au.id.tmm.senatedb.model.{Preference, Preferenceable}
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 final case class AtlPreferencesRow(ballotId: String,
                                    group: String,
                                    preference: Option[Int],
-                                   mark: Option[Char])
+                                   mark: Option[Char]) extends Preferenceable {
+  override def parsedPreference: Preference = Preference.fromOneOf(preference, mark)
+}
 
 object AtlPreferencesRow {
   def tupled(tuple: (String, String, Option[Int], Option[Char])): AtlPreferencesRow = tuple match {

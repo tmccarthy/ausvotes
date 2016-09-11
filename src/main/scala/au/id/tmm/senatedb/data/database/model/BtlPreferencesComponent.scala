@@ -1,13 +1,18 @@
 package au.id.tmm.senatedb.data.database.model
 
 import au.id.tmm.senatedb.data.database.DriverComponent
+import au.id.tmm.senatedb.model.{CandidatePosition, Preference, Preferenceable}
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 final case class BtlPreferencesRow(ballotId: String,
                                    group: String,
                                    groupPosition: Int,
                                    preference: Option[Int],
-                                   mark: Option[Char])
+                                   mark: Option[Char]) extends Preferenceable {
+  def position: CandidatePosition = CandidatePosition(group, groupPosition)
+
+  override def parsedPreference: Preference = Preference.fromOneOf(preference, mark)
+}
 
 object BtlPreferencesRow {
   def tupled(tuple: (String, String, Int, Option[Int], Option[Char])): BtlPreferencesRow = tuple match {

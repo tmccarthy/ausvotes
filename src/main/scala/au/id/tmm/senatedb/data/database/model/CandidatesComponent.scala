@@ -1,8 +1,7 @@
 package au.id.tmm.senatedb.data.database.model
 
-import au.id.tmm.senatedb.data.CandidatePosition
 import au.id.tmm.senatedb.data.database.DriverComponent
-import au.id.tmm.senatedb.model.{SenateElection, State}
+import au.id.tmm.senatedb.model.{CandidatePosition, SenateElection, State}
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 // TODO separate given and surnames
