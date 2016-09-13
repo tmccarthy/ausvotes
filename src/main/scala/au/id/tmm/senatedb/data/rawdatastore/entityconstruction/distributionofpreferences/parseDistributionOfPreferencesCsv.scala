@@ -63,7 +63,8 @@ object parseDistributionOfPreferencesCsv {
         allCandidates,
         csvLines,
         nextTransfer,
-        previousCountSteps :+ firstCountStep)
+        previousCountSteps :+ firstCountStep,
+        updatedCandidateOutcomes)
     } else {
       val numExcludedSoFar = countExcludedCandidatesIn(rawCandidateRows)
 
@@ -281,8 +282,8 @@ object parseDistributionOfPreferencesCsv {
   }
 
   private def updateCandidateOutcomes(count: Int,
-                              rawCandidateRows: Vector[DopCsvRow],
-                              candidateOutcomesSoFar: Map[CandidatePosition, TrackedCandidateStatus]) = {
+                                      rawCandidateRows: Vector[DopCsvRow],
+                                      candidateOutcomesSoFar: Map[CandidatePosition, TrackedCandidateStatus]) = {
     val numCandidatesPreviouslyExcluded = countExcludedCandidatesIn(rawCandidateRows)
 
     rawCandidateRows

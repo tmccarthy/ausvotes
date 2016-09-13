@@ -1,8 +1,9 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpreferences
 
 import au.id.tmm.senatedb.data.TestData
+import au.id.tmm.senatedb.data.database.model.CandidateOutcome.{apply => _, _}
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType._
-import au.id.tmm.senatedb.data.database.model.{CountStepRow, CountTransferPerCandidateRow}
+import au.id.tmm.senatedb.data.database.model.{CountOutcomesPerCandidateRow, CountStepRow, CountTransferPerCandidateRow}
 import au.id.tmm.senatedb.model.State.{apply => _, _}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -456,5 +457,75 @@ class parseDistributionOfPreferencesCsvSpec extends ImprovedFlatSpec with UsesDo
     )
 
     assert(expectedStepsMetadata === actualStepsMetadata)
+  }
+
+  it should "have the expected candidate outcomes" in {
+    val countData = parseDistributionOfPreferencesCsv(testElection, TAS, TestData.allTasCandidates,
+      Source.fromURL(tasCsvResource)).get
+
+    val actualCandidateOutcomes = countData.outcomes
+
+    val expectedOutcomes = Set(
+      CountOutcomesPerCandidateRow("20499", "TAS", "28054", EXCLUDED, 7,34),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28592", ELECTED, 8,7),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28363", EXCLUDED, 41,298),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28276", EXCLUDED, 38,271),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28370", EXCLUDED, 33,226),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29139", EXCLUDED, 9,43),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29560", EXCLUDED, 40,289),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29307", EXCLUDED, 25,159),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28587", EXCLUDED, 14,76),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28595", ELECTED, 10,352),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28581", ELECTED, 5,2),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28585", EXCLUDED, 29,190),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28600", EXCLUDED, 34,235),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28048", EXCLUDED, 2,9),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28599", EXCLUDED, 22,132),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29283", EXCLUDED, 17,96),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28800", EXCLUDED, 30,199),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28591", ELECTED, 6,3),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28597", EXCLUDED, 20,116),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28584", EXCLUDED, 46,343),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29288", EXCLUDED, 44,325),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28801", EXCLUDED, 3,12),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29135", EXCLUDED, 37,262),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28187", EXCLUDED, 18,102),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28767", EXCLUDED, 13,70),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29141", EXCLUDED, 4,17),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29239", EXCLUDED, 26,167),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28589", EXCLUDED, 24,150),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28368", ELECTED, 12,355),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28586", EXCLUDED, 32,217),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28580", ELECTED, 1,1),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28186", EXCLUDED, 27,175),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28593", ELECTED, 11,353),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29302", EXCLUDED, 42,307),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28590", ELECTED, 2,1),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29291", EXCLUDED, 19,108),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28277", EXCLUDED, 10,51),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28047", EXCLUDED, 23,141),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28374", EXCLUDED, 46,355),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28598", EXCLUDED, 43,316),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29281", EXCLUDED, 35,244),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28385", EXCLUDED, 6,31),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28365", EXCLUDED, 11,55),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28594", EXCLUDED, 31,208),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28596", EXCLUDED, 39,280),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28375", EXCLUDED, 12,62),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29124", EXCLUDED, 8,39),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28601", EXCLUDED, 5,25),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28358", EXCLUDED, 15,83),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28361", ELECTED, 4,1),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29567", EXCLUDED, 16,89),
+      CountOutcomesPerCandidateRow("20499", "TAS", "29119", EXCLUDED, 28,182),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28583", ELECTED, 9,344),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28579", EXCLUDED, 21,124),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28367", ELECTED, 3,1),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28588", EXCLUDED, 45,334),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28381", EXCLUDED, 36,253),
+      CountOutcomesPerCandidateRow("20499", "TAS", "28582", ELECTED, 7,6)
+    )
+
+    assert(expectedOutcomes === actualCandidateOutcomes)
   }
 }

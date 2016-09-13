@@ -1,63 +1,15 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
+import au.id.tmm.senatedb.computations.BallotTestingUtilities._
 import au.id.tmm.senatedb.data._
-import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BtlPreferencesRow}
-import au.id.tmm.senatedb.model._
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 // Section references in this spec refer to the Commonwealth Electoral Act 1918
 class BallotNormaliserSpec extends ImprovedFlatSpec {
 
-  private val testElection = SenateElection.`2016`
-  private val testState = State.ACT
-
-  private val testBallotId = "BALLOTID"
-
   private val candidates = TestData.allActCandidates
 
   private val sut = BallotNormaliser.forCandidates(candidates)
-
-  private def orderedAtlPreferences(groupsInOrder: String*): Set[AtlPreferencesRow] = {
-    val preferencesPerGroup = groupsInOrder.zipWithIndex
-      .map { case (group, index) => (group, (index + 1).toString) }
-
-    atlPreferences(preferencesPerGroup: _*)
-  }
-
-  private def atlPreferences(prefPerGroup: (String, String)*): Set[AtlPreferencesRow] = {
-    prefPerGroup.map {
-      case (group, rawPref) => (group, Preference(rawPref))
-    }.map {
-      case (group, preference) => AtlPreferencesRow(testBallotId, group, preference.asNumber, preference.asChar)
-    }.toSet
-  }
-
-  private def orderedBtlPreferences(candidatesInOrder: String*): Set[BtlPreferencesRow] = {
-    val preferencesPerCandidate = candidatesInOrder.zipWithIndex
-      .map { case (candidate, index) => (candidate, (index + 1).toString) }
-
-    btlPreferences(preferencesPerCandidate: _*)
-  }
-
-  private def btlPreferences(prefPerCandidate: (String, String)*): Set[BtlPreferencesRow] = {
-    prefPerCandidate.map {
-      case (posCode, rawPref) => (codeToCandidatePosition(posCode), Preference(rawPref))
-    }.map {
-      case (position, preference) => BtlPreferencesRow(testBallotId, position.group, position.positionInGroup, preference.asNumber, preference.asChar)
-    }.toSet
-  }
-
-  private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
-
-  private def codeToCandidatePosition(positionCode: String) = positionCode match {
-    case candidatePositionCodePattern(group, position) => CandidatePosition(group, position.toInt)
-  }
-
-  private def normalisedBallot(candidatesInOrder: String*): NormalisedBallot = {
-    val positionsInOrder = candidatesInOrder.map(codeToCandidatePosition)
-
-    NormalisedBallot(positionsInOrder.toVector)
-  }
 
   // Section 269(2)
   "normalising either atl or btl preferences" should "use the btl preferences if they are formal" in {

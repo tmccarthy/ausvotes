@@ -11,5 +11,7 @@ final case class CountData(election: SenateElection,
                            outcomes: Set[CountOutcomesPerCandidateRow])
 
 object CountData {
-  final case class CountStepData(stepRow: CountStepRow, transfers: Set[CountTransferPerCandidateRow])
+  final case class CountStepData(stepRow: CountStepRow, transfers: Set[CountTransferPerCandidateRow]) {
+    @inline def count = stepRow.count
+  }
 }
