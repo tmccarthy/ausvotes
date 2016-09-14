@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.data.database
 
+import au.id.tmm.senatedb.data.GroupsAndCandidates
 import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.model.SenateElection
 
@@ -32,6 +33,13 @@ private[database] trait StoresGroupsAndCandidates { this: Persistence =>
 
   def retrieveCandidatesFor(election: SenateElection): Future[Seq[CandidatesRow]] =
     runQuery(dal.candidatesForElection(election))
+
+  def retrieveGroupsAndCandidatesFor(election: SenateElection): Future[GroupsAndCandidates] = {
+    for {
+      candidates <- runQuery(dal.candidatesForElection(election))
+      groups <- runQuery(dal.groupsForElection(election))
+    } yield GroupsAndCandidates(groups.toSet, candidates.toSet)
+  }
 
   def deleteGroupsFor(election: SenateElection): Future[Unit] = {
     val deleteStatement = dal.groups

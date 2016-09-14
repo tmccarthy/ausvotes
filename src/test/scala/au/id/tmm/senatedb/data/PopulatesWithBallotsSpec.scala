@@ -16,8 +16,8 @@ class PopulatesWithBallotsSpec extends ImprovedFlatSpec with TestsPersistencePop
     val numBtlPreferences = Await.result(persistence.runQuery(persistence.dal.btlPreferences.size), Inf)
 
     assert(numBallots === 102027)
-    assert(numAtlPreferences === 606742)
-    assert(numBtlPreferences === 123933)
+    assert(numAtlPreferences === 599794)
+    assert(numBtlPreferences === 130881)
   }
 
   behaviour of "loadBallots"

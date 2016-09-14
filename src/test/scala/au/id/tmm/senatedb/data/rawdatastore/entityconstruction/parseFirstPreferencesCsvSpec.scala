@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.data.rawdatastore.entityconstruction
 
+import au.id.tmm.senatedb.data.GroupsAndCandidates
 import au.id.tmm.senatedb.data.database.model.{CandidatesRow, GroupsRow}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -15,7 +16,7 @@ class parseFirstPreferencesCsvSpec extends ImprovedFlatSpec {
   behaviour of "the parseFirstPreferencesCsv method"
 
   it should "correctly parse groups from the test csv" in {
-    val (actualGroups, _) = parseFirstPreferencesCsv(testElection, Source.fromURL(testCSVResource)).get
+    val GroupsAndCandidates(actualGroups, _) = parseFirstPreferencesCsv(testElection, Source.fromURL(testCSVResource)).get
 
     val expectedGroups = Set(
       GroupsRow("A", testElection.aecID, "ACT", "Liberal Democratic Party"),
@@ -27,7 +28,7 @@ class parseFirstPreferencesCsvSpec extends ImprovedFlatSpec {
   }
 
   it should "correctly parse candidates from the test csv" in {
-    val (_, actualCandidates) = parseFirstPreferencesCsv(testElection, Source.fromURL(testCSVResource)).get
+    val GroupsAndCandidates(_, actualCandidates) = parseFirstPreferencesCsv(testElection, Source.fromURL(testCSVResource)).get
 
     val expectedCandidates = Set(
       CandidatesRow("29611", testElection.aecID, "ACT", "A", 0, "DONNELLY, Matt", "Liberal Democrats"),

@@ -41,10 +41,20 @@ object TestData {
       BtlPreferencesRow(ballotId, "C", 0, Some(2), None)
     )
 
-    val ballotFacts = BallotFactsRow(ballotId, 6, 12, false, true)
+    val ballotFacts = BallotFactsRow(ballotId, 6, 12, false, true, Some(42), Some(42))
 
     BallotWithPreferences(ballot, ballotFacts, atlPreferences, btlPreferences)
   }
+
+  val allNtGroups: Set[GroupsRow] = Set(
+    GroupsRow("C", "20499", "NT", "Citizens Electoral Council of Australia"),
+    GroupsRow("B", "20499", "NT", "Marijuana (HEMP) Party/Australian Sex Party"),
+    GroupsRow("A", "20499", "NT", "Rise Up Australia Party"),
+    GroupsRow("D", "20499", "NT", "The Greens"),
+    GroupsRow("F", "20499", "NT", "Australian Labor Party (Northern Territory) Branch"),
+    GroupsRow("E", "20499", "NT", "Country Liberals (NT)"),
+    GroupsRow("G", "20499", "NT", "Christian Democratic Party (Fred Nile Group)")
+  )
 
   val allNtCandidates: Set[CandidatesRow] = Set(
     CandidatesRow("28559", "20499", "NT", "A", 1, "GIMINI, Jimmy", "Rise Up Australia Party"),
@@ -68,6 +78,7 @@ object TestData {
     CandidatesRow("28003", "20499", "NT", "C", 0, "CAMPBELL, Trudy", "Citizens Electoral Council")
   )
 
+  val ntGroupsAndCandidates = GroupsAndCandidates(allNtGroups, allNtCandidates)
 
   val allActGroups = Set(
     GroupsRow("A", "20499", "ACT", "Liberal Democratic Party"),
@@ -106,6 +117,8 @@ object TestData {
     CandidatesRow("29520", "20499", "ACT", "UG", 0,   "HAY, Michael Gerard", "VOTEFLUX.ORG | Upgrade Democracy!"),
     CandidatesRow("28150", "20499", "ACT", "UG", 1,   "HANSON, Anthony", "Mature Australia")
   )
+
+  val actGroupsAndCandidates = GroupsAndCandidates(allActGroups, allActCandidates)
 
   val allTasCandidates: Set[CandidatesRow] = Set(
     CandidatesRow("28580", "20499", "TAS", "F", 0, "ABETZ, Eric", "Liberal"), 

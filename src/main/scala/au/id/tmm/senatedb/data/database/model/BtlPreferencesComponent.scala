@@ -15,6 +15,9 @@ final case class BtlPreferencesRow(ballotId: String,
 }
 
 object BtlPreferencesRow {
+  def apply(ballotId: String, candidatePosition: CandidatePosition, preference: Preference): BtlPreferencesRow =
+    BtlPreferencesRow(ballotId, candidatePosition.group, candidatePosition.positionInGroup, preference.asNumber, preference.asChar)
+
   def tupled(tuple: (String, String, Int, Option[Int], Option[Char])): BtlPreferencesRow = tuple match {
     case (ballotId, group, groupPosition, preference, mark) =>
       BtlPreferencesRow(ballotId, group.rtrim, groupPosition, preference, mark)

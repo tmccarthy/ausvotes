@@ -11,10 +11,14 @@ trait UsesDopData {
 
   val actCsvResource = getClass.getResource(s"$resourcesPackage/SenateStateDOPDownload-20499-ACT.csv")
   val tasCsvResource = getClass.getResource(s"$resourcesPackage/SenateStateDOPDownload-20499-TAS.csv")
+  val ntCsvResource = getClass.getResource(s"$resourcesPackage/SenateStateDOPDownload-20499-NT.csv")
 
   val testElection = SenateElection.`2016`
 
   lazy val parsedActCountData = parseDistributionOfPreferencesCsv(testElection, ACT, TestData.allActCandidates,
     Source.fromURL(actCsvResource)).get
+
+  lazy val parsedNtCountData = parseDistributionOfPreferencesCsv(testElection, NT, TestData.allNtCandidates,
+    Source.fromURL(ntCsvResource)).get
 
 }

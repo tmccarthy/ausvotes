@@ -48,7 +48,7 @@ trait PopulatesWithGroupsAndCandidates { this: PersistencePopulator =>
 
   private def doLoadFor(election: SenateElection, allowDownloading: Boolean): Future[Unit] = {
     for {
-      (groups, candidates) <- Future(rawDataStore.retrieveGroupsAndCandidates(election, allowDownloading).get)
+      GroupsAndCandidates(groups, candidates) <- Future(rawDataStore.retrieveGroupsAndCandidates(election, allowDownloading).get)
       _ <- persistence.storeGroups(groups)
       _ <- persistence.storeCandidates(candidates)
     } yield ()

@@ -64,9 +64,9 @@ trait PopulatesWithBallots { this: PersistencePopulator =>
                         allowDownloading: Boolean,
                         forceReload: Boolean): Future[Unit] = {
     for {
-      candidates <- persistence.retrieveCandidatesFor(election)
-      countData <- persistence.retrieveCountDataFor(election, state) // TODO use this for the ballots
-      ballotsWithPreferences <- Future(rawDataStore.retrieveBallots(election, state, candidates.toSet, allowDownloading).get)
+      groupsAndCandidates <- persistence.retrieveGroupsAndCandidatesFor(election)
+      countData <- persistence.retrieveCountDataFor(election, state)
+      ballotsWithPreferences <- Future(rawDataStore.retrieveBallots(election, state, groupsAndCandidates, countData, allowDownloading).get)
       _ <- persistence.storeBallotData(ballotsWithPreferences)
     } yield ()
   }
