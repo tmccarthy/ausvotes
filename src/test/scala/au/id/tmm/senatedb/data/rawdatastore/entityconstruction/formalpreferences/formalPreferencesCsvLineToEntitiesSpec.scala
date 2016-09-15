@@ -13,6 +13,7 @@ import scala.collection.immutable.ListMap
 class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesDopData {
 
   private val csvLine = List("Canberra","Calwell","4","10","30",",,1,5,6,,4,3,,2,,*,,,1,2,3,4,5,6,,,7,8,9,10,,/,11,12,,")
+  private val donkeyVoteCsvLine = List("Canberra","Calwell","4","10","30","1,2,3,4,5,6,,,,,,,,,,,,,,,,,,,,,,,,,,")
   private val numCandidatesPerGroup = ListMap(
     "A" -> 2,
     "B" -> 2,
@@ -57,7 +58,16 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
     val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
       rawPreferenceParser, ballotFactsCalculator, csvLine).get.unapply
 
-    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 12, false, true, None, None)
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 12, false, true, None, None, false)
+
+    assert(actualBallotFacts === expectedBallotFacts)
+  }
+
+  it should "identify a donkey vote" in {
+    val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
+      rawPreferenceParser, ballotFactsCalculator, donkeyVoteCsvLine).get.unapply
+
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 0, false, false, None, None, true)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }
@@ -68,12 +78,12 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
       rawPreferenceParser, ballotFactsCalculator, csvLine).get.unapply
 
     val expectedPreferences = Set(
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "G", Some(6), None),
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "C", Some(2), None),
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "B", Some(3), None),
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "J", Some(5), None),
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "D", Some(4), None),
-      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "A", Some(1), None)
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "E", Some(6), None),
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "D", Some(5), None),
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "J", Some(2), None),
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "H", Some(3), None),
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "G", Some(4), None),
+      AtlPreferencesRow("PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0=", "C", Some(1), None)
     )
 
     assert(expectedPreferences === actualPreferences)

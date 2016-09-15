@@ -8,7 +8,8 @@ case class BallotFactsRow(ballotId: String,
                           atlUsedSymbols: Boolean,
                           btlUsedSymbols: Boolean,
                           exhaustedAtCount: Option[Int],
-                          candidatesElectedAtExhaustion: Option[Int])
+                          candidatesElectedAtExhaustion: Option[Int],
+                          isDonkeyVote: Boolean)
 
 trait BallotFactsComponent { this: DriverComponent with BallotComponent with ComponentUtilities =>
   import driver.api._
@@ -25,7 +26,10 @@ trait BallotFactsComponent { this: DriverComponent with BallotComponent with Com
     def exhaustedAtCount = column[Option[Int]]("exhaustedAtCount")
     def candidatesElectedAtExhaustion = column[Option[Int]]("candidatesElectedAtExhaustion")
 
-    def * = (ballotId, numAtlPreferences, numBtlPreferences, atlUsedSymbols, btlUsedSymbols, exhaustedAtCount, candidatesElectedAtExhaustion) <>
+    def isDonkeyVote = column[Boolean]("isDonkeyVote")
+
+    def * = (ballotId, numAtlPreferences, numBtlPreferences, atlUsedSymbols, btlUsedSymbols, exhaustedAtCount,
+      candidatesElectedAtExhaustion, isDonkeyVote) <>
       (BallotFactsRow.tupled, BallotFactsRow.unapply)
   }
 

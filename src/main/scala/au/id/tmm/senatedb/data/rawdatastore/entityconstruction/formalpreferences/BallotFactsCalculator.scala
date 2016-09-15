@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.formalpreference
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.expiry.ExhaustionCalculator
 import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
+import au.id.tmm.senatedb.model.GroupUtils
 
 class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
                             exhaustionCalculator: ExhaustionCalculator) {
@@ -22,6 +23,8 @@ class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
 
     val exhaustion = exhaustionCalculator.computeExhaustionOf(normalised.get)
 
+    val donkeyVote = isDonkeyVote(atlPreferences)
+
     BallotFactsRow(
       ballotId = ballotRow.ballotId,
       numAtlPreferences = numAtlPreferences,
@@ -29,8 +32,31 @@ class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
       atlUsedSymbols = usedSymbolAtl,
       btlUsedSymbols = usedSymbolBtl,
       exhaustedAtCount = exhaustion.map(_.atCount),
-      candidatesElectedAtExhaustion = exhaustion.map(_.candidatesElected)
+      candidatesElectedAtExhaustion = exhaustion.map(_.candidatesElected),
+      donkeyVote
     )
   }
 
+  private def isDonkeyVote(atlPreferences: Set[AtlPreferencesRow]): Boolean = {
+    if (atlPreferences.size < BallotFactsCalculator.DONKEY_VOTE_THRESHOLD) {
+      return false
+    }
+
+    val sortedByGroup = atlPreferences.toStream
+      .sortBy(_.group)(GroupUtils.groupOrdering)
+
+    for (row <- sortedByGroup) {
+      val isPreferencedInOrder = row.preference.contains(GroupUtils.indexOfGroup(row.group) + 1)
+
+      if (!isPreferencedInOrder) {
+        return false
+      }
+    }
+
+    true
+  }
+}
+
+object BallotFactsCalculator {
+  val DONKEY_VOTE_THRESHOLD = 3
 }

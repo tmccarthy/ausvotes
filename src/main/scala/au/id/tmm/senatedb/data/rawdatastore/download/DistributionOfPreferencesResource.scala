@@ -9,7 +9,7 @@ import au.id.tmm.utilities.hashing.Digest
 private[this] final case class DistributionOfPreferencesResource(election: SenateElection, digest: Digest) {
   private val nameSansExtension = s"SenateDopDownload-${election.aecID}"
 
-  val url: URL = new URL(s"http://vtr.aec.gov.au/External/$nameSansExtension.zip")
+  val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
   val localFilePath: Path = Paths.get(s"$nameSansExtension.zip")
 

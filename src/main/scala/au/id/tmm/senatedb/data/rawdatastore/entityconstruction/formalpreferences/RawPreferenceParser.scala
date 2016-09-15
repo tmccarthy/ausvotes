@@ -2,11 +2,16 @@ package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.formalpreference
 
 import au.id.tmm.senatedb.data.GroupsAndCandidates
 import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BtlPreferencesRow}
-import au.id.tmm.senatedb.model.{CandidatePosition, Preference}
+import au.id.tmm.senatedb.model.{CandidatePosition, GroupUtils, Preference}
 
 private[formalpreferences] class RawPreferenceParser(groupsAndCandidates: GroupsAndCandidates) {
 
   private lazy val numGroupsAtl = groupsAndCandidates.groups.size
+  private lazy val groupsInOrder: Vector[String] = groupsAndCandidates.groups
+    .toStream
+    .map(_.groupId)
+    .sorted(GroupUtils.groupOrdering)
+    .toVector
 
   private lazy val indexBtlToCandidatePos: Map[Int, CandidatePosition] = {
     val btlCandidatesInOrder = groupsAndCandidates.candidates
@@ -37,9 +42,9 @@ private[formalpreferences] class RawPreferenceParser(groupsAndCandidates: Groups
                                  groupPreferences: Vector[Preference]): Set[AtlPreferencesRow] = {
     assert(numGroupsAtl == groupPreferences.size)
 
-    (groupsAndCandidates.groups.toStream zip groupPreferences)
+    (groupsInOrder.toStream zip groupPreferences)
       .filter { case (_, preference) => preference != Preference.Missing }
-      .map { case (group, preference) => AtlPreferencesRow(ballotId, group.groupId, preference.asNumber, preference.asChar) }
+      .map { case (group, preference) => AtlPreferencesRow(ballotId, group, preference.asNumber, preference.asChar) }
       .toSet
   }
 

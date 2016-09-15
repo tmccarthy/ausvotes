@@ -19,9 +19,9 @@ class LoadingFirstPreferencesSpec extends ImprovedFlatSpec with BeforeAndAfter w
     val source = LoadingFirstPreferences.csvLinesOf(testingRawDataDir,
       SenateElection.`2016`)
 
-    val numLines = source.get.size
+    val numLines = source.get.getLines().size
 
-    assert(numLines === 62547)
+    assert(numLines === 839)
   }
 
 }

@@ -40,24 +40,24 @@ class parseFormalPreferencesCsvSpec extends ImprovedFlatSpec with UsesDopData {
       .toSet
 
     val expectedAtlPreferences = Set(
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "I", Some(1),None),
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "A", Some(3),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "E", Some(3),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "D", Some(4),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "G", Some(5),None),
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "B", Some(2),None),
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "E", Some(4),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "E", Some(3),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "I", Some(1),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "C", Some(5),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "C", Some(2),None),
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "D", Some(5),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "G", Some(4),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "I", Some(1),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "H", Some(2),None),
-      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "F", Some(6),None),
-      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "D", Some(6),None),
-      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "A", Some(6),None)
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "I", Some(6),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "J", Some(2),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "F", Some(1),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "C", Some(6),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "E", Some(5),None),
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "F", Some(1),None),
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "H", Some(2),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "G", Some(6),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "A", Some(3),None),
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "G", Some(5),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "F", Some(1),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "A", Some(3),None),
+      AtlPreferencesRow("XrAV7MhxzOjz2scfHbK6JpWg2/VgYZayhGzGY9k35Lw=", "G", Some(4),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "B", Some(2),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "J", Some(5),None),
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "C", Some(3),None),
+      AtlPreferencesRow("PSvN2Cq2X9pO8x3Pye6MZq/b9fh5CkLvchPmsRsg1Js=", "A", Some(4),None),
+      AtlPreferencesRow("lXBpzxIh0wCXehBHs0G7iE4Lu0Wxe2jOtf9k4Gzs3jI=", "E", Some(4),None)
     )
 
     assert(expectedAtlPreferences === actualAtlPreferences)

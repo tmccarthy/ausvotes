@@ -16,9 +16,9 @@ resolvers +=
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-  "au.id.tmm" %% "tmmtestutils" % "0.1.4" % "test",
+  "au.id.tmm" %% "tmmtestutils" % "0.1.5" % "test",
 
-  "au.id.tmm" %% "tmmutils" % "0.1.4",
+  "au.id.tmm" %% "tmmutils" % "0.1.5",
 
   "org.slf4j" % "slf4j-simple" % "1.7.19",
   "com.github.scopt" %% "scopt" % "3.4.0",

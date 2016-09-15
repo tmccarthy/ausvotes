@@ -12,7 +12,7 @@ private [download] final case class FormalPreferencesResource private(election: 
                                                                       digest: Digest) {
   private val nameSansExtension = s"aec-senate-formalpreferences-${election.aecID}-${state.shortName}"
 
-  val url: URL = new URL(s"http://vtr.aec.gov.au/External/$nameSansExtension.zip")
+  val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
   val localFileName: Path = Paths.get(s"$nameSansExtension.zip").getFileName
 

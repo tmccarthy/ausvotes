@@ -9,7 +9,7 @@ import au.id.tmm.utilities.hashing.Digest
 private[download] final case class FirstPreferencesResource(election: SenateElection, digest: Digest) {
   private val nameSansExtension = s"SenateFirstPrefsByStateByVoteTypeDownload-${election.aecID}"
 
-  val url: URL = new URL(s"http://vtr.aec.gov.au/Downloads/$nameSansExtension.csv")
+  val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/Downloads/$nameSansExtension.csv")
 
   val localFileName: Path = Paths.get(s"$nameSansExtension.csv").getFileName
 }

@@ -1,12 +1,11 @@
 package au.id.tmm.senatedb.model
 
-import com.google.common.collect.ComparisonChain
-
 final case class CandidatePosition(group: String, positionInGroup: Int) extends Ordered[CandidatePosition] {
-  override def compare(that: CandidatePosition): Int = {
-    ComparisonChain.start()
-      .compare(group, that.group)
-      .compare(positionInGroup, that.positionInGroup)
-      .result()
-  }
+  private lazy val groupIndex: Int = GroupUtils.indexOfGroup(group)
+
+  override def compare(that: CandidatePosition): Int = CandidatePosition.ordering.compare(this, that)
+}
+
+object CandidatePosition {
+  private val ordering: Ordering[CandidatePosition] = Ordering.by(pos => (pos.groupIndex, pos.positionInGroup))
 }
