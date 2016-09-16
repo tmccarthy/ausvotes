@@ -31,7 +31,7 @@ trait StoresCountData { this: Persistence =>
     for {
       stepsMetadata <- runQuery(dal.countStepsFor(election.aecID, state.shortName))
       allTransfers <- runQuery(dal.countTransfersFor(election.aecID, state.shortName))
-      outcomes <- runQuery(dal.outcomesPerCandidate)
+      outcomes <- runQuery(dal.candidateOutcomesFor(election.aecID, state.shortName))
     } yield {
       if (stepsMetadata.isEmpty) {
         throw new NoSuchElementException(s"No count data found for $state at $election")
@@ -66,7 +66,7 @@ trait StoresCountData { this: Persistence =>
   def deleteCountDataFor(election: SenateElection, state: State): Future[Unit] = {
     val deletionStatement = dal.countStepsFor(election.aecID, state.shortName).delete andThen
       dal.countTransfersFor(election.aecID, state.shortName).delete andThen
-      dal.outcomesAtElection(election.aecID, state.shortName).delete
+      dal.candidateOutcomesFor(election.aecID, state.shortName).delete
 
     execute(deletionStatement.transactionally).map(_ => Unit)
   }
