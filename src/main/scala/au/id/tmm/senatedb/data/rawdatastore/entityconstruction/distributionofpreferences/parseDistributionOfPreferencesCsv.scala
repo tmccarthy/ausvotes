@@ -16,13 +16,11 @@ import scala.util.Try
 
 object parseDistributionOfPreferencesCsv {
 
-  private val ignoredLines = Set(0)
-
   def apply(election: SenateElection,
             state: State,
             allCandidates: Set[CandidatesRow],
             csvLines: Source): Try[CountData] = Try {
-    val csvLinesIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, ignoredLines)
+    val csvLinesIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, numIgnoredLines = 1)
 
     val relevantCandidates = allCandidates
       .toStream
@@ -142,6 +140,8 @@ object parseDistributionOfPreferencesCsv {
       rowsToReturn += incompleteParsedLine.completeWithPositionInGroup(positionInGroup)
     }
 
+    assert(rowsToReturn.size == numCandidates, "")
+
     rowsToReturn.toVector
   }
 
@@ -244,7 +244,8 @@ object parseDistributionOfPreferencesCsv {
           s"elected nor excluded at count ${rawRowForChangedCandidate.count}")
       }
     } else {
-      val explanatoryComment = rawCandidateRows.head.comment
+      // Last because the first candidate row is fucked for count 1054 in the NSW data
+      val explanatoryComment = rawCandidateRows.last.comment
 
       val parsedComment = VoteTransferComment.from(explanatoryComment)
 

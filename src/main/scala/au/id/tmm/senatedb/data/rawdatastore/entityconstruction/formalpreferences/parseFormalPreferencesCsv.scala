@@ -12,8 +12,6 @@ import scala.util.Try
 
 private [data] object parseFormalPreferencesCsv {
 
-  private val ignoredLineIndexes = Set(0, 1)
-
   def apply(election: SenateElection,
             state: State,
             groupsAndCandidates: GroupsAndCandidates,
@@ -27,7 +25,7 @@ private [data] object parseFormalPreferencesCsv {
     val ballotNormaliser = BallotNormaliser.forCandidates(relevantGroupsAndCandidates.candidates)
     val ballotFactsCalculator = new BallotFactsCalculator(ballotNormaliser, exhaustionCalculator)
 
-    val lineIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, ignoredLineIndexes)
+    val lineIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, numIgnoredLines = 2)
 
     lineIterator
       .filterNot(CsvParseUtil.lineIsBlank)

@@ -11,20 +11,22 @@ import scala.concurrent.duration.Duration.Inf
 
 class PopulatesWithCountDataSpec extends ImprovedFlatSpec with TestsPersistencePopulator {
 
-  def assertCountDataLoadedCorrectly(): Unit = {
+  def getCountDataTotals: (Int, Int, Int) = {
     val numCountSteps = Await.result(persistence.runQuery(persistence.dal.countSteps.size), Inf)
     val numCandidateOutcomes = Await.result(persistence.runQuery(persistence.dal.outcomesPerCandidate.size), Inf)
     val numVoteTransfers = Await.result(persistence.runQuery(persistence.dal.countTransfersPerCandidate.size), Inf)
 
-    assert(numCountSteps === 29)
-    assert(numCandidateOutcomes === 22)
-    assert(numVoteTransfers === 638)
+    (numCountSteps, numCandidateOutcomes, numVoteTransfers)
   }
 
-  "loadCountData" can "load the count data for the ACT at the 2016 election" in {
-    Await.result(persistencePopulator.loadCountData(SenateElection.`2016`, State.ACT), Inf)
+  "loadCountData" can "load the count data for NSW at the 2016 election" in {
+    Await.result(persistencePopulator.loadCountData(SenateElection.`2016`, State.NSW), Inf)
 
-    assertCountDataLoadedCorrectly()
+    val (numCountSteps, numCandidateOutcomes, numVoteTransfers) = getCountDataTotals
+
+    assert(numCountSteps === 1065)
+    assert(numCandidateOutcomes === 151)
+    assert(numVoteTransfers === 160815)
   }
 
   it should "not reload the data if a step is already loaded for that state and election" in {
@@ -76,7 +78,11 @@ class PopulatesWithCountDataSpec extends ImprovedFlatSpec with TestsPersistenceP
 
     Await.result(persistence.runQuery(persistence.dal.countSteps), Inf)
 
-    assertCountDataLoadedCorrectly()
+    val (numCountSteps, numCandidateOutcomes, numVoteTransfers) = getCountDataTotals
+
+    assert(numCountSteps === 29)
+    assert(numCandidateOutcomes === 22)
+    assert(numVoteTransfers === 638)
   }
 
   it should "fail if no raw data has been downloaded and downloading is forbidden" in {

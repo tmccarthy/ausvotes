@@ -9,14 +9,13 @@ private [entityconstruction] object CsvParseUtil {
 
   def lineIsBlank(csvLine: Seq[String]): Boolean = csvLine.isEmpty || (csvLine.size == 1 && csvLine.head.isEmpty)
 
-  def csvIteratorIgnoringLines(source: Source, linesToIgnore: Set[Int]): CloseableIterator[Seq[String]] = {
-    val iterator = CSVReader.open(source)
-      .iterator
-      .zipWithIndex
-      .filterNot { case (_, lineIndex) => linesToIgnore contains lineIndex }
-      .map { case (csvLine, _) => csvLine }
+  def csvIteratorIgnoringLines(source: Source, numIgnoredLines: Int): CloseableIterator[Seq[String]] = {
+    val csvReader = CSVReader.open(source)
+
+    val iterator = csvReader.iterator
+      .drop(numIgnoredLines)
+      .filterNot(_.isEmpty)
 
     CloseableIterator(iterator, source)
   }
-
 }

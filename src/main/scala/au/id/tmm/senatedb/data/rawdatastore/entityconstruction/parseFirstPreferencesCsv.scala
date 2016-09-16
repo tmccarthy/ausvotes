@@ -9,10 +9,8 @@ import scala.util.Try
 
 private[data] object parseFirstPreferencesCsv {
 
-  private val ignoredLineIndexes = Set(0, 1)
-
   def apply(election: SenateElection, csvLines: Source): Try[GroupsAndCandidates] = Try {
-    val lineIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, ignoredLineIndexes)
+    val lineIterator = CsvParseUtil.csvIteratorIgnoringLines(csvLines, numIgnoredLines = 2)
 
     lineIterator
       .filterNot(CsvParseUtil.lineIsBlank)
