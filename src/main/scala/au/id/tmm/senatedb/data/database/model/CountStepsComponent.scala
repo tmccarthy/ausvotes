@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.data.database.model
 import au.id.tmm.senatedb.data.database.DriverComponent
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType
 import au.id.tmm.senatedb.data.database.model.CountStepRow.StepType.StepType
+import au.id.tmm.senatedb.model.CandidatePosition
 import au.id.tmm.utilities.string.StringUtils.ImprovedString
 
 final case class CountStepRow(election: String,
@@ -22,7 +23,15 @@ final case class CountStepRow(election: String,
                               stepType: StepType,
                               votesDistributedFromGroup: Option[String],
                               votesDistributedFromPositionInGroup: Option[Int],
-                              progressiveNumCandidatesElected: Int)
+                              progressiveNumCandidatesElected: Int) {
+  lazy val votesDistributedFromPosition: Option[CandidatePosition] = {
+    if (votesDistributedFromGroup.isDefined && votesDistributedFromPositionInGroup.isDefined) {
+      Some(CandidatePosition(votesDistributedFromGroup.get, votesDistributedFromPositionInGroup.get))
+    } else {
+      None
+    }
+  }
+}
 
 object CountStepRow {
 

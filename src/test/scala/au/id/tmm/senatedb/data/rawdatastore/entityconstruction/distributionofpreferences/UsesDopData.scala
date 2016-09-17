@@ -18,6 +18,9 @@ trait UsesDopData {
   lazy val parsedActCountData = parseDistributionOfPreferencesCsv(testElection, ACT, TestData.allActCandidates,
     Source.fromURL(actCsvResource)).get
 
+  lazy val parsedTasCountData = parseDistributionOfPreferencesCsv(testElection, TAS, TestData.allTasCandidates,
+    Source.fromURL(tasCsvResource)).get
+
   lazy val parsedNtCountData = parseDistributionOfPreferencesCsv(testElection, NT, TestData.allNtCandidates,
     Source.fromURL(ntCsvResource)).get
 

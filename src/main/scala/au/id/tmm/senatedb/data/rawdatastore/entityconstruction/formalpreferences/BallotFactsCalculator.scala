@@ -31,7 +31,7 @@ class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
       numBtlPreferences = numBtlPreferences,
       atlUsedSymbols = usedSymbolAtl,
       btlUsedSymbols = usedSymbolBtl,
-      exhaustedAtCount = exhaustion.map(_.atCount),
+      exhaustedAtCount = exhaustion.map(_.ordinal),
       candidatesElectedAtExhaustion = exhaustion.map(_.candidatesElected),
       donkeyVote
     )

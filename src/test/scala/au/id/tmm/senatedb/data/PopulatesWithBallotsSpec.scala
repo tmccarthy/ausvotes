@@ -61,4 +61,32 @@ class PopulatesWithBallotsSpec extends ImprovedFlatSpec with TestsPersistencePop
       Await.result(loadFuture, Inf)
     }
   }
+
+  it should "get the correct number of exhausted ballots for the NT election" in {
+    import persistence.dal.driver.api._
+
+    val loadFuture = persistencePopulator.loadBallots(SenateElection.`2016`, State.NT)
+
+    Await.result(loadFuture, Inf)
+
+    val countExhaustedQuery = persistence.dal.ballotFacts.filter(_.exhaustedAtCount.isDefined).size
+
+    val numExhaustedBallots = Await.result(persistence.runQuery(countExhaustedQuery), Inf)
+
+    assert(numExhaustedBallots === 0)
+  }
+
+  ignore should "get the correct number of exhausted ballots for the TAS election" in {
+    import persistence.dal.driver.api._
+
+    val loadFuture = persistencePopulator.loadBallots(SenateElection.`2016`, State.TAS)
+
+    Await.result(loadFuture, Inf)
+
+    val countExhaustedQuery = persistence.dal.ballotFacts.filter(_.exhaustedAtCount.isDefined).size
+
+    val numExhaustedBallots = Await.result(persistence.runQuery(countExhaustedQuery), Inf)
+
+    assert(numExhaustedBallots === 9531)
+  }
 }
