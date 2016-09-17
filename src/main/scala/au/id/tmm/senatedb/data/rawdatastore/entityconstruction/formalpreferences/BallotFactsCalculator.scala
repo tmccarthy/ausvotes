@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.data.rawdatastore.entityconstruction.formalpreference
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.expiry.ExhaustionCalculator
 import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BallotFactsRow, BallotRow, BtlPreferencesRow}
-import au.id.tmm.senatedb.model.GroupUtils
+import au.id.tmm.senatedb.model.{GroupUtils, Preferenceable}
 
 class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
                             exhaustionCalculator: ExhaustionCalculator) {
@@ -11,8 +11,10 @@ class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
   def ballotFactsOf(ballotRow: BallotRow,
                     atlPreferences: Set[AtlPreferencesRow],
                     btlPreferences: Set[BtlPreferencesRow]): BallotFactsRow = {
-    val numAtlPreferences = atlPreferences.flatMap(_.preference).reduceOption(_ max _).getOrElse(0)
-    val numBtlPreferences = btlPreferences.flatMap(_.preference).reduceOption(_ max _).getOrElse(0)
+    def count(preferences: Set[_ <: Preferenceable]): Int = preferences.count(_.hasPreference)
+
+    val numAtlPreferences = count(atlPreferences)
+    val numBtlPreferences = count(btlPreferences)
 
     val usedSymbolAtl = atlPreferences.exists(_.mark.isDefined)
     val usedSymbolBtl = btlPreferences.exists(_.mark.isDefined)

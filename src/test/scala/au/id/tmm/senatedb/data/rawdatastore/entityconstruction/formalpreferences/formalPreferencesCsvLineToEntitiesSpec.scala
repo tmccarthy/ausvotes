@@ -8,25 +8,11 @@ import au.id.tmm.senatedb.data.rawdatastore.entityconstruction.distributionofpre
 import au.id.tmm.senatedb.model.{SenateElection, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-import scala.collection.immutable.ListMap
-
 class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesDopData {
 
   private val csvLine = List("Canberra","Calwell","4","10","30",",,1,5,6,,4,3,,2,,*,,,1,2,3,4,5,6,,,7,8,9,10,,/,11,12,,")
   private val donkeyVoteCsvLine = List("Canberra","Calwell","4","10","30","1,2,3,4,5,6,,,,,,,,,,,,,,,,,,,,,,,,,,")
-  private val numCandidatesPerGroup = ListMap(
-    "A" -> 2,
-    "B" -> 2,
-    "C" -> 2,
-    "D" -> 2,
-    "E" -> 2,
-    "F" -> 2,
-    "G" -> 2,
-    "H" -> 2,
-    "I" -> 2,
-    "J" -> 2,
-    "UG" -> 2
-  )
+  private val markOnlyCsvLine = List("Canberra","Calwell","4","10","30",",,,/,,,,,,,,,,,,,,,,,,,,,,,/,,,,,")
 
   private val expectedBallotId = "PQg5+wF5dbfBCEqDyU7tSqv7gxRmYyt3I+LUPoZMfF0="
 
@@ -58,7 +44,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
     val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
       rawPreferenceParser, ballotFactsCalculator, csvLine).get.unapply
 
-    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 12, false, true, None, None, false)
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 14, false, true, None, None, false)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }
@@ -68,6 +54,15 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
       rawPreferenceParser, ballotFactsCalculator, donkeyVoteCsvLine).get.unapply
 
     val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 0, false, false, None, None, true)
+
+    assert(actualBallotFacts === expectedBallotFacts)
+  }
+
+  it should "count a single mark in the preference counts" in {
+    val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
+      rawPreferenceParser, ballotFactsCalculator, markOnlyCsvLine).get.unapply
+
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 1, 1, true, true, Some(28), Some(1), false)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }

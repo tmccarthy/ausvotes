@@ -10,8 +10,6 @@ final case class BtlPreferencesRow(ballotId: String,
                                    preference: Option[Int],
                                    mark: Option[Char]) extends Preferenceable {
   def position: CandidatePosition = CandidatePosition(group, groupPosition)
-
-  override def parsedPreference: Preference = Preference.fromOneOf(preference, mark)
 }
 
 object BtlPreferencesRow {
