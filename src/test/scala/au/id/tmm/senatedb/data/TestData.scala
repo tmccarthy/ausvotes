@@ -41,7 +41,7 @@ object TestData {
       BtlPreferencesRow(ballotId, "C", 0, Some(2), None)
     )
 
-    val ballotFacts = BallotFactsRow(ballotId, 6, 12, false, true, Some(42), Some(42), false)
+    val ballotFacts = BallotFactsRow(ballotId, 6, 14, 6, 0, false, true, Some(42), Some(42), false)
 
     BallotWithPreferences(ballot, ballotFacts, atlPreferences, btlPreferences)
   }

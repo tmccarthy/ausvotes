@@ -44,7 +44,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
     val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
       rawPreferenceParser, ballotFactsCalculator, csvLine).get.unapply
 
-    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 14, false, true, None, None, false)
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 14, 6, 0, false, true, None, None, false)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }
@@ -53,7 +53,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
     val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
       rawPreferenceParser, ballotFactsCalculator, donkeyVoteCsvLine).get.unapply
 
-    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 0, false, false, None, None, true)
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 6, 0, 6, 0, false, false, None, None, true)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }
@@ -62,7 +62,7 @@ class formalPreferencesCsvLineToEntitiesSpec extends ImprovedFlatSpec with UsesD
     val (_, actualBallotFacts, _, _) = formalPreferencesCsvLineToEntities(SenateElection.`2016`, State.ACT,
       rawPreferenceParser, ballotFactsCalculator, markOnlyCsvLine).get.unapply
 
-    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 1, 1, true, true, Some(28), Some(1), false)
+    val expectedBallotFacts = BallotFactsRow(expectedBallotId, 1, 1, 1, 0, true, true, Some(28), Some(1), false)
 
     assert(actualBallotFacts === expectedBallotFacts)
   }

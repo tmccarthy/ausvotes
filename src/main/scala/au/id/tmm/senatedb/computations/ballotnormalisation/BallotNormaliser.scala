@@ -1,10 +1,13 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
+import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser.NormaliserResult
 import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BtlPreferencesRow, CandidatesRow}
 import au.id.tmm.senatedb.model.{CandidatePosition, NormalisedBallot, Preference, Preferenceable}
 
 
 class BallotNormaliser private (candidates: Set[CandidatesRow]) {
+
+  private type NormalisedBallotWithNumFormalPreferences = (Option[NormalisedBallot], Int)
 
   private lazy val positionsPerGroup: Map[String, Vector[CandidatePosition]] =
     candidates
@@ -14,28 +17,41 @@ class BallotNormaliser private (candidates: Set[CandidatesRow]) {
       .toVector
       .groupBy(_.group)
 
-  def normalise(atlPreferences: Set[AtlPreferencesRow], btlPreferences: Set[BtlPreferencesRow]): Option[NormalisedBallot] = {
-    normaliseBtl(btlPreferences) orElse normaliseAtl(atlPreferences)
+  def normalise(atlPreferences: Set[AtlPreferencesRow], btlPreferences: Set[BtlPreferencesRow]): NormaliserResult = {
+    val (normalisedAtlBallot, numFormalAtlPreferences) = normaliseAtl(atlPreferences)
+    val (normalisedBtlBallot, numFormalBtlPreferences) = normaliseBtl(btlPreferences)
+
+    val normalisedBallot = normalisedBtlBallot orElse normalisedAtlBallot
+
+    NormaliserResult(normalisedBallot, numFormalAtlPreferences, numFormalBtlPreferences)
   }
 
-  def normaliseAtl(atlPreferences: Set[AtlPreferencesRow]): Option[NormalisedBallot] = {
+  def normaliseAtl(atlPreferences: Set[AtlPreferencesRow]): NormalisedBallotWithNumFormalPreferences = {
     val groupsInPreferenceOrder = generalNormalise(atlPreferences, 1)
       .map(rows => rows.map(_.group))
 
-    groupsInPreferenceOrder
+    val numFormalPreferences = groupsInPreferenceOrder.map(_.size).getOrElse(0)
+
+    val normalisedBallot = groupsInPreferenceOrder
       .map(distributeToCandidatePositions)
       .map(NormalisedBallot)
+
+    (normalisedBallot, numFormalPreferences)
   }
 
   private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[String]): Vector[CandidatePosition] =
     groupsInPreferenceOrder.flatMap(positionsPerGroup)
 
-  def normaliseBtl(btlPreferences: Set[BtlPreferencesRow]): Option[NormalisedBallot] = {
+  def normaliseBtl(btlPreferences: Set[BtlPreferencesRow]): NormalisedBallotWithNumFormalPreferences = {
     val positionsInPreferenceOrder = generalNormalise(btlPreferences, 6)
 
-    positionsInPreferenceOrder
+    val normalisedBallot = positionsInPreferenceOrder
       .map(rows => rows.map(_.position))
       .map(NormalisedBallot)
+
+    val numFormalPreferences = normalisedBallot.map(_.candidateOrder.size).getOrElse(0)
+
+    (normalisedBallot, numFormalPreferences)
   }
 
   private def generalNormalise[A <: Preferenceable](rows: Set[A], minNumPreferences: Int): Option[Vector[A]] = {
@@ -88,4 +104,10 @@ class BallotNormaliser private (candidates: Set[CandidatesRow]) {
 
 object BallotNormaliser {
   def forCandidates(candidates: Set[CandidatesRow]): BallotNormaliser = new BallotNormaliser(candidates)
+
+  final case class NormaliserResult(normalisedBallot: Option[NormalisedBallot],
+                                    numFormalPreferencesAtl: Int,
+                                    numFormalPreferencesBtl: Int) {
+    def ballotWasFormal = normalisedBallot.isDefined
+  }
 }

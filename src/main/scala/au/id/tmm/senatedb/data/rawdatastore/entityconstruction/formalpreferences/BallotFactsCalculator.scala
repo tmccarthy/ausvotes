@@ -13,24 +13,26 @@ class BallotFactsCalculator(ballotNormaliser: BallotNormaliser,
                     btlPreferences: Set[BtlPreferencesRow]): BallotFactsRow = {
     def count(preferences: Set[_ <: Preferenceable]): Int = preferences.count(_.hasPreference)
 
-    val numAtlPreferences = count(atlPreferences)
-    val numBtlPreferences = count(btlPreferences)
+    val numCellsNumberedAtl = count(atlPreferences)
+    val numCellsNumberedBtl = count(btlPreferences)
 
     val usedSymbolAtl = atlPreferences.exists(_.mark.isDefined)
     val usedSymbolBtl = btlPreferences.exists(_.mark.isDefined)
 
-    val normalised = ballotNormaliser.normalise(atlPreferences, btlPreferences)
+    val normaliserResult = ballotNormaliser.normalise(atlPreferences, btlPreferences)
 
-    assert(normalised.isDefined, "Encountered an informal ballot in the AEC data")
+    assert(normaliserResult.ballotWasFormal, "Encountered an informal ballot in the AEC data")
 
-    val exhaustion = exhaustionCalculator.computeExhaustionOf(normalised.get)
+    val exhaustion = exhaustionCalculator.computeExhaustionOf(normaliserResult.normalisedBallot.get)
 
     val donkeyVote = isDonkeyVote(atlPreferences)
 
     BallotFactsRow(
       ballotId = ballotRow.ballotId,
-      numAtlPreferences = numAtlPreferences,
-      numBtlPreferences = numBtlPreferences,
+      numCellsNumberedAtl = numCellsNumberedAtl,
+      numCellsNumberedBtl = numCellsNumberedBtl,
+      numFormalPreferencesAtl = normaliserResult.numFormalPreferencesAtl,
+      numFormalPreferencesBtl = normaliserResult.numFormalPreferencesBtl,
       atlUsedSymbols = usedSymbolAtl,
       btlUsedSymbols = usedSymbolBtl,
       exhaustedAtCount = exhaustion.map(_.ordinal),
