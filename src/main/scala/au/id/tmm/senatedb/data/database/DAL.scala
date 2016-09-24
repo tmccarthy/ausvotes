@@ -6,7 +6,7 @@ import slick.jdbc.meta.MTable
 
 import scala.concurrent.ExecutionContext
 
-private[data] final class DAL(val driver: JdbcProfile) extends DriverComponent
+final class DAL(val driver: JdbcProfile) extends DriverComponent
   with GroupsComponent
   with CandidatesComponent
   with BallotComponent

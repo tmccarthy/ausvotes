@@ -9,7 +9,7 @@ import slick.jdbc.JdbcBackend._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class Persistence private (private[data] val dal: DAL, private[data] val database: Database)
+class Persistence private (val dal: DAL, private[data] val database: Database)
                           (implicit val executionContext: ExecutionContext)
   extends Closeable
     with PersistenceLifecycle
