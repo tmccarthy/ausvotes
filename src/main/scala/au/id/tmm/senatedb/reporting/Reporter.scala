@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext
 class Reporter private (val persistence: Persistence)(implicit val ec: ExecutionContext)
   extends ReportingUtilities
   with ReportsFormalBallots
-  with ReportsDonkeyVotes{
+  with ReportsDonkeyVotes {
 
 
 }

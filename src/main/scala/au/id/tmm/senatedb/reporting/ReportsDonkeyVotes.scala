@@ -2,8 +2,6 @@ package au.id.tmm.senatedb.reporting
 
 import scala.concurrent.Future
 
-final case class NumDonkeyVotesReport(perState: TableWithSql, perDivision: TableWithSql)
-
 trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
 
   import api._
@@ -22,11 +20,11 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
       }
   }
 
-  def constructDonkeyVoteReport: Future[NumDonkeyVotesReport] = {
+  def constructDonkeyVoteReport: Future[Report] = {
     for {
       perStateTable <- constructPerStateTable
       perElectorateTable <- constructPerElectorateTable
-    } yield NumDonkeyVotesReport(perStateTable, perElectorateTable)
+    } yield Report("Donkey votes", perStateTable, perElectorateTable)
   }
 
   private val perStateQuery = baseQuery
@@ -76,6 +74,4 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
 
     tableFuture.map(TableWithSql(_, sql))
   }
-
-
 }

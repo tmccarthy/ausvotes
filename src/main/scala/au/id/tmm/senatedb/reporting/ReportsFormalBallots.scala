@@ -5,9 +5,6 @@ import au.id.tmm.senatedb.model.{Division, State}
 import scala.collection.Map
 import scala.concurrent.Future
 
-final case class NumFormalBallotsReport(perState: TableWithSql,
-                                        perDivision: TableWithSql)
-
 trait ReportsFormalBallots { this: ReportingUtilities =>
 
   import api._
@@ -52,11 +49,11 @@ trait ReportsFormalBallots { this: ReportingUtilities =>
 
   lazy val totalFormalBallots: Future[Int] = totalFormalBallotsPerState.map(_.values.sum)
 
-  def constructNumFormalBallotsReport: Future[NumFormalBallotsReport] = {
+  def constructNumFormalBallotsReport: Future[Report] = {
     for {
       perStateTable <- constructPerStateTable
       perElectorateTable <- constructPerElectorateTable
-    } yield NumFormalBallotsReport(perStateTable, perElectorateTable)
+    } yield Report("Number of formal ballots", perStateTable, perElectorateTable)
   }
 
   private def constructPerStateTable: Future[TableWithSql] = {
