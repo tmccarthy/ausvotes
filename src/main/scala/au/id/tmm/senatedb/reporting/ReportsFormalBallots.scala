@@ -2,7 +2,6 @@ package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.senatedb.model.{Division, State}
 
-import scala.collection.Map
 import scala.concurrent.Future
 
 trait ReportsFormalBallots { this: ReportingUtilities =>
@@ -56,7 +55,7 @@ trait ReportsFormalBallots { this: ReportingUtilities =>
     } yield Report("Number of formal ballots", perStateTable, perElectorateTable)
   }
 
-  private def constructPerStateTable: Future[TableWithSql] = {
+  private def constructPerStateTable: Future[ReportTable] = {
     val sql = sqlOf(perStateQuery)
 
     val tableFuture = perStateTableFrom(
@@ -65,10 +64,10 @@ trait ReportsFormalBallots { this: ReportingUtilities =>
       denominatorType = DenominatorType.ByTotal
     )
 
-    tableFuture.map(TableWithSql(_, sql))
+    tableFuture.map(_.copy(description = sql))
   }
 
-  private def constructPerElectorateTable: Future[TableWithSql] = {
+  private def constructPerElectorateTable: Future[ReportTable] = {
     val sql = sqlOf(formalBallotsPerDivisionQuery)
 
     val tableFuture = perDivisionTableFrom(
@@ -77,6 +76,6 @@ trait ReportsFormalBallots { this: ReportingUtilities =>
       denominatorType = DenominatorType.ByTotal
     )
 
-    tableFuture.map(TableWithSql(_, sql))
+    tableFuture.map(_.copy(description = sql))
   }
 }

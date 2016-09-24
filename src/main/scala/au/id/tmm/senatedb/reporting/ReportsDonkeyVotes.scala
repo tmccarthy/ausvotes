@@ -39,7 +39,7 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
     fillInStates(byStateName)
   }
 
-  private def constructPerStateTable: Future[TableWithSql] = {
+  private def constructPerStateTable: Future[ReportTable] = {
     val sql = sqlOf(perStateQuery)
 
     val tableFuture = perStateTableFrom(
@@ -48,7 +48,7 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
       denominatorType = DenominatorType.ByStateTotal
     )
 
-    tableFuture.map(TableWithSql(_, sql))
+    tableFuture.map(_.copy(description = sql))
   }
 
   private val perDivisionQuery = baseQuery
@@ -63,7 +63,7 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
     fillInDivisions(byDivisionName)
   }
 
-  private def constructPerElectorateTable: Future[TableWithSql] = {
+  private def constructPerElectorateTable: Future[ReportTable] = {
     val sql = sqlOf(perDivisionQuery)
 
     val tableFuture = perDivisionTableFrom(
@@ -72,6 +72,6 @@ trait ReportsDonkeyVotes { this: ReportingUtilities with ReportsFormalBallots =>
       denominatorType = DenominatorType.ByDivisionTotal
     )
 
-    tableFuture.map(TableWithSql(_, sql))
+    tableFuture.map(_.copy(description = sql))
   }
 }

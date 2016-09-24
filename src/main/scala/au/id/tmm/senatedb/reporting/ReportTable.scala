@@ -7,7 +7,8 @@ import au.id.tmm.senatedb.reporting.ReportTable.{Column, Row, fractionFormat, ta
 
 import scala.annotation.tailrec
 
-final case class ReportTable(rows: Vector[Row], columns: Vector[Column]) extends Table[Row, Column] {
+final case class ReportTable(rows: Vector[Row], columns: Vector[Column],
+                             description: String = "") extends Table[Row, Column] {
   override def columnHeading(column: Column): String = column.heading
 
   override def valueAt(row: Row, column: Column): String = convertToString(row.valueFor(column))

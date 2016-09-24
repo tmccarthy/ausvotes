@@ -2,9 +2,7 @@ package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.senatedb.data.database.Persistence
 import au.id.tmm.senatedb.model.{Division, State}
-import au.id.tmm.senatedb.reporting.ReportTable._
 
-import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ReportingUtilities { this: Reporter with ReportsFormalBallots =>
@@ -92,55 +90,18 @@ trait ReportingUtilities { this: Reporter with ReportsFormalBallots =>
       statesInOrder <- statesInOrderOfMostBallots
 
       talliesPerState <- talliesPerStateFuture
-      denominatorsPerState <- denominatorsForState(denominatorType)
-      totalRowDenominator <- totalFormalBallots
+      totalFormalBallots <- totalFormalBallots
+      totalFormalBallotsPerState <- totalFormalBallotsPerState
     } yield {
-      val rows = statesInOrder
-        .map { state =>
-          val tally = talliesPerState(state)
-          val denominator = denominatorsPerState(state)
-
-          val fraction = fractionOf(tally, denominator)
-
-          StateRow(state, tally, fraction)
-        }
-
-      val totalsRow = {
-        val totalRowTally = rows.map(_.tally).sum
-        val totalRowFraction = totalRowTally.toDouble / totalRowDenominator.toDouble
-
-        TotalRow(totalRowTitle, totalRowTally, Some(totalRowFraction))
-      }
-
-      val columns = Vector(StateNameColumn, TallyColumn(talliesColTitle))
-
-      val table = ReportTable(
-        rows :+ totalsRow,
-        columns
-      )
-
-      ReportTable.addFractionColumnIfDefinedForAllRows(table, fractionColTitle)
-    }
-  }
-
-  private def fractionOf(numerator: Int, denominator: Option[Int]) = denominator
-    .map(numerator.toDouble / _.toDouble)
-
-  private def denominatorsForDivision(denominatorType: DenominatorType): Future[Division => Option[Int]] = {
-    denominatorType match {
-      case DenominatorType.ByTotal => totalFormalBallots.map(total => _ => Some(total))
-      case DenominatorType.ByStateTotal => totalFormalBallotsPerState.map(theMap => division => theMap.get(division.state))
-      case DenominatorType.ByDivisionTotal => totalFormalBallotsPerDivision.map(theMap => theMap.get)
-      case DenominatorType.None => Future(_ => None)
-    }
-  }
-
-  private def denominatorsForState(denominatorType: DenominatorType): Future[State => Option[Int]] = {
-    denominatorType match {
-      case DenominatorType.ByTotal => totalFormalBallots.map(total => _ => Some(total))
-      case DenominatorType.ByStateTotal => totalFormalBallotsPerState.map(theMap => state => theMap.get(state))
-      case DenominatorType.ByDivisionTotal => throw new IllegalArgumentException("Cant divide a state tally by the division total")
-      case DenominatorType.None => Future(_ => None)
+      ReportTableConstruction.constructPerStateTable(
+        statesInOrder,
+        talliesColTitle,
+        fractionColTitle,
+        totalRowTitle,
+        talliesPerState,
+        denominatorType,
+        totalFormalBallots,
+        totalFormalBallotsPerState)
     }
   }
 
@@ -154,34 +115,20 @@ trait ReportingUtilities { this: Reporter with ReportsFormalBallots =>
       divisionsOrder <- divisionsInAlphaOrderByState
 
       talliesPerDivision <- talliesPerDivisionFuture
-      denominatorsPerDivision <- denominatorsForDivision(denominatorType)
-      totalRowDenominator <- totalFormalBallots
+      totalFormalBallots <- totalFormalBallots
+      totalFormalBallotsPerState <- totalFormalBallotsPerState
+      totalFormalBallotsPerDivision <- totalFormalBallotsPerDivision
     } yield {
-      val rows = divisionsOrder
-        .map { division =>
-          val tally = talliesPerDivision(division)
-          val denominator = denominatorsPerDivision(division)
-
-          val fraction = fractionOf(tally, denominator)
-
-          DivisionRow(division, tally, fraction)
-        }
-
-      val totalsRow = {
-        val totalRowTally = rows.map(_.tally).sum
-        val totalRowFraction = totalRowTally.toDouble / totalRowDenominator.toDouble
-
-        TotalRow(totalRowTitle, totalRowTally, Some(totalRowFraction))
-      }
-
-      val columns = Vector(DivisionNameColumn, StateNameColumn, TallyColumn(talliesColTitle))
-
-      val table = ReportTable(
-        rows :+ totalsRow,
-        columns
-      )
-
-      ReportTable.addFractionColumnIfDefinedForAllRows(table, fractionColTitle)
+      ReportTableConstruction.constructPerDivisionTable(
+        divisionsOrder,
+        talliesColTitle,
+        fractionColTitle,
+        totalRowTitle,
+        talliesPerDivision,
+        denominatorType,
+        totalFormalBallots,
+        totalFormalBallotsPerState,
+        totalFormalBallotsPerDivision)
     }
   }
 }
