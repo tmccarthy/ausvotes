@@ -1,4 +1,4 @@
-package au.id.tmm.senatedb.reporting
+package au.id.tmm.senatedb.reporting.database
 
 import au.id.tmm.senatedb.data.database.Persistence
 

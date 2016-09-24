@@ -1,6 +1,7 @@
-package au.id.tmm.senatedb.reporting
+package au.id.tmm.senatedb.reporting.database
 
 import au.id.tmm.senatedb.model.{Division, State}
+import au.id.tmm.senatedb.reporting.{DenominatorType, Report, ReportTable}
 
 import scala.concurrent.Future
 

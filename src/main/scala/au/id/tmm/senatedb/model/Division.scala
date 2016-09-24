@@ -5,5 +5,5 @@ final case class Division(name: String, state: State) extends Ordered[Division] 
 }
 
 object Division {
-  private val ordering: Ordering[Division] = Ordering.by(d => (d.state, d.name))
+  private val ordering: Ordering[Division] = Ordering.by(d => (d.state.shortName, d.name))
 }

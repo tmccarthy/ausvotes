@@ -1,7 +1,8 @@
-package au.id.tmm.senatedb.reporting
+package au.id.tmm.senatedb.reporting.database
 
 import au.id.tmm.senatedb.data.database.Persistence
 import au.id.tmm.senatedb.model.{Division, State}
+import au.id.tmm.senatedb.reporting._
 
 import scala.concurrent.{ExecutionContext, Future}
 

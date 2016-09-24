@@ -1,4 +1,6 @@
-package au.id.tmm.senatedb.reporting
+package au.id.tmm.senatedb.reporting.database
+
+import au.id.tmm.senatedb.reporting._
 
 import scala.concurrent.Future
 
