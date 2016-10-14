@@ -3,9 +3,9 @@ package au.id.tmm.senatedb.rawdata
 import java.nio.file.Path
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.rawdata.csv.{ParsingDistributionOfPreferences, ParsingFirstPreferences, ParsingFormalPreferences}
-import au.id.tmm.senatedb.rawdata.download.{LoadingDistributionsOfPreferences, LoadingFirstPreferences, LoadingFormalPreferences}
-import au.id.tmm.senatedb.rawdata.model.{DistributionOfPreferencesRow, FirstPreferencesRow, FormalPreferencesRow}
+import au.id.tmm.senatedb.rawdata.csv.{ParsingDistributionOfPreferences, ParsingFirstPreferences, ParsingFormalPreferences, ParsingPollingPlaces}
+import au.id.tmm.senatedb.rawdata.download.{LoadingDistributionsOfPreferences, LoadingFirstPreferences, LoadingFormalPreferences, LoadingPollingPlaces}
+import au.id.tmm.senatedb.rawdata.model.{DistributionOfPreferencesRow, FirstPreferencesRow, FormalPreferencesRow, PollingPlacesRow}
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 
@@ -25,6 +25,11 @@ final class RawDataStore private (val location: Path) {
   def formalPreferencesFor(election: SenateElection, state: State): Try[CloseableIterator[FormalPreferencesRow]] = {
     LoadingFormalPreferences.csvLinesOf(location, election, state)
       .flatMap(ParsingFormalPreferences.parseLines)
+  }
+
+  def pollingPlacesFor(election: SenateElection): Try[CloseableIterator[PollingPlacesRow]] = {
+    LoadingPollingPlaces.csvLinesOf(location, election)
+      .flatMap(ParsingPollingPlaces.parseLines)
   }
 }
 

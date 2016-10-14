@@ -5,16 +5,17 @@ import java.nio.file.{Path, Paths}
 
 import au.id.tmm.senatedb.model.SenateElection
 
-final case class FirstPreferencesResource(election: SenateElection) extends Resource {
-  private val nameSansExtension = s"SenateFirstPrefsByStateByVoteTypeDownload-${election.aecID}"
+final case class PollingPlacesResource(election: SenateElection) extends Resource {
+  private val nameSansExtension = s"GeneralPollingPlacesDownload-${election.aecID}"
 
   override val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/Downloads/$nameSansExtension.csv")
 
   override val localFileName: Path = Paths.get(s"$nameSansExtension.csv").getFileName
 }
 
-object FirstPreferencesResource {
-  val `2016` = FirstPreferencesResource(SenateElection.`2016`)
+
+object PollingPlacesResource {
+  val `2016` = PollingPlacesResource(SenateElection.`2016`)
 
   def of(election: SenateElection) = election match {
     case SenateElection.`2016` => Some(`2016`)

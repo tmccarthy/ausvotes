@@ -38,5 +38,8 @@ object PollingPlace {
     final case class Premises(name: String,
                               address: Address,
                               location: LatLong) extends Location
+
+    final case class PremisesMissingLatLong(name: String,
+                                            address: Address) extends Location
   }
 }

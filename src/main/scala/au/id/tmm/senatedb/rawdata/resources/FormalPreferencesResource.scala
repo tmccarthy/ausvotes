@@ -9,13 +9,14 @@ import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
 import au.id.tmm.utilities.hashing.Digest
 
-final case class FormalPreferencesResource private(election: SenateElection, state: State,
-                                                                      digest: Digest) {
+final case class FormalPreferencesResource private(election: SenateElection,
+                                                   state: State,
+                                                   digest: Digest) extends ResourceWithDigest {
   private val nameSansExtension = s"aec-senate-formalpreferences-${election.aecID}-${state.abbreviation}"
 
-  val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
+  override val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
-  val localFileName: Path = Paths.get(s"$nameSansExtension.zip").getFileName
+  override val localFileName: Path = Paths.get(s"$nameSansExtension.zip").getFileName
 
   val zipEntryName: String = s"$nameSansExtension.csv"
 }

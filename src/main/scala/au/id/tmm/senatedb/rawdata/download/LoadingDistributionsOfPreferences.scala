@@ -1,11 +1,11 @@
 package au.id.tmm.senatedb.rawdata.download
 
 import java.io.InputStream
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipFile}
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.rawdata.download.DownloadUtils.{downloadUrlToFile, localResourceIntegrityCheck}
+import au.id.tmm.senatedb.rawdata.download.StorageUtils.findRawDataWithIntegrityCheckFor
 import au.id.tmm.senatedb.rawdata.resources.DistributionOfPreferencesResource
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.io.ZipFileUtils.{ImprovedPath, ImprovedZipFile}
@@ -19,7 +19,7 @@ object LoadingDistributionsOfPreferences {
   def csvLinesOf(dataDir: Path, election: SenateElection, state: State): Try[Source] = {
     for {
       matchingResource <- resourceMatching(election)
-      dataFilePath <- findRawDataFor(dataDir, matchingResource)
+      dataFilePath <- findRawDataWithIntegrityCheckFor(dataDir, matchingResource)
       inputStream <- csvInputStreamFrom(matchingResource, dataFilePath, state)
       source <- Try(Source.fromInputStream(inputStream, "UTF-8"))
     } yield source
@@ -28,20 +28,6 @@ object LoadingDistributionsOfPreferences {
   private def resourceMatching(election: SenateElection): Try[DistributionOfPreferencesResource] =
     DistributionOfPreferencesResource.of(election)
       .failIfAbsent(new UnsupportedOperationException(s"Could not find a distribution of preferences for $election"))
-
-  private def findRawDataFor(dataDir: Path, resource: DistributionOfPreferencesResource): Try[Path] = {
-    val expectedPath = dataDir.resolve(resource.localFilePath)
-
-    if (Files.exists(expectedPath)) {
-      localResourceIntegrityCheck(expectedPath, resource.digest).map(_ => expectedPath)
-
-    } else {
-      downloadUrlToFile(resource.url, expectedPath)
-        .flatMap(_ => localResourceIntegrityCheck(expectedPath, resource.digest))
-        .map(_ => expectedPath)
-
-    }
-  }
 
   private def csvInputStreamFrom(resource: DistributionOfPreferencesResource, zipFilePath: Path, state: State): Try[InputStream] =
     for {

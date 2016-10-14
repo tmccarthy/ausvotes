@@ -32,4 +32,12 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
       assert(dopRows.size === 21)
     }
   }
+
+  it should "retrieve the polling places as expected" in {
+    for {
+      pollingPlacesRows <- managed(rawDataStore.pollingPlacesFor(SenateElection.`2016`).get)
+    } {
+      assert(pollingPlacesRows.size === 8328)
+    }
+  }
 }

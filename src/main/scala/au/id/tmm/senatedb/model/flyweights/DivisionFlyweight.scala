@@ -6,11 +6,12 @@ import au.id.tmm.utilities.collection.Flyweight
 import au.id.tmm.utilities.geo.australia.State
 
 final class DivisionFlyweight private () {
-  private val flyweight: Flyweight[(SenateElection, State, String), Division] = Flyweight {
-    case (election, state, name) => Division(election, state, name)
+  private val flyweight: Flyweight[(SenateElection, State, String, Int), Division] = Flyweight {
+    case (election, state, name, aecId) => Division(election, state, name, aecId)
   }
 
-  def apply(election: SenateElection, state: State, name: String): Division = flyweight(election, state, name)
+  def apply(election: SenateElection, state: State, name: String, aecId: Int): Division =
+    flyweight(election, state, name, aecId)
 }
 
 object DivisionFlyweight {

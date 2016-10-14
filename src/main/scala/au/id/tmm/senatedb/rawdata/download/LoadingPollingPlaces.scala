@@ -3,16 +3,13 @@ package au.id.tmm.senatedb.rawdata.download
 import java.nio.file.Path
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.rawdata.resources.FirstPreferencesResource
+import au.id.tmm.senatedb.rawdata.resources.PollingPlacesResource
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 
 import scala.io.Source
 import scala.util.Try
 
-// Note that we don't perform a data integrity check here because this file is generated dynamically on download, and
-// has a timestamp
-object LoadingFirstPreferences {
-
+object LoadingPollingPlaces {
   def csvLinesOf(dataDir: Path, election: SenateElection): Try[Source] = {
     for {
       matchingResource <- resourceMatching(election)
@@ -21,7 +18,8 @@ object LoadingFirstPreferences {
     } yield source
   }
 
-  private def resourceMatching(election: SenateElection): Try[FirstPreferencesResource] =
-    FirstPreferencesResource.of(election)
-      .failIfAbsent(new UnsupportedOperationException(s"Could not find raw first preferences data for $election"))
+  private def resourceMatching(election: SenateElection): Try[PollingPlacesResource] =
+    PollingPlacesResource.of(election)
+      .failIfAbsent(new UnsupportedOperationException(s"Could not find raw polling places data for $election"))
+
 }

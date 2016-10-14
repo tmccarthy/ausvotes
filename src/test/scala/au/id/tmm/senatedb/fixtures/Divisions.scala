@@ -20,8 +20,8 @@ object Divisions {
     override val state = State.ACT
 
     override val divisions = Set(
-      Division(election, state, "Canberra"),
-      Division(election, state, "Fenner")
+      Division(election, state, "Canberra", 101),
+      Division(election, state, "Fenner", 102)
     )
 
     val CANBERRA: Division = divisionLookup("Canberra")
