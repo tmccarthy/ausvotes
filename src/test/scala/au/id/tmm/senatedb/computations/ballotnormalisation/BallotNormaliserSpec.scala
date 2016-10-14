@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
 import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates, Divisions, PollingPlaces}
-import au.id.tmm.senatedb.model.parsing.{CandidatePosition, Group, Preference}
+import au.id.tmm.senatedb.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 // Section references in this spec refer to the Commonwealth Electoral Act 1918
@@ -15,8 +15,8 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   import ballotMaker._
 
-  private def makeBallot(atlPrefs: Map[Group, Preference],
-                         btlPrefs: Map[CandidatePosition, Preference]
+  private def makeBallot(atlPrefs: AtlPreferences,
+                         btlPrefs: BtlPreferences
                         ) = ballotMaker.makeBallot(atlPrefs, btlPrefs, Divisions.ACT.CANBERRA, PollingPlaces.ACT.BARTON)
 
   // Section 269(2)

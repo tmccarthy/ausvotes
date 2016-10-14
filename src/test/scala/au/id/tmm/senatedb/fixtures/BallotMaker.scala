@@ -1,12 +1,13 @@
 package au.id.tmm.senatedb.fixtures
 
 import au.id.tmm.senatedb.fixtures.Candidates.CandidateFixture
+import au.id.tmm.senatedb.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
 import au.id.tmm.senatedb.model.parsing._
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 
-  def makeBallot(atlPreferences: Map[Group, Preference],
-                 btlPreferences: Map[CandidatePosition, Preference],
+  def makeBallot(atlPreferences: AtlPreferences,
+                 btlPreferences: BtlPreferences,
                  division: Division,
                  pollingPlace: PollingPlace,
                  batch: Int = 1,
@@ -15,14 +16,14 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     Ballot(candidateFixture.election, candidateFixture.state, division, pollingPlace, batch, paper, atlPreferences, btlPreferences)
   }
 
-  def orderedAtlPreferences(groupsInOrder: String*): Map[Group, Preference] = {
+  def orderedAtlPreferences(groupsInOrder: String*): AtlPreferences = {
     val preferencesPerGroup = groupsInOrder.zipWithIndex
       .map { case (group, index) => (group, (index + 1).toString) }
 
     atlPreferences(preferencesPerGroup: _*)
   }
 
-  def atlPreferences(prefPerGroup: (String, String)*): Map[Group, Preference] = {
+  def atlPreferences(prefPerGroup: (String, String)*): AtlPreferences = {
     prefPerGroup.map {
       case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> Preference(rawPref)
     }.map {

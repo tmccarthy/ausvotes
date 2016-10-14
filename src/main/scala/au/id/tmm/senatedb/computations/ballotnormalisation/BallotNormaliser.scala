@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
+import au.id.tmm.senatedb.model.parsing.Ballot.AtlPreferences
 import au.id.tmm.senatedb.model.parsing._
 
 class BallotNormaliser private (candidates: Set[Candidate],
@@ -30,7 +31,7 @@ class BallotNormaliser private (candidates: Set[Candidate],
     NormalisedBallot(atlCandidateOrder, atlFormalPrefCount, btlCandidateOrder, btlFormalPrefCount, canonicalCandidateOrder)
   }
 
-  private def normaliseAtl(atlPreferences: Map[Group, Preference]): (Vector[CandidatePosition], Int) = {
+  private def normaliseAtl(atlPreferences: AtlPreferences): (Vector[CandidatePosition], Int) = {
     val groupsInPreferenceOrder = generalNormalise(atlPreferences, minPreferencesAtl)
 
     val formalPreferenceCount = groupsInPreferenceOrder.size
