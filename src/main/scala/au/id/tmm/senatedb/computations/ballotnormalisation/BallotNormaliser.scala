@@ -1,83 +1,80 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
-import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser.NormaliserResult
-import au.id.tmm.senatedb.data.database.model.{AtlPreferencesRow, BtlPreferencesRow, CandidatesRow}
-import au.id.tmm.senatedb.model.{CandidatePosition, NormalisedBallot, Preference, Preferenceable}
+import au.id.tmm.senatedb.model.computation.NormalisedBallot
+import au.id.tmm.senatedb.model.parsing._
 
-
-class BallotNormaliser private (candidates: Set[CandidatesRow]) {
+class BallotNormaliser private (candidates: Set[Candidate],
+                                minPreferencesAtl: Int = 1,
+                                minPreferencesBtl: Int = 6) {
 
   private type NormalisedBallotWithNumFormalPreferences = (Option[NormalisedBallot], Int)
 
-  private lazy val positionsPerGroup: Map[String, Vector[CandidatePosition]] =
+  private lazy val positionsPerGroup: Map[BallotGroup, Vector[CandidatePosition]] =
     candidates
       .toStream
-      .map(_.position)
+      .map(_.btlPosition)
       .sorted
       .toVector
       .groupBy(_.group)
 
-  def normalise(atlPreferences: Set[AtlPreferencesRow], btlPreferences: Set[BtlPreferencesRow]): NormaliserResult = {
-    val (normalisedAtlBallot, numFormalAtlPreferences) = normaliseAtl(atlPreferences)
-    val (normalisedBtlBallot, numFormalBtlPreferences) = normaliseBtl(btlPreferences)
+  def normalise(ballot: Ballot): NormalisedBallot = {
+    val (atlCandidateOrder, atlFormalPrefCount) = normaliseAtl(ballot.atlPreferences)
+    val (btlCandidateOrder, btlFormalPrefCount) = normaliseBtl(ballot.btlPreferences)
 
-    val normalisedBallot = normalisedBtlBallot orElse normalisedAtlBallot
+    val canonicalCandidateOrder = if (btlCandidateOrder.nonEmpty) {
+      btlCandidateOrder
+    } else {
+      atlCandidateOrder
+    }
 
-    NormaliserResult(normalisedBallot, numFormalAtlPreferences, numFormalBtlPreferences)
+    NormalisedBallot(atlCandidateOrder, atlFormalPrefCount, btlCandidateOrder, btlFormalPrefCount, canonicalCandidateOrder)
   }
 
-  def normaliseAtl(atlPreferences: Set[AtlPreferencesRow]): NormalisedBallotWithNumFormalPreferences = {
-    val groupsInPreferenceOrder = generalNormalise(atlPreferences, 1)
-      .map(rows => rows.map(_.group))
+  private def normaliseAtl(atlPreferences: Map[Group, Preference]): (Vector[CandidatePosition], Int) = {
+    val groupsInPreferenceOrder = generalNormalise(atlPreferences, minPreferencesAtl)
 
-    val numFormalPreferences = groupsInPreferenceOrder.map(_.size).getOrElse(0)
+    val formalPreferenceCount = groupsInPreferenceOrder.size
 
-    val normalisedBallot = groupsInPreferenceOrder
-      .map(distributeToCandidatePositions)
-      .map(NormalisedBallot)
+    val candidateOrder = distributeToCandidatePositions(groupsInPreferenceOrder)
 
-    (normalisedBallot, numFormalPreferences)
+    (candidateOrder, formalPreferenceCount)
   }
 
-  private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[String]): Vector[CandidatePosition] =
+  private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[Group]): Vector[CandidatePosition] =
     groupsInPreferenceOrder.flatMap(positionsPerGroup)
 
-  def normaliseBtl(btlPreferences: Set[BtlPreferencesRow]): NormalisedBallotWithNumFormalPreferences = {
-    val positionsInPreferenceOrder = generalNormalise(btlPreferences, 6)
+  private def normaliseBtl(btlPreferences: Map[CandidatePosition, Preference]): (Vector[CandidatePosition], Int) = {
+    val candidateOrder = generalNormalise(btlPreferences, minPreferencesBtl)
 
-    val normalisedBallot = positionsInPreferenceOrder
-      .map(rows => rows.map(_.position))
-      .map(NormalisedBallot)
+    val formalPreferenceCount = candidateOrder.size
 
-    val numFormalPreferences = normalisedBallot.map(_.candidateOrder.size).getOrElse(0)
-
-    (normalisedBallot, numFormalPreferences)
+    (candidateOrder, formalPreferenceCount)
   }
 
-  private def generalNormalise[A <: Preferenceable](rows: Set[A], minNumPreferences: Int): Option[Vector[A]] = {
-    val rowsInPreferenceOrder = orderAccordingToPreferences(rows)
+  private def generalNormalise[A](preferences: Map[A, Preference], minNumPreferences: Int): Vector[A] = {
+    val rowsInPreferenceOrder = orderAccordingToPreferences(preferences)
 
     val formalPreferences = truncateAtCountError(rowsInPreferenceOrder)
 
     if (formalPreferences.size < minNumPreferences) {
-      None
+      Vector.empty
     } else {
-      Some(formalPreferences)
+      formalPreferences
     }
   }
 
-  private def orderAccordingToPreferences[A <: Preferenceable](rows: Set[A]): Vector[Set[A]] = {
-    val returnedVector: scala.collection.mutable.Buffer[Set[A]] = Vector.fill(rows.size)(Set.empty[A]).toBuffer
+  private def orderAccordingToPreferences[A](preferences: Map[A, Preference]): Vector[Set[A]] = {
+    val returnedVector: scala.collection.mutable.Buffer[Set[A]] = Vector.fill(preferences.size)(Set.empty[A]).toBuffer
 
-    @inline def isWithinValidPreferencesRange(prefAsNumber: Int) = prefAsNumber <= rows.size
+    @inline def isWithinValidPreferencesRange(prefAsNumber: Int) = prefAsNumber <= preferences.size
     @inline def indexForPreference(prefAsNumber: Int) = prefAsNumber - 1
 
-    for (row <- rows) {
-      val preference = toNumber(row.parsedPreference)
+    for ((x, preference) <- preferences) {
+      val preferenceAsNumber = toNumber(preference)
 
-      if (preference.isDefined && isWithinValidPreferencesRange(preference.get)) {
-        val index = indexForPreference(preference.get)
-        returnedVector.update(index, returnedVector(index) + row)
+      if (preferenceAsNumber.isDefined && isWithinValidPreferencesRange(preferenceAsNumber.get)) {
+        val index = indexForPreference(preferenceAsNumber.get)
+        returnedVector.update(index, returnedVector(index) + x)
       }
     }
 
@@ -92,7 +89,7 @@ class BallotNormaliser private (candidates: Set[CandidatesRow]) {
     }
   }
 
-  private def truncateAtCountError[A <: Preferenceable](rowsInPreferenceOrder: Vector[Set[A]]): Vector[A] = {
+  private def truncateAtCountError[A](rowsInPreferenceOrder: Vector[Set[A]]): Vector[A] = {
     // As long as we have only one row with each preference, we haven't encountered a count error
     rowsInPreferenceOrder
       .toStream
@@ -103,7 +100,7 @@ class BallotNormaliser private (candidates: Set[CandidatesRow]) {
 }
 
 object BallotNormaliser {
-  def forCandidates(candidates: Set[CandidatesRow]): BallotNormaliser = new BallotNormaliser(candidates)
+  def forCandidates(candidates: Set[Candidate]): BallotNormaliser = new BallotNormaliser(candidates)
 
   final case class NormaliserResult(normalisedBallot: Option[NormalisedBallot],
                                     numFormalPreferencesAtl: Int,
