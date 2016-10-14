@@ -1,4 +1,5 @@
 package au.id.tmm.senatedb.model.parsing
 
-// TODO election
-final case class Party(name: String)
+import au.id.tmm.senatedb.model.SenateElection
+
+final case class Party(election: SenateElection, name: String)

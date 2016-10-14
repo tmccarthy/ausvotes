@@ -51,7 +51,7 @@ object GroupAndCandidateGeneration {
     assert(rawRow.positionInGroup == 0)
 
     val state = stateFrom(rawRow)
-    val party = partyFrom(partyFlyweight, rawRow)
+    val party = partyFrom(partyFlyweight, election, rawRow)
 
     groupFlyweight(election, state, rawRow.ticket.trim, party)
   }
@@ -59,13 +59,13 @@ object GroupAndCandidateGeneration {
   private def stateFrom(rawRow: FirstPreferencesRow) = State.fromAbbreviation(rawRow.state.trim)
     .getOrElse(throw new BadDataException(s"Encountered bad state value ${rawRow.state} in row $rawRow"))
 
-  private def partyFrom(partyFlyweight: PartyFlyweight, rawRow: FirstPreferencesRow): Option[Party] = {
+  private def partyFrom(partyFlyweight: PartyFlyweight, election: SenateElection, rawRow: FirstPreferencesRow): Option[Party] = {
     val partyName = rawRow.party.trim
 
     if (partyName.isEmpty || ("Independent" equalsIgnoreCase partyName)) {
       None
     } else {
-      Some(partyFlyweight(partyName))
+      Some(partyFlyweight(election, partyName))
     }
   }
 
@@ -77,7 +77,7 @@ object GroupAndCandidateGeneration {
     assert(rawRow.positionInGroup != 0)
 
     val state = stateFrom(rawRow)
-    val party = partyFrom(partyFlyweight, rawRow)
+    val party = partyFrom(partyFlyweight, election, rawRow)
     val name = candidateNameFrom(rawRow)
     val position = candidatePositionFrom(groupsByCode, rawRow)
 

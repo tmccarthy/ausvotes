@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.rawdata.model
 
-// TODO line/file
 final case class FirstPreferencesRow(state: String,
                                      ticket: String,
                                      candidateId: String,

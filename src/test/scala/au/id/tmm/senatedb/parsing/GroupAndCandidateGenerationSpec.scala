@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.parsing
 
 import au.id.tmm.senatedb.fixtures.Candidates
-import au.id.tmm.senatedb.model.SenateElection
+import au.id.tmm.senatedb.model.SenateElection.`2016`
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.rawdata.model.FirstPreferencesRow
 import au.id.tmm.utilities.geo.australia.State
@@ -38,17 +38,17 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   behaviour of "the group and candidate generator"
 
   it should "generate a group" in {
-    val expectedGroup = Group(SenateElection.`2016`, State.ACT, "C", Some(Party("Australian Labor Party")))
+    val expectedGroup = Group(`2016`, State.ACT, "C", Some(Party(`2016`, "Australian Labor Party")))
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedGroup)
   }
 
   it should "generate a group without a party" in {
-    val expectedGroup = Group(SenateElection.`2016`, State.VIC, "B", None)
+    val expectedGroup = Group(`2016`, State.VIC, "B", None)
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedGroup)
   }
@@ -56,7 +56,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   it should "generate a grouped candidate" in {
     val expectedCandidate = Candidates.ACT.candidateWithId("28147")
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedCandidate)
   }
@@ -64,7 +64,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   it should "generate an ungrouped candidate" in {
     val expectedCandidate = Candidates.ACT.candidateWithId("28150")
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedCandidate)
   }
@@ -72,39 +72,39 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   it should "generate an independent candidate" in {
     val expectedCandidate = Candidates.NT.candidateWithId("28538")
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedCandidate)
   }
 
   it should "generate a grouped, independent candidate" in {
     val expectedCandidate = Candidate(
-      election = SenateElection.`2016`,
+      election = `2016`,
       state = State.VIC,
       aecId = "29589",
       name = Name("David", "COLLYER"),
       party = None,
-      btlPosition = CandidatePosition(Group(SenateElection.`2016`, State.VIC, "B", None), 0))
+      btlPosition = CandidatePosition(Group(`2016`, State.VIC, "B", None), 0))
 
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     assert(groupsAndCandidates contains expectedCandidate)
   }
 
   it should "flyweight generated parties" in {
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
-    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party("Australian Labor Party")).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party("Australian Labor Party")).head
+    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
+    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
 
     assert(laborGroup.party.get eq laborCandidate.party.get)
   }
 
   it should "flyweight generated groups" in {
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(SenateElection.`2016`, rows)
+    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
-    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party("Australian Labor Party")).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party("Australian Labor Party")).head
+    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
+    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
 
     assert(laborGroup eq laborCandidate.btlPosition.group)
   }
