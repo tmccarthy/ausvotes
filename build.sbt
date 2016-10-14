@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
   "au.id.tmm" %% "tmmtestutils" % "0.1.6" % "test",
 
-  "au.id.tmm" %% "tmmutils" % "0.1.7",
+  "au.id.tmm" %% "tmmutils" % "0.1.7-SNAPSHOT",
 
   "org.slf4j" % "slf4j-simple" % "1.7.19",
   "com.github.scopt" %% "scopt" % "3.4.0",
@@ -30,5 +30,6 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.192",
   "org.postgresql" % "postgresql" % "9.4.1209",
 
-  "commons-io" % "commons-io" % "2.4"
+  "commons-io" % "commons-io" % "2.4",
+  "org.apache.commons" % "commons-lang3" % "3.4"
 )

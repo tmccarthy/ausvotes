@@ -6,7 +6,6 @@ import au.id.tmm.utilities.geo.australia.State
 final case class Candidate(election: SenateElection,
                            state: State,
                            aecId: String,
-                           surname: String,
-                           givenName: String,
+                           name: Name,
                            party: Option[Party],
                            btlPosition: CandidatePosition)

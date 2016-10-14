@@ -42,9 +42,3 @@ object BallotGroup {
     .groupBy(_.code)
     .mapValues(_.head)
 }
-
-object Group {
-  def lookupFrom(groups: Set[Group]): Map[String, Group] = groups
-    .groupBy(_.code)
-    .mapValues(_.head)
-}

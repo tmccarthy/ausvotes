@@ -13,7 +13,7 @@ class ParsingFirstPreferencesSpec extends ImprovedFlatSpec {
       state = "ACT",
       ticket = "A",
       candidateId = "29611",
-      ballotPosition = 1,
+      positionInGroup = 1,
       candidateDetails = "DONNELLY, Matt",
       party = "Liberal Democrats",
       ordinaryVotes = 778,

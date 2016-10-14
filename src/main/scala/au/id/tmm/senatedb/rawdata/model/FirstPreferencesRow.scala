@@ -1,10 +1,10 @@
 package au.id.tmm.senatedb.rawdata.model
 
-// StateAb	Ticket	CandidateID	BallotPosition	CandidateDetails	PartyName	OrdinaryVotes	AbsentVotes	ProvisionalVotes	PrePollVotes	PostalVotes	TotalVotes
+// TODO line/file
 final case class FirstPreferencesRow(state: String,
                                      ticket: String,
                                      candidateId: String,
-                                     ballotPosition: Int,
+                                     positionInGroup: Int,
                                      candidateDetails: String,
                                      party: String,
                                      ordinaryVotes: Int,

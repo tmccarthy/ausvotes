@@ -18,7 +18,7 @@ object ParsingFirstPreferences {
     state = line(0),
     ticket = line(1),
     candidateId = line(2),
-    ballotPosition = line(3).toInt,
+    positionInGroup = line(3).toInt,
     candidateDetails = line(4),
     party = line(5),
     ordinaryVotes = line(6).toInt,
