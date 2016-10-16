@@ -7,7 +7,7 @@ import au.id.tmm.utilities.geo.australia.State
 final case class Ballot(election: SenateElection,
                         state: State,
                         division: Division,
-                        voteCollectionPoint: PollingPlace,
+                        pollingPlace: PollingPlace,
                         batch: Int,
                         paper: Int,
                         atlPreferences: AtlPreferences,

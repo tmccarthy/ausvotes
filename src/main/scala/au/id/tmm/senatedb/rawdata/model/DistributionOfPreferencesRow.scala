@@ -17,5 +17,5 @@ final case class DistributionOfPreferencesRow(state: String,
                                               changed: Option[Boolean],
                                               orderElected: Int,
                                               comment: String
-                                             ) {
+                                             ) extends RawRow {
 }

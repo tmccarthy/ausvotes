@@ -5,7 +5,7 @@ import au.id.tmm.senatedb.model.flyweights.{DivisionFlyweight, PostcodeFlyweight
 import au.id.tmm.senatedb.model.parsing.PollingPlace
 import au.id.tmm.senatedb.rawdata.model.PollingPlacesRow
 import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.{Address, State}
+import au.id.tmm.utilities.geo.australia.Address
 import org.apache.commons.lang3.StringUtils
 
 object PollingPlaceGeneration {
@@ -14,7 +14,7 @@ object PollingPlaceGeneration {
                           row: PollingPlacesRow,
                           divisionFlyweight: DivisionFlyweight = DivisionFlyweight(),
                           postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): PollingPlace = {
-    val state = stateFrom(row.state)
+    val state = GenerationUtils.stateFrom(row.state, row)
 
     val pollingPlaceType = PollingPlace.Type(row.pollingPlaceTypeId)
 
@@ -59,7 +59,7 @@ object PollingPlaceGeneration {
       lines = addressLinesFrom(row),
       suburb = row.premisesSuburb.trim,
       postcode = postcodeFlyweight(row.premisesPostcode.trim),
-      state = stateFrom(row.premisesState)
+      state = GenerationUtils.stateFrom(row.premisesState, row)
     )
   }
 
@@ -74,10 +74,5 @@ object PollingPlaceGeneration {
     } else {
       Vector(row.premisesName.trim)
     }
-  }
-
-  private def stateFrom(rawState: String): State = {
-    State.fromAbbreviation(rawState.trim)
-      .getOrElse(throw new BadDataException(s"Unrecognised state code $rawState"))
   }
 }

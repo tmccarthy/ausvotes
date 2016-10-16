@@ -6,5 +6,5 @@ final case class FormalPreferencesRow(electorateName: String,
                                       batchNumber: Int,
                                       paperNumber: Int,
                                       preferences: String
-                                     ) {
+                                     ) extends RawRow {
 }

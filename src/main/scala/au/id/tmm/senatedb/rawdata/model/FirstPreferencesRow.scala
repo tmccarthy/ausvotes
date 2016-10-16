@@ -12,5 +12,5 @@ final case class FirstPreferencesRow(state: String,
                                      prePollVotes: Int,
                                      postalVotes: Int,
                                      totalVotes: Int
-                                    ) {
+                                    ) extends RawRow {
 }

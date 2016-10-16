@@ -15,5 +15,5 @@ final case class PollingPlacesRow(state: String,
                                   premisesPostcode: String,
                                   latitude: Option[Double],
                                   longitude: Option[Double]
-                                 ) {
+                                 ) extends RawRow {
 }

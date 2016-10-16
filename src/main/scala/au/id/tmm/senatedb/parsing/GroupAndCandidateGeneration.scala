@@ -4,7 +4,6 @@ import au.id.tmm.senatedb.model.flyweights.{GroupFlyweight, PartyFlyweight}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.rawdata.model.FirstPreferencesRow
-import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable
 
@@ -56,8 +55,7 @@ object GroupAndCandidateGeneration {
     groupFlyweight(election, state, rawRow.ticket.trim, party)
   }
 
-  private def stateFrom(rawRow: FirstPreferencesRow) = State.fromAbbreviation(rawRow.state.trim)
-    .getOrElse(throw new BadDataException(s"Encountered bad state value ${rawRow.state} in row $rawRow"))
+  private def stateFrom(rawRow: FirstPreferencesRow) = GenerationUtils.stateFrom(rawRow.state, rawRow)
 
   private def partyFrom(partyFlyweight: PartyFlyweight, election: SenateElection, rawRow: FirstPreferencesRow): Option[Party] = {
     val partyName = rawRow.party.trim

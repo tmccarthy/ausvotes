@@ -32,14 +32,14 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     }.toMap
   }
 
-  def orderedBtlPreferences(candidatesInOrder: String*): Map[CandidatePosition, Preference] = {
+  def orderedBtlPreferences(candidatesInOrder: String*): BtlPreferences = {
     val preferencesPerCandidate = candidatesInOrder.zipWithIndex
       .map { case (candidate, index) => (candidate, (index + 1).toString) }
 
     btlPreferences(preferencesPerCandidate: _*)
   }
 
-  def btlPreferences(prefPerCandidate: (String, String)*): Map[CandidatePosition, Preference] = {
+  def btlPreferences(prefPerCandidate: (String, String)*): BtlPreferences = {
     prefPerCandidate.map {
       case (posCode, rawPref) => codeToCandidatePosition(posCode) -> Preference(rawPref)
     }.toMap

@@ -33,21 +33,20 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
       .toMap
   }
 
-  def preferencesFrom(ballotId: String, rawPreferencesString: String): (AtlPreferences, BtlPreferences) = {
+  def preferencesFrom(rawPreferencesString: String): (AtlPreferences, BtlPreferences) = {
     val (groupPreferencesArray, candidatePreferencesArray) = rawPreferencesString.split(",", -1)
       .map(Preference(_))
       .toVector
       .splitAt(numGroupsAtl)
 
-    val atlPreferences = atlPreferencesFrom(ballotId, groupPreferencesArray)
+    val atlPreferences = atlPreferencesFrom(groupPreferencesArray)
 
-    val btlPreferences = btlPreferencesFrom(ballotId, candidatePreferencesArray)
+    val btlPreferences = btlPreferencesFrom(candidatePreferencesArray)
 
     (atlPreferences, btlPreferences)
   }
 
-  private def atlPreferencesFrom(ballotId: String,
-                                 groupPreferences: Vector[Preference]): AtlPreferences = {
+  private def atlPreferencesFrom(groupPreferences: Vector[Preference]): AtlPreferences = {
     assert(numGroupsAtl == groupPreferences.size)
 
     (groupsInOrder.toStream zip groupPreferences)
@@ -55,11 +54,11 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
       .toMap
   }
 
-  private def btlPreferencesFrom(ballotId: String, candidatePreferences: Vector[Preference]): BtlPreferences = {
+  private def btlPreferencesFrom(candidatePreferences: Vector[Preference]): BtlPreferences = {
     candidatePreferences
       .toStream
-      .filterNot(_ == Preference.Missing)
       .zipWithIndex
+      .filterNot { case (preference, index) => preference == Preference.Missing }
       .map {
         case (preference, btlIndex) => indexBtlToCandidatePos(btlIndex) -> preference
       }
