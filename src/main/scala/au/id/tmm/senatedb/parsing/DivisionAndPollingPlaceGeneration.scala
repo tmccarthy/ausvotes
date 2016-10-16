@@ -1,34 +1,49 @@
 package au.id.tmm.senatedb.parsing
 
-import au.id.tmm.senatedb.model.SenateElection
+import au.id.tmm.senatedb.model.DivisionsAndPollingPlaces.DivisionAndPollingPlace
 import au.id.tmm.senatedb.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
 import au.id.tmm.senatedb.model.parsing.PollingPlace
+import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, SenateElection}
 import au.id.tmm.senatedb.rawdata.model.PollingPlacesRow
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.Address
 import org.apache.commons.lang3.StringUtils
 
-object PollingPlaceGeneration {
+object DivisionAndPollingPlaceGeneration {
+
+  def fromPollingPlaceRows(election: SenateElection,
+                           rows: TraversableOnce[PollingPlacesRow],
+                           divisionFlyweight: DivisionFlyweight = DivisionFlyweight(),
+                           postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): DivisionsAndPollingPlaces = {
+    val divisionsAndPollingPlaces: TraversableOnce[DivisionAndPollingPlace] = rows
+      .map(row => fromPollingPlaceRow(election, row, divisionFlyweight, postcodeFlyweight))
+
+    DivisionsAndPollingPlaces.from(divisionsAndPollingPlaces)
+  }
 
   def fromPollingPlaceRow(election: SenateElection,
                           row: PollingPlacesRow,
                           divisionFlyweight: DivisionFlyweight = DivisionFlyweight(),
-                          postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): PollingPlace = {
+                          postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): DivisionAndPollingPlace = {
     val state = GenerationUtils.stateFrom(row.state, row)
 
     val pollingPlaceType = PollingPlace.Type(row.pollingPlaceTypeId)
 
     val location = locationFrom(row, postcodeFlyweight)
 
-    PollingPlace(
+    val division = divisionFlyweight(election, state, row.divisionName, row.divisionId)
+
+    val pollingPlace = PollingPlace(
       election,
       state,
-      divisionFlyweight(election, state, row.divisionName, row.divisionId),
+      division,
       row.pollingPlaceId,
       pollingPlaceType,
       row.pollingPlaceName,
       location
     )
+
+    DivisionAndPollingPlace(division, pollingPlace)
   }
 
   private def locationFrom(row: PollingPlacesRow, postcodeFlyweight: PostcodeFlyweight): PollingPlace.Location = {

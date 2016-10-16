@@ -11,7 +11,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
 
   it should "retrieve formal preferences for the NT as expected" in {
     for {
-      formalPreferencesRows <- managed(rawDataStore.formalPreferencesFor(SenateElection.`2016`, State.NT).get)
+      formalPreferencesRows <- managed(rawDataStore.formalPreferencesFor(SenateElection.`2016`, State.NT))
     } {
       assert(formalPreferencesRows.size === 102027)
     }
@@ -19,7 +19,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
 
   it should "retrieve first preferences as expected" in {
     for {
-      firstPreferencesRows <- managed(rawDataStore.firstPreferencesFor(SenateElection.`2016`).get)
+      firstPreferencesRows <- managed(rawDataStore.firstPreferencesFor(SenateElection.`2016`))
     } {
       assert(firstPreferencesRows.size === 837)
     }
@@ -27,7 +27,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
 
   it should "retrieve the distribution of preferences for the NT as expected" in {
     for {
-      dopRows <- managed(rawDataStore.distributionsOfPreferencesFor(SenateElection.`2016`, State.NT).get)
+      dopRows <- managed(rawDataStore.distributionsOfPreferencesFor(SenateElection.`2016`, State.NT))
     } {
       assert(dopRows.size === 21)
     }
@@ -35,7 +35,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
 
   it should "retrieve the polling places as expected" in {
     for {
-      pollingPlacesRows <- managed(rawDataStore.pollingPlacesFor(SenateElection.`2016`).get)
+      pollingPlacesRows <- managed(rawDataStore.pollingPlacesFor(SenateElection.`2016`))
     } {
       assert(pollingPlacesRows.size === 8328)
     }

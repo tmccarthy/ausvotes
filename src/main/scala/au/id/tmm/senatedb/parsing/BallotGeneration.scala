@@ -7,12 +7,12 @@ import au.id.tmm.utilities.geo.australia.State
 
 object BallotGeneration {
 
-  def fromFormalPreferencesRows(election: SenateElection,
-                                state: State,
-                                rawPreferenceParser: RawPreferenceParser,
-                                divisionNameLookup: String => Division,
-                                pollingPlaceNameLookup: String => PollingPlace,
-                                row: FormalPreferencesRow): Ballot = {
+  def fromFormalPreferencesRow(election: SenateElection,
+                               state: State,
+                               rawPreferenceParser: RawPreferenceParser,
+                               divisionNameLookup: String => Division,
+                               pollingPlaceNameLookup: String => PollingPlace,
+                               row: FormalPreferencesRow): Ballot = {
     val (atlPrefs, btlPrefs) = rawPreferenceParser.preferencesFrom(row.preferences)
 
     Ballot(

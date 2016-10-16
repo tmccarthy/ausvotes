@@ -22,7 +22,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   it should "generate a ballot" in {
     val testCsvRow = FormalPreferencesRow("Canberra", "Barton", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
-    val actualBallot = BallotGeneration.fromFormalPreferencesRows(
+    val actualBallot = BallotGeneration.fromFormalPreferencesRow(
       SenateElection.`2016`,
       State.ACT,
       rawPreferenceParser,

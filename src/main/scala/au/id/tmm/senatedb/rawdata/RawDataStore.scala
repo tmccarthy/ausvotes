@@ -9,27 +9,29 @@ import au.id.tmm.senatedb.rawdata.model.{DistributionOfPreferencesRow, FirstPref
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 
-import scala.util.Try
-
 final class RawDataStore private (val location: Path) {
-  def distributionsOfPreferencesFor(election: SenateElection, state: State): Try[CloseableIterator[DistributionOfPreferencesRow]] = {
+  def distributionsOfPreferencesFor(election: SenateElection, state: State): CloseableIterator[DistributionOfPreferencesRow] = {
     LoadingDistributionsOfPreferences.csvLinesOf(location, election, state)
       .flatMap(ParsingDistributionOfPreferences.parseLines)
+      .get
   }
 
-  def firstPreferencesFor(election: SenateElection): Try[CloseableIterator[FirstPreferencesRow]] = {
+  def firstPreferencesFor(election: SenateElection): CloseableIterator[FirstPreferencesRow] = {
     LoadingFirstPreferences.csvLinesOf(location, election)
       .flatMap(ParsingFirstPreferences.parseLines)
+      .get
   }
 
-  def formalPreferencesFor(election: SenateElection, state: State): Try[CloseableIterator[FormalPreferencesRow]] = {
+  def formalPreferencesFor(election: SenateElection, state: State): CloseableIterator[FormalPreferencesRow] = {
     LoadingFormalPreferences.csvLinesOf(location, election, state)
       .flatMap(ParsingFormalPreferences.parseLines)
+      .get
   }
 
-  def pollingPlacesFor(election: SenateElection): Try[CloseableIterator[PollingPlacesRow]] = {
+  def pollingPlacesFor(election: SenateElection): CloseableIterator[PollingPlacesRow] = {
     LoadingPollingPlaces.csvLinesOf(location, election)
       .flatMap(ParsingPollingPlaces.parseLines)
+      .get
   }
 }
 

@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.parsing
 
-import au.id.tmm.senatedb.fixtures.PollingPlaces
+import au.id.tmm.senatedb.fixtures.{Divisions, PollingPlaces}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
 import au.id.tmm.senatedb.model.parsing.PollingPlace
 import au.id.tmm.senatedb.rawdata.model.PollingPlacesRow
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class PollingPlaceGenerationSpec extends ImprovedFlatSpec {
+class DivisionAndPollingPlaceGenerationSpec extends ImprovedFlatSpec {
 
   val pollingPlaceWithLocation = PollingPlacesRow("ACT",101,"Canberra",8829,1,"Barton","Telopea Park School",
     "New South Wales Cres","","","BARTON","ACT","2600",Some(-35.3151),Some(149.135))
@@ -23,26 +23,37 @@ class PollingPlaceGenerationSpec extends ImprovedFlatSpec {
 
   behaviour of "the polling place generator"
 
+  it should "generate the division" in {
+    val actualDivision = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
+      .division
+
+    assert(Divisions.ACT.CANBERRA === actualDivision)
+  }
+
   it should "generate a polling place with a physical location" in {
-    val actual = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
+      .pollingPlace
 
     assert(PollingPlaces.ACT.BARTON === actual)
   }
 
   it should "generate a polling place with an address but no lat/long" in {
-    val actual = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocationNoLatLong)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocationNoLatLong)
+      .pollingPlace
 
     assert(PollingPlaces.ACT.MOBILE_TEAM_1 === actual)
   }
 
   it should "generate a polling place with no address lines but a lat/long" in {
-    val actual = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithNoAddressLinesAndLatLong)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithNoAddressLinesAndLatLong)
+      .pollingPlace
 
     assert(PollingPlaces.ACT.WODEN_PRE_POLL === actual)
   }
 
   it should "generate a polling place with multiple locations" in {
-    val actual = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations)
+      .pollingPlace
 
     assert(PollingPlaces.ACT.HOSPITAL_TEAM_1 === actual)
   }
@@ -50,8 +61,13 @@ class PollingPlaceGenerationSpec extends ImprovedFlatSpec {
   it should "flyweight divisions" in {
     val divisionFlyweight = DivisionFlyweight()
 
-    val pollingPlace1 = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, divisionFlyweight)
-    val pollingPlace2 = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations, divisionFlyweight)
+    val pollingPlace1 = DivisionAndPollingPlaceGeneration
+      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, divisionFlyweight)
+      .pollingPlace
+
+    val pollingPlace2 = DivisionAndPollingPlaceGeneration
+      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations, divisionFlyweight)
+      .pollingPlace
 
     assert(pollingPlace1.division eq pollingPlace2.division)
   }
@@ -59,11 +75,13 @@ class PollingPlaceGenerationSpec extends ImprovedFlatSpec {
   it should "flyweight postcodes" in {
     val postcodeFlyweight = PostcodeFlyweight()
 
-    val pollingPlace1 = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation,
-      postcodeFlyweight = postcodeFlyweight)
+    val pollingPlace1 = DivisionAndPollingPlaceGeneration
+      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, postcodeFlyweight = postcodeFlyweight)
+      .pollingPlace
 
-    val pollingPlace2 = PollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation,
-      postcodeFlyweight = postcodeFlyweight)
+    val pollingPlace2 = DivisionAndPollingPlaceGeneration
+      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, postcodeFlyweight = postcodeFlyweight)
+      .pollingPlace
 
     val location1 = pollingPlace1.location.asInstanceOf[PollingPlace.Location.Premises]
     val location2 = pollingPlace2.location.asInstanceOf[PollingPlace.Location.Premises]
@@ -71,4 +89,12 @@ class PollingPlaceGenerationSpec extends ImprovedFlatSpec {
     assert(location1.address.postcode eq location2.address.postcode)
   }
 
+  it should "be able to handle multiple rows of raw data" in {
+    val actualPollingPlaces = DivisionAndPollingPlaceGeneration.fromPollingPlaceRows(SenateElection.`2016`,
+      Vector(pollingPlaceWithLocation, pollingPlaceWithMultlipleLocations)).pollingPlaces
+
+    val expectedPollingPlaces = Set(PollingPlaces.ACT.BARTON, PollingPlaces.ACT.HOSPITAL_TEAM_1)
+
+    assert(expectedPollingPlaces === actualPollingPlaces)
+  }
 }

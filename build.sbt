@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
   "au.id.tmm" %% "tmmtestutils" % "0.1.8" % "test",
 
-  "au.id.tmm" %% "tmmutils" % "0.1.8",
+  "au.id.tmm" %% "tmmutils" % "0.1.9",
 
   "org.slf4j" % "slf4j-simple" % "1.7.19",
   "com.github.scopt" %% "scopt" % "3.4.0",
