@@ -16,7 +16,7 @@ trait AecResourceStore {
   def pollingPlacesFor(election: SenateElection): Try[Source]
 }
 
-private final class LocalAecResourceStore private (val location: Path) extends AecResourceStore {
+private final class LocalAecResourceStore(val location: Path) extends AecResourceStore {
   override def distributionOfPreferencesFor(election: SenateElection, state: State): Try[Source] =
     LoadingDistributionsOfPreferences.csvLinesOf(location, election, state)
 
