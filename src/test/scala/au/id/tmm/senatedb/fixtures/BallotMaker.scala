@@ -6,10 +6,10 @@ import au.id.tmm.senatedb.model.parsing._
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 
-  def makeBallot(atlPreferences: AtlPreferences,
-                 btlPreferences: BtlPreferences,
-                 division: Division,
-                 pollingPlace: PollingPlace,
+  def makeBallot(atlPreferences: AtlPreferences = Map.empty,
+                 btlPreferences: BtlPreferences = Map.empty,
+                 division: Division = Divisions.ACT.CANBERRA,
+                 pollingPlace: PollingPlace = PollingPlaces.ACT.BARTON,
                  batch: Int = 1,
                  paper: Int = 1
             ) = {

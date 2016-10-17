@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
+import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser.toNumber
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Ballot.AtlPreferences
 import au.id.tmm.senatedb.model.parsing._
@@ -82,14 +83,6 @@ class BallotNormaliser private (candidates: Set[Candidate],
     returnedVector.toVector
   }
 
-  private def toNumber(preference: Preference): Option[Int] = {
-    preference match {
-      case Preference.Numbered(number) => Some(number)
-      case Preference.Tick | Preference.Cross => Some(1)
-      case Preference.Missing => None
-    }
-  }
-
   private def truncateAtCountError[A](rowsInPreferenceOrder: Vector[Set[A]]): Vector[A] = {
     // As long as we have only one row with each preference, we haven't encountered a count error
     rowsInPreferenceOrder
@@ -103,9 +96,11 @@ class BallotNormaliser private (candidates: Set[Candidate],
 object BallotNormaliser {
   def forCandidates(candidates: Set[Candidate]): BallotNormaliser = new BallotNormaliser(candidates)
 
-  final case class NormaliserResult(normalisedBallot: Option[NormalisedBallot],
-                                    numFormalPreferencesAtl: Int,
-                                    numFormalPreferencesBtl: Int) {
-    def ballotWasFormal = normalisedBallot.isDefined
+  def toNumber(preference: Preference): Option[Int] = {
+    preference match {
+      case Preference.Numbered(number) => Some(number)
+      case Preference.Tick | Preference.Cross => Some(1)
+      case Preference.Missing => None
+    }
   }
 }
