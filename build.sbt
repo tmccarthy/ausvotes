@@ -1,8 +1,13 @@
 import sbt.Keys._
+import sbt._
+
+Defaults.itSettings
+
+lazy val _ = Project("SenateDB", file("."))
+  .enablePlugins(GitVersioning)
+  .configs(IntegrationTest)
 
 name := "SenateDB"
-
-val _ = enablePlugins(GitVersioning)
 
 git.baseVersion := "0.1"
 
@@ -14,9 +19,9 @@ resolvers +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
 libraryDependencies ++= Seq(
-  "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-  "au.id.tmm" %% "tmmtestutils" % "0.1.8" % "test",
+  "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
+  "au.id.tmm" %% "tmmtestutils" % "0.1.8" % "test,it",
 
   "au.id.tmm" %% "tmmutils" % "0.1.9",
 

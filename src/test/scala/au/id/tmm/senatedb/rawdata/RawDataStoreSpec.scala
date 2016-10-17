@@ -5,7 +5,9 @@ import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import resource.managed
 
-class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
+class RawDataStoreSpec extends ImprovedFlatSpec {
+
+  private val rawDataStore = RawDataStore(MockAecResourceStore)
 
   behaviour of "the raw data store"
 
@@ -13,7 +15,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
     for {
       formalPreferencesRows <- managed(rawDataStore.formalPreferencesFor(SenateElection.`2016`, State.NT))
     } {
-      assert(formalPreferencesRows.size === 102027)
+      assert(formalPreferencesRows.size === 4)
     }
   }
 
@@ -21,7 +23,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec with TestsRawData {
     for {
       firstPreferencesRows <- managed(rawDataStore.firstPreferencesFor(SenateElection.`2016`))
     } {
-      assert(firstPreferencesRows.size === 837)
+      assert(firstPreferencesRows.size === 9)
     }
   }
 

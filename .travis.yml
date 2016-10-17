@@ -6,5 +6,5 @@ scala:
 jdk:
   - oraclejdk8
 
-script: "sbt clean coverage test"
+script: "sbt clean coverage test it:test"
 after_success: "sbt coverageReport coveralls"
