@@ -94,7 +94,7 @@ class BallotNormaliser private (candidates: Set[Candidate],
 }
 
 object BallotNormaliser {
-  def forCandidates(candidates: Set[Candidate]): BallotNormaliser = new BallotNormaliser(candidates)
+  def apply(candidates: Set[Candidate]): BallotNormaliser = new BallotNormaliser(candidates)
 
   def toNumber(preference: Preference): Option[Int] = {
     preference match {

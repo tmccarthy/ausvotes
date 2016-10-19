@@ -18,6 +18,7 @@ object DonkeyVoteDetector {
     sortedByGroup.zipWithIndex
       .map {
         case ((_, Preference.Numbered(preference)), order) => preference == (order + 1)
+        case _ => false
       }
       .reduceOption(_ && _)
       .getOrElse(false)

@@ -7,9 +7,6 @@ final case class Division(election: SenateElection,
                           state: State,
                           name: String,
                           aecId: Int) extends Ordered[Division] {
-  override def compare(that: Division): Int = Division.ordering.compare(this, that)
-}
-
-object Division {
-  private val ordering: Ordering[Division] = Ordering.by(d => (d.state.abbreviation, d.name))
+  override def compare(that: Division): Int =
+    (this.election, this.state, this.name) compare (that.election, that.state, that.name)
 }

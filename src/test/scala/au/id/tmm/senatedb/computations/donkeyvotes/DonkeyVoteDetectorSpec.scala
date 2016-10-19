@@ -39,4 +39,13 @@ class DonkeyVoteDetectorSpec extends ImprovedFlatSpec {
 
     assert(!DonkeyVoteDetector.isDonkeyVote(ballot))
   }
+
+  it should "not count ballots using marks" in {
+    val ballot = ballotMaker.makeBallot(
+      atlPreferences = ballotMaker.atlPreferences("A" -> "/", "B" -> "2", "C" -> "3", "D" -> "4", "E" -> "5", "F" -> "6"),
+      btlPreferences = Map.empty
+    )
+
+    assert(!DonkeyVoteDetector.isDonkeyVote(ballot))
+  }
 }

@@ -29,25 +29,23 @@ final class ParsedDataStore private (rawDataStore: RawDataStore) {
       .get
   }
 
-  def ballotsFor(election: SenateElection, state: State)
-                (groupsAndCandidates: GroupsAndCandidates, divisionsAndPollingPlaces: DivisionsAndPollingPlaces): CloseableIterator[Ballot] = {
+  def ballotsFor(election: SenateElection,
+                 groupsAndCandidates: GroupsAndCandidates,
+                 divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                 state: State): CloseableIterator[Ballot] = {
 
     val rawPreferenceParser = RawPreferenceParser(election, state, groupsAndCandidates)
 
-    resource.managed(rawDataStore.formalPreferencesFor(election, state))
-      .map(rows => {
-        rows.map(row => {
-          BallotGeneration.fromFormalPreferencesRow(
-            election,
-            state,
-            rawPreferenceParser,
-            divisionsAndPollingPlaces.lookupDivisionByName,
-            divisionsAndPollingPlaces.lookupPollingPlaceByName,
-            row)
-        })
+    rawDataStore.formalPreferencesFor(election, state)
+      .map(row => {
+        BallotGeneration.fromFormalPreferencesRow(
+          election,
+          state,
+          rawPreferenceParser,
+          divisionsAndPollingPlaces.lookupDivisionByName,
+          divisionsAndPollingPlaces.lookupPollingPlaceByName,
+          row)
       })
-      .toTry
-      .get
   }
 }
 

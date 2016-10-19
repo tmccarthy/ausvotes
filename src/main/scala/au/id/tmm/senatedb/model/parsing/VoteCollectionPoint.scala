@@ -5,14 +5,30 @@ import au.id.tmm.senatedb.model.parsing.PollingPlace.Type.Type
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, State}
 
+sealed trait VoteCollectionPoint {
+  def election: SenateElection
+  def state: State
+  def division: Division
+}
+
+object VoteCollectionPoint {
+
+  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+
+  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+
+  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+
+  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+
+}
 final case class PollingPlace(election: SenateElection,
                               state: State,
                               division: Division,
                               aecId: Int,
                               pollingPlaceType: Type,
                               name: String,
-                              location: PollingPlace.Location) {
-
+                              location: PollingPlace.Location) extends VoteCollectionPoint {
 }
 
 object PollingPlace {

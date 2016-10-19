@@ -11,7 +11,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   private val ballotMaker = BallotMaker(Candidates.ACT)
 
-  private val sut = BallotNormaliser.forCandidates(candidates)
+  private val sut = BallotNormaliser(candidates)
 
   import ballotMaker._
 
