@@ -1,19 +1,26 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser.toNumber
+import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Ballot.AtlPreferences
 import au.id.tmm.senatedb.model.parsing._
+import au.id.tmm.utilities.geo.australia.State
 
-class BallotNormaliser private (candidates: Set[Candidate],
+class BallotNormaliser private (election: SenateElection,
+                                state: State,
+                                candidates: Set[Candidate],
                                 minPreferencesAtl: Int = 1,
                                 minPreferencesBtl: Int = 6) {
 
   private type NormalisedBallotWithNumFormalPreferences = (Option[NormalisedBallot], Int)
 
-  private lazy val positionsPerGroup: Map[BallotGroup, Vector[CandidatePosition]] =
-    candidates
-      .toStream
+  private val relevantCandidates = candidates.toStream
+    .filter(_.election == election)
+    .filter(_.state == state)
+
+  private val positionsPerGroup: Map[BallotGroup, Vector[CandidatePosition]] =
+    relevantCandidates
       .map(_.btlPosition)
       .sorted
       .toVector
@@ -94,7 +101,8 @@ class BallotNormaliser private (candidates: Set[Candidate],
 }
 
 object BallotNormaliser {
-  def apply(candidates: Set[Candidate]): BallotNormaliser = new BallotNormaliser(candidates)
+  def apply(election: SenateElection, state: State, candidates: Set[Candidate]): BallotNormaliser =
+    new BallotNormaliser(election, state, candidates)
 
   def toNumber(preference: Preference): Option[Int] = {
     preference match {

@@ -2,11 +2,11 @@ package au.id.tmm.senatedb.engine
 
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
-import au.id.tmm.senatedb.computations.{BallotFactsComputation, ComputationTools}
+import au.id.tmm.senatedb.computations.{BallotFactsComputation, BallotWithFacts, ComputationTools}
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.reporting.ReportHolder
-import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReportGenerator
+import au.id.tmm.senatedb.reporting.reports._
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
@@ -68,9 +68,7 @@ object ReportEngine {
               computationTools,
               ballots)
           })
-          .map(ballotsFacts => {
-            ReportHolder(TotalFormalBallotsReportGenerator.generateFor(state, ballotsFacts.toVector))
-          })
+          .map(reportsFor)
           .foldLeft(ReportHolder.empty)((left, right) => left accumulate right)
 
         reports
@@ -82,9 +80,21 @@ object ReportEngine {
   def buildComputationToolsFor(election: SenateElection,
                                state: State,
                                groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
-    val normaliser = BallotNormaliser(groupsAndCandidates.candidates)
+    val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
     val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
 
     ComputationTools(normaliser, firstPreferenceCalculator)
+  }
+
+  private def reportsFor(ballotsFacts: Iterable[BallotWithFacts]): ReportHolder = {
+    val ballotsWithFacts = ballotsFacts.toVector
+
+    ReportHolder(
+      TotalFormalBallotsReportGenerator.generateFor(ballotsWithFacts),
+      OneAtlVoteReportGenerator.generateFor(ballotsWithFacts),
+      DonkeyVoteReportGenerator.generateFor(ballotsWithFacts),
+      BallotsUsingTicksReportGenerator.generateFor(ballotsWithFacts),
+      BallotsUsingCrossesReportGenerator.generateFor(ballotsWithFacts)
+    )
   }
 }

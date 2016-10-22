@@ -4,6 +4,7 @@ trait Report {
 
   type SELF_TYPE <: Report
 
-  def accumulate(other: SELF_TYPE): SELF_TYPE
+  def accumulate(that: SELF_TYPE): SELF_TYPE
 
+  def +(that: SELF_TYPE): SELF_TYPE = accumulate(that)
 }

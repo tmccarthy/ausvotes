@@ -12,7 +12,7 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
   private val state = State.ACT
   private val candidates = Candidates.ACT.candidates
 
-  private val normaliser = BallotNormaliser(candidates)
+  private val normaliser = BallotNormaliser(SenateElection.`2016`, state, candidates)
   private val sut = FirstPreferenceCalculator(SenateElection.`2016`, state, candidates)
 
   import Ballots.ACT._
@@ -35,7 +35,7 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
   it should "not have a first preference if the first preferenced candidate was independent" in {
     // Have to run this test in the NT cos all of the ACT candidates had parties
     val ntCandidates = Candidates.NT.candidates
-    val ntNormaliser = BallotNormaliser(ntCandidates)
+    val ntNormaliser = BallotNormaliser(SenateElection.`2016`, State.NT, ntCandidates)
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 

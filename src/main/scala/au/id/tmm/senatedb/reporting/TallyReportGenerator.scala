@@ -8,7 +8,9 @@ import scala.collection.mutable
 
 trait TallyReportGenerator { this: ReportGenerator =>
 
-  override def generateFor(state: State, ballotsWithFacts: Vector[BallotWithFacts]): TallyReport = {
+  override type T_REPORT = TallyReport
+
+  override def generateFor(ballotsWithFacts: Vector[BallotWithFacts]): TallyReport = {
     var total: Long = 0
     val perState: mutable.Map[State, Long] = mutable.Map().withDefaultValue(0)
     val perDivision: mutable.Map[Division, Long] = mutable.Map().withDefaultValue(0)
@@ -28,5 +30,5 @@ trait TallyReportGenerator { this: ReportGenerator =>
     TallyReport(total, perState.toMap, perDivision.toMap, perVoteCollectionPoint.toMap, perFirstPreferencedParty.toMap)
   }
 
-  protected def shouldCount(ballot: BallotWithFacts): Boolean
+  private[reporting] def shouldCount(ballotWithFacts: BallotWithFacts): Boolean
 }

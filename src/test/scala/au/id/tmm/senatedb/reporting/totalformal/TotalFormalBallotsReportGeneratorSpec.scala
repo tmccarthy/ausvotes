@@ -6,7 +6,6 @@ import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Party
 import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReportGenerator
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TotalFormalBallotsReportGeneratorSpec extends ImprovedFlatSpec {
@@ -36,7 +35,7 @@ class TotalFormalBallotsReportGeneratorSpec extends ImprovedFlatSpec {
       )
     )
 
-    val totalsReport = TotalFormalBallotsReportGenerator.generateFor(State.ACT, ballotFacts)
+    val totalsReport = TotalFormalBallotsReportGenerator.generateFor(ballotFacts)
 
     assert(totalsReport.total === 1)
   }

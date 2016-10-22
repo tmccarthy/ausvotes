@@ -15,7 +15,7 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
   private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
   private val divisionsAndPollingPlaces = DivisionsAndPollingPlaces(Divisions.ACT.divisions, PollingPlaces.ACT.pollingPlaces)
 
-  private val normaliser = BallotNormaliser(groupsAndCandidates.candidates)
+  private val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
   private val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
   private val computationTools = ComputationTools(normaliser, firstPreferenceCalculator)
 

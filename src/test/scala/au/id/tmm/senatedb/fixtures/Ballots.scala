@@ -140,6 +140,13 @@ object Ballots {
 
       makeBallot(Map.empty, btlPrefs)
     }
+
+    val oneAtlFormalBtl: Ballot = {
+      val atlPrefs = orderedAtlPreferences("A")
+      val btlPrefs = orderedBtlPreferences("J0", "J1", "I0", "I1", "H0", "H1", "G0", "G1", "F0", "F1", "E0", "E1")
+
+      makeBallot(atlPrefs, btlPrefs)
+    }
   }
 
   object NT extends BallotsFixture {

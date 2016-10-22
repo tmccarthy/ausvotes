@@ -6,5 +6,5 @@ import au.id.tmm.senatedb.reporting.{ReportGenerator, TallyReport, TallyReportGe
 object TotalFormalBallotsReportGenerator extends ReportGenerator with TallyReportGenerator {
   override type T_REPORT = TallyReport
 
-  override protected def shouldCount(ballot: BallotWithFacts): Boolean = true
+  override private[reporting] def shouldCount(ballotWithFacts: BallotWithFacts): Boolean = true
 }

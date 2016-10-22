@@ -1,7 +1,9 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
 import au.id.tmm.senatedb.fixtures._
+import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing.Ballot
+import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 // Section references in this spec refer to the Commonwealth Electoral Act 1918
@@ -11,7 +13,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   private val candidates = Candidates.ACT.candidates
 
-  private val sut = BallotNormaliser(candidates)
+  private val sut = BallotNormaliser(SenateElection.`2016`, State.ACT, candidates)
 
   import ballots._
   import ballots.ballotMaker._
