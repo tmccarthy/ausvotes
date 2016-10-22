@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.reporting
 
-import au.id.tmm.senatedb.reporting.totalformal.TotalFormalBallotsReport
+import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReport
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class ReportHolderSpec extends ImprovedFlatSpec {

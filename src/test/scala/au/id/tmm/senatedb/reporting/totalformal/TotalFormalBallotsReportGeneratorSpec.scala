@@ -5,6 +5,7 @@ import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Party
+import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReportGenerator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

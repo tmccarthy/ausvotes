@@ -6,7 +6,7 @@ import au.id.tmm.senatedb.computations.{BallotFactsComputation, ComputationTools
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.reporting.ReportHolder
-import au.id.tmm.senatedb.reporting.totalformal.TotalFormalBallotsReportGenerator
+import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReportGenerator
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps

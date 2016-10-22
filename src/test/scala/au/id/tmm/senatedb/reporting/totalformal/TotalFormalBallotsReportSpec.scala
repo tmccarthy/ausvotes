@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.reporting.totalformal
 import au.id.tmm.senatedb.fixtures.{Divisions, PollingPlaces}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing.Party
+import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReport
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.reporting
 
-import au.id.tmm.senatedb.reporting.totalformal.TotalFormalBallotsReport
+import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReport
 
 final case class ReportHolder(totalFormal: TotalFormalBallotsReport) {
   def accumulate(other: ReportHolder): ReportHolder = ReportHolder(
