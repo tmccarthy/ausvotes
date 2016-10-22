@@ -83,4 +83,26 @@ object PollingPlaces {
       WODEN_PRE_POLL
     )
   }
+
+  object NT extends PollingPlaceFixture {
+    override val state = State.NT
+
+    override val divisionFixture = Divisions.NT
+
+    val ALICE_SPRINGS = PollingPlace(
+      election = election,
+      state = state,
+      division = divisionLookup("Lingiari"),
+      aecId = 8701,
+      pollingPlaceType = PollingPlace.Type.POLLING_PLACE,
+      name = "Alice Springs",
+      location = PollingPlace.Location.Premises(
+        name = "Alice Springs Civic Centre",
+        address = Address(Vector("Cnr Gregory Tce & Todd Street"), "ALICE SPRINGS", Postcode("0870"), State.NT),
+        location = LatLong(-23.7018, 133.882)
+      )
+    )
+
+    override val pollingPlaces = Set(ALICE_SPRINGS)
+  }
 }

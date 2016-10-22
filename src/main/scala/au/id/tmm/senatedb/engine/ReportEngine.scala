@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.engine
 
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
+import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.senatedb.computations.{BallotFactsComputation, ComputationTools}
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
@@ -51,21 +52,39 @@ object ReportEngine {
                          groupsAndCandidates: GroupsAndCandidates,
                          ballots: CloseableIterator[Ballot])
                         (implicit ec: ExecutionContext): Future[ReportHolder] = Future {
-    val normaliser = BallotNormaliser(groupsAndCandidates.candidates)
-    val computationTools = ComputationTools(normaliser)
+    val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates)
 
     resource.managed(ballots)
       .map(ballots => {
         val groupedIterator = ballots.grouped(5000) // TODO constant
 
         val reports = groupedIterator
-          .map(ballots => BallotFactsComputation.computeFactsFor(election, state, groupsAndCandidates, divisionsAndPollingPlaces, computationTools, ballots))
-          .map(ballotsFacts => ReportHolder(TotalFormalBallotsReportGenerator.generateFor(state, ballotsFacts.toVector)))
+          .map(ballots => {
+            BallotFactsComputation.computeFactsFor(
+              election,
+              state,
+              groupsAndCandidates,
+              divisionsAndPollingPlaces,
+              computationTools,
+              ballots)
+          })
+          .map(ballotsFacts => {
+            ReportHolder(TotalFormalBallotsReportGenerator.generateFor(state, ballotsFacts.toVector))
+          })
           .foldLeft(ReportHolder.empty)((left, right) => left accumulate right)
 
         reports
       })
       .toTry
       .get
+  }
+
+  def buildComputationToolsFor(election: SenateElection,
+                               state: State,
+                               groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
+    val normaliser = BallotNormaliser(groupsAndCandidates.candidates)
+    val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
+
+    ComputationTools(normaliser, firstPreferenceCalculator)
   }
 }

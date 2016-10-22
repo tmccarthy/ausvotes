@@ -26,4 +26,16 @@ object Divisions {
 
     val CANBERRA: Division = divisionLookup("Canberra")
   }
+
+  object NT extends DivisionFixture {
+    override val state = State.NT
+
+    val LINGIARI = Division(election, state, "Lingiari", 306)
+    val SOLOMON = Division(election, state, "Solomon", 307)
+
+    override val divisions = Set(
+      LINGIARI,
+      SOLOMON
+    )
+  }
 }

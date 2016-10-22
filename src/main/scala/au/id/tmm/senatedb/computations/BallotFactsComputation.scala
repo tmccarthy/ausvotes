@@ -12,13 +12,16 @@ object BallotFactsComputation {
                       groupsAndCandidates: GroupsAndCandidates,
                       divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                       computationTools: ComputationTools,
-                      ballots: Iterable[Ballot]): Iterable[BallotFacts] = {
+                      ballots: Iterable[Ballot]): Iterable[BallotWithFacts] = {
 
     ballots.map(ballot => {
-      BallotFacts(
+      val normalisedBallot = computationTools.normaliser.normalise(ballot)
+
+      BallotWithFacts(
         ballot = ballot,
-        normalisedBallot = computationTools.normaliser.normalise(ballot),
-        isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot)
+        normalisedBallot = normalisedBallot,
+        isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot),
+        firstPreferencedParty = computationTools.firstPreferenceCalculator.firstPreferencedPartyOf(normalisedBallot)
       )
     })
   }

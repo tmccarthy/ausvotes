@@ -8,4 +8,7 @@ final case class NormalisedBallot(atlCandidateOrder: Vector[CandidatePosition],
                                   btlFormalPreferenceCount: Int,
                                   canonicalOrder: Vector[CandidatePosition]) {
   def isInformal = canonicalOrder.isEmpty
+  def isFormal = !isInformal
+  def isNormalisedToAtl = isFormal && canonicalOrder == atlCandidateOrder
+  def isNormalisedToBtl = isFormal && canonicalOrder == btlCandidateOrder
 }

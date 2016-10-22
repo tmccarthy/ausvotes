@@ -6,10 +6,13 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 class ReportHolderSpec extends ImprovedFlatSpec {
 
   "a report holder" should "accumulate correctly" in {
-    val left = ReportHolder(TotalFormalBallotsReport(5))
-    val right = ReportHolder(TotalFormalBallotsReport(6))
+    val leftTotalReport = TotalFormalBallotsReport(5, Map.empty, Map.empty, Map.empty, Map.empty)
+    val left = ReportHolder(leftTotalReport)
 
-    assert((left accumulate right) === ReportHolder(TotalFormalBallotsReport(11)))
+    val rightTotalReport = TotalFormalBallotsReport(6, Map.empty, Map.empty, Map.empty, Map.empty)
+    val right = ReportHolder(rightTotalReport)
+
+    assert((left accumulate right) === ReportHolder(leftTotalReport accumulate rightTotalReport))
   }
 
 }
