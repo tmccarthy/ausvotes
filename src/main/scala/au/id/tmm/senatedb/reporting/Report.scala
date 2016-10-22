@@ -1,7 +1,9 @@
 package au.id.tmm.senatedb.reporting
 
-trait Report[A <: Report[A]] { this: A =>
+trait Report {
 
-  def accumulate(other: A): A
+  type SELF_TYPE <: Report
+
+  def accumulate(other: SELF_TYPE): SELF_TYPE
 
 }

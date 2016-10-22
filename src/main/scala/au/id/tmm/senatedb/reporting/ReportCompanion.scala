@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.reporting
 
-trait ReportCompanion[A <: Report[A]] {
-  def empty: A
+trait ReportCompanion {
+  type T_REPORT <: Report
+
+  def empty: T_REPORT
 }

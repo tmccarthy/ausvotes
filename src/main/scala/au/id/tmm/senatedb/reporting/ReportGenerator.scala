@@ -5,7 +5,7 @@ import au.id.tmm.utilities.geo.australia.State
 
 trait ReportGenerator {
 
-  type T_REPORT <: Report[T_REPORT]
+  type T_REPORT <: Report
 
   def generateFor(state: State, ballotsWithFacts: Vector[BallotWithFacts]): T_REPORT
 
