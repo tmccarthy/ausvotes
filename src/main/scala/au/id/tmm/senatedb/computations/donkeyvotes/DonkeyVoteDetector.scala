@@ -15,13 +15,9 @@ object DonkeyVoteDetector {
   private def atlPrefsAreDonkey(atlPreferences: AtlPreferences): Boolean = {
     val sortedByGroup = atlPreferences.toStream.sortBy { case (group, _) => group.asInstanceOf[BallotGroup] }
 
-    val startsWithFirstGroup = sortedByGroup.head match {
-      case (group, preference) => group.index == 0
-    }
-
-    startsWithFirstGroup && sortedByGroup.zipWithIndex
+    sortedByGroup.zipWithIndex
       .map {
-        case ((_, Preference.Numbered(preference)), order) => preference == (order + 1)
+        case ((group, Preference.Numbered(preference)), order) => preference == (group.index + 1)
         case _ => false
       }
       .reduceOption(_ && _)
