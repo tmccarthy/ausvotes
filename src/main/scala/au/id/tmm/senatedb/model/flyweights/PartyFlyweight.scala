@@ -6,7 +6,7 @@ import au.id.tmm.utilities.collection.Flyweight
 
 final class PartyFlyweight private () {
   private val flyweight: Flyweight[(SenateElection, String), Party] = Flyweight {
-    case (election, name) => Party(election, name)
+    case (election, name) => Party(election, name).canonicalise
   }
 
   def apply(election: SenateElection, partyName: String): Party = flyweight((election, partyName))
