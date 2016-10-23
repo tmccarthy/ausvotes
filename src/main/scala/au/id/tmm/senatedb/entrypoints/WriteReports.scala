@@ -1,6 +1,8 @@
 package au.id.tmm.senatedb.entrypoints
 
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import au.id.tmm.senatedb.engine.{ParsedDataStore, ReportEngine}
 import au.id.tmm.senatedb.model.SenateElection
@@ -15,17 +17,19 @@ import scala.concurrent.duration.Duration
 object WriteReports {
 
   def main(args: Array[String]): Unit = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
     val stopwatch = Stopwatch.createStarted()
 
-    import scala.concurrent.ExecutionContext.Implicits.global
+    val outputPath = Paths.get("reports").resolve(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()))
 
     val aecResourceStore = AecResourceStore.at(Paths.get("rawData"))
     val rawDataStore = RawDataStore(aecResourceStore)
     val parsedDataStore = ParsedDataStore(rawDataStore)
 
     val executionFuture = ReportEngine.runFor(parsedDataStore, SenateElection.`2016`, State.ALL_STATES)
-      .map(reportHolder => {
-        ReportWriter.writeTotalVotesReport(Paths.get("reports"), reportHolder.totalFormal)
+      .flatMap(reportHolder => {
+        ReportWriter.writeReports(outputPath, reportHolder)
       })
 
     Await.result(executionFuture, Duration.Inf)
