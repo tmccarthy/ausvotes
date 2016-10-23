@@ -43,7 +43,7 @@ final class ParsedDataStore private (rawDataStore: RawDataStore) {
           state,
           rawPreferenceParser,
           divisionsAndPollingPlaces.lookupDivisionByName,
-          divisionsAndPollingPlaces.lookupPollingPlaceByName,
+          (state, name) => divisionsAndPollingPlaces.lookupPollingPlaceByName(state, name),
           row)
       })
   }

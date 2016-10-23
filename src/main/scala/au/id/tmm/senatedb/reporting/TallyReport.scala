@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.senatedb.model.parsing.{Division, Party, VoteCollectionPoint}
-import au.id.tmm.senatedb.reporting.ReportAccumulationUtils.{combineTallies, emptyCountMap}
+import au.id.tmm.senatedb.reporting.ReportAccumulationUtils._
 import au.id.tmm.utilities.geo.australia.State
 
 final case class TallyReport(total: Long,
@@ -15,11 +15,35 @@ final case class TallyReport(total: Long,
   override def accumulate(that: TallyReport): TallyReport =
     TallyReport(
       this.total + that.total,
-      combineTallies(this.perState, that.perState),
-      combineTallies(this.perDivision, that.perDivision),
-      combineTallies(this.perVoteCollectionPlace, that.perVoteCollectionPlace),
-      combineTallies(this.perFirstPreferencedParty, that.perFirstPreferencedParty)
+      sumTallies(this.perState, that.perState),
+      sumTallies(this.perDivision, that.perDivision),
+      sumTallies(this.perVoteCollectionPlace, that.perVoteCollectionPlace),
+      sumTallies(this.perFirstPreferencedParty, that.perFirstPreferencedParty)
     )
+
+  def dividedBy(denominator: Long): FloatTallyReport = {
+    FloatTallyReport(
+      total / denominator.toDouble,
+      divideTally(perState, denominator),
+      divideTally(perDivision, denominator),
+      divideTally(perVoteCollectionPlace, denominator),
+      divideTally(perFirstPreferencedParty, denominator)
+    )
+  }
+
+  def /(denominator: Long) = dividedBy(denominator)
+
+  def dividedBy(that: TallyReport): FloatTallyReport = {
+    FloatTallyReport(
+      this.total.toDouble / that.total.toDouble,
+      divideTally(this.perState, that.perState),
+      divideTally(this.perDivision, that.perDivision),
+      divideTally(this.perVoteCollectionPlace, that.perVoteCollectionPlace),
+      divideTally(this.perFirstPreferencedParty, that.perFirstPreferencedParty)
+    )
+  }
+
+  def /(that: TallyReport) = dividedBy(that)
 }
 
 object TallyReport extends ReportCompanion {

@@ -9,17 +9,26 @@ sealed trait VoteCollectionPoint {
   def election: SenateElection
   def state: State
   def division: Division
+  def name: String
 }
 
 object VoteCollectionPoint {
 
-  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+    override val name = s"ABSENTEE $number"
+  }
 
-  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+    override val name = s"POSTAL $number"
+  }
 
-  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+    override val name = s"PRE-POLL $number"
+  }
 
-  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint
+  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+    override val name = s"PROVISIONAL $number"
+  }
 
 }
 final case class PollingPlace(election: SenateElection,

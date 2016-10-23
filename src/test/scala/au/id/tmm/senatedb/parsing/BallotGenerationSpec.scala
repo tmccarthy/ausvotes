@@ -27,7 +27,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
       State.ACT,
       rawPreferenceParser,
       divisionLookup,
-      pollingPlaceLookup,
+      (state, name) => pollingPlaceLookup(name),
       testCsvRow)
 
     val expectedBallot = Ballot(SenateElection.`2016`,

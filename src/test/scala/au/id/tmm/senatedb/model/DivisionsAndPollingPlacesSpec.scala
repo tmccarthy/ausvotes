@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.model
 
 import au.id.tmm.senatedb.fixtures
 import au.id.tmm.senatedb.fixtures.{Divisions, PollingPlaces}
+import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class DivisionsAndPollingPlacesSpec extends ImprovedFlatSpec {
@@ -13,7 +14,7 @@ class DivisionsAndPollingPlacesSpec extends ImprovedFlatSpec {
   }
 
   it should "support polling place lookup by name" in {
-    assert(PollingPlaces.ACT.BARTON === sut.lookupPollingPlaceByName("Barton"))
+    assert(PollingPlaces.ACT.BARTON === sut.lookupPollingPlaceByName(State.ACT, "Barton"))
   }
 
 }

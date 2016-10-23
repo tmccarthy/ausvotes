@@ -16,7 +16,7 @@ object BallotGeneration {
                                state: State,
                                rawPreferenceParser: RawPreferenceParser,
                                divisionNameLookup: String => Division,
-                               pollingPlaceNameLookup: String => PollingPlace,
+                               pollingPlaceNameLookup: (State, String) => PollingPlace,
                                row: FormalPreferencesRow): Ballot = {
     val division = divisionNameLookup(row.electorateName)
 
@@ -26,7 +26,7 @@ object BallotGeneration {
         case postal(number) => VoteCollectionPoint.Postal(election, state, division, number.toInt)
         case prepoll(number) => VoteCollectionPoint.PrePoll(election, state, division, number.toInt)
         case provisional(number) => VoteCollectionPoint.Provisional(election, state, division, number.toInt)
-        case _ => pollingPlaceNameLookup(voteCollectionPointName)
+        case _ => pollingPlaceNameLookup(state, voteCollectionPointName)
       }
     }
 

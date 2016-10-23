@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.model
 
 import au.id.tmm.senatedb.model.parsing.{Division, PollingPlace}
+import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable
 
@@ -9,7 +10,9 @@ final case class DivisionsAndPollingPlaces(divisions: Set[Division],
 
   lazy val lookupDivisionByName: Map[String, Division] = divisions.groupBy(_.name).mapValues(_.head)
 
-  lazy val lookupPollingPlaceByName: Map[String, PollingPlace] = pollingPlaces.groupBy(_.name).mapValues(_.head)
+  lazy val lookupPollingPlaceByName: Map[(State, String), PollingPlace] = pollingPlaces
+    .groupBy(pollingPlace => (pollingPlace.state, pollingPlace.name))
+    .mapValues(_.head)
 
 }
 
