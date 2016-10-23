@@ -23,6 +23,14 @@ class DonkeyVoteDetectorSpec extends ImprovedFlatSpec {
     assert(!DonkeyVoteDetector.isDonkeyVote(ballot))
   }
 
+  it should "identify a non-donkey vote starting with group 'D'" in {
+    val ballot = ballotMaker.makeBallot(
+      atlPreferences = ballotMaker.orderedAtlPreferences("D", "E", "F", "G", "H", "I")
+    )
+
+    assert(!DonkeyVoteDetector.isDonkeyVote(ballot))
+  }
+
   it should "not mark as a donkey vote it less than 4 squares are numbered" in {
     val ballot = ballotMaker.makeBallot(
       atlPreferences = ballotMaker.orderedAtlPreferences("A", "B", "C")
