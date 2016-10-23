@@ -11,6 +11,7 @@ object Party {
   private val canonicalNameLookup: Map[String, String] = Map(
     "Australian Labor Party (Northern Territory) Branch" -> "Australian Labor Party",
     "Labor" -> "Australian Labor Party",
+    "Antipaedophile Party" -> "Australian Antipaedophile Party",
     "Citizens Electoral Council" -> "Citizens Electoral Council of Australia",
     "DLP Democratic Labour" -> "Democratic Labour Party",
     "Democratic Labour Party (DLP)" -> "Democratic Labour Party",
@@ -22,6 +23,7 @@ object Party {
     "Liberal Democrats" -> "Liberal Democratic Party",
     "Pirate Party" -> "Pirate Party Australia",
     "Science Party/Cyclists Party" -> "Science Party / Cyclists Party",
+    "Marijuana (HEMP) Party/Australian Sex Party" -> "Australian Sex Party/Marijuana (HEMP) Party",
     "The Greens (WA)" -> "The Greens"
   )
 
