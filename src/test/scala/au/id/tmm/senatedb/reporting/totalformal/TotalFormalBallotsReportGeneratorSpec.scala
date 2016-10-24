@@ -24,6 +24,7 @@ class TotalFormalBallotsReportGeneratorSpec extends ImprovedFlatSpec {
           Map.empty
         ),
         NormalisedBallot(
+          atlGroupOrder = ballotMaker.groupOrder("A", "B", "C", "D", "E", "F"),
           atlCandidateOrder = expectedNormalisedAtl,
           atlFormalPreferenceCount = 6,
           btlCandidateOrder = Vector.empty,

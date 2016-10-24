@@ -27,7 +27,7 @@ class BallotNormaliser private (election: SenateElection,
       .groupBy(_.group)
 
   def normalise(ballot: Ballot): NormalisedBallot = {
-    val (atlCandidateOrder, atlFormalPrefCount) = normaliseAtl(ballot.atlPreferences)
+    val (atlGroupOrder, atlCandidateOrder, atlFormalPrefCount) = normaliseAtl(ballot.atlPreferences)
     val (btlCandidateOrder, btlFormalPrefCount) = normaliseBtl(ballot.btlPreferences)
 
     val canonicalCandidateOrder = if (btlCandidateOrder.nonEmpty) {
@@ -36,17 +36,17 @@ class BallotNormaliser private (election: SenateElection,
       atlCandidateOrder
     }
 
-    NormalisedBallot(atlCandidateOrder, atlFormalPrefCount, btlCandidateOrder, btlFormalPrefCount, canonicalCandidateOrder)
+    NormalisedBallot(atlGroupOrder, atlCandidateOrder, atlFormalPrefCount, btlCandidateOrder, btlFormalPrefCount, canonicalCandidateOrder)
   }
 
-  private def normaliseAtl(atlPreferences: AtlPreferences): (Vector[CandidatePosition], Int) = {
+  private def normaliseAtl(atlPreferences: AtlPreferences): (Vector[Group], Vector[CandidatePosition], Int) = {
     val groupsInPreferenceOrder = generalNormalise(atlPreferences, minPreferencesAtl)
 
     val formalPreferenceCount = groupsInPreferenceOrder.size
 
     val candidateOrder = distributeToCandidatePositions(groupsInPreferenceOrder)
 
-    (candidateOrder, formalPreferenceCount)
+    (groupsInPreferenceOrder, candidateOrder, formalPreferenceCount)
   }
 
   private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[Group]): Vector[CandidatePosition] =
