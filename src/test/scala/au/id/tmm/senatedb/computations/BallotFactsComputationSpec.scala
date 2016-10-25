@@ -2,10 +2,12 @@ package au.id.tmm.senatedb.computations
 
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
+import au.id.tmm.senatedb.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.senatedb.fixtures._
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Party
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, SenateElection}
+import au.id.tmm.senatedb.parsing.HowToVoteCardGeneration
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -13,11 +15,13 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
   private val election = SenateElection.`2016`
   private val state = State.ACT
   private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
+  private val howToVoteCards = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
   private val divisionsAndPollingPlaces = DivisionsAndPollingPlaces(Divisions.ACT.divisions, PollingPlaces.ACT.pollingPlaces)
 
   private val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
   private val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
-  private val computationTools = ComputationTools(normaliser, firstPreferenceCalculator)
+  private val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
+  private val computationTools = ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
 
   private val ballotMaker = BallotMaker(Candidates.ACT)
 

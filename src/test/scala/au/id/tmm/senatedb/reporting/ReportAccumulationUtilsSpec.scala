@@ -2,6 +2,8 @@ package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
+import scala.collection.mutable
+
 class ReportAccumulationUtilsSpec extends ImprovedFlatSpec {
 
   "tally map combination" should "sum the values" in {
@@ -44,5 +46,32 @@ class ReportAccumulationUtilsSpec extends ImprovedFlatSpec {
     val right = Map("A" -> 2l, "B" -> 4l)
 
     intercept[NoSuchElementException](ReportAccumulationUtils.divideTally(left, right))
+  }
+
+  "two tiered map combination" should "sum the values" in {
+    val left = Map(
+      "A" -> Map("a" -> 1l, "b" -> 2l),
+      "B" -> Map("b" -> 3l, "c" -> 4l)
+    )
+    val right = Map(
+      "A" -> Map("a" -> 1l, "e" -> 2l),
+      "C" -> Map("b" -> 3l, "c" -> 4l)
+    )
+
+    val expected = Map(
+      "A" -> Map("a" -> 2l, "b" -> 2l, "e" -> 2l),
+      "B" -> Map("b" -> 3l, "c" -> 4l),
+      "C" -> Map("b" -> 3l, "c" -> 4l)
+    )
+
+    assert(ReportAccumulationUtils.sumTieredTallies(left, right) === expected)
+  }
+
+  "map incrementing" should "increment the value in the map" in {
+    val map = mutable.Map("A" -> 0l, "B" -> 0l)
+
+    ReportAccumulationUtils.increment(map, "B")
+
+    assert(map("B") === 1l)
   }
 }

@@ -32,7 +32,8 @@ class TotalFormalBallotsReportGeneratorSpec extends ImprovedFlatSpec {
           canonicalOrder = expectedNormalisedAtl
         ),
         isDonkeyVote = true,
-        firstPreferencedParty = Some(Party(SenateElection.`2016`, "Liberal Democratic Party"))
+        firstPreferencedParty = Some(Party(SenateElection.`2016`, "Liberal Democratic Party")),
+        matchingHowToVote = None
       )
     )
 

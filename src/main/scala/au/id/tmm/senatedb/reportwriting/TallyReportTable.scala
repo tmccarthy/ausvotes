@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.reportwriting
 import java.text.DecimalFormat
 
-import au.id.tmm.senatedb.model.parsing.{Division, Party, VoteCollectionPoint}
+import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.reportwriting.TallyReportTable._
 import au.id.tmm.utilities.geo.australia.State
 
@@ -39,6 +39,7 @@ final case class TallyReportTable[A](tallies: Map[A, Long],
         case DivisionNameColumn => divisionNameFrom(value)
         case VoteCollectionPointColumn => voteCollectionPointFrom(value)
         case PartyNameColumn => partyNameFrom(value)
+        case GroupColumn => groupNameFrom(value)
         case _: TallyColumn => tallyFrom(value)
         case _: FractionColumn => fractionFrom(value)
       }
@@ -50,6 +51,7 @@ final case class TallyReportTable[A](tallies: Map[A, Long],
     value match {
       case State(_, abbreviation, _) => abbreviation
       case Division(_, state, _, _) => stateNameFrom(state)
+      case Group(_, state, _, _) => stateNameFrom(state)
       case v: VoteCollectionPoint => stateNameFrom(v.state)
     }
   }
@@ -74,6 +76,13 @@ final case class TallyReportTable[A](tallies: Map[A, Long],
       case Party(_, name) => name
       case Some(party) => partyNameFrom(party)
       case None => "Independent"
+    }
+  }
+
+  private def groupNameFrom(value: Any): String = {
+    value match {
+      case Group(_, _, code, party) => s"$code (${partyNameFrom(party)})"
+      case Ungrouped => s"${Ungrouped.code} (Ungrouped)"
     }
   }
 
@@ -112,6 +121,9 @@ object TallyReportTable {
   }
   case object PartyNameColumn extends Column {
     val heading = "Party"
+  }
+  case object GroupColumn extends Column {
+    val heading = "Group"
   }
   final case class TallyColumn(heading: String) extends Column
   final case class FractionColumn(heading: String = "%") extends Column

@@ -4,7 +4,7 @@ import java.nio.file.{Files, Path}
 
 import au.id.tmm.senatedb.computations.donkeyvotes.DonkeyVoteDetector
 import au.id.tmm.senatedb.model.parsing.{Division, Party, VoteCollectionPoint}
-import au.id.tmm.senatedb.reporting.{FloatTallyReport, ReportHolder, TallyReport}
+import au.id.tmm.senatedb.reporting._
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.JavaConverters._
@@ -17,12 +17,14 @@ object ReportWriter {
     val oneAtlWriteFuture = Future(writeOneAtlReport(reportDir, reportHolder.oneAtl, reportHolder.totalFormal))
     val donkeyVoteWriteFuture = Future(writeDonkeyVoteReport(reportDir, reportHolder.donkeyVotes, reportHolder.totalFormal))
     val markUsageWriteFuture = Future(writeMarkUsageReport(reportDir, reportHolder.ballotsUsingTicks, reportHolder.ballotsUsingCrosses, reportHolder.totalFormal))
+    val usedHtvWriteFuture = Future(writeUsedHtvReport(reportDir, reportHolder.usedHtvReport))
 
     for {
       _ <- totalBallotsWriteFuture
       _ <- oneAtlWriteFuture
       _ <- donkeyVoteWriteFuture
       _ <- markUsageWriteFuture
+      _ <- usedHtvWriteFuture
     } yield ()
   }
 
@@ -202,6 +204,65 @@ object ReportWriter {
        |
        |${perVoteCollectionPointTable.asMarkdown}
      """.stripMargin
+  }
+
+  private def writeUsedHtvReport(reportDir: Path, usedHtvReport: UsedHtvReport): Unit = {
+    val columns = Vector(
+      TallyReportTable.StateNameColumn,
+      TallyReportTable.GroupColumn,
+      TallyReportTable.TallyColumn("Ballots"),
+      TallyReportTable.FractionColumn()
+    )
+
+    val tablesPerState = State.ALL_STATES
+      .map(state => {
+        val ballotsUsingHtvPerGroup = usedHtvReport.usedHtvPerGroupPerState(state)
+        val ballotsPerGroup = usedHtvReport.totalBallotsPerGroupPerState(state)
+
+        // TODO move this to the report generation
+        val fractions = ReportAccumulationUtils.divideTally(ballotsUsingHtvPerGroup, ballotsPerGroup)
+
+        val ballotsUsingHtvForState = usedHtvReport.usedHtvPerState(state)
+        val totalBallotsForState = usedHtvReport.totalBallotsPerState(state)
+
+        val totalFractionForState = ballotsUsingHtvForState.toDouble / totalBallotsForState.toDouble
+
+        state -> TallyReportTable(ballotsUsingHtvPerGroup, fractions, ballotsUsingHtvForState, Some(totalFractionForState), columns)
+      })
+
+    val title = "Ballots matching how to vote cards"
+
+    val heading = "These tables describe the number of ballots that followed each group's how to vote card, as " +
+      "recorded by [the ABC](http://www.abc.net.au/news/federal-election-2016/guide/svic/htv/). To be considered, a" +
+      "how to vote card needs to have specified at least 6 above the line preferences. How to vote cards that asked " +
+      "voters to vote as they like for any preferences were not considered." +
+      "" +
+      "A ballot is considered to match a how to vote card if its preferences above the line exactly match those of " +
+      "the how to vote card. Ballots that use ticks or crosses, or those that express any preference below the line" +
+      "are not considered to match a how to vote card." +
+      "" +
+      s"Of ${usedHtvReport.totalBallots} formal ballots cast, ${usedHtvReport.totalUsingHtv} matched how to vote cards."
+
+    val tableMarkdowns = tablesPerState.map {
+      case (state, table) => {
+        s"""
+          |### ${state.name}
+          |
+          |${table.asMarkdown}
+        """.stripMargin
+      }
+    }
+
+    val content =
+      s"""
+        |# $title
+        |
+        |$heading
+        |
+        |${tableMarkdowns.mkString("\n\n")}
+      """.stripMargin
+
+    writeReportTo(reportDir resolve "HowToVotes.md", content)
   }
 
   private def writeReportTo(reportPath: Path, content: String): Unit = {

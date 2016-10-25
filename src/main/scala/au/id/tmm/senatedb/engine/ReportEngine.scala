@@ -2,9 +2,11 @@ package au.id.tmm.senatedb.engine
 
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
+import au.id.tmm.senatedb.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.senatedb.computations.{BallotFactsComputation, BallotWithFacts, ComputationTools}
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.senatedb.parsing.HowToVoteCardGeneration
 import au.id.tmm.senatedb.reporting.ReportHolder
 import au.id.tmm.senatedb.reporting.reports._
 import au.id.tmm.utilities.collection.CloseableIterator
@@ -15,7 +17,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ReportEngine {
 
-  def runFor(parsedDataStore: ParsedDataStore, election: SenateElection, states: Set[State])(implicit ec: ExecutionContext): Future[ReportHolder] = {
+  def runFor(parsedDataStore: ParsedDataStore,
+             election: SenateElection,
+             states: Set[State])(implicit ec: ExecutionContext): Future[ReportHolder] = {
     val divisionsAndPollingPlacesFuture = Future(parsedDataStore.divisionsAndPollingPlacesFor(election))
     val groupsAndCandidatesFuture = Future(parsedDataStore.groupsAndCandidatesFor(election))
 
@@ -80,10 +84,14 @@ object ReportEngine {
   def buildComputationToolsFor(election: SenateElection,
                                state: State,
                                groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
+    // TODO move this somewhere where it isn't being calculated every time per state
+    val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
+
     val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
     val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
+    val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
 
-    ComputationTools(normaliser, firstPreferenceCalculator)
+    ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
   }
 
   private def reportsFor(ballotsFacts: Iterable[BallotWithFacts]): ReportHolder = {
@@ -94,7 +102,8 @@ object ReportEngine {
       OneAtlVoteReportGenerator.generateFor(ballotsWithFacts),
       DonkeyVoteReportGenerator.generateFor(ballotsWithFacts),
       BallotsUsingTicksReportGenerator.generateFor(ballotsWithFacts),
-      BallotsUsingCrossesReportGenerator.generateFor(ballotsWithFacts)
+      BallotsUsingCrossesReportGenerator.generateFor(ballotsWithFacts),
+      UsedHtvReportGenerator.generateFor(ballotsWithFacts)
     )
   }
 }

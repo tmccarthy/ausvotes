@@ -14,7 +14,7 @@ object HowToVoteCardGeneration {
       (State.WA, "Australian Labor Party") -> "D,J,S,H,B,F",
       (State.WA, "Socialist Alliance") -> "G,J,M,O,S,N,K,D",
       (State.WA, "The Greens") -> "J,O,N,K,S,D",
-      (State.WA, "Animal Justice Party") -> "D,J,K,N,O,U",
+      (State.WA, "Animal Justice Party") -> "K,O,N,U,J,D",
       (State.WA, "Australian Cyclists Party") -> "N,M,K,J,S,C",
       (State.WA, "Renewable Energy Party") -> "O,S,K,U,J,D,AA,N,L",
       (State.WA, "Australian Liberty Alliance") -> "P,B,W,Q,AB,Z",
@@ -74,8 +74,10 @@ object HowToVoteCardGeneration {
       (State.TAS, "The Greens") -> "C,L,S,B,R,U",
       (State.TAS, "Liberal Party of Australia") -> "F,D,P,T,A,B",
       (State.TAS, "Australian Sex Party/Marijuana (HEMP) Party") -> "H,U,S,R,Q,L",
-      (State.TAS, "Pauline Hanson's One Nation") -> "I,D,AG,A,S,N",
-      (State.TAS, "Renewable Energy Party") -> "L,S,C,H,Q,B,JR,O",
+      (State.TAS, "Pauline Hanson's One Nation") -> "I,D,P,A,S,N", // The groups listed in this how to vote were
+//                                                                    I,D,AG,A,S,N, but there is no AG group in Tas. The
+//                                                                    Shooters and Fishers are group P
+      (State.TAS, "Renewable Energy Party") -> "L,S,C,H,Q,B,J,R,O",
       (State.TAS, "Australian Liberty Alliance") -> "N,D,T,P,A,M",
       (State.TAS, "VOTEFLUX.ORG | Upgrade Democracy!") -> "P,D,I,A,N,T,S",
       (State.TAS, "Science Party") -> "R,Q,C,H,U,B",
