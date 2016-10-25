@@ -41,13 +41,13 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def btlPreferences(prefPerCandidate: (String, String)*): BtlPreferences = {
     prefPerCandidate.map {
-      case (posCode, rawPref) => codeToCandidatePosition(posCode) -> Preference(rawPref)
+      case (posCode, rawPref) => candidatePosition(posCode) -> Preference(rawPref)
     }.toMap
   }
 
   private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
 
-  private def codeToCandidatePosition(positionCode: String) = positionCode match {
+  def candidatePosition(positionCode: String) = positionCode match {
     case candidatePositionCodePattern(groupCode, position) =>
       CandidatePosition(candidateFixture.groupLookup(groupCode), position.toInt)
   }
@@ -58,7 +58,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
   }
 
   def candidateOrder(candidatesInOrder: String*): Vector[CandidatePosition] = {
-    candidatesInOrder.map(codeToCandidatePosition).toVector
+    candidatesInOrder.map(candidatePosition).toVector
   }
 
   def groupOrder(groupsInOrder: String*): Vector[Group] = {
