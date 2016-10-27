@@ -23,7 +23,7 @@ trait TallyReportGenerator { this: ReportGenerator =>
         perState.put(ballotWithFacts.ballot.state, perState(ballotWithFacts.ballot.state) + 1)
         perDivision.put(ballotWithFacts.ballot.division, perDivision(ballotWithFacts.ballot.division) + 1)
         perVoteCollectionPoint.put(ballotWithFacts.ballot.voteCollectionPoint, perVoteCollectionPoint(ballotWithFacts.ballot.voteCollectionPoint) + 1)
-        perFirstPreferencedParty.put(ballotWithFacts.firstPreferencedParty, perFirstPreferencedParty(ballotWithFacts.firstPreferencedParty) + 1)
+        perFirstPreferencedParty.put(ballotWithFacts.firstPreference.party, perFirstPreferencedParty(ballotWithFacts.firstPreference.party) + 1)
       }
     }
 

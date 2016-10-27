@@ -20,16 +20,16 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
   "the first preference calculator" should "reject informal ballots" in {
     intercept[IllegalArgumentException] {
-      sut.firstPreferencedPartyOf(normalise(btlMissedNumberBelow6))
+      sut.firstPreferenceOf(normalise(btlMissedNumberBelow6))
     }
   }
 
   it should "get the party of the first preference when the ballot is atl" in {
-    assert(sut.firstPreferencedPartyOf(normalise(oneAtl)) contains Party(SenateElection.`2016`, "Liberal Democratic Party"))
+    assert(sut.firstPreferenceOf(normalise(oneAtl)).party contains Party(SenateElection.`2016`, "Liberal Democratic Party"))
   }
 
   it should "get the party of the first preferenced candidate when the ballot is btl" in {
-    assert(sut.firstPreferencedPartyOf(normalise(formalBtl)) contains Party(SenateElection.`2016`, "Liberal Democrats"))
+    assert(sut.firstPreferenceOf(normalise(formalBtl)).party contains Party(SenateElection.`2016`, "Liberal Democrats"))
   }
 
   it should "not have a first preference if the first preferenced candidate was independent" in {
@@ -39,6 +39,6 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
-    assert(sut.firstPreferencedPartyOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === None)
+    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === None)
   }
 }

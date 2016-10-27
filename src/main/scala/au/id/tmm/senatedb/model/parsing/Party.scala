@@ -18,8 +18,9 @@ object Party {
     "Family First" -> "Family First Party",
     "Liberal" -> "Liberal Party of Australia",
     "Liberal & Nationals" -> "Liberal Party of Australia",
-    "Liberal National Party of Queensland" -> "Liberal Party of Australia",
+    "Liberal National Party of Queensland" -> "Liberal Party of Australia", // TODO not really...
     "Liberal/The Nationals" -> "Liberal Party of Australia",
+    "Country Liberals (NT)" -> "Liberal Party of Australia", // TODO not really...
     "Liberal Democrats" -> "Liberal Democratic Party",
     "Pirate Party" -> "Pirate Party Australia",
     "Science Party/Cyclists Party" -> "Science Party / Cyclists Party",

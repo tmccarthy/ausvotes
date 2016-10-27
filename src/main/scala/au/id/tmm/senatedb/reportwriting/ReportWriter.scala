@@ -5,6 +5,7 @@ import java.nio.file.{Files, Path}
 import au.id.tmm.senatedb.computations.donkeyvotes.DonkeyVoteDetector
 import au.id.tmm.senatedb.model.parsing.{Division, Party, VoteCollectionPoint}
 import au.id.tmm.senatedb.reporting._
+import au.id.tmm.senatedb.reportwriting.TallyReportTable.{FractionColumn, PartyNameColumn, TallyColumn}
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.JavaConverters._
@@ -214,6 +215,14 @@ object ReportWriter {
       TallyReportTable.FractionColumn()
     )
 
+    val tablePerParty = TallyReportTable(
+      usedHtvReport.usedHtvPerParty,
+      ReportAccumulationUtils.divideTally(usedHtvReport.usedHtvPerParty, usedHtvReport.totalBallotsPerParty), // TODO move this to report generation
+      usedHtvReport.totalUsingHtv,
+      Some(usedHtvReport.totalUsingHtv / usedHtvReport.totalBallots),
+      Vector(PartyNameColumn, TallyColumn("Ballots"), FractionColumn())
+    )
+
     val tablesPerState = State.ALL_STATES
       .map(state => {
         val ballotsUsingHtvPerGroup = usedHtvReport.usedHtvPerGroupPerState(state)
@@ -258,6 +267,11 @@ object ReportWriter {
         |# $title
         |
         |$heading
+        |
+        |### Nationally
+        |
+        |${tablePerParty.asMarkdown}
+        |
         |
         |${tableMarkdowns.mkString("\n\n")}
       """.stripMargin

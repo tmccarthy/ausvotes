@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.reporting.totalformal
 import au.id.tmm.senatedb.computations.BallotWithFacts
 import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.computation.NormalisedBallot
+import au.id.tmm.senatedb.model.computation.{FirstPreference, NormalisedBallot}
 import au.id.tmm.senatedb.model.parsing.Party
 import au.id.tmm.senatedb.reporting.reports.TotalFormalBallotsReportGenerator
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -32,7 +32,7 @@ class TotalFormalBallotsReportGeneratorSpec extends ImprovedFlatSpec {
           canonicalOrder = expectedNormalisedAtl
         ),
         isDonkeyVote = true,
-        firstPreferencedParty = Some(Party(SenateElection.`2016`, "Liberal Democratic Party")),
+        firstPreference = FirstPreference(ballotMaker.group("A"), Some(Party(SenateElection.`2016`, "Liberal Democratic Party"))),
         matchingHowToVote = None
       )
     )

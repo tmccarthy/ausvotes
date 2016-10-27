@@ -96,6 +96,6 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
 
     val ballotWithFacts = allBallotFacts.head
 
-    assert(ballotWithFacts.firstPreferencedParty === Some(Party(SenateElection.`2016`, "Liberal Democratic Party")))
+    assert(ballotWithFacts.firstPreference === Some(Party(SenateElection.`2016`, "Liberal Democratic Party")))
   }
 }

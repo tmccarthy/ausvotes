@@ -52,7 +52,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
       CandidatePosition(candidateFixture.groupLookup(groupCode), position.toInt)
   }
 
-  private def codeToGroup(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
+  def group(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
     case g: Group => g
     case Ungrouped => throw new IllegalArgumentException(Ungrouped.toString)
   }
@@ -62,6 +62,6 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
   }
 
   def groupOrder(groupsInOrder: String*): Vector[Group] = {
-    groupsInOrder.map(codeToGroup).toVector
+    groupsInOrder.map(group).toVector
   }
 }
