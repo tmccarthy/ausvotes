@@ -85,7 +85,7 @@ object TallyEngine {
       .get
   }
 
-  def buildComputationToolsFor(election: SenateElection,
+  private def buildComputationToolsFor(election: SenateElection,
                                state: State,
                                groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
     // TODO move this somewhere where it isn't being calculated every time per state

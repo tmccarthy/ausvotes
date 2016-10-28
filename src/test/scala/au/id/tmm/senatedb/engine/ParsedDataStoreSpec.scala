@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.engine
 
-import au.id.tmm.senatedb.fixtures.GroupsAndCandidates
+import au.id.tmm.senatedb.fixtures.{GroupsAndCandidates, MockAecResourceStore}
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.rawdata.{MockAecResourceStore, RawDataStore}
+import au.id.tmm.senatedb.rawdata.RawDataStore
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

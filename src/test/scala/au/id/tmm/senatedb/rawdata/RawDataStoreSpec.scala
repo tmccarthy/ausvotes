@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.rawdata
 
+import au.id.tmm.senatedb.fixtures.MockAecResourceStore
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec

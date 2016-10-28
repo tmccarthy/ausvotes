@@ -1,6 +1,8 @@
-package au.id.tmm.senatedb.rawdata
+package au.id.tmm.senatedb.fixtures
+
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.SenateElection.`2016`
+import au.id.tmm.senatedb.rawdata.AecResourceStore
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.io.Source
