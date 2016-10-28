@@ -22,8 +22,6 @@ project/plugins/project/
 
 /rawData
 /testingRawData
-!/reports/
-/reports/*
-!/reports/v0.2/
+/reports
 *.db
 *.db-journal
