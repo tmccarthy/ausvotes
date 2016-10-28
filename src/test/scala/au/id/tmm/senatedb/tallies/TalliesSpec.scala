@@ -37,19 +37,11 @@ class TalliesSpec extends ImprovedFlatSpec {
     assert(Map(NormalTallier -> Tally()).toTallies === Tallies(NormalTallier -> Tally()))
   }
 
-  private object NormalTallier extends Tallier {
-    override type TallyType = Tally[String]
-
+  private object NormalTallier extends Tallier.NormalTallier[String] {
     override def tally(ballotsWithFacts: Vector[BallotWithFacts]): Tally[String] = Tally()
-
-    override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[Tally[String]]
   }
 
-  private object TieredTallier extends Tallier {
-    override type TallyType = DoublyTieredTally[String, Int]
-
+  private object TieredTallier extends Tallier.TieredTallier[String, Int] {
     override def tally(ballotsWithFacts: Vector[BallotWithFacts]): DoublyTieredTally[String, Int] = DoublyTieredTally()
-
-    override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[DoublyTieredTally[String, Int]]
   }
 }
