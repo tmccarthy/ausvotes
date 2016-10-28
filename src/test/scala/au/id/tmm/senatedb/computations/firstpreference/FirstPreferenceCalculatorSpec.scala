@@ -3,7 +3,8 @@ package au.id.tmm.senatedb.computations.firstpreference
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.fixtures.{Ballots, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.Party
+import au.id.tmm.senatedb.model.computation.FirstPreference
+import au.id.tmm.senatedb.model.parsing.{Party, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -39,6 +40,6 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
-    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === None)
+    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === FirstPreference(Ungrouped, None))
   }
 }

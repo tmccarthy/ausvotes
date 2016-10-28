@@ -1,32 +1,18 @@
-package au.id.tmm.senatedb.reporting.tally
+package au.id.tmm.senatedb.tallies
+
+import au.id.tmm.utilities.collection.CollectionUtils.DoubleMapOps
 
 import scala.collection.mutable
 
 final case class Tally[A](values: Map[A, Double]) extends TallyLike {
   override type SelfType = Tally[A]
 
-  override def +(that: Tally[A]): Tally[A] =
-    this.mergeWith(that, key => this.values.getOrElse(key, 0d) + that.values.getOrElse(key, 0d))
+  override def +(that: Tally[A]): Tally[A] = Tally(this.values + that.values)
 
-  override def /(that: Tally[A]): Tally[A] =
-    this.mergeWith(that, key => this.values.getOrElse(key, 0d) / that.values(key))
+  override def /(that: Tally[A]): Tally[A] = Tally(this.values / that.values)
 
-  private def mergeWith(that: Tally[A], newValueForKey: A => Double): Tally[A] = {
-    val newKeys = this.values.keySet ++ that.values.keySet
+  override def /(k: Double): Tally[A] = Tally(values / k)
 
-    val newEntries = newKeys.toStream
-      .map(key => key -> newValueForKey(key))
-
-    Tally(newEntries.toMap)
-  }
-
-  override def /(k: Double): Tally[A] = {
-    if (k == 0) {
-      throw new ArithmeticException()
-    }
-
-    Tally(values.mapValues(_ / k))
-  }
 }
 
 object Tally {

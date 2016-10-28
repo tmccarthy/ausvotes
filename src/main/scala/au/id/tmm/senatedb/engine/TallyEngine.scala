@@ -7,62 +7,66 @@ import au.id.tmm.senatedb.computations.{BallotFactsComputation, BallotWithFacts,
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.parsing.HowToVoteCardGeneration
-import au.id.tmm.senatedb.reporting.ReportHolder
-import au.id.tmm.senatedb.reporting.reports._
+import au.id.tmm.senatedb.tallies.Tallies.TraversableOps
+import au.id.tmm.senatedb.tallies.{Tallier, Tallies}
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object ReportEngine {
+object TallyEngine {
 
   def runFor(parsedDataStore: ParsedDataStore,
              election: SenateElection,
-             states: Set[State])(implicit ec: ExecutionContext): Future[ReportHolder] = {
+             states: Set[State],
+             talliers: Set[Tallier])
+            (implicit ec: ExecutionContext): Future[Tallies] = {
     val divisionsAndPollingPlacesFuture = Future(parsedDataStore.divisionsAndPollingPlacesFor(election))
     val groupsAndCandidatesFuture = Future(parsedDataStore.groupsAndCandidatesFor(election))
 
     for {
       divisionsAndPollingPlaces <- divisionsAndPollingPlacesFuture
       groupsAndCandidates <- groupsAndCandidatesFuture
-      allReports <- allReportsFrom(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates)
-    } yield allReports
+      allTallies <- allTalliesFrom(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates, talliers)
+    } yield allTallies
   }
 
-  private def allReportsFrom(parsedDataStore: ParsedDataStore,
+  private def allTalliesFrom(parsedDataStore: ParsedDataStore,
                              election: SenateElection,
                              states: Set[State],
                              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                             groupsAndCandidates: GroupsAndCandidates)
-                            (implicit ec: ExecutionContext): Future[ReportHolder] = {
+                             groupsAndCandidates: GroupsAndCandidates,
+                             talliers: Set[Tallier])
+                            (implicit ec: ExecutionContext): Future[Tallies] = {
     val ballotFuturesPerState = states
       .map(state => state -> parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state))(Set.canBuildFrom)
 
-    val reportFuturesPerState = ballotFuturesPerState
+    val talliesFuturesPerState = ballotFuturesPerState
       .map {
-        case (state, ballots) => reportsFor(election, state, divisionsAndPollingPlaces, groupsAndCandidates, ballots)
+        case (state, ballots) => talliesFor(election, state, divisionsAndPollingPlaces, groupsAndCandidates, ballots, talliers)
       }(Set.canBuildFrom)
 
-    val finalReports = Future.sequence(reportFuturesPerState)
-      .map(allReports => allReports.reduce(_ accumulate _))
+    val finalTallies = Future.sequence(talliesFuturesPerState)
+      .map(tallies => tallies.reduce(_ + _))
 
-    finalReports
+    finalTallies
   }
 
-  private def reportsFor(election: SenateElection,
+  private def talliesFor(election: SenateElection,
                          state: State,
                          divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                          groupsAndCandidates: GroupsAndCandidates,
-                         ballots: CloseableIterator[Ballot])
-                        (implicit ec: ExecutionContext): Future[ReportHolder] = Future {
+                         ballots: CloseableIterator[Ballot],
+                         talliers: Set[Tallier])
+                        (implicit ec: ExecutionContext): Future[Tallies] = Future {
     val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates)
 
     resource.managed(ballots)
       .map(ballots => {
         val groupedIterator = ballots.grouped(5000) // TODO constant
 
-        val reports = groupedIterator
+        val tallies = groupedIterator
           .map(ballots => {
             BallotFactsComputation.computeFactsFor(
               election,
@@ -72,10 +76,10 @@ object ReportEngine {
               computationTools,
               ballots)
           })
-          .map(reportsFor)
-          .foldLeft(ReportHolder.empty)((left, right) => left accumulate right)
+          .map(ballotsWithFacts => talliesFrom(ballotsWithFacts, talliers))
+          .foldLeft(Tallies())((left, right) => left + right)
 
-        reports
+        tallies
       })
       .toTry
       .get
@@ -94,16 +98,11 @@ object ReportEngine {
     ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
   }
 
-  private def reportsFor(ballotsFacts: Iterable[BallotWithFacts]): ReportHolder = {
-    val ballotsWithFacts = ballotsFacts.toVector
+  private def talliesFrom(ballotsWithFactsIterable: Iterable[BallotWithFacts], talliers: Set[Tallier]): Tallies = {
+    val ballotsWithFacts = ballotsWithFactsIterable.toVector
 
-    ReportHolder(
-      TotalFormalBallotsReportGenerator.generateFor(ballotsWithFacts),
-      OneAtlVoteReportGenerator.generateFor(ballotsWithFacts),
-      DonkeyVoteReportGenerator.generateFor(ballotsWithFacts),
-      BallotsUsingTicksReportGenerator.generateFor(ballotsWithFacts),
-      BallotsUsingCrossesReportGenerator.generateFor(ballotsWithFacts),
-      UsedHtvReportGenerator.generateFor(ballotsWithFacts)
-    )
+    talliers
+      .map(tallier => tallier -> tallier.tally(ballotsWithFacts))
+      .toTallies
   }
 }

@@ -1,4 +1,4 @@
-package au.id.tmm.senatedb.reporting.tally
+package au.id.tmm.senatedb.tallies
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
