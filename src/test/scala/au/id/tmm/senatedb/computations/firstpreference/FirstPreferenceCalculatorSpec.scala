@@ -4,7 +4,7 @@ import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.fixtures.{Ballots, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.FirstPreference
-import au.id.tmm.senatedb.model.parsing.{Party, Ungrouped}
+import au.id.tmm.senatedb.model.parsing.{Independent, RegisteredParty, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -26,11 +26,11 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
   }
 
   it should "get the party of the first preference when the ballot is atl" in {
-    assert(sut.firstPreferenceOf(normalise(oneAtl)).party contains Party(SenateElection.`2016`, "Liberal Democratic Party"))
+    assert(sut.firstPreferenceOf(normalise(oneAtl)).party === RegisteredParty("Liberal Democratic Party"))
   }
 
   it should "get the party of the first preferenced candidate when the ballot is btl" in {
-    assert(sut.firstPreferenceOf(normalise(formalBtl)).party contains Party(SenateElection.`2016`, "Liberal Democrats"))
+    assert(sut.firstPreferenceOf(normalise(formalBtl)).party === RegisteredParty("Liberal Democrats"))
   }
 
   it should "not have a first preference if the first preferenced candidate was independent" in {
@@ -40,6 +40,12 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
-    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === FirstPreference(Ungrouped, None))
+    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) ===
+      FirstPreference(Ungrouped, Independent))
+  }
+
+  it should "correctly get the first preference when an ungrouped candidate that is a member of a party is preferenced btl" in {
+    assert(sut.firstPreferenceOf(normalise(btlFirstPrefUngrouped)) ===
+      FirstPreference(Ungrouped, RegisteredParty("Mature Australia")))
   }
 }

@@ -7,5 +7,5 @@ final case class Candidate(election: SenateElection,
                            state: State,
                            aecId: String,
                            name: Name,
-                           party: Option[Party],
+                           party: Party,
                            btlPosition: CandidatePosition)

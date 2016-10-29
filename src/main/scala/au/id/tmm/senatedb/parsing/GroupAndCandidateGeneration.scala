@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.parsing
 
-import au.id.tmm.senatedb.model.flyweights.{GroupFlyweight, PartyFlyweight}
+import au.id.tmm.senatedb.model.flyweights.{GroupFlyweight, RegisteredPartyFlyweight}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.rawdata.model.FirstPreferencesRow
@@ -12,7 +12,7 @@ object GroupAndCandidateGeneration {
   def fromFirstPreferencesRows(election: SenateElection,
                                rows: TraversableOnce[FirstPreferencesRow],
                                groupFlyweight: GroupFlyweight = GroupFlyweight(),
-                               partyFlyweight: PartyFlyweight = PartyFlyweight()): GroupsAndCandidates = {
+                               partyFlyweight: RegisteredPartyFlyweight = RegisteredPartyFlyweight()): GroupsAndCandidates = {
     val groupsByCode: mutable.Map[String, Group] = mutable.Map()
 
     val groups: mutable.ArrayBuffer[Group] = mutable.ArrayBuffer()
@@ -32,7 +32,7 @@ object GroupAndCandidateGeneration {
   }
 
   private def fromFirstPreferencesRow(groupFlyweight: GroupFlyweight,
-                                      partyFlyweight: PartyFlyweight,
+                                      partyFlyweight: RegisteredPartyFlyweight,
                                       groupsByCode: mutable.Map[String, Group],
                                       election: SenateElection,
                                       rawRow: FirstPreferencesRow): Either[Group, Candidate] = {
@@ -44,38 +44,39 @@ object GroupAndCandidateGeneration {
   }
 
   private def groupFromTicketRow(groupFlyweight: GroupFlyweight,
-                                 partyFlyweight: PartyFlyweight,
+                                 partyFlyweight: RegisteredPartyFlyweight,
                                  election: SenateElection,
                                  rawRow: FirstPreferencesRow): Group = {
     assert(rawRow.positionInGroup == 0)
 
     val state = stateFrom(rawRow)
-    val party = partyFrom(partyFlyweight, election, rawRow)
+    val party = partyFrom(partyFlyweight, rawRow)
 
     groupFlyweight(election, state, rawRow.ticket.trim, party)
   }
 
   private def stateFrom(rawRow: FirstPreferencesRow) = GenerationUtils.stateFrom(rawRow.state, rawRow)
 
-  private def partyFrom(partyFlyweight: PartyFlyweight, election: SenateElection, rawRow: FirstPreferencesRow): Option[Party] = {
+  private def partyFrom(partyFlyweight: RegisteredPartyFlyweight,
+                        rawRow: FirstPreferencesRow): Party = {
     val partyName = rawRow.party.trim
 
     if (partyName.isEmpty || ("Independent" equalsIgnoreCase partyName)) {
-      None
+      Independent
     } else {
-      Some(partyFlyweight(election, partyName))
+      partyFlyweight(partyName)
     }
   }
 
   private def candidateFrom(groupFlyweight: GroupFlyweight,
-                            partyFlyweight: PartyFlyweight,
+                            partyFlyweight: RegisteredPartyFlyweight,
                             groupsByCode: mutable.Map[String, Group],
                             election: SenateElection,
                             rawRow: FirstPreferencesRow): Candidate = {
     assert(rawRow.positionInGroup != 0)
 
     val state = stateFrom(rawRow)
-    val party = partyFrom(partyFlyweight, election, rawRow)
+    val party = partyFrom(partyFlyweight, rawRow)
     val name = candidateNameFrom(rawRow)
     val position = candidatePositionFrom(groupsByCode, rawRow)
 

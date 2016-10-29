@@ -5,7 +5,7 @@ import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.senatedb.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.senatedb.fixtures._
 import au.id.tmm.senatedb.model.computation.{FirstPreference, NormalisedBallot}
-import au.id.tmm.senatedb.model.parsing.Party
+import au.id.tmm.senatedb.model.parsing.RegisteredParty
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, SenateElection}
 import au.id.tmm.senatedb.parsing.HowToVoteCardGeneration
 import au.id.tmm.utilities.geo.australia.State
@@ -97,6 +97,6 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
     val ballotWithFacts = allBallotFacts.head
 
     assert(ballotWithFacts.firstPreference ===
-      FirstPreference(ballotMaker.group("A"), Some(Party(SenateElection.`2016`, "Liberal Democratic Party"))))
+      FirstPreference(ballotMaker.group("A"), RegisteredParty("Liberal Democratic Party")))
   }
 }

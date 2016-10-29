@@ -70,12 +70,10 @@ final case class TallyReportTable[A](tallies: Map[A, Long],
     }
   }
 
-  @tailrec
   private def partyNameFrom(value: Any): String = {
     value match {
-      case Party(_, name) => name
-      case Some(party) => partyNameFrom(party)
-      case None => "Independent"
+      case RegisteredParty(name) => name
+      case Independent => "Independent"
     }
   }
 

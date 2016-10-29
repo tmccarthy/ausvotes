@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.engine
 
-import au.id.tmm.senatedb.model.flyweights.{DivisionFlyweight, GroupFlyweight, PartyFlyweight, PostcodeFlyweight}
+import au.id.tmm.senatedb.model.flyweights._
 import au.id.tmm.senatedb.model.parsing.Ballot
 import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.parsing.{BallotGeneration, DivisionAndPollingPlaceGeneration, GroupAndCandidateGeneration, RawPreferenceParser}
@@ -26,7 +26,7 @@ object ParsedDataStore {
 
 private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends ParsedDataStore {
   private val groupFlyweight = GroupFlyweight()
-  private val partyFlyweight = PartyFlyweight()
+  private val partyFlyweight = RegisteredPartyFlyweight()
   private val postcodeFlyweight = PostcodeFlyweight()
   private val divisionFlyweight = DivisionFlyweight()
 

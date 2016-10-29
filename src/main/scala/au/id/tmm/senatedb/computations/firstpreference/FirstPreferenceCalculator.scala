@@ -26,7 +26,7 @@ class FirstPreferenceCalculator(election: SenateElection, state: State, candidat
   private def firstPreferenceAtl(normalisedBallot: NormalisedBallot): FirstPreference = {
     normalisedBallot.canonicalOrder.head.group match {
       case g: Group => FirstPreference(g, g.party)
-      case Ungrouped => FirstPreference(Ungrouped, None)
+      case Ungrouped => FirstPreference(Ungrouped, Independent)
     }
   }
 

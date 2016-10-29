@@ -13,7 +13,7 @@ sealed trait BallotGroup extends Ordered[BallotGroup] {
 final case class Group(election: SenateElection,
                        state: State,
                        code: String,
-                       party: Option[Party]) extends BallotGroup {
+                       party: Party) extends BallotGroup {
 
 require(code != Ungrouped.code, s"The code ${Ungrouped.code} is used for ungrouped")
 
