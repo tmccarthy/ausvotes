@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.tallies
 
+import au.id.tmm.senatedb.tallies.Tally.MapOps
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TallySpec extends ImprovedFlatSpec {
@@ -72,5 +73,11 @@ class TallySpec extends ImprovedFlatSpec {
     val tally = builder.build()
 
     assert(tally === Tally("A" -> 2.5, "B" -> 1))
+  }
+
+  it can "be built directly from a map" in {
+    val map: Map[String, Double] = Map("A" -> 1d)
+
+    assert(Tally(map) === map.toTally)
   }
 }

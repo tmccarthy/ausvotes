@@ -11,27 +11,30 @@ import au.id.tmm.utilities.geo.australia.State
 
 trait TestsBallotFacts {
 
-  private val election = SenateElection.`2016`
-  private val state = State.ACT
-  private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
-  private val divisionsAndPollingPlaces = DivisionsAndPollingPlaces.ACT.divisionsAndPollingPlaces
-  private val howToVoteCards = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
+  protected val election = SenateElection.`2016`
+  protected val state = State.ACT
+  protected val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
+  protected val divisionsAndPollingPlaces = DivisionsAndPollingPlaces.ACT.divisionsAndPollingPlaces
+  protected val howToVoteCards = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
 
-  private val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
-  private val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
-  private val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
-  private val computationTools = ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
+  protected val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
+  protected val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
+  protected val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
+  protected val computationTools = ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
 
   def factsFor(ballot: Ballot): BallotWithFacts = {
+    factsFor(Iterable(ballot)).head
+  }
 
+  def factsFor(ballots: Iterable[Ballot]): Vector[BallotWithFacts] = {
     BallotFactsComputation.computeFactsFor(
       election,
       state,
       groupsAndCandidates,
       divisionsAndPollingPlaces,
       computationTools,
-      Iterable(ballot)
-    ).head
+      ballots
+    ).toVector
   }
 
 }

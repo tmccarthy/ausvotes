@@ -26,8 +26,8 @@ object Tallier {
   }
 
   trait TieredTallier[A, B] extends Tallier {
-    final override type TallyType = DoublyTieredTally[A, B]
+    final override type TallyType = TieredTally[A, B]
 
-    final override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[DoublyTieredTally[A, B]]
+    final override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[TieredTally[A, B]]
   }
 }

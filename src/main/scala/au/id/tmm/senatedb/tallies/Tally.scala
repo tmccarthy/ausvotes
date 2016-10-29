@@ -39,4 +39,8 @@ object Tally {
 
     def build(): Tally[A] = Tally(values.toMap)
   }
+
+  implicit class MapOps[A](values: Map[A, Double]) {
+    def toTally: Tally[A] = Tally(values)
+  }
 }

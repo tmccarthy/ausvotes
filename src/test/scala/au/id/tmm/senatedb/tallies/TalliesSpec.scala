@@ -9,14 +9,14 @@ class TalliesSpec extends ImprovedFlatSpec {
   "a group of tallies" should "support lookup by tallier" in {
     val tallies = Tallies(
       NormalTallier -> Tally(),
-      TieredTallier -> DoublyTieredTally()
+      TieredTallier -> TieredTally()
     )
 
     assert(tallies.tallyBy(NormalTallier) === Tally())
   }
 
   it should "reject incompatible tally/tallier combinations" in {
-    intercept[IllegalArgumentException](Tallies(NormalTallier -> DoublyTieredTally()))
+    intercept[IllegalArgumentException](Tallies(NormalTallier -> TieredTally()))
   }
 
   it can "be added to another group of tallies" in {
@@ -42,6 +42,6 @@ class TalliesSpec extends ImprovedFlatSpec {
   }
 
   private object TieredTallier extends Tallier.TieredTallier[String, Int] {
-    override def tally(ballotsWithFacts: Vector[BallotWithFacts]): DoublyTieredTally[String, Int] = DoublyTieredTally()
+    override def tally(ballotsWithFacts: Vector[BallotWithFacts]): TieredTally[String, Int] = TieredTally()
   }
 }
