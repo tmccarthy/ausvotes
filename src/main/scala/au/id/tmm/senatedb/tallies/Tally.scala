@@ -13,6 +13,7 @@ final case class Tally[A](values: Map[A, Double]) extends TallyLike {
 
   override def /(k: Double): Tally[A] = Tally(values / k)
 
+  def apply(key: A): Double = values.getOrElse(key, 0d)
 }
 
 object Tally {

@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.reportwriting
 
+import au.id.tmm.utilities.collection.Matrix
+
 // TODO could go into utils project
 trait Table[R, C] {
 
@@ -28,4 +30,12 @@ trait Table[R, C] {
     .map(s => if (bold) s"**$s**" else s)
     .map(_.replace("|", "&#124;"))
     .mkString("|")
+
+  def asMatrix: Matrix[String] = {
+    val headingsRow = columns.map(columnHeading)
+
+    val data = rows.map(row => columns.map(column => valueAt(row, column)))
+
+    Matrix(Vector(headingsRow) ++ data)
+  }
 }

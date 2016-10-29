@@ -80,4 +80,10 @@ class TallySpec extends ImprovedFlatSpec {
 
     assert(Tally(map) === map.toTally)
   }
+
+  it should "support result lookup directly" in {
+    val tally = Tally("A" -> 2, "B" -> 8)
+
+    assert(tally("A") === 2)
+  }
 }

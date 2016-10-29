@@ -100,7 +100,7 @@ object GroupAndCandidateGeneration {
     val groupCode = rawRow.ticket.trim
 
     if (Ungrouped.code == groupCode) {
-      Ungrouped
+      Ungrouped(GenerationUtils.stateFrom(rawRow.state, rawRow)) // TODO make the group flyweight a BallotGroupFlyweight and include this?
     } else {
       groupsByCode(groupCode)
     }

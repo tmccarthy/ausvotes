@@ -6,6 +6,7 @@ import au.id.tmm.utilities.geo.australia.State
 sealed trait BallotGroup extends Ordered[BallotGroup] {
   def code: String
   def index: Int
+  def state: State
 
   override def compare(that: BallotGroup): Int = BallotGroup.ordering.compare(this, that)
 }
@@ -28,17 +29,17 @@ require(code != Ungrouped.code, s"The code ${Ungrouped.code} is used for ungroup
   }
 }
 
-case object Ungrouped extends BallotGroup {
-  val code = "UG"
+final case class Ungrouped(state: State) extends BallotGroup {
+  val code = Ungrouped.code
   val index = Int.MaxValue
+}
+
+object Ungrouped {
+  val code = "UG"
 }
 
 object BallotGroup {
   val ordering: Ordering[BallotGroup] = new Ordering[BallotGroup] {
     override def compare(left: BallotGroup, right: BallotGroup): Int = left.index compareTo right.index
   }
-
-  def lookupFrom(groups: Set[Group]): Map[String, BallotGroup] = (Set(Ungrouped) ++ groups)
-    .groupBy(_.code)
-    .mapValues(_.head)
 }

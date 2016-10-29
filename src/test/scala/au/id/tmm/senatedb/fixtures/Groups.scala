@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.fixtures
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.{BallotGroup, Group, RegisteredParty}
+import au.id.tmm.senatedb.model.parsing.{BallotGroup, Group, RegisteredParty, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 
 object Groups {
@@ -11,7 +11,7 @@ object Groups {
     def state: State
     def groups: Set[Group]
 
-    lazy val groupLookup: Map[String, BallotGroup] = BallotGroup.lookupFrom(groups)
+    lazy val groupLookup: Map[String, BallotGroup] = (groups ++ Set(Ungrouped(state))).groupBy(_.code).mapValues(_.head)
   }
 
   object NT extends GroupFixture {
