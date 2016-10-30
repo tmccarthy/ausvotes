@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import au.id.tmm.senatedb.engine.{ParsedDataStore, ReportEngine, TallyEngine}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.rawdata.{AecResourceStore, RawDataStore}
-import au.id.tmm.senatedb.reporting.{DonkeyVoteReportBuilder, OneAtlReportBuilder, ReportBuilder, SavedBallotsReportBuilder}
+import au.id.tmm.senatedb.reporting._
 import au.id.tmm.senatedb.reportwriting.ReportWriter
 import au.id.tmm.utilities.geo.australia.State
 import com.google.common.base.Stopwatch
@@ -32,7 +32,7 @@ object WriteReports {
       val reporters: Set[ReportBuilder] = Set(
         OneAtlReportBuilder,
         DonkeyVoteReportBuilder,
-        OneAtlReportBuilder,
+        HowToVoteUsageReportBuilder,
         SavedBallotsReportBuilder
       )
 

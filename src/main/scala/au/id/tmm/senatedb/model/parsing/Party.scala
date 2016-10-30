@@ -1,11 +1,15 @@
 package au.id.tmm.senatedb.model.parsing
 
-sealed trait Party
+sealed trait Party {
+  def nationalEquivalent: Party
+}
 
-case object Independent extends Party
+case object Independent extends Party {
+  val nationalEquivalent = this
+}
 
 final case class RegisteredParty(name: String) extends Party {
-  def canonicalise: RegisteredParty = {
+  val canonicalise: RegisteredParty = {
         name match {
           case "Labor"                                       => RegisteredParty("Australian Labor Party")
           case "Antipaedophile Party"                        => RegisteredParty("Australian Antipaedophile Party")
@@ -24,20 +28,20 @@ final case class RegisteredParty(name: String) extends Party {
   }
 
   //noinspection NoTailRecursionAnnotation
-  def nationalEquivalent: RegisteredParty = {
+  override val nationalEquivalent: RegisteredParty = {
     val canonicalParty = this.canonicalise
 
     if (canonicalParty != this) {
-      return canonicalParty.nationalEquivalent
-    }
-
-    name match {
-      case "Australian Labor Party (Northern Territory) Branch" => RegisteredParty("Australian Labor Party")
-      case "Liberal National Party of Queensland" |
-           "Country Liberals (NT)" |
-           "Liberal & Nationals"                                => RegisteredParty("Liberal Party of Australia")
-      case "The Greens (WA)"                                    => RegisteredParty("The Greens")
-      case _ => this
+      canonicalParty.nationalEquivalent
+    } else {
+      name match {
+        case "Australian Labor Party (Northern Territory) Branch" => RegisteredParty("Australian Labor Party")
+        case "Liberal National Party of Queensland" |
+             "Country Liberals (NT)" |
+             "Liberal & Nationals" => RegisteredParty("Liberal Party of Australia")
+        case "The Greens (WA)" => RegisteredParty("The Greens")
+        case _ => this
+      }
     }
   }
 }

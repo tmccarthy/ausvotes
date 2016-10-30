@@ -18,7 +18,7 @@ trait PredicateTallier {
     override def tally(ballotsWithFacts: Vector[BallotWithFacts]): Tally[Party] =
       ballotsWithFacts.toStream
         .filter(shouldCount)
-        .groupBy(_.firstPreference.party)
+        .groupBy(_.firstPreference.party.nationalEquivalent)
         .mapValues(_.size.toDouble)
         .toTally
   }
