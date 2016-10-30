@@ -38,11 +38,14 @@ object Ballots {
 
       makeBallot(atlPrefs, btlPrefs)
     }
+
     val formalAtl: Ballot = {
       val atlPrefs = orderedAtlPreferences("A", "B", "C", "D", "E", "F")
 
       makeBallot(atlPrefs, Map.empty)
     }
+
+    def donkeyVote: Ballot = formalAtl
 
     val oneAtl: Ballot = {
       val atlPrefs = orderedAtlPreferences("A")
@@ -153,6 +156,11 @@ object Ballots {
 
       makeBallot(atlPrefs, btlPrefs)
     }
+
+    val usesHtv: Ballot = ballotMaker.makeBallot(
+      ballotMaker.orderedAtlPreferences("H", "B", "J", "G", "C", "E"),
+      Map.empty
+    )
   }
 
   object NT extends BallotsFixture {
