@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.rawdata
 
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
 class AecResourceStoreSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
   val aecResourceStore = AecResourceStore.at(cleanDirectory)

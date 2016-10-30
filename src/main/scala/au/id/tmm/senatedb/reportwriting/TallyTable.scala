@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.reportwriting
 import java.text.DecimalFormat
 
 import au.id.tmm.senatedb.model.parsing._
+import au.id.tmm.senatedb.reportwriting.Report.TitledTable
 import au.id.tmm.senatedb.reportwriting.TallyTable._
 import au.id.tmm.senatedb.tallies.Tally
 import au.id.tmm.utilities.geo.australia.State
@@ -43,18 +44,27 @@ final case class TallyTable[A](primaryCount: Tally[A],
 
   private def totalsRowValueFor(column: Column): String = {
     column match {
-      case c: PrimaryCountColumn => tallyFormat.format(primaryCountTotal)
-      case c: DenominatorCountColumn => tallyFormat.format(denominatorCountTotal)
-      case c: FractionColumn => fractionFormat.format(primaryCountTotal / denominatorCountTotal)
+      case c: PrimaryCountColumn => c.valueForCount(primaryCountTotal)
+      case c: DenominatorCountColumn => c.valueForDenominator(denominatorCountTotal)
+      case c: FractionColumn => c.valueForFraction(primaryCountTotal / denominatorCountTotal)
       case c if columns.indexOf(c) == 0 => "Total"
       case _ => ""
     }
   }
 
   override def isLastColumnBold: Boolean = true
+
+  def withTitle(title: String): TitledTable = TitledTable(title, this)
 }
 
 object TallyTable {
+  def totalRowOnly(primaryCountTotal: Double,
+                   denominatorCountTotal: Double,
+                   columns: Vector[Column]
+                  ): TallyTable[Any] = {
+    TallyTable[Any](Tally(), _ => throw new AssertionError(), primaryCountTotal, denominatorCountTotal, columns)
+  }
+
   val fractionFormat = new DecimalFormat("#0.00%")
   val tallyFormat = new DecimalFormat("#,###")
 
@@ -77,6 +87,12 @@ object TallyTable {
     final def valueFor(dataRow: DataRow[Any]): String = valueForKey(dataRow.key)
 
     protected def valueForKey(key: Any): String
+  }
+
+  case object EmptyColumn extends KeyBasedColumn {
+    override def heading: String = ""
+
+    override protected def valueForKey(key: Any): String = ""
   }
 
   case object StateNameColumn extends KeyBasedColumn {
@@ -122,7 +138,7 @@ object TallyTable {
     }
   }
 
-  case object GroupColumn extends KeyBasedColumn {
+  case object GroupNameColumn extends KeyBasedColumn {
     val heading = "Group"
 
     override def valueForKey(key: Any): String = key match {
@@ -133,16 +149,33 @@ object TallyTable {
 
   final case class PrimaryCountColumn(heading: String) extends Column {
 
-    override def valueFor(dataRow: DataRow[Any]): String = tallyFormat.format(dataRow.count)
+    override def valueFor(dataRow: DataRow[Any]): String = valueForCount(dataRow.count)
+
+    def valueForCount(count: Double): String = {
+      tallyFormat.format(count)
+    }
   }
 
   final case class DenominatorCountColumn(heading: String) extends Column {
 
-    override def valueFor(dataRow: DataRow[Any]): String = tallyFormat.format(dataRow.denominator)
+    override def valueFor(dataRow: DataRow[Any]): String = valueForDenominator(dataRow.denominator)
+
+    def valueForDenominator(denominator: Double): String = tallyFormat.format(denominator)
   }
 
   final case class FractionColumn(heading: String = "%") extends Column {
 
-    override def valueFor(dataRow: DataRow[Any]): String = fractionFormat.format(dataRow.fraction)
+    override def valueFor(dataRow: DataRow[Any]): String = {
+      val fraction = dataRow.fraction
+      valueForFraction(fraction)
+    }
+
+    def valueForFraction(fraction: Double): String = {
+      if (fraction.isNaN) {
+        "N/A"
+      } else {
+        fractionFormat.format(fraction)
+      }
+    }
   }
 }

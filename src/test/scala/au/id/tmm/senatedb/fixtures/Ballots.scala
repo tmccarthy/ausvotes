@@ -56,6 +56,12 @@ object Ballots {
       makeBallot(atlPrefs, Map.empty)
     }
 
+    val oneTickAtl: Ballot = {
+      val atlPrefs = atlPreferences("A" -> "/")
+
+      makeBallot(atlPrefs, Map.empty)
+    }
+
     val crossedAtl: Ballot = {
       val atlPrefs = atlPreferences("A" -> "*", "B" -> "2", "C" -> "3", "D" -> "4", "E" -> "5", "F" -> "6")
 

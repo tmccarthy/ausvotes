@@ -25,5 +25,4 @@ class TallyEngineSpec extends ImprovedFlatSpec {
 
     assert(tallies.tallyBy(CountFormalBallots.Nationally) === SimpleTally(4))
   }
-
 }

@@ -5,8 +5,15 @@ import au.id.tmm.senatedb.tallies.{Tallier, Tallies}
 
 trait ReportBuilder {
 
-  def requiredTalliers: Set[Tallier]
+  def tableBuilders: Vector[TableBuilder]
 
-  def buildTableFrom(tallies: Tallies): Report
+  final def requiredTalliers: Set[Tallier] = tableBuilders.flatMap(_.requiredTalliers).toSet
 
+  def reportTitle: String
+
+  final def buildReportFrom(tallies: Tallies): Report = {
+    val tables = tableBuilders.map(_.titledTableFrom(tallies))
+
+    Report(reportTitle, tables)
+  }
 }

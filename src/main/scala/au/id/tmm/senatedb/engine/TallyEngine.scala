@@ -15,8 +15,15 @@ import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedReso
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object TallyEngine {
+trait TallyEngine {
+  def runFor(parsedDataStore: ParsedDataStore,
+             election: SenateElection,
+             states: Set[State],
+             talliers: Set[Tallier])
+            (implicit ec: ExecutionContext): Future[Tallies]
+}
 
+object TallyEngine extends TallyEngine {
   def runFor(parsedDataStore: ParsedDataStore,
              election: SenateElection,
              states: Set[State],
@@ -86,8 +93,8 @@ object TallyEngine {
   }
 
   private def buildComputationToolsFor(election: SenateElection,
-                               state: State,
-                               groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
+                                       state: State,
+                                       groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
     // TODO move this somewhere where it isn't being calculated every time per state
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 

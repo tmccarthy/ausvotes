@@ -51,22 +51,38 @@ class TallyTableSpec extends ImprovedFlatSpec {
   }
 
   "the total formal ballots nationally table" should "look as expected" in {
-    val totalCount = SimpleTally(13838900d)
     val columns = Vector(
-      TallyTable.StateNameColumn,
+      TallyTable.EmptyColumn,
       TallyTable.PrimaryCountColumn("Formal ballots"),
       TallyTable.DenominatorCountColumn("Total formal ballots"),
       TallyTable.FractionColumn("% of total")
     )
 
-    val table = TallyTable[Nothing](Tally(), _ => fail(), totalCount.count, totalCount.count, columns)
+    val table = TallyTable.totalRowOnly(13838900d, 13838900d, columns)
 
     val expected = Matrix(
-      Vector("State", "Formal ballots", "Total formal ballots", "% of total"),
+      Vector("", "Formal ballots", "Total formal ballots", "% of total"),
       Vector("Total", "13,838,900", "13,838,900", "100.00%")
     )
 
     assert(table.asMatrix === expected)
+  }
+
+  it should "render in markdown correctly" in {
+    val columns = Vector(
+      TallyTable.EmptyColumn,
+      TallyTable.PrimaryCountColumn("Formal ballots"),
+      TallyTable.DenominatorCountColumn("Total formal ballots"),
+      TallyTable.FractionColumn("% of total")
+    )
+
+    val table = TallyTable.totalRowOnly(13838900d, 13838900d, columns)
+
+    val expectedMarkdown = "| |Formal ballots|Total formal ballots|% of total|\n" +
+      "|---|---|---|---|\n" +
+      "|**Total**|**13,838,900**|**13,838,900**|**100.00%**|"
+
+    assert(table.asMarkdown === expectedMarkdown)
   }
 
   "a per first preferenced party table" should "look as expected" in {
@@ -118,7 +134,7 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
     val columns = Vector(
       TallyTable.StateNameColumn,
-      TallyTable.GroupColumn,
+      TallyTable.GroupNameColumn,
       TallyTable.PartyNameColumn,
       TallyTable.PrimaryCountColumn("Monkey votes"),
       TallyTable.FractionColumn("% of total")
@@ -211,9 +227,9 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
     val table = TallyTable[Nothing](Tally(), _ => fail(), totalCount.count, totalCount.count, columns)
 
-    val expectedMarkdown = "State|Formal ballots|Total formal ballots|% of total\n" +
-      "---|---|---|---\n" +
-      "**Total**|**13,838,900**|**13,838,900**|**100.00%**"
+    val expectedMarkdown = "|State|Formal ballots|Total formal ballots|% of total|\n" +
+      "|---|---|---|---|\n" +
+      "|**Total**|**13,838,900**|**13,838,900**|**100.00%**|"
 
     assert(table.asMarkdown === expectedMarkdown)
   }

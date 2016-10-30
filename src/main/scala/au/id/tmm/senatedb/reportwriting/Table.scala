@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.reportwriting
 
+import au.id.tmm.senatedb.reportwriting.Table.StringIterableOps
 import au.id.tmm.utilities.collection.Matrix
 
 // TODO could go into utils project
@@ -17,11 +18,11 @@ trait Table[R, C] {
 
   def asMarkdown: String = (Vector(headingsRow, barRow) ++ bodyRows).mkString("\n")
 
-  protected def headingsRow: String = columns.toStream
+  protected def headingsRow: String = columns
     .map(columnHeading)
-    .mkString("|")
+    .mkMarkdownRow
 
-  protected def barRow: String = Vector.fill(columns.size)("---").mkString("|")
+  protected def barRow: String = Vector.fill(columns.size)("---").mkMarkdownRow
 
   protected def bodyRows: Vector[String] = rows.init.map(bodyRowOf(_)) :+ bodyRowOf(rows.last, bold = isLastColumnBold)
 
@@ -29,7 +30,7 @@ trait Table[R, C] {
     .map(valueAt(row, _))
     .map(s => if (bold) s"**$s**" else s)
     .map(_.replace("|", "&#124;"))
-    .mkString("|")
+    .mkMarkdownRow
 
   def asMatrix: Matrix[String] = {
     val headingsRow = columns.map(columnHeading)
@@ -37,5 +38,14 @@ trait Table[R, C] {
     val data = rows.map(row => columns.map(column => valueAt(row, column)))
 
     Matrix(Vector(headingsRow) ++ data)
+  }
+}
+
+object Table {
+  implicit class StringIterableOps(strings: Vector[String]) {
+    def mkMarkdownRow = strings.toStream
+      .map(_.trim)
+      .map(string => if (string.isEmpty) " " else string)
+      .mkString("|", "|", "|")
   }
 }

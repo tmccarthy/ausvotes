@@ -83,4 +83,10 @@ class TieredTallySpec extends ImprovedFlatSpec {
 
     assert(tally === expected)
   }
+
+  it should "support lookup of the tally for a particular tier" in {
+    val tally = TieredTally("!" -> Tally("A" -> 1, "B" -> 2), "@" -> Tally("C" -> 4d))
+
+    assert(tally("!") === Tally("A" -> 1, "B" -> 2))
+  }
 }

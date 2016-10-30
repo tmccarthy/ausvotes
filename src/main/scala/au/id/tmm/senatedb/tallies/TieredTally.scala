@@ -27,6 +27,8 @@ final case class TieredTally[A, B](values: Map[A, Tally[B]]) extends TallyLike {
 
     TieredTally(values.mapValues(_ / k))
   }
+
+  def apply(key: A): Tally[B] = values.getOrElse(key, Tally())
 }
 
 object TieredTally {
