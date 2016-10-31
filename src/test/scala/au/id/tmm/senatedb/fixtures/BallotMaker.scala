@@ -28,7 +28,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
       case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> Preference(rawPref)
     }.map {
       case (group: Group, preference) => group -> preference
-      case (Ungrouped, preference) => throw new IllegalArgumentException("Can't have Ungrouped above the line")
+      case (u: Ungrouped, preference) => throw new IllegalArgumentException("Can't have Ungrouped above the line")
     }.toMap
   }
 
@@ -52,9 +52,9 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
       CandidatePosition(candidateFixture.groupLookup(groupCode), position.toInt)
   }
 
-  private def codeToGroup(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
+  def group(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
     case g: Group => g
-    case Ungrouped => throw new IllegalArgumentException(Ungrouped.toString)
+    case u: Ungrouped => throw new IllegalArgumentException(u.toString)
   }
 
   def candidateOrder(candidatesInOrder: String*): Vector[CandidatePosition] = {
@@ -62,6 +62,6 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
   }
 
   def groupOrder(groupsInOrder: String*): Vector[Group] = {
-    groupsInOrder.map(codeToGroup).toVector
+    groupsInOrder.map(group).toVector
   }
 }

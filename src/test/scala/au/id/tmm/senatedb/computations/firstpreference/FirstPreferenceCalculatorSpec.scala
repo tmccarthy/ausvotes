@@ -3,7 +3,8 @@ package au.id.tmm.senatedb.computations.firstpreference
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.fixtures.{Ballots, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.Party
+import au.id.tmm.senatedb.model.computation.FirstPreference
+import au.id.tmm.senatedb.model.parsing.{Independent, RegisteredParty, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -20,16 +21,16 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
   "the first preference calculator" should "reject informal ballots" in {
     intercept[IllegalArgumentException] {
-      sut.firstPreferencedPartyOf(normalise(btlMissedNumberBelow6))
+      sut.firstPreferenceOf(normalise(btlMissedNumberBelow6))
     }
   }
 
   it should "get the party of the first preference when the ballot is atl" in {
-    assert(sut.firstPreferencedPartyOf(normalise(oneAtl)) contains Party(SenateElection.`2016`, "Liberal Democratic Party"))
+    assert(sut.firstPreferenceOf(normalise(oneAtl)).party === RegisteredParty("Liberal Democratic Party"))
   }
 
   it should "get the party of the first preferenced candidate when the ballot is btl" in {
-    assert(sut.firstPreferencedPartyOf(normalise(formalBtl)) contains Party(SenateElection.`2016`, "Liberal Democrats"))
+    assert(sut.firstPreferenceOf(normalise(formalBtl)).party === RegisteredParty("Liberal Democrats"))
   }
 
   it should "not have a first preference if the first preferenced candidate was independent" in {
@@ -39,6 +40,12 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
-    assert(sut.firstPreferencedPartyOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) === None)
+    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) ===
+      FirstPreference(Ungrouped(State.NT), Independent))
+  }
+
+  it should "correctly get the first preference when an ungrouped candidate that is a member of a party is preferenced btl" in {
+    assert(sut.firstPreferenceOf(normalise(btlFirstPrefUngrouped)) ===
+      FirstPreference(Ungrouped(State.ACT), RegisteredParty("Mature Australia")))
   }
 }

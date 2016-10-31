@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.computations.firstpreference
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.computation.NormalisedBallot
+import au.id.tmm.senatedb.model.computation.{FirstPreference, NormalisedBallot}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.utilities.geo.australia.State
 
@@ -13,29 +13,29 @@ class FirstPreferenceCalculator(election: SenateElection, state: State, candidat
     .groupBy(_.btlPosition)
     .mapValues(_.head)
 
-  def firstPreferencedPartyOf(normalisedBallot: NormalisedBallot): Option[Party] = {
+  def firstPreferenceOf(normalisedBallot: NormalisedBallot): FirstPreference = {
     require(normalisedBallot.isFormal)
 
     if (normalisedBallot.isNormalisedToAtl) {
-      firstPreferencedPartyAtl(normalisedBallot)
+      firstPreferenceAtl(normalisedBallot)
     } else {
-      firstPreferencedPartyBtl(normalisedBallot)
+      firstPreferenceBtl(normalisedBallot)
     }
   }
 
-  private def firstPreferencedPartyAtl(normalisedBallot: NormalisedBallot): Option[Party] = {
+  private def firstPreferenceAtl(normalisedBallot: NormalisedBallot): FirstPreference = {
     normalisedBallot.canonicalOrder.head.group match {
-      case Group(_, _, _, party) => party
-      case Ungrouped => None
+      case g: Group => FirstPreference(g, g.party)
+      case u: Ungrouped => FirstPreference(u, Independent)
     }
   }
 
-  private def firstPreferencedPartyBtl(normalisedBallot: NormalisedBallot): Option[Party] = {
+  private def firstPreferenceBtl(normalisedBallot: NormalisedBallot): FirstPreference = {
     val firstPreferencedPositionBtl = normalisedBallot.canonicalOrder.head
 
     val firstPreferencedCandidate = candidatePerPosition(firstPreferencedPositionBtl)
 
-    firstPreferencedCandidate.party
+    FirstPreference(firstPreferencedPositionBtl.group, firstPreferencedCandidate.party)
   }
 }
 

@@ -8,18 +8,18 @@ class GroupSpec extends ImprovedFlatSpec {
 
   "a group" can "not use the UG code" in {
     intercept[IllegalArgumentException] {
-      Group(SenateElection.`2016`, State.ACT, "UG", None)
+      Group(SenateElection.`2016`, State.ACT, "UG", Independent)
     }
   }
 
   it should "have an index for a single-letter code" in {
-    val group = Group(SenateElection.`2016`, State.ACT, "D", None)
+    val group = Group(SenateElection.`2016`, State.ACT, "D", Independent)
 
     assert(group.index === 3)
   }
 
   it should "have an index for a double-letter code" in {
-    val group = Group(SenateElection.`2016`, State.ACT, "AA", None)
+    val group = Group(SenateElection.`2016`, State.ACT, "AA", Independent)
 
     assert(group.index === 26)
   }

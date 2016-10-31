@@ -21,7 +21,8 @@ object BallotFactsComputation {
         ballot = ballot,
         normalisedBallot = normalisedBallot,
         isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot),
-        firstPreferencedParty = computationTools.firstPreferenceCalculator.firstPreferencedPartyOf(normalisedBallot)
+        firstPreference = computationTools.firstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
+        matchingHowToVote = computationTools.matchingHowToVoteCalculator.findMatchingHowToVoteCard(ballot)
       )
     })
   }

@@ -21,9 +21,9 @@ resolvers +=
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
-  "au.id.tmm" %% "tmmtestutils" % "0.1.8" % "test,it",
+  "au.id.tmm" %% "tmmtestutils" % "0.1.13" % "test,it",
 
-  "au.id.tmm" %% "tmmutils" % "0.1.10",
+  "au.id.tmm" %% "tmmutils" % "0.1.13",
 
   "org.slf4j" % "slf4j-simple" % "1.7.19",
   "com.github.scopt" %% "scopt" % "3.4.0",
@@ -38,3 +38,5 @@ libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "2.4",
   "org.apache.commons" % "commons-lang3" % "3.4"
 )
+
+coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*"

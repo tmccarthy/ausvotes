@@ -38,7 +38,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   behaviour of "the group and candidate generator"
 
   it should "generate a group" in {
-    val expectedGroup = Group(`2016`, State.ACT, "C", Some(Party(`2016`, "Australian Labor Party")))
+    val expectedGroup = Group(`2016`, State.ACT, "C", RegisteredParty("Australian Labor Party"))
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -46,7 +46,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a group without a party" in {
-    val expectedGroup = Group(`2016`, State.VIC, "B", None)
+    val expectedGroup = Group(`2016`, State.VIC, "B", Independent)
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -83,8 +83,8 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
       state = State.VIC,
       aecId = "29589",
       name = Name("David", "COLLYER"),
-      party = None,
-      btlPosition = CandidatePosition(Group(`2016`, State.VIC, "B", None), 0))
+      party = Independent,
+      btlPosition = CandidatePosition(Group(`2016`, State.VIC, "B", Independent), 0))
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -94,17 +94,17 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   it should "flyweight generated parties" in {
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
-    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
+    val laborGroup = groupsAndCandidates.groups.filter(_.party == RegisteredParty("Australian Labor Party")).head
+    val laborCandidate = groupsAndCandidates.candidates.filter(_.party == RegisteredParty("Australian Labor Party")).head
 
-    assert(laborGroup.party.get eq laborCandidate.party.get)
+    assert(laborGroup.party eq laborCandidate.party)
   }
 
   it should "flyweight generated groups" in {
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
-    val laborGroup = groupsAndCandidates.groups.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.party contains Party(`2016`, "Australian Labor Party")).head
+    val laborGroup = groupsAndCandidates.groups.filter(_.party == RegisteredParty("Australian Labor Party")).head
+    val laborCandidate = groupsAndCandidates.candidates.filter(_.party == RegisteredParty("Australian Labor Party")).head
 
     assert(laborGroup eq laborCandidate.btlPosition.group)
   }
