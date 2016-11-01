@@ -23,9 +23,12 @@ methods in the `au.id.tmm.senatedb.entrypoints` package.
 
 ## Licence
 
-With the exception of some AEC data included as test resources, this project is licenced under the terms outlined in 
-the LICENCE file.
-
-The raw AEC data included in the test resources is © Commonwealth of Australia 2014, and is 
-[licenced](http://www.aec.gov.au/footer/Copyright.htm) under the 
+The `src/test/resources/au/id/tmm/senatedb/fixtures` directory contains some (truncated) copies of raw AEC data. These 
+files are © Commonwealth of Australia 2014, and are [licenced](http://www.aec.gov.au/footer/Copyright.htm) under the 
 [Creative Commons Attribution 3.0 Australia Licence](http://creativecommons.org/licenses/by/3.0/au/).
+
+The accompanying website for this project is contained in the `docs/` directory. This is built on the 
+[Lanyon theme](https://github.com/poole/lanyon) for Jekyll. It is licenced under the terms of the 
+[docs/LICENCE](docs/LICENCE) file (MIT).
+
+The rest of the application is licenced under the terms in the [LICENCE](LICENCE) file (GNU GPL version 3).
