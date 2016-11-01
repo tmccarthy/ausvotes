@@ -5,13 +5,21 @@ title: Donkey votes
 
 # Donkey votes
 
+These tables cross-tabulate the number of [donkey votes](https://en.wikipedia.org/wiki/Donkey_vote) at the 2016 federal 
+Senate election.
+
+SenateDB's [`DonkeyVoteDetector` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/donkeyvotes/DonkeyVoteDetector.scala)
+is used to determine whether a ballot is a donkey vote. It considers a ballot to be a donkey vote if it 
+* It preferences *at least 4* squares above the line in their ballot paper order, and
+* No squares are marked below the line.
+
 ### National total
 
 | |Donkey votes|Total formal ballots|%|
 |---|---|---|---|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### Nationally by first-preferenced party
+### Donkey votes nationally by first-preferenced party
 
 |Party|Donkey votes|Total formal ballots for party|%|
 |---|---|---|---|
@@ -25,7 +33,7 @@ title: Donkey votes
 |Family First Party|309|191,112|0.16%|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### By state
+### Donkey votes by state
 
 |State|Donkey votes|Total formal ballots for party|%|
 |---|---|---|---|
@@ -39,7 +47,7 @@ title: Donkey votes
 |TAS|309|339,159|0.09%|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### By division
+### Donkey votes by division
 
 |State|Division|Donkey votes|Total formal ballots for division|%|
 |---|---|---|---|---|
@@ -194,59 +202,3 @@ title: Donkey votes
 |WA|Curtin|43|86,950|0.05%|
 |SA|Mayo|33|95,749|0.03%|
 |**Total**|****|**20,553**|**13,838,900**|**0.15%**|
-
-### By group in Australian Capital Territory
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Liberal Democratic Party)|364|7,460|4.88%|
-|**Total**|**364**|**254,767**|**0.14%**|
-
-### By group in New South Wales
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Health Australia Party)|6,594|53,154|12.41%|
-|**Total**|**6,594**|**4,492,197**|**0.15%**|
-
-### By group in Northern Territory
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Rise Up Australia Party)|1,227|6,768|18.13%|
-|**Total**|**1,227**|**102,027**|**1.20%**|
-
-### By group in Queensland
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Australian Cyclists Party)|3,833|19,933|19.23%|
-|**Total**|**3,833**|**2,723,166**|**0.14%**|
-
-### By group in South Australia
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Mature Australia)|1,012|4,440|22.79%|
-|**Total**|**1,012**|**1,061,165**|**0.10%**|
-
-### By group in Tasmania
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Family First Party)|309|6,692|4.62%|
-|**Total**|**309**|**339,159**|**0.09%**|
-
-### By group in Victoria
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Derryn Hinch's Justice Party)|5,877|211,733|2.78%|
-|**Total**|**5,877**|**3,500,237**|**0.17%**|
-
-### By group in Western Australia
-
-|Group|Donkey votes|Total formal ballots for group|%|
-|---|---|---|---|
-|A (Christian Democratic Party (Fred Nile Group))|1,337|13,768|9.71%|
-|**Total**|**1,337**|**1,366,182**|**0.10%**|

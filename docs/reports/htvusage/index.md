@@ -5,6 +5,37 @@ title: How to vote card usage
 
 # How to vote card usage
 
+These tables cross-tabulate the number of votes that exactly match a 
+[how-to-vote card](https://en.wikipedia.org/wiki/How-to-vote_card) issued at the 2016 federal Senate election.
+
+How to vote cards are composed by the [`HowToVoteCardGeneration` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/parsing/HowToVoteCardGeneration.scala),
+using the cards [listed on the ABC election website](http://www.abc.net.au/news/federal-election-2016/guide/svic/htv/).
+Ballots are then matched against these cards by the [`MatchingHowToVoteCalculator` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/howtovote/MatchingHowToVoteCalculator.scala).
+
+Many how-to-vote cards (eg from the Jacquie Lambie Network) simply told voters where to put their first 
+preference, and then asked them to mark the rest as they liked. Others (eg the Motoring Enthusiasts) gave suggestions 
+about which parties to preference, but left the voter to choose the order. Still others (eg Sustainable Australia) 
+specified less than 6 preferences, and asked the voter to choose the rest.
+
+To ensure comparisons between like and like, only how-to-vote cards that unambiguously specified at least 6 preferences
+above the line have been included in this analysis. In order to be considered to match a how to vote card, a ballot must
+
+* Match the above-the-line preferences on the how to vote card exactly, 
+* Not specify more or fewer preferences than on the how-to-vote card,
+* Not use a tick or cross to express its first preference,
+* Not have marked below the line at all.
+
+#### Bad how-to-vote cards
+
+In Tasmania, the [One Nation how-to-vote card](http://www.abc.net.au/news/federal-election-2016/guide/stas/htv/#I) 
+listed the Shooters, Fishers and Farmers party (group AG) as its third preference. In fact, the Shooters, Fishers and 
+Farmers party was in group P, and there was no group AG on the ballot paper. SenateDB corrects this mistake.
+
+In New South Wales, the [Veteran's party how-to-vote card](http://www.abc.net.au/news/federal-election-2016/guide/snsw/htv/#T)
+listed the Cycling Party as fourth preference, and the Science Party as the fifth preference. In fact, these parties 
+shared group I, and so had to be preferenced together. Because it would have been impossible to follow this how-to-vote
+card and have completed a formal ballot paper, it has been ignored. 
+
 ### National total
 
 | |Ballots matching an HTV card|Total formal ballots|%|
@@ -54,6 +85,145 @@ title: How to vote card usage
 |TAS|13,744|339,159|4.05%|
 |NT|13,584|102,027|13.31%|
 |**Total**|**2,010,114**|**13,838,900**|**14.53%**|
+
+### By group in Australian Capital Territory
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|F (Liberal Party of Australia)|16,472|84,615|19.47%|
+|C (Australian Labor Party)|9,317|96,667|9.64%|
+|H (The Greens)|2,697|41,006|6.58%|
+|D (Rise Up Australia Party)|22|2,523|0.87%|
+|**Total**|**28,508**|**254,767**|**11.19%**|
+
+### By group in New South Wales
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|F (Liberal & Nationals)|466,311|1,610,626|28.95%|
+|N (Australian Labor Party)|181,766|1,405,088|12.94%|
+|AL (The Greens)|31,603|332,860|9.49%|
+|S (Pauline Hanson's One Nation)|2,381|184,012|1.29%|
+|J (Shooters, Fishers and Farmers)|2,350|88,837|2.65%|
+|AM (Australian Liberty Alliance)|2,273|29,795|7.63%|
+|AB (Animal Justice Party)|895|37,991|2.36%|
+|C (Family First Party)|122|53,027|0.23%|
+|AG (Australian Sex Party)|93|30,038|0.31%|
+|L (Socialist Alliance)|76|5,382|1.41%|
+|I (Science Party / Cyclists Party)|54|18,367|0.29%|
+|H (Democratic Labour Party)|54|51,510|0.10%|
+|M (Rise Up Australia Party)|45|7,538|0.60%|
+|R (Pirate Party Australia)|43|11,418|0.38%|
+|D (Liberal Democratic Party)|8|139,007|0.01%|
+|**Total**|**688,074**|**4,492,197**|**15.32%**|
+
+### By group in Northern Territory
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|E (Country Liberals (NT))|6,208|37,156|16.71%|
+|F (Australian Labor Party (Northern Territory) Branch)|6,020|38,197|15.76%|
+|D (The Greens)|1,284|11,003|11.67%|
+|A (Rise Up Australia Party)|72|6,768|1.06%|
+|**Total**|**13,584**|**102,027**|**13.31%**|
+
+### By group in Queensland
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|G (Liberal National Party of Queensland)|183,011|960,467|19.05%|
+|D (Australian Labor Party)|80,870|717,524|11.27%|
+|X (Pauline Hanson's One Nation)|11,767|250,126|4.70%|
+|AK (The Greens)|6,879|188,323|3.65%|
+|N (Australian Liberty Alliance)|4,677|29,392|15.91%|
+|T (Family First Party)|3,086|52,453|5.88%|
+|I (Katter's Australian Party)|2,360|48,807|4.84%|
+|AC (Glenn Lazarus Team)|1,801|45,149|3.99%|
+|Y (Rise Up Australia Party)|345|5,734|6.02%|
+|H (Animal Justice Party)|291|32,306|0.90%|
+|AF (Australian Christians)|85|9,686|0.88%|
+|V (Australian Sex Party/Marijuana (HEMP) Party)|84|30,157|0.28%|
+|M (Pirate Party Australia)|30|10,342|0.29%|
+|Q (Shooters, Fishers and Farmers)|16|29,571|0.05%|
+|A (Australian Cyclists Party)|13|19,933|0.07%|
+|S (Democratic Labour Party)|8|15,443|0.05%|
+|AJ (Veterans Party)|6|4,534|0.13%|
+|**Total**|**295,329**|**2,723,166**|**10.85%**|
+
+### By group in South Australia
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|H (Liberal Party of Australia)|30,674|345,767|8.87%|
+|B (Australian Labor Party)|5,390|289,902|1.86%|
+|N (Family First Party)|2,984|30,464|9.80%|
+|D (The Greens)|2,582|62,329|4.14%|
+|O (Pauline Hanson's One Nation)|597|31,621|1.89%|
+|S (Australian Liberty Alliance)|276|4,435|6.22%|
+|Q (Shooters, Fishers and Farmers)|265|7,815|3.39%|
+|U (Animal Justice Party)|140|8,981|1.56%|
+|R (Australian Sex Party/Marijuana (HEMP) Party)|28|12,091|0.23%|
+|E (Australian Cyclists Party)|5|1,664|0.30%|
+|**Total**|**42,941**|**1,061,165**|**4.05%**|
+
+### By group in Tasmania
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|F (Liberal Party of Australia)|9,824|110,318|8.91%|
+|B (Australian Labor Party)|2,306|113,935|2.02%|
+|C (The Greens)|1,490|37,840|3.94%|
+|P (Shooters, Fishers and Farmers)|56|4,688|1.19%|
+|I (Pauline Hanson's One Nation)|27|8,700|0.31%|
+|N (Australian Liberty Alliance)|22|1,112|1.98%|
+|A (Family First Party)|12|6,692|0.18%|
+|H (Australian Sex Party/Marijuana (HEMP) Party)|4|4,493|0.09%|
+|R (Science Party)|3|1,306|0.23%|
+|**Total**|**13,744**|**339,159**|**4.05%**|
+
+### By group in Victoria
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|AF (Liberal & Nationals)|446,721|1,158,800|38.55%|
+|D (Australian Labor Party)|182,633|1,075,658|16.98%|
+|AK (The Greens)|53,387|380,499|14.03%|
+|C (Animal Justice Party)|1,928|60,780|3.17%|
+|Y (Pauline Hanson's One Nation)|1,758|63,528|2.77%|
+|H (Australian Christians)|1,697|34,763|4.88%|
+|AL (Australian Sex Party)|985|54,128|1.82%|
+|AG (Shooters, Fishers and Farmers)|657|36,669|1.79%|
+|AI (Rise Up Australia Party)|641|10,166|6.31%|
+|O (Family First Party)|363|39,747|0.91%|
+|R (Democratic Labour Party)|260|18,152|1.43%|
+|U (Australian Liberty Alliance)|253|23,080|1.10%|
+|X (Marriage Equality)|127|17,139|0.74%|
+|Z (Socialist Alliance)|67|2,597|2.58%|
+|J (Pirate Party Australia)|33|13,424|0.25%|
+|E (Science Party / Cyclists Party)|19|11,567|0.16%|
+|AH (Liberal Democratic Party)|11|55,501|0.02%|
+|**Total**|**691,540**|**3,500,237**|**19.76%**|
+
+### By group in Western Australia
+
+|Group|Ballots matching an HTV card|Total formal ballots for group|%|
+|---|---|---|---|
+|X (Liberal Party of Australia)|163,170|525,879|31.03%|
+|D (Australian Labor Party)|54,613|386,113|14.14%|
+|J (The Greens (WA))|12,748|143,797|8.87%|
+|W (Australian Christians)|2,710|22,076|12.28%|
+|P (Australian Liberty Alliance)|1,312|15,168|8.65%|
+|R (Pauline Hanson's One Nation)|1,087|55,026|1.98%|
+|B (Shooters, Fishers and Farmers)|198|25,343|0.78%|
+|K (Animal Justice Party)|191|12,687|1.51%|
+|Q (Rise Up Australia Party)|168|3,695|4.55%|
+|S (Australian Sex Party/Marijuana (HEMP) Party)|54|25,047|0.22%|
+|G (Socialist Alliance)|45|1,989|2.26%|
+|AB (Family First Party)|44|8,729|0.50%|
+|Z (Liberal Democratic Party)|37|10,771|0.34%|
+|N (Australian Cyclists Party)|16|2,679|0.60%|
+|O (Renewable Energy Party)|1|4,617|0.02%|
+|**Total**|**236,394**|**1,366,182**|**17.30%**|
 
 ### By division
 
@@ -210,142 +380,3 @@ title: How to vote card usage
 |SA|Port Adelaide|1,845|98,910|1.87%|
 |TAS|Denison|1,667|66,893|2.49%|
 |**Total**|****|**2,010,114**|**13,838,900**|**14.53%**|
-
-### By group in Australian Capital Territory
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|F (Liberal Party of Australia)|16,472|84,615|19.47%|
-|C (Australian Labor Party)|9,317|96,667|9.64%|
-|H (The Greens)|2,697|41,006|6.58%|
-|D (Rise Up Australia Party)|22|2,523|0.87%|
-|**Total**|**28,508**|**254,767**|**11.19%**|
-
-### By group in New South Wales
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|F (Liberal & Nationals)|466,311|1,610,626|28.95%|
-|N (Australian Labor Party)|181,766|1,405,088|12.94%|
-|AL (The Greens)|31,603|332,860|9.49%|
-|S (Pauline Hanson's One Nation)|2,381|184,012|1.29%|
-|J (Shooters, Fishers and Farmers)|2,350|88,837|2.65%|
-|AM (Australian Liberty Alliance)|2,273|29,795|7.63%|
-|AB (Animal Justice Party)|895|37,991|2.36%|
-|C (Family First Party)|122|53,027|0.23%|
-|AG (Australian Sex Party)|93|30,038|0.31%|
-|L (Socialist Alliance)|76|5,382|1.41%|
-|I (Science Party / Cyclists Party)|54|18,367|0.29%|
-|H (Democratic Labour Party)|54|51,510|0.10%|
-|M (Rise Up Australia Party)|45|7,538|0.60%|
-|R (Pirate Party Australia)|43|11,418|0.38%|
-|D (Liberal Democratic Party)|8|139,007|0.01%|
-|**Total**|**688,074**|**4,492,197**|**15.32%**|
-
-### By group in Northern Territory
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|E (Country Liberals (NT))|6,208|37,156|16.71%|
-|F (Australian Labor Party (Northern Territory) Branch)|6,020|38,197|15.76%|
-|D (The Greens)|1,284|11,003|11.67%|
-|A (Rise Up Australia Party)|72|6,768|1.06%|
-|**Total**|**13,584**|**102,027**|**13.31%**|
-
-### By group in Queensland
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|G (Liberal National Party of Queensland)|183,011|960,467|19.05%|
-|D (Australian Labor Party)|80,870|717,524|11.27%|
-|X (Pauline Hanson's One Nation)|11,767|250,126|4.70%|
-|AK (The Greens)|6,879|188,323|3.65%|
-|N (Australian Liberty Alliance)|4,677|29,392|15.91%|
-|T (Family First Party)|3,086|52,453|5.88%|
-|I (Katter's Australian Party)|2,360|48,807|4.84%|
-|AC (Glenn Lazarus Team)|1,801|45,149|3.99%|
-|Y (Rise Up Australia Party)|345|5,734|6.02%|
-|H (Animal Justice Party)|291|32,306|0.90%|
-|AF (Australian Christians)|85|9,686|0.88%|
-|V (Australian Sex Party/Marijuana (HEMP) Party)|84|30,157|0.28%|
-|M (Pirate Party Australia)|30|10,342|0.29%|
-|Q (Shooters, Fishers and Farmers)|16|29,571|0.05%|
-|A (Australian Cyclists Party)|13|19,933|0.07%|
-|S (Democratic Labour Party)|8|15,443|0.05%|
-|AJ (Veterans Party)|6|4,534|0.13%|
-|**Total**|**295,329**|**2,723,166**|**10.85%**|
-
-### By group in South Australia
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|H (Liberal Party of Australia)|30,674|345,767|8.87%|
-|B (Australian Labor Party)|5,390|289,902|1.86%|
-|N (Family First Party)|2,984|30,464|9.80%|
-|D (The Greens)|2,582|62,329|4.14%|
-|O (Pauline Hanson's One Nation)|597|31,621|1.89%|
-|S (Australian Liberty Alliance)|276|4,435|6.22%|
-|Q (Shooters, Fishers and Farmers)|265|7,815|3.39%|
-|U (Animal Justice Party)|140|8,981|1.56%|
-|R (Australian Sex Party/Marijuana (HEMP) Party)|28|12,091|0.23%|
-|E (Australian Cyclists Party)|5|1,664|0.30%|
-|**Total**|**42,941**|**1,061,165**|**4.05%**|
-
-### By group in Tasmania
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|F (Liberal Party of Australia)|9,824|110,318|8.91%|
-|B (Australian Labor Party)|2,306|113,935|2.02%|
-|C (The Greens)|1,490|37,840|3.94%|
-|P (Shooters, Fishers and Farmers)|56|4,688|1.19%|
-|I (Pauline Hanson's One Nation)|27|8,700|0.31%|
-|N (Australian Liberty Alliance)|22|1,112|1.98%|
-|A (Family First Party)|12|6,692|0.18%|
-|H (Australian Sex Party/Marijuana (HEMP) Party)|4|4,493|0.09%|
-|R (Science Party)|3|1,306|0.23%|
-|**Total**|**13,744**|**339,159**|**4.05%**|
-
-### By group in Victoria
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|AF (Liberal & Nationals)|446,721|1,158,800|38.55%|
-|D (Australian Labor Party)|182,633|1,075,658|16.98%|
-|AK (The Greens)|53,387|380,499|14.03%|
-|C (Animal Justice Party)|1,928|60,780|3.17%|
-|Y (Pauline Hanson's One Nation)|1,758|63,528|2.77%|
-|H (Australian Christians)|1,697|34,763|4.88%|
-|AL (Australian Sex Party)|985|54,128|1.82%|
-|AG (Shooters, Fishers and Farmers)|657|36,669|1.79%|
-|AI (Rise Up Australia Party)|641|10,166|6.31%|
-|O (Family First Party)|363|39,747|0.91%|
-|R (Democratic Labour Party)|260|18,152|1.43%|
-|U (Australian Liberty Alliance)|253|23,080|1.10%|
-|X (Marriage Equality)|127|17,139|0.74%|
-|Z (Socialist Alliance)|67|2,597|2.58%|
-|J (Pirate Party Australia)|33|13,424|0.25%|
-|E (Science Party / Cyclists Party)|19|11,567|0.16%|
-|AH (Liberal Democratic Party)|11|55,501|0.02%|
-|**Total**|**691,540**|**3,500,237**|**19.76%**|
-
-### By group in Western Australia
-
-|Group|Ballots matching an HTV card|Total formal ballots for group|%|
-|---|---|---|---|
-|X (Liberal Party of Australia)|163,170|525,879|31.03%|
-|D (Australian Labor Party)|54,613|386,113|14.14%|
-|J (The Greens (WA))|12,748|143,797|8.87%|
-|W (Australian Christians)|2,710|22,076|12.28%|
-|P (Australian Liberty Alliance)|1,312|15,168|8.65%|
-|R (Pauline Hanson's One Nation)|1,087|55,026|1.98%|
-|B (Shooters, Fishers and Farmers)|198|25,343|0.78%|
-|K (Animal Justice Party)|191|12,687|1.51%|
-|Q (Rise Up Australia Party)|168|3,695|4.55%|
-|S (Australian Sex Party/Marijuana (HEMP) Party)|54|25,047|0.22%|
-|G (Socialist Alliance)|45|1,989|2.26%|
-|AB (Family First Party)|44|8,729|0.50%|
-|Z (Liberal Democratic Party)|37|10,771|0.34%|
-|N (Australian Cyclists Party)|16|2,679|0.60%|
-|O (Renewable Energy Party)|1|4,617|0.02%|
-|**Total**|**236,394**|**1,366,182**|**17.30%**|
