@@ -5,6 +5,20 @@ title: Saved ballots
 
 # Saved ballots
 
+Sections [269](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s269.html) and 
+[268A](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s268a.html) of the Electoral Act outline savings 
+provisions. Under these rules, ballots can still be formal if they do not follow instructions given to voters, or if 
+they contain other errors. These tables display the number of ballots that were "saved" by these provisions.
+
+SenateDB determines whether to count a ballot in these tables in the [`CountSavedBallots` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/tallies/CountSavedBallots.scala).
+A ballot is included in this count if it meets the following conditions:
+
+* It numbers between 1 and 5 squares above the line (voters were told to number at least 6), or
+* It numbers between 6 and 11 squares below the line (voters were told to number at least 12), or
+* It contains a counting error above the line after the first preference, or
+* It contains a counting error below the line after the sixth preference, or
+* It uses a tick or a cross to express a first preference either above or below the line.
+
 ### National total
 
 | |Saved ballots|Total formal ballots|%|
