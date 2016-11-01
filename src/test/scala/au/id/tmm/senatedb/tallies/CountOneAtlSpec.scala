@@ -23,9 +23,15 @@ class CountOneAtlSpec extends ImprovedFlatSpec with TestsBallotFacts {
     assert(CountOneAtl.shouldCount(ballotWithFacts) === false)
   }
 
-  they should "not count ballots marked only with a tick atl" in {
+  they should "count ballots marked only with a tick atl" in {
     val ballotWithFacts = factsFor(Ballots.ACT.oneTickAtl)
 
-    assert(CountOneAtl.shouldCount(ballotWithFacts) === false)
+    assert(CountOneAtl.shouldCount(ballotWithFacts) === true)
+  }
+
+  they should "count ballots marked only with a cross atl" in {
+    val ballotWithFacts = factsFor(Ballots.ACT.oneCrossAtl)
+
+    assert(CountOneAtl.shouldCount(ballotWithFacts) === true)
   }
 }
