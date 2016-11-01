@@ -86,7 +86,7 @@ card and have completed a formal ballot paper, it has been ignored.
 |NT|13,584|102,027|13.31%|
 |**Total**|**2,010,114**|**13,838,900**|**14.53%**|
 
-### By group in Australian Capital Territory
+### By group in the Australian Capital Territory
 
 |Group|Ballots matching an HTV card|Total formal ballots for group|%|
 |---|---|---|---|
@@ -117,7 +117,7 @@ card and have completed a formal ballot paper, it has been ignored.
 |D (Liberal Democratic Party)|8|139,007|0.01%|
 |**Total**|**688,074**|**4,492,197**|**15.32%**|
 
-### By group in Northern Territory
+### By group in the Northern Territory
 
 |Group|Ballots matching an HTV card|Total formal ballots for group|%|
 |---|---|---|---|

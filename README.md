@@ -18,8 +18,13 @@ format, which does not lend itself to easy analysis.
 SenateDB is intended to grow into a set of tools to analyse this data. Its original incarnation (version 0.1) loaded the
 data into a relational database. You can view that tool [here](https://github.com/tmccarthy/SenateDB/tree/v0.1).
 
-There is not currently a command line interface for the application. Instead, there are a coupled of objects with `main`
-methods in the `au.id.tmm.senatedb.entrypoints` package.
+## Running
+
+SenateDB is built and run with [SBT](http://www.scala-sbt.org/). Simply check it out and run `sbt run` to generate the
+reports.
+
+SenateDB will download the raw data from the AEC the first time it is run (about 180 MB), and then reads through these
+files to generate the reports. The report generation takes about 13 minutes on my Macbook Pro.
 
 ## Licence
 

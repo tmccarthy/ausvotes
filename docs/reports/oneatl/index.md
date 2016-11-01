@@ -108,7 +108,7 @@ is responsible for determining whether a ballot has marked a single square above
 |NT|1,386|102,027|1.36%|
 |**Total**|**290,758**|**13,838,900**|**2.10%**|
 
-### By group in Australian Capital Territory
+### By group in the Australian Capital Territory
 
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
 |---|---|---|---|
@@ -171,7 +171,7 @@ is responsible for determining whether a ballot has marked a single square above
 |U (Secular Party of Australia)|73|2,773|2.63%|
 |**Total**|**162,340**|**4,492,197**|**3.61%**|
 
-### By group in Northern Territory
+### By group in the Northern Territory
 
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
 |---|---|---|---|

@@ -98,163 +98,7 @@ A ballot is included in this count if it meets the following conditions:
 |NT|7,153|102,027|7.01%|
 |**Total**|**1,087,711**|**13,838,900**|**7.86%**|
 
-### By division
-
-|State|Division|Saved ballots|Total formal ballots for division|%|
-|---|---|---|---|---|
-|NSW|Fowler|16,458|88,417|18.61%|
-|NSW|Blaxland|16,429|83,969|19.57%|
-|NSW|McMahon|15,092|89,555|16.85%|
-|NSW|Watson|14,635|87,200|16.78%|
-|NSW|Werriwa|13,466|91,662|14.69%|
-|NSW|Chifley|13,465|88,789|15.17%|
-|NSW|Barton|12,341|90,875|13.58%|
-|NSW|Macarthur|11,569|92,622|12.49%|
-|NSW|Parramatta|11,124|87,315|12.74%|
-|VIC|Calwell|11,097|90,982|12.20%|
-|NSW|Lindsay|10,993|97,434|11.28%|
-|NSW|Banks|10,868|92,859|11.70%|
-|NSW|Kingsford Smith|10,702|94,825|11.29%|
-|NSW|Cook|10,559|93,322|11.31%|
-|NSW|Greenway|10,298|93,556|11.01%|
-|VIC|Scullin|10,126|96,802|10.46%|
-|NSW|Dobell|10,034|98,944|10.14%|
-|NSW|Reid|10,030|92,958|10.79%|
-|NSW|Cowper|9,815|105,049|9.34%|
-|NSW|Farrer|9,661|98,050|9.85%|
-|NSW|Riverina|9,539|99,749|9.56%|
-|NSW|Calare|9,489|101,908|9.31%|
-|NSW|Hunter|9,386|101,470|9.25%|
-|NSW|Parkes|9,341|94,716|9.86%|
-|VIC|Holt|9,320|101,061|9.22%|
-|NSW|Hughes|9,295|95,574|9.73%|
-|NSW|Whitlam|9,260|100,060|9.25%|
-|NSW|Paterson|9,201|102,146|9.01%|
-|VIC|Lalor|9,176|107,821|8.51%|
-|NSW|Hume|9,076|97,350|9.32%|
-|NSW|Shortland|9,042|99,696|9.07%|
-|VIC|Gorton|8,755|99,397|8.81%|
-|NSW|Lyne|8,754|101,063|8.66%|
-|VIC|McEwen|8,617|116,948|7.37%|
-|SA|Port Adelaide|8,572|98,910|8.67%|
-|NSW|Newcastle|8,533|101,094|8.44%|
-|NSW|Eden-Monaro|8,406|97,685|8.61%|
-|NSW|Cunningham|8,405|98,289|8.55%|
-|NSW|Gilmore|8,399|103,993|8.08%|
-|NSW|Bennelong|8,372|94,573|8.85%|
-|VIC|Maribyrnong|8,346|94,811|8.80%|
-|NSW|Robertson|8,332|97,333|8.56%|
-|NSW|Page|8,288|105,314|7.87%|
-|NSW|Mackellar|8,171|96,196|8.49%|
-|NSW|Mitchell|7,859|93,531|8.40%|
-|VIC|Wills|7,834|96,962|8.08%|
-|SA|Barker|7,804|95,669|8.16%|
-|VIC|Wannon|7,604|88,716|8.57%|
-|VIC|Gellibrand|7,598|92,824|8.19%|
-|VIC|Murray|7,512|91,912|8.17%|
-|NSW|New England|7,436|98,825|7.52%|
-|VIC|Batman|7,394|94,648|7.81%|
-|NSW|Macquarie|7,393|95,408|7.75%|
-|VIC|Mallee|7,306|87,316|8.37%|
-|VIC|McMillan|7,285|103,623|7.03%|
-|NSW|Berowra|7,274|96,129|7.57%|
-|SA|Wakefield|7,274|98,476|7.39%|
-|NSW|Richmond|7,254|98,660|7.35%|
-|QLD|Kennedy|7,221|86,698|8.33%|
-|VIC|Isaacs|7,151|93,032|7.69%|
-|VIC|Hotham|7,133|87,677|8.14%|
-|NSW|Grayndler|6,963|92,786|7.50%|
-|VIC|Corio|6,918|95,512|7.24%|
-|SA|Grey|6,905|90,793|7.61%|
-|QLD|Hinkler|6,892|89,554|7.70%|
-|QLD|Rankin|6,815|87,211|7.81%|
-|VIC|Gippsland|6,814|91,696|7.43%|
-|VIC|Flinders|6,811|102,326|6.66%|
-|WA|Cowan|6,795|83,895|8.10%|
-|WA|Burt|6,689|86,071|7.77%|
-|VIC|Bruce|6,676|83,947|7.95%|
-|VIC|Ballarat|6,671|99,124|6.73%|
-|QLD|McPherson|6,627|89,343|7.42%|
-|SA|Hindmarsh|6,561|100,105|6.55%|
-|VIC|Bendigo|6,542|98,858|6.62%|
-|QLD|Leichhardt|6,473|92,437|7.00%|
-|SA|Kingston|6,473|95,095|6.81%|
-|QLD|Maranoa|6,461|92,990|6.95%|
-|SA|Makin|6,455|96,111|6.72%|
-|QLD|Longman|6,434|92,881|6.93%|
-|QLD|Bowman|6,428|92,954|6.92%|
-|WA|Pearce|6,393|89,503|7.14%|
-|NSW|Sydney|6,390|92,677|6.89%|
-|QLD|Fadden|6,308|89,730|7.03%|
-|WA|Stirling|6,274|84,731|7.40%|
-|QLD|Petrie|6,264|93,917|6.67%|
-|QLD|Herbert|6,243|91,913|6.79%|
-|VIC|Jagajaga|6,234|92,862|6.71%|
-|WA|Fremantle|6,225|86,272|7.22%|
-|WA|Perth|6,202|85,562|7.25%|
-|WA|Canning|6,170|86,088|7.17%|
-|VIC|Dunkley|6,162|92,801|6.64%|
-|VIC|Indi|6,140|93,028|6.60%|
-|NSW|Wentworth|6,137|86,997|7.05%|
-|QLD|Moncrieff|6,113|86,929|7.03%|
-|QLD|Wide Bay|6,104|91,228|6.69%|
-|QLD|Lilley|6,092|95,588|6.37%|
-|QLD|Wright|6,072|89,811|6.76%|
-|QLD|Blair|6,067|87,784|6.91%|
-|VIC|Aston|6,014|86,266|6.97%|
-|QLD|Oxley|6,012|84,412|7.12%|
-|NSW|Warringah|6,002|90,669|6.62%|
-|QLD|Forde|5,994|86,059|6.96%|
-|SA|Sturt|5,987|94,640|6.33%|
-|VIC|Corangamite|5,976|101,208|5.90%|
-|QLD|Groom|5,958|92,084|6.47%|
-|VIC|Casey|5,926|92,985|6.37%|
-|NSW|Bradfield|5,914|95,426|6.20%|
-|WA|O'Connor|5,872|88,046|6.67%|
-|QLD|Dawson|5,859|91,665|6.39%|
-|VIC|La Trobe|5,846|95,866|6.10%|
-|WA|Hasluck|5,831|83,211|7.01%|
-|WA|Brand|5,793|83,309|6.95%|
-|QLD|Flynn|5,766|90,639|6.36%|
-|WA|Forrest|5,758|87,433|6.59%|
-|VIC|Menzies|5,721|89,299|6.41%|
-|NSW|North Sydney|5,617|95,479|5.88%|
-|QLD|Capricornia|5,611|89,065|6.30%|
-|QLD|Fairfax|5,584|95,601|5.84%|
-|SA|Boothby|5,491|98,242|5.59%|
-|VIC|Goldstein|5,488|94,266|5.82%|
-|SA|Adelaide|5,481|97,375|5.63%|
-|VIC|Chisholm|5,410|87,447|6.19%|
-|QLD|Fisher|5,404|86,931|6.22%|
-|VIC|Melbourne|5,383|96,863|5.56%|
-|WA|Tangney|5,326|84,692|6.29%|
-|WA|Swan|5,289|83,100|6.36%|
-|QLD|Bonner|5,273|90,759|5.81%|
-|WA|Durack|5,263|78,248|6.73%|
-|ACT|Canberra|5,179|131,653|3.93%|
-|QLD|Moreton|5,156|86,424|5.97%|
-|VIC|Higgins|5,070|92,981|5.45%|
-|VIC|Deakin|5,057|90,788|5.57%|
-|ACT|Fenner|5,040|123,114|4.09%|
-|WA|Moore|4,895|89,071|5.50%|
-|WA|Curtin|4,820|86,950|5.54%|
-|QLD|Dickson|4,816|91,690|5.25%|
-|QLD|Griffith|4,786|94,267|5.08%|
-|SA|Mayo|4,594|95,749|4.80%|
-|VIC|Melbourne Ports|4,592|87,080|5.27%|
-|TAS|Lyons|4,449|69,549|6.40%|
-|QLD|Brisbane|4,427|96,743|4.58%|
-|VIC|Kooyong|4,419|90,502|4.88%|
-|QLD|Ryan|4,384|95,859|4.57%|
-|TAS|Braddon|4,363|65,724|6.64%|
-|NT|Lingiari|4,042|45,027|8.98%|
-|TAS|Franklin|3,989|70,216|5.68%|
-|TAS|Bass|3,764|66,777|5.64%|
-|TAS|Denison|3,747|66,893|5.60%|
-|NT|Solomon|3,111|57,000|5.46%|
-|**Total**|****|**1,087,711**|**13,838,900**|**7.86%**|
-
-### By group in Australian Capital Territory
+### By group in the Australian Capital Territory
 
 |Group|Saved ballots|Total formal ballots for group|%|
 |---|---|---|---|
@@ -319,7 +163,7 @@ A ballot is included in this count if it meets the following conditions:
 |UG (Ungrouped)|278|2,953|9.41%|
 |**Total**|**451,067**|**4,492,197**|**10.04%**|
 
-### By group in Northern Territory
+### By group in the Northern Territory
 
 |Group|Saved ballots|Total formal ballots for group|%|
 |---|---|---|---|
@@ -515,3 +359,159 @@ A ballot is included in this count if it meets the following conditions:
 |UG (Ungrouped)|126|2,184|5.77%|
 |AA (VOTEFLUX.ORG &#124; Upgrade Democracy!)|91|1,390|6.55%|
 |**Total**|**93,595**|**1,366,182**|**6.85%**|
+
+### By division
+
+|State|Division|Saved ballots|Total formal ballots for division|%|
+|---|---|---|---|---|
+|NSW|Fowler|16,458|88,417|18.61%|
+|NSW|Blaxland|16,429|83,969|19.57%|
+|NSW|McMahon|15,092|89,555|16.85%|
+|NSW|Watson|14,635|87,200|16.78%|
+|NSW|Werriwa|13,466|91,662|14.69%|
+|NSW|Chifley|13,465|88,789|15.17%|
+|NSW|Barton|12,341|90,875|13.58%|
+|NSW|Macarthur|11,569|92,622|12.49%|
+|NSW|Parramatta|11,124|87,315|12.74%|
+|VIC|Calwell|11,097|90,982|12.20%|
+|NSW|Lindsay|10,993|97,434|11.28%|
+|NSW|Banks|10,868|92,859|11.70%|
+|NSW|Kingsford Smith|10,702|94,825|11.29%|
+|NSW|Cook|10,559|93,322|11.31%|
+|NSW|Greenway|10,298|93,556|11.01%|
+|VIC|Scullin|10,126|96,802|10.46%|
+|NSW|Dobell|10,034|98,944|10.14%|
+|NSW|Reid|10,030|92,958|10.79%|
+|NSW|Cowper|9,815|105,049|9.34%|
+|NSW|Farrer|9,661|98,050|9.85%|
+|NSW|Riverina|9,539|99,749|9.56%|
+|NSW|Calare|9,489|101,908|9.31%|
+|NSW|Hunter|9,386|101,470|9.25%|
+|NSW|Parkes|9,341|94,716|9.86%|
+|VIC|Holt|9,320|101,061|9.22%|
+|NSW|Hughes|9,295|95,574|9.73%|
+|NSW|Whitlam|9,260|100,060|9.25%|
+|NSW|Paterson|9,201|102,146|9.01%|
+|VIC|Lalor|9,176|107,821|8.51%|
+|NSW|Hume|9,076|97,350|9.32%|
+|NSW|Shortland|9,042|99,696|9.07%|
+|VIC|Gorton|8,755|99,397|8.81%|
+|NSW|Lyne|8,754|101,063|8.66%|
+|VIC|McEwen|8,617|116,948|7.37%|
+|SA|Port Adelaide|8,572|98,910|8.67%|
+|NSW|Newcastle|8,533|101,094|8.44%|
+|NSW|Eden-Monaro|8,406|97,685|8.61%|
+|NSW|Cunningham|8,405|98,289|8.55%|
+|NSW|Gilmore|8,399|103,993|8.08%|
+|NSW|Bennelong|8,372|94,573|8.85%|
+|VIC|Maribyrnong|8,346|94,811|8.80%|
+|NSW|Robertson|8,332|97,333|8.56%|
+|NSW|Page|8,288|105,314|7.87%|
+|NSW|Mackellar|8,171|96,196|8.49%|
+|NSW|Mitchell|7,859|93,531|8.40%|
+|VIC|Wills|7,834|96,962|8.08%|
+|SA|Barker|7,804|95,669|8.16%|
+|VIC|Wannon|7,604|88,716|8.57%|
+|VIC|Gellibrand|7,598|92,824|8.19%|
+|VIC|Murray|7,512|91,912|8.17%|
+|NSW|New England|7,436|98,825|7.52%|
+|VIC|Batman|7,394|94,648|7.81%|
+|NSW|Macquarie|7,393|95,408|7.75%|
+|VIC|Mallee|7,306|87,316|8.37%|
+|VIC|McMillan|7,285|103,623|7.03%|
+|NSW|Berowra|7,274|96,129|7.57%|
+|SA|Wakefield|7,274|98,476|7.39%|
+|NSW|Richmond|7,254|98,660|7.35%|
+|QLD|Kennedy|7,221|86,698|8.33%|
+|VIC|Isaacs|7,151|93,032|7.69%|
+|VIC|Hotham|7,133|87,677|8.14%|
+|NSW|Grayndler|6,963|92,786|7.50%|
+|VIC|Corio|6,918|95,512|7.24%|
+|SA|Grey|6,905|90,793|7.61%|
+|QLD|Hinkler|6,892|89,554|7.70%|
+|QLD|Rankin|6,815|87,211|7.81%|
+|VIC|Gippsland|6,814|91,696|7.43%|
+|VIC|Flinders|6,811|102,326|6.66%|
+|WA|Cowan|6,795|83,895|8.10%|
+|WA|Burt|6,689|86,071|7.77%|
+|VIC|Bruce|6,676|83,947|7.95%|
+|VIC|Ballarat|6,671|99,124|6.73%|
+|QLD|McPherson|6,627|89,343|7.42%|
+|SA|Hindmarsh|6,561|100,105|6.55%|
+|VIC|Bendigo|6,542|98,858|6.62%|
+|QLD|Leichhardt|6,473|92,437|7.00%|
+|SA|Kingston|6,473|95,095|6.81%|
+|QLD|Maranoa|6,461|92,990|6.95%|
+|SA|Makin|6,455|96,111|6.72%|
+|QLD|Longman|6,434|92,881|6.93%|
+|QLD|Bowman|6,428|92,954|6.92%|
+|WA|Pearce|6,393|89,503|7.14%|
+|NSW|Sydney|6,390|92,677|6.89%|
+|QLD|Fadden|6,308|89,730|7.03%|
+|WA|Stirling|6,274|84,731|7.40%|
+|QLD|Petrie|6,264|93,917|6.67%|
+|QLD|Herbert|6,243|91,913|6.79%|
+|VIC|Jagajaga|6,234|92,862|6.71%|
+|WA|Fremantle|6,225|86,272|7.22%|
+|WA|Perth|6,202|85,562|7.25%|
+|WA|Canning|6,170|86,088|7.17%|
+|VIC|Dunkley|6,162|92,801|6.64%|
+|VIC|Indi|6,140|93,028|6.60%|
+|NSW|Wentworth|6,137|86,997|7.05%|
+|QLD|Moncrieff|6,113|86,929|7.03%|
+|QLD|Wide Bay|6,104|91,228|6.69%|
+|QLD|Lilley|6,092|95,588|6.37%|
+|QLD|Wright|6,072|89,811|6.76%|
+|QLD|Blair|6,067|87,784|6.91%|
+|VIC|Aston|6,014|86,266|6.97%|
+|QLD|Oxley|6,012|84,412|7.12%|
+|NSW|Warringah|6,002|90,669|6.62%|
+|QLD|Forde|5,994|86,059|6.96%|
+|SA|Sturt|5,987|94,640|6.33%|
+|VIC|Corangamite|5,976|101,208|5.90%|
+|QLD|Groom|5,958|92,084|6.47%|
+|VIC|Casey|5,926|92,985|6.37%|
+|NSW|Bradfield|5,914|95,426|6.20%|
+|WA|O'Connor|5,872|88,046|6.67%|
+|QLD|Dawson|5,859|91,665|6.39%|
+|VIC|La Trobe|5,846|95,866|6.10%|
+|WA|Hasluck|5,831|83,211|7.01%|
+|WA|Brand|5,793|83,309|6.95%|
+|QLD|Flynn|5,766|90,639|6.36%|
+|WA|Forrest|5,758|87,433|6.59%|
+|VIC|Menzies|5,721|89,299|6.41%|
+|NSW|North Sydney|5,617|95,479|5.88%|
+|QLD|Capricornia|5,611|89,065|6.30%|
+|QLD|Fairfax|5,584|95,601|5.84%|
+|SA|Boothby|5,491|98,242|5.59%|
+|VIC|Goldstein|5,488|94,266|5.82%|
+|SA|Adelaide|5,481|97,375|5.63%|
+|VIC|Chisholm|5,410|87,447|6.19%|
+|QLD|Fisher|5,404|86,931|6.22%|
+|VIC|Melbourne|5,383|96,863|5.56%|
+|WA|Tangney|5,326|84,692|6.29%|
+|WA|Swan|5,289|83,100|6.36%|
+|QLD|Bonner|5,273|90,759|5.81%|
+|WA|Durack|5,263|78,248|6.73%|
+|ACT|Canberra|5,179|131,653|3.93%|
+|QLD|Moreton|5,156|86,424|5.97%|
+|VIC|Higgins|5,070|92,981|5.45%|
+|VIC|Deakin|5,057|90,788|5.57%|
+|ACT|Fenner|5,040|123,114|4.09%|
+|WA|Moore|4,895|89,071|5.50%|
+|WA|Curtin|4,820|86,950|5.54%|
+|QLD|Dickson|4,816|91,690|5.25%|
+|QLD|Griffith|4,786|94,267|5.08%|
+|SA|Mayo|4,594|95,749|4.80%|
+|VIC|Melbourne Ports|4,592|87,080|5.27%|
+|TAS|Lyons|4,449|69,549|6.40%|
+|QLD|Brisbane|4,427|96,743|4.58%|
+|VIC|Kooyong|4,419|90,502|4.88%|
+|QLD|Ryan|4,384|95,859|4.57%|
+|TAS|Braddon|4,363|65,724|6.64%|
+|NT|Lingiari|4,042|45,027|8.98%|
+|TAS|Franklin|3,989|70,216|5.68%|
+|TAS|Bass|3,764|66,777|5.64%|
+|TAS|Denison|3,747|66,893|5.60%|
+|NT|Solomon|3,111|57,000|5.46%|
+|**Total**|****|**1,087,711**|**13,838,900**|**7.86%**|
