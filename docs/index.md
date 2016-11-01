@@ -17,27 +17,27 @@ read more about the reports, as well as some of the judgement calls made in the 
 
 #### [Donkey votes](reports/donkeyvotes)
 
-| |Donkey votes|Total formal ballots|%|
-|---|---|---|---|
-|**Total**|**20,553**|**13,838,900**|**0.15%**|
+| |Donkey votes|%|
+|---|---|---|
+|**Total**|**20,553**|**0.15%**|
 
 #### [How-to-vote card usage](reports/htvusage)
 
-| |Ballots matching an HTV card|Total formal ballots|%|
-|---|---|---|---|
-|**Total**|**2,010,114**|**13,838,900**|**14.53%**|
+| |Ballots matching an HTV card|%|
+|---|---|---|
+|**Total**|**2,010,114**|**14.53%**|
 
 #### [Ballots that marked only '1' ATL](reports/oneatl)
 
-| |Ballots with only '1' above the line|Total formal ballots|%|
-|---|---|---|---|
-|**Total**|**290,758**|**13,838,900**|**2.10%**|
+| |Ballots with only '1' above the line|%|
+|---|---|---|
+|**Total**|**290,758**|**2.10%**|
 
 #### [Ballots saved from being informal by savings provisions](reports/savedballots)
 
-| |Saved ballots|Total formal ballots|%|
-|---|---|---|---|
-|**Total**|**1,087,711**|**13,838,900**|**7.86%**|
+| |Saved ballots|%|
+|---|---|---|
+|**Total**|**1,087,711**|**7.86%**|
 
 ## Feedback
 
