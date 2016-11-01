@@ -3,8 +3,6 @@ layout: page
 title: Reports
 ---
 
-# SenateDB Reports
-
 * [Ballots that marked only '1' above the line](oneatl)
 * [Donkey votes](donkeyvotes)
 * [Ballots that match how-to-vote cards](htvusage)
