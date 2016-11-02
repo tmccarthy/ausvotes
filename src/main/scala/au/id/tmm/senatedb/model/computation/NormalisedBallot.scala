@@ -12,4 +12,6 @@ final case class NormalisedBallot(atlGroupOrder: Vector[Group],
   def isFormal = !isInformal
   def isNormalisedToAtl = isFormal && canonicalOrder == atlCandidateOrder
   def isNormalisedToBtl = isFormal && canonicalOrder == btlCandidateOrder
+  def isFormalAtl = atlFormalPreferenceCount > 0
+  def isFormalBtl = btlFormalPreferenceCount > 0
 }

@@ -7,6 +7,8 @@ title: Reports
 * [Donkey votes](donkeyvotes)
 * [Ballots that match how-to-vote cards](htvusage)
 * [Ballots saved by savings provisions](savedballots)
+* [Votes above the line](atlvotes)
+* [Votes both above and below the line](atlandbtl)
 
 ## General notes on the reports
 
