@@ -7,8 +7,8 @@ window.onload = function (e) {
 };
 
 setupTableForSorting = function(table) {
-  // setSortByValues(table);
   affixLastRow(table);
+  addSortByForGroups(table);
 
   new Tablesort(table, {
     descending: true
@@ -22,5 +22,30 @@ affixLastRow = function(table) {
 
   if (lastRowIsTotalRow) {
     lastRow.classList += " no-sort";
+  }
+};
+
+addSortByForGroups = function(table) {
+  var headerRow = table.rows[0];
+
+  var extractGroupPattern = /([A-Z]+) \(.*\)/g;
+
+  if (headerRow.cells[0].innerHTML === "Group") {
+    for (var i = 0, row; row = table.rows[i]; i++) {
+      for (var j = 0, cell; cell = row.cells[j]; j++) {
+
+        var match = extractGroupPattern.exec(cell.innerHTML);
+
+        if (match != null) {
+          var groupCode = match[1];
+
+          if (groupCode.length == 1) {
+            groupCode = " " + groupCode
+          }
+
+          cell.setAttribute("data-sort", groupCode);
+        }
+      }
+    }
   }
 };
