@@ -1,0 +1,24 @@
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+#relative_permalinks: true
+
+# Setup
+title:               SenateDB
+tagline:             'Senate ballot analysis'
+description:         >
+                       A tool for analysis of Senate ballots in the 2016 Federal election. Made by
+                       <a href="https://twitter.com/tmccarthy_" target="_blank">@tmccarthy_</a>.
+url:                 http://tmccarthy.github.io/senatedb
+baseurl:             ''
+
+# About/contact
+author:
+  name:              Mark Otto
+  url:               https://twitter.com/mdo
+  email:             markdotto@gmail.com
+
+# Custom vars
+version:             0.3.1
+
