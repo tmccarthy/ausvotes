@@ -33,7 +33,9 @@ object WriteReports {
         OneAtlReportBuilder,
         DonkeyVoteReportBuilder,
         HowToVoteUsageReportBuilder,
-        SavedBallotsReportBuilder
+        SavedBallotsReportBuilder,
+        AtlVoteReportBuilder,
+        AtlAndBtlVoteReportBuilder
       )
 
       val executionFuture = ReportEngine.runFor(parsedDataStore,

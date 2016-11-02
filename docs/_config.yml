@@ -10,8 +10,8 @@ tagline:             'Senate ballot analysis'
 description:         >
                        A tool for analysis of Senate ballots in the 2016 Federal election. Made by
                        <a href="https://twitter.com/tmccarthy_" target="_blank">@tmccarthy_</a>.
-url:                 http://tmccarthy.github.io/senatedb
-baseurl:             ''
+url:                 http://tmccarthy.github.io/
+baseurl:             /senatedb
 
 # About/contact
 author:

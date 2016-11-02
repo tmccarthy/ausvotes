@@ -39,6 +39,19 @@ read more about the reports, as well as some of the judgement calls made in the 
 |---|---|---|
 |**Total**|**1,087,711**|**7.86%**|
 
+#### [Votes above the line](reports/atlvotes)
+
+| |Votes above the line|%|
+|---|---|---|
+|**Total**|**12,940,784**|**93.51%**|
+
+#### [Votes above and below the line](reports/atlandbtl)
+
+| |Ballots formal both above and below the line|%|
+|---|---|---|
+|**Total**|**163,141**|**1.18%**|
+
+
 ## Feedback
 
 If you have any feedback or suggestions, don't hesitate to contact [@tmccarthy_](https://twitter.com/tmccarthy_) on 
