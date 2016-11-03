@@ -22,3 +22,5 @@ author:
 # Custom vars
 version:             0.3.1
 
+github:
+  repo: 'https://github.com/tmccarthy/SenateDB'
