@@ -5,7 +5,6 @@ import au.id.tmm.senatedb.model.parsing.{BallotGroup, CandidatePosition, Group, 
 import au.id.tmm.senatedb.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.utilities.geo.australia.State
 
-// TODO check how ungrouped works with this
 class RawPreferenceParser private (election: SenateElection, state: State, groupsAndCandidates: GroupsAndCandidates) {
 
   private lazy val relevantGroups = groupsAndCandidates.groups

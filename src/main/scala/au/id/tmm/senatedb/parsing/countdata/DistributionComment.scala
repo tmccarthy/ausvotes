@@ -14,8 +14,8 @@ private [countdata] object DistributionComment {
   private val electedWithQuotaNoSurplusPattern = "(\\w+), (\\w) has been elected at count (\\d+) with (\\d+) votes\\."
     .r("surname", "initial", "count", "votes")
 
-  private val electedLastRemainingPattern = ".* have been elected to the remaining positions\\."
-    .r("surname", "initial")
+  private val electedLastRemainingPattern = "(.*) have been elected to the remaining positions\\."
+    .r("names")
 
   def from(rawComment: String): DistributionComment = {
     rawComment match {
@@ -37,7 +37,15 @@ private [countdata] object DistributionComment {
       case electedWithQuotaNoSurplusPattern(surname, initial, count, votes) =>
         ElectedWithQuotaNoSurplus(ShortCandidateName(surname, initial))
 
-      case electedLastRemainingPattern() => ElectedLastRemaining
+      case electedLastRemainingPattern(rawNames) => {
+        val shortNamePattern = "(\\w+), (\\w)".r("surname", "initial")
+
+        val names = shortNamePattern.findAllMatchIn(rawNames)
+          .map(m => ShortCandidateName(m.group("surname"), m.group("initial")))
+          .toSet
+
+        ElectedLastRemaining(names)
+      }
 
       case _ => throw new IllegalArgumentException(s"Couldn't parse comment $rawComment")
     }
@@ -46,7 +54,7 @@ private [countdata] object DistributionComment {
   private def splitOriginatingCounts(originatingCountsString: String): Set[Int] = originatingCountsString
     .split(',')
     .toSet
-    .map(_.toInt)
+    .map((s: String) => s.toInt)
 
   final case class Excluded(numCandidatesExcluded: Int, originatingCounts: Set[Int], transferValue: Double)
     extends DistributionComment
@@ -57,5 +65,5 @@ private [countdata] object DistributionComment {
   final case class ElectedWithQuotaNoSurplus(candidate: ShortCandidateName)
     extends DistributionComment
 
-  case object ElectedLastRemaining extends DistributionComment
+  final case class ElectedLastRemaining(candidates: Set[ShortCandidateName]) extends DistributionComment
 }
