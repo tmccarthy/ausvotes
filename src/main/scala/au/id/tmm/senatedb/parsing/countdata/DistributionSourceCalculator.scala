@@ -34,7 +34,7 @@ private[countdata] class DistributionSourceCalculator (candidates: Set[Candidate
         Some(DistributionSource(
           sourceCandidate = lastExcludedCandidate,
           sourceOutcome = DistributionReason.EXCLUSION,
-          sourceCounts = originatingCounts.map(count => precedingCountSteps(count - 1)),
+          sourceCounts = originatingCounts,
           transferValue = transferValue
         ))
       }
@@ -45,7 +45,7 @@ private[countdata] class DistributionSourceCalculator (candidates: Set[Candidate
         Some(DistributionSource(
           sourceCandidate = candidateByShortName(candidate).btlPosition,
           sourceOutcome = DistributionReason.ELECTION,
-          sourceCounts = originatingCounts.map(count => precedingCountSteps(count - 1)),
+          sourceCounts = originatingCounts,
           transferValue = transferValue
         ))
       }

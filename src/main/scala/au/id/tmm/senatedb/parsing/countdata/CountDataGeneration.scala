@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.parsing.countdata
 
+import au.id.tmm.senatedb.model.CountData.CountOutcome
 import au.id.tmm.senatedb.model.CountStep.{CountStepTransfer, DistributionSource, InitialAllocation}
 import au.id.tmm.senatedb.model.parsing.CandidatePosition
 import au.id.tmm.senatedb.model.parsing.CandidatePosition.constructBallotPositionLookup
@@ -19,6 +20,8 @@ object CountDataGeneration {
 
   private val specialBallotPositions = Set(ballotPositionForExhausted, ballotPositionForGainLoss)
 
+  private type CandidateOutcomes = Map[CandidatePosition, CountOutcome]
+
   def fromDistributionOfPreferencesRows(election: SenateElection,
                                         state: State,
                                         allGroupsAndCandidates: GroupsAndCandidates,
@@ -28,28 +31,35 @@ object CountDataGeneration {
     val candidatePositionLookup = constructBallotPositionLookup(groupsAndCandidates)
     val distributionSourceCalculator = new DistributionSourceCalculator(groupsAndCandidates.candidates)
 
-    val (initialAllocation, nextStepDistributionSource, totalFormalBallots) = readInitialAllocation(
+    val initialAllocationAndMetadata = readInitialAllocation(
       distributionOfPreferencesRows, candidatePositionLookup, distributionSourceCalculator
     )
 
-    val distributionSteps = readDistributionSteps(
-      initialAllocation,
+    val (distributionSteps, candidateOutcomes) = readDistributionSteps(
+      initialAllocationAndMetadata.initialAllocation,
       Vector(),
-      nextStepDistributionSource,
+      initialAllocationAndMetadata.candidateOutcomes,
+      initialAllocationAndMetadata.nextDistributionSource,
       candidatePositionLookup,
       distributionSourceCalculator,
       distributionOfPreferencesRows
     )
 
-    val allSteps: Vector[CountStep] = Vector(initialAllocation) ++ distributionSteps
-
-    CountData(election, state, totalFormalBallots, initialAllocation, distributionSteps, ???)
+    CountData(
+      election,
+      state,
+      initialAllocationAndMetadata.totalFormalPapers,
+      initialAllocationAndMetadata.quota,
+      initialAllocationAndMetadata.initialAllocation,
+      distributionSteps,
+      candidateOutcomes
+    )
   }
 
   private def readInitialAllocation(rows: Iterator[DistributionOfPreferencesRow],
                                     candidatePositionLookup: Map[Int, CandidatePosition],
                                     distributionSourceCalculator: DistributionSourceCalculator
-                                   ): (CountStep.InitialAllocation, Option[CountStep.DistributionSource], Long) = {
+                                   ): InitialAllocationAndMetadata = {
 
     val parsedCountStepData = parseNextCountStep(
       rows = rows,
@@ -69,19 +79,29 @@ object CountDataGeneration {
     val nextStepDistributionSource = distributionSourceCalculator.calculateFor(parsedCountStepData.distributionComment,
       Vector(initialAllocation))
 
-    (initialAllocation, nextStepDistributionSource, parsedCountStepData.totalFormalPapers)
+    val emptyOutcomesMap = candidatePositionLookup.values.map(_ -> CountOutcome.Remainder).toMap
+    val outcomesAfterFirstStep = accumulateCandidateOutcomes(1, emptyOutcomesMap, parsedCountStepData)
+
+    InitialAllocationAndMetadata(
+      initialAllocation,
+      nextStepDistributionSource,
+      parsedCountStepData.totalFormalPapers,
+      parsedCountStepData.quota,
+      outcomesAfterFirstStep
+    )
   }
 
   @tailrec
   private def readDistributionSteps(initialAllocation: InitialAllocation,
                                     distributionsSoFar: Vector[CountStep.DistributionStep],
+                                    outcomesSoFar: CandidateOutcomes,
                                     distributionSourceForFirstStep: Option[DistributionSource],
                                     candidatePositionLookup: Map[Int, CandidatePosition],
                                     distributionSourceCalculator: DistributionSourceCalculator,
                                     dopRows: Iterator[DistributionOfPreferencesRow]
-                                   ): Vector[CountStep.DistributionStep] = {
+                                   ): (Vector[CountStep.DistributionStep], CandidateOutcomes) = {
     if (distributionSourceForFirstStep.isEmpty) {
-      return distributionsSoFar
+      return (distributionsSoFar, outcomesSoFar)
     }
 
     val precedingCountSteps: Vector[CountStep] = Vector(initialAllocation) ++ distributionsSoFar
@@ -109,12 +129,15 @@ object CountDataGeneration {
 
     val countStepsSoFar = distributionsSoFar :+ thisDistributionStep
 
+    val candidateOutcomes = accumulateCandidateOutcomes(count, outcomesSoFar, parsedCountStepData)
+
     val nextStepDistributionSource = distributionSourceCalculator.calculateFor(parsedCountStepData.distributionComment,
       Vector(initialAllocation) ++ countStepsSoFar)
 
     readDistributionSteps(
       initialAllocation,
       countStepsSoFar,
+      candidateOutcomes,
       nextStepDistributionSource,
       candidatePositionLookup,
       distributionSourceCalculator,
@@ -132,6 +155,7 @@ object CountDataGeneration {
       readRowsForNextCount(rows, candidatePositionLookup, expectedCount)
 
     val totalFormalPapers = candidateTransferRows.head.totalFormalPapers
+    val quota = candidateTransferRows.head.quota
     val distributionComment = candidateTransferRows.last.comment
 
     val candidateTransfers = candidateTransferRows
@@ -151,7 +175,7 @@ object CountDataGeneration {
 
     val candidateExcludedThisStep = newlyExcludedCandidateIn(candidatePositionLookup, candidateTransferRows)
 
-    ParsedCountStepData(totalFormalPapers, distributionComment, candidateTransfers, allElectedCandidates,
+    ParsedCountStepData(totalFormalPapers, quota, distributionComment, candidateTransfers, allElectedCandidates,
       allExcludedCandidates, exhaustedTransfers, gainLossTransfers, candidatesElectedThisStep,
       candidateExcludedThisStep)
   }
@@ -233,7 +257,57 @@ object CountDataGeneration {
     }
   }
 
-  private final case class ParsedCountStepData(totalFormalPapers: Int,
+  private def accumulateCandidateOutcomes(count: Int,
+                                          outcomesToNow: CandidateOutcomes,
+                                          parsedCountStepData: ParsedCountStepData
+                                         ): CandidateOutcomes = {
+    val outcomesIncludingNewlyElected = accumulateOutcomesForElectedCandidates(count, outcomesToNow, parsedCountStepData)
+    val outcomesIncludingNewlyExcluded = accumulateOutcomesForExcludedCandidates(count, outcomesIncludingNewlyElected, parsedCountStepData)
+
+    outcomesIncludingNewlyExcluded
+  }
+
+  private def accumulateOutcomesForElectedCandidates(count: Int,
+                                                     outcomesToNow: CandidateOutcomes,
+                                                     parsedCountStepData: ParsedCountStepData): CandidateOutcomes = {
+    val candidatesAlreadyElected = outcomesToNow.filter {
+      case (candidate, o: CountOutcome.Elected) => true
+      case _ => false
+    }
+
+    val candidatesNewlyElected = parsedCountStepData.candidatesElectedThisStep
+
+    val outcomePerNewlyElectedCandidate = candidatesNewlyElected.zipWithIndex
+      .map {
+        case(candidate, index) => candidate -> (index + candidatesAlreadyElected.size + 1)
+      }
+      .map {
+        case(candidate, orderElected) => candidate -> CountOutcome.Elected(orderElected, count)
+      }
+      .toMap
+
+    outcomesToNow.map {
+      case (candidate, existingOutcome) => candidate -> outcomePerNewlyElectedCandidate.getOrElse(candidate, existingOutcome)
+    }
+  }
+
+  private def accumulateOutcomesForExcludedCandidates(count: Int,
+                                                      outcomesToNow: CandidateOutcomes,
+                                                      parsedCountStepData: ParsedCountStepData): CandidateOutcomes = {
+    parsedCountStepData.candidateExcludedThisStep.map { candidateNewlyExcluded =>
+      val candidatesAlreadyExcluded = outcomesToNow.filter {
+        case (candidate, o: CountOutcome.Excluded) => true
+        case _ => false
+      }
+
+      val outcomeForNewlyExcluded = CountOutcome.Excluded(candidatesAlreadyExcluded.size + 1, count)
+
+      outcomesToNow + (candidateNewlyExcluded -> outcomeForNewlyExcluded)
+    } getOrElse outcomesToNow
+  }
+
+  private final case class ParsedCountStepData(totalFormalPapers: Long,
+                                               quota: Long,
                                                distributionComment: String,
                                                candidateTransfers: Map[CandidatePosition, CountStepTransfer],
                                                allElectedCandidates: OrderedSet[CandidatePosition],
@@ -242,4 +316,10 @@ object CountDataGeneration {
                                                gainLossTransfers: CountStepTransfer,
                                                candidatesElectedThisStep: OrderedSet[CandidatePosition],
                                                candidateExcludedThisStep: Option[CandidatePosition])
+
+  private final case class InitialAllocationAndMetadata(initialAllocation: InitialAllocation,
+                                                        nextDistributionSource: Option[DistributionSource],
+                                                        totalFormalPapers: Long,
+                                                        quota: Long,
+                                                        candidateOutcomes: CandidateOutcomes)
 }

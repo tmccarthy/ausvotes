@@ -17,6 +17,8 @@ object Candidates {
     lazy val groupLookup = groupFixture.groupLookup
 
     def candidateWithId(aecId: String) = candidates.find(_.aecId == aecId).get
+
+    def candidateWithName(name: Name) = candidates.find(_.name equalsIgnoreCase name).get
   }
 
   object NT extends CandidateFixture {

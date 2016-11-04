@@ -1,7 +1,6 @@
 package au.id.tmm.senatedb.parsing.countdata
 
 import au.id.tmm.senatedb.model.parsing.Candidate
-import au.id.tmm.senatedb.rawdata.model.DistributionOfPreferencesRow
 
 // TODO integrate with au.id.tmm.senatedb.model.parsing.Name in some way
 private[countdata] final case class ShortCandidateName(surname: String, initial: Char)
@@ -11,9 +10,6 @@ private[countdata] object ShortCandidateName {
 
   def fromGivenAndSurname(givenName: String, surname: String): ShortCandidateName =
     ShortCandidateName(surname, givenName.charAt(0))
-
-  def fromCandidateCsvRow(row: DistributionOfPreferencesRow): ShortCandidateName =
-    fromGivenAndSurname(row.givenName, row.surname)
 
   def fromCandidate(candidate: Candidate): ShortCandidateName =
     fromGivenAndSurname(candidate.name.givenNames, candidate.name.surname)

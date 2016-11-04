@@ -1,7 +1,8 @@
 package au.id.tmm.senatedb.model
 
+import au.id.tmm.senatedb.model.CountData.CountOutcome
 import au.id.tmm.senatedb.model.CountStep.DistributionReason.DistributionReason
-import au.id.tmm.senatedb.model.CountStep.{CountOutcome, CountStepTransfer, DistributionStep, InitialAllocation}
+import au.id.tmm.senatedb.model.CountStep.{CountStepTransfer, DistributionStep, InitialAllocation}
 import au.id.tmm.senatedb.model.parsing.CandidatePosition
 import au.id.tmm.utilities.collection.OrderedSet
 import au.id.tmm.utilities.geo.australia.State
@@ -9,9 +10,30 @@ import au.id.tmm.utilities.geo.australia.State
 final case class CountData(election: SenateElection,
                            state: State,
                            totalFormalPapers: Long,
+                           quota: Long,
                            initialAllocation: InitialAllocation,
                            steps: Vector[DistributionStep],
                            outcomes: Map[CandidatePosition, CountOutcome]) {
+  override def toString: String = super.toString
+
+  def getDistributionStepForCount(count: Int): DistributionStep = {
+    require(count >= 2, "Can't have a distribution count at count 1 or below")
+
+    steps(count - 2)
+  }
+}
+
+object CountData {
+  sealed trait CountOutcome
+
+  object CountOutcome {
+
+    final case class Excluded(orderExcluded: Int, excludedAtCount: Int) extends CountOutcome
+
+    final case class Elected(orderElected: Int, electedAtCount: Int) extends CountOutcome
+
+    case object Remainder extends CountOutcome
+  }
 }
 
 sealed trait CountStep {
@@ -63,23 +85,12 @@ object CountStep {
 
   final case class DistributionSource(sourceCandidate: CandidatePosition,
                                       sourceOutcome: DistributionReason,
-                                      sourceCounts: Set[CountStep],
+                                      sourceCounts: Set[Int],
                                       transferValue: Double)
 
   final case class CountStepTransfer(papers: Long,
                                      votesTransferred: Long,
                                      votesTotal: Long)
-
-  sealed trait CountOutcome
-
-  object CountOutcome {
-
-    final case class Excluded(orderExcluded: Int, excludedAtCount: Int) extends CountOutcome
-
-    final case class Elected(orderElected: Int, electedAtCount: Int) extends CountOutcome
-
-    case object Remainder extends CountOutcome
-  }
 
   object DistributionReason extends Enumeration {
     type DistributionReason = Value
