@@ -2,7 +2,8 @@ package au.id.tmm.senatedb.engine
 
 import au.id.tmm.senatedb.model.flyweights._
 import au.id.tmm.senatedb.model.parsing.Ballot
-import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.senatedb.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.senatedb.parsing.countdata.CountDataGeneration
 import au.id.tmm.senatedb.parsing.{BallotGeneration, DivisionAndPollingPlaceGeneration, GroupAndCandidateGeneration, RawPreferenceParser}
 import au.id.tmm.senatedb.rawdata.RawDataStore
 import au.id.tmm.utilities.collection.CloseableIterator
@@ -13,6 +14,10 @@ trait ParsedDataStore {
   def groupsAndCandidatesFor(election: SenateElection): GroupsAndCandidates
 
   def divisionsAndPollingPlacesFor(election: SenateElection): DivisionsAndPollingPlaces
+
+  def countDataFor(election: SenateElection,
+                   allGroupsAndCandidates: GroupsAndCandidates,
+                   state: State): CountData
 
   def ballotsFor(election: SenateElection,
                  groupsAndCandidates: GroupsAndCandidates,
@@ -44,10 +49,19 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
       .get
   }
 
+  override def countDataFor(election: SenateElection,
+                            allGroupsAndCandidates: GroupsAndCandidates,
+                            state: State): CountData = {
+    resource.managed(rawDataStore.distributionsOfPreferencesFor(election, state))
+      .map(rows => CountDataGeneration.fromDistributionOfPreferencesRows(election, state, allGroupsAndCandidates, rows))
+      .toTry
+      .get
+  }
+
   override def ballotsFor(election: SenateElection,
-                 groupsAndCandidates: GroupsAndCandidates,
-                 divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                 state: State): CloseableIterator[Ballot] = {
+                          groupsAndCandidates: GroupsAndCandidates,
+                          divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                          state: State): CloseableIterator[Ballot] = {
 
     val rawPreferenceParser = RawPreferenceParser(election, state, groupsAndCandidates)
 

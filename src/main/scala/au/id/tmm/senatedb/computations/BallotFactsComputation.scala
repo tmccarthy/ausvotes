@@ -1,16 +1,15 @@
 package au.id.tmm.senatedb.computations
 
 import au.id.tmm.senatedb.computations.donkeyvotes.DonkeyVoteDetector
+import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing.Ballot
-import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.utilities.geo.australia.State
 
 object BallotFactsComputation {
 
   def computeFactsFor(election: SenateElection,
                       state: State,
-                      groupsAndCandidates: GroupsAndCandidates,
-                      divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                      computationInputData: ComputationInputData,
                       computationTools: ComputationTools,
                       ballots: Iterable[Ballot]): Iterable[BallotWithFacts] = {
 

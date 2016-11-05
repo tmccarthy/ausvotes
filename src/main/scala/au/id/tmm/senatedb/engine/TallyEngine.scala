@@ -3,9 +3,9 @@ package au.id.tmm.senatedb.engine
 import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.senatedb.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.senatedb.computations.{BallotFactsComputation, BallotWithFacts, ComputationTools}
+import au.id.tmm.senatedb.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
 import au.id.tmm.senatedb.model.parsing.Ballot
-import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.senatedb.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, HowToVoteCard, SenateElection}
 import au.id.tmm.senatedb.parsing.HowToVoteCardGeneration
 import au.id.tmm.senatedb.tallies.Tallies.TraversableOps
 import au.id.tmm.senatedb.tallies.{Tallier, Tallies}
@@ -35,68 +35,86 @@ object TallyEngine extends TallyEngine {
     for {
       divisionsAndPollingPlaces <- divisionsAndPollingPlacesFuture
       groupsAndCandidates <- groupsAndCandidatesFuture
-      allTallies <- allTalliesFrom(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates, talliers)
+      allTallies <- talliesForStates(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates, talliers)
     } yield allTallies
   }
 
-  private def allTalliesFrom(parsedDataStore: ParsedDataStore,
-                             election: SenateElection,
-                             states: Set[State],
-                             divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                             groupsAndCandidates: GroupsAndCandidates,
-                             talliers: Set[Tallier])
-                            (implicit ec: ExecutionContext): Future[Tallies] = {
-    val ballotFuturesPerState = states
-      .map(state => state -> parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state))(Set.canBuildFrom)
+  private def talliesForStates(parsedDataStore: ParsedDataStore,
+                               election: SenateElection,
+                               states: Set[State],
+                               divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                               groupsAndCandidates: GroupsAndCandidates,
+                               talliers: Set[Tallier])
+                              (implicit ec: ExecutionContext): Future[Tallies] = {
+    val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
-    val talliesFuturesPerState = ballotFuturesPerState
-      .map {
-        case (state, ballots) => talliesFor(election, state, divisionsAndPollingPlaces, groupsAndCandidates, ballots, talliers)
-      }(Set.canBuildFrom)
+    val tallyFuturesPerState = states
+      .map(state => talliesForState(parsedDataStore,
+        election,
+        state,
+        divisionsAndPollingPlaces,
+        groupsAndCandidates,
+        howToVoteCards,
+        talliers
+      ))
 
-    val finalTallies = Future.sequence(talliesFuturesPerState)
+    val finalTallies = Future.sequence(tallyFuturesPerState)
       .map(tallies => tallies.reduce(_ + _))
 
     finalTallies
   }
 
-  private def talliesFor(election: SenateElection,
-                         state: State,
-                         divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                         groupsAndCandidates: GroupsAndCandidates,
-                         ballots: CloseableIterator[Ballot],
-                         talliers: Set[Tallier])
-                        (implicit ec: ExecutionContext): Future[Tallies] = Future {
-    val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates)
+  private def talliesForState(parsedDataStore: ParsedDataStore,
+                              election: SenateElection,
+                              state: State,
+                              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                              groupsAndCandidates: GroupsAndCandidates,
+                              howToVoteCards: Set[HowToVoteCard],
+                              talliers: Set[Tallier])
+                             (implicit ec: ExecutionContext): Future[Tallies] = {
 
-    resource.managed(ballots)
+    Future {
+      parsedDataStore.countDataFor(election, groupsAndCandidates, state)
+    } map { countData =>
+      val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates, howToVoteCards)
+      val computationInputData = ComputationInputData(groupsAndCandidates, divisionsAndPollingPlaces, countData)
+
+      resource.managed(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state))
+        .map { ballots =>
+          talliesFromBallots(election, state, talliers, computationTools, computationInputData, ballots)
+        }
+        .toTry
+        .get
+    }
+  }
+
+  private def talliesFromBallots(election: SenateElection,
+                                 state: State,
+                                 talliers: Set[Tallier],
+                                 computationTools: ComputationTools,
+                                 computationInputData: ComputationInputData,
+                                 ballots: CloseableIterator[Ballot]): Tallies = {
+    val groupedIterator = ballots.grouped(5000) // TODO constant
+
+    val tallies = groupedIterator
       .map(ballots => {
-        val groupedIterator = ballots.grouped(5000) // TODO constant
-
-        val tallies = groupedIterator
-          .map(ballots => {
-            BallotFactsComputation.computeFactsFor(
-              election,
-              state,
-              groupsAndCandidates,
-              divisionsAndPollingPlaces,
-              computationTools,
-              ballots)
-          })
-          .map(ballotsWithFacts => talliesFrom(ballotsWithFacts, talliers))
-          .foldLeft(Tallies())((left, right) => left + right)
-
-        tallies
+        BallotFactsComputation.computeFactsFor(
+          election,
+          state,
+          computationInputData,
+          computationTools,
+          ballots)
       })
-      .toTry
-      .get
+      .map(ballotsWithFacts => talliesFrom(ballotsWithFacts, talliers))
+      .foldLeft(Tallies())((left, right) => left + right)
+
+    tallies
   }
 
   private def buildComputationToolsFor(election: SenateElection,
                                        state: State,
-                                       groupsAndCandidates: GroupsAndCandidates): ComputationTools = {
-    // TODO move this somewhere where it isn't being calculated every time per state
-    val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
+                                       groupsAndCandidates: GroupsAndCandidates,
+                                       howToVoteCards: Set[HowToVoteCard]): ComputationTools = {
 
     val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
     val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
