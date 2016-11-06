@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.reportwriting
 
 import au.id.tmm.senatedb.reportwriting.Report.TitledTable
+import au.id.tmm.senatedb.reportwriting.table.TallyTable
 
 final case class Report(title: String,
                         tables: Vector[TitledTable]

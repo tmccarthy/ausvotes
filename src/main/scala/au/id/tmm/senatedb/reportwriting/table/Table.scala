@@ -1,6 +1,6 @@
-package au.id.tmm.senatedb.reportwriting
+package au.id.tmm.senatedb.reportwriting.table
 
-import au.id.tmm.senatedb.reportwriting.Table.StringIterableOps
+import au.id.tmm.senatedb.reportwriting.table.Table.StringIterableOps
 import au.id.tmm.utilities.collection.Matrix
 
 // TODO could go into utils project

@@ -4,6 +4,7 @@ import java.nio.file.Files
 
 import au.id.tmm.senatedb.fixtures.Divisions
 import au.id.tmm.senatedb.model.parsing.Division
+import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.{SimpleTally, Tally}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
@@ -29,10 +30,10 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
       val totalCount = SimpleTally(13838900d)
 
       val columns = Vector(
-        TallyTable.StateNameColumn,
-        TallyTable.PrimaryCountColumn("Formal ballots in state"),
-        TallyTable.DenominatorCountColumn("Total formal ballots"),
-        TallyTable.FractionColumn("% of total")
+        Column.StateNameColumn,
+        Column.PrimaryCountColumn("Formal ballots in state"),
+        Column.DenominatorCountColumn("Total formal ballots"),
+        Column.FractionColumn("% of total")
       )
 
       TallyTable[State](primaryCountTally, _ => totalCount.count, totalCount.count, totalCount.count, columns)
@@ -51,10 +52,10 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
       )
 
       val columns = Vector(
-        TallyTable.StateNameColumn,
-        TallyTable.DivisionNameColumn,
-        TallyTable.PrimaryCountColumn("Monkey votes"),
-        TallyTable.FractionColumn("% of total")
+        Column.StateNameColumn,
+        Column.DivisionNameColumn,
+        Column.PrimaryCountColumn("Monkey votes"),
+        Column.FractionColumn("% of total")
       )
 
       TallyTable[Division](primaryCountTally, denominatorTally(_), 13, 26, columns)

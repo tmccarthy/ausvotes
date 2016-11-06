@@ -11,7 +11,7 @@ trait TestsStandardPredicateBasedReportBuilder { this: ImprovedFlatSpec =>
 
   def expectedPrimaryCountColumnTitle: String
 
-  def sut: StandardPredicateBasedReportBuilder
+  def sut: StandardReportBuilder
 
   it should "have the correct report title" in {
     assert(sut.reportTitle === expectedReportTitle)

@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.reportwriting
 
-import au.id.tmm.senatedb.reportwriting.Table.StringIterableOps
+import au.id.tmm.senatedb.reportwriting.table.Table.StringIterableOps
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TableSpec extends ImprovedFlatSpec {

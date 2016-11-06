@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.senatedb.model.parsing.{BallotGroup, Division, Party}
-import au.id.tmm.senatedb.reportwriting.TallyTable
-import au.id.tmm.senatedb.reportwriting.TallyTable._
+import au.id.tmm.senatedb.reportwriting.table.Column._
+import au.id.tmm.senatedb.reportwriting.table.TallyTable
 import au.id.tmm.senatedb.tallies.Tallier.{NormalTallier, SimpleTallier, TieredTallier}
 import au.id.tmm.senatedb.tallies.{CountFormalBallots, Tallier, Tallies}
 import au.id.tmm.utilities.geo.australia.State
@@ -61,7 +61,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable(
+      TallyTable[Party](
         matchingBallotsPerParty,
         totalFormalBallotsPerParty,
         totalMatchingNationally.count,
@@ -97,7 +97,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable(
+      TallyTable[State](
         matchingBallotsPerParty,
         totalFormalBallotsPerParty,
         totalMatchingNationally.count,
@@ -134,7 +134,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable(
+      TallyTable[Division](
         matchingBallotsPerParty,
         totalFormalBallotsPerParty,
         totalMatchingNationally.count,
@@ -170,7 +170,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable(
+      TallyTable[BallotGroup](
         matchingBallotsInStateByGroup,
         totalFormalBallotsInStateByGroup,
         totalMatchingInState,

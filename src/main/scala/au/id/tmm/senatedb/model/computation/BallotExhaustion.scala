@@ -6,7 +6,7 @@ sealed trait BallotExhaustion {
 
 object BallotExhaustion {
   final case class Exhausted(atCount: Int,
-                             withValue: Double,
+                             value: Double,
                              candidatesElectedAtExhaustion: Int) extends BallotExhaustion
 
   case object NotExhausted extends BallotExhaustion

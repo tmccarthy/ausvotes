@@ -10,5 +10,5 @@ class SavedBallotsReportBuilderSpec extends ImprovedFlatSpec with TestsStandardP
 
   override def expectedPrimaryCountColumnTitle: String = "Saved ballots"
 
-  override def sut: StandardPredicateBasedReportBuilder = SavedBallotsReportBuilder
+  override def sut: StandardReportBuilder = SavedBallotsReportBuilder
 }

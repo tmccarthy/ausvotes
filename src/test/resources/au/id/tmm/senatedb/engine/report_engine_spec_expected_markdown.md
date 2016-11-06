@@ -21,13 +21,6 @@
 |ACT|32|42|76.19%|
 |**Total**|**32**|**42**|**76.19%**|
 
-### By division
-
-|State|Division|Ballots with only '1' above the line|Total formal ballots for division|%|
-|---|---|---|---|---|
-|ACT|Canberra|32|42|76.19%|
-|**Total**|****|**32**|**42**|**76.19%**|
-
 ### By group in Australian Capital Territory
 
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
@@ -77,3 +70,10 @@
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
 |---|---|---|---|
 |**Total**|**0**|**0**|**N/A**|
+
+### By division
+
+|State|Division|Ballots with only '1' above the line|Total formal ballots for division|%|
+|---|---|---|---|---|
+|ACT|Canberra|32|42|76.19%|
+|**Total**|****|**32**|**42**|**76.19%**|

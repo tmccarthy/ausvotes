@@ -10,5 +10,5 @@ class OneAtlReportBuilderSpec extends ImprovedFlatSpec with TestsStandardPredica
 
   override def expectedPrimaryCountColumnTitle: String = "Ballots with only '1' above the line"
 
-  override def sut: StandardPredicateBasedReportBuilder = OneAtlReportBuilder
+  override def sut: StandardReportBuilder = OneAtlReportBuilder
 }

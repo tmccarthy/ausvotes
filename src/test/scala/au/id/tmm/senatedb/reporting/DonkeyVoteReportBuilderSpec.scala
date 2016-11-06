@@ -10,5 +10,5 @@ class DonkeyVoteReportBuilderSpec extends ImprovedFlatSpec with TestsStandardPre
 
   override def expectedPrimaryCountColumnTitle: String = "Donkey votes"
 
-  override def sut: StandardPredicateBasedReportBuilder = DonkeyVoteReportBuilder
+  override def sut: StandardReportBuilder = DonkeyVoteReportBuilder
 }

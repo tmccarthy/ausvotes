@@ -167,6 +167,16 @@ object Ballots {
       ballotMaker.orderedAtlPreferences("H", "B", "J", "G", "C", "E"),
       Map.empty
     )
+
+    val exhaustingBallot :Ballot = ballotMaker.makeBallot(
+      atlPreferences = Map.empty,
+      btlPreferences = ballotMaker.orderedBtlPreferences("C0", "UG1", "E1", "J1", "B1", "I1")
+    )
+
+    val nonExhaustingBallot :Ballot = ballotMaker.makeBallot(
+      atlPreferences = Map.empty,
+      btlPreferences = ballotMaker.orderedBtlPreferences("C0", "C1", "F0", "F1", "H0", "H1")
+    )
   }
 
   object NT extends BallotsFixture {

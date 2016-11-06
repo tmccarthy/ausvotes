@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.reportwriting
 import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates, Divisions, PollingPlaces}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing._
+import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.{SimpleTally, Tally}
 import au.id.tmm.utilities.collection.Matrix
 import au.id.tmm.utilities.geo.australia.State
@@ -26,10 +27,10 @@ class TallyTableSpec extends ImprovedFlatSpec {
     val totalCount = SimpleTally(13838900d)
 
     val columns = Vector(
-      TallyTable.StateNameColumn,
-      TallyTable.PrimaryCountColumn("Formal ballots in state"),
-      TallyTable.DenominatorCountColumn("Total formal ballots"),
-      TallyTable.FractionColumn("% of total")
+      Column.StateNameColumn,
+      Column.PrimaryCountColumn("Formal ballots in state"),
+      Column.DenominatorCountColumn("Total formal ballots"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[State](primaryCountTally, _ => totalCount.count, totalCount.count, totalCount.count, columns)
@@ -52,10 +53,10 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   "the total formal ballots nationally table" should "look as expected" in {
     val columns = Vector(
-      TallyTable.EmptyColumn,
-      TallyTable.PrimaryCountColumn("Formal ballots"),
-      TallyTable.DenominatorCountColumn("Total formal ballots"),
-      TallyTable.FractionColumn("% of total")
+      Column.EmptyColumn,
+      Column.PrimaryCountColumn("Formal ballots"),
+      Column.DenominatorCountColumn("Total formal ballots"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable.totalRowOnly(13838900d, 13838900d, columns)
@@ -70,10 +71,10 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   it should "render in markdown correctly" in {
     val columns = Vector(
-      TallyTable.EmptyColumn,
-      TallyTable.PrimaryCountColumn("Formal ballots"),
-      TallyTable.DenominatorCountColumn("Total formal ballots"),
-      TallyTable.FractionColumn("% of total")
+      Column.EmptyColumn,
+      Column.PrimaryCountColumn("Formal ballots"),
+      Column.DenominatorCountColumn("Total formal ballots"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable.totalRowOnly(13838900d, 13838900d, columns)
@@ -99,9 +100,9 @@ class TallyTableSpec extends ImprovedFlatSpec {
     )
 
     val columns = Vector(
-      TallyTable.PartyNameColumn,
-      TallyTable.PrimaryCountColumn("Monkey votes"),
-      TallyTable.FractionColumn("% of total")
+      Column.PartyNameColumn,
+      Column.PrimaryCountColumn("Monkey votes"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[Party](primaryCountTally, denominatorTally(_), 13, 26, columns)
@@ -133,11 +134,11 @@ class TallyTableSpec extends ImprovedFlatSpec {
     )
 
     val columns = Vector(
-      TallyTable.StateNameColumn,
-      TallyTable.GroupNameColumn,
-      TallyTable.PartyNameColumn,
-      TallyTable.PrimaryCountColumn("Monkey votes"),
-      TallyTable.FractionColumn("% of total")
+      Column.StateNameColumn,
+      Column.GroupNameColumn,
+      Column.PartyNameColumn,
+      Column.PrimaryCountColumn("Monkey votes"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[BallotGroup](primaryCountTally, denominatorTally(_), 13, 26, columns)
@@ -164,10 +165,10 @@ class TallyTableSpec extends ImprovedFlatSpec {
     )
 
     val columns = Vector(
-      TallyTable.StateNameColumn,
-      TallyTable.DivisionNameColumn,
-      TallyTable.PrimaryCountColumn("Monkey votes"),
-      TallyTable.FractionColumn("% of total")
+      Column.StateNameColumn,
+      Column.DivisionNameColumn,
+      Column.PrimaryCountColumn("Monkey votes"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[Division](primaryCountTally, denominatorTally(_), 13, 26, columns)
@@ -197,11 +198,11 @@ class TallyTableSpec extends ImprovedFlatSpec {
     )
 
     val columns = Vector(
-      TallyTable.StateNameColumn,
-      TallyTable.DivisionNameColumn,
-      TallyTable.VoteCollectionPointNameColumn,
-      TallyTable.PrimaryCountColumn("Monkey votes"),
-      TallyTable.FractionColumn("% of total")
+      Column.StateNameColumn,
+      Column.DivisionNameColumn,
+      Column.VoteCollectionPointNameColumn,
+      Column.PrimaryCountColumn("Monkey votes"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[VoteCollectionPoint](primaryCountTally, denominatorTally(_), 13, 26, columns)
@@ -219,10 +220,10 @@ class TallyTableSpec extends ImprovedFlatSpec {
   "a table" should "produce markdown as expected" in {
     val totalCount = SimpleTally(13838900d)
     val columns = Vector(
-      TallyTable.StateNameColumn,
-      TallyTable.PrimaryCountColumn("Formal ballots"),
-      TallyTable.DenominatorCountColumn("Total formal ballots"),
-      TallyTable.FractionColumn("% of total")
+      Column.StateNameColumn,
+      Column.PrimaryCountColumn("Formal ballots"),
+      Column.DenominatorCountColumn("Total formal ballots"),
+      Column.FractionColumn("% of total")
     )
 
     val table = TallyTable[Nothing](Tally(), _ => fail(), totalCount.count, totalCount.count, columns)

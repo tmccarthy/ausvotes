@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.reporting
 import au.id.tmm.senatedb.tallies.{CountOneAtl, PredicateTallier}
 
-object OneAtlReportBuilder extends StandardPredicateBasedReportBuilder {
+object OneAtlReportBuilder extends StandardReportBuilder {
 
   override def reportTitle: String = "Ballots with only '1' above the line"
 

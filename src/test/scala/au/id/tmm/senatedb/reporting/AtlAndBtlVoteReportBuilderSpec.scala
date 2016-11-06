@@ -10,5 +10,5 @@ class AtlAndBtlVoteReportBuilderSpec extends ImprovedFlatSpec with TestsStandard
 
   override def expectedPrimaryCountColumnTitle: String = "Ballots formal both above and below the line"
 
-  override def sut: StandardPredicateBasedReportBuilder = AtlAndBtlVoteReportBuilder
+  override def sut: StandardReportBuilder = AtlAndBtlVoteReportBuilder
 }

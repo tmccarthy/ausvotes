@@ -10,5 +10,5 @@ class AtlVoteReportBuilderSpec extends ImprovedFlatSpec with TestsStandardPredic
 
   override def expectedPrimaryCountColumnTitle: String = "Votes above the line"
 
-  override def sut: StandardPredicateBasedReportBuilder = AtlVoteReportBuilder
+  override def sut: StandardReportBuilder = AtlVoteReportBuilder
 }

@@ -10,5 +10,5 @@ class HowToVoteUsageReportBuilderSpec extends ImprovedFlatSpec with TestsStandar
 
   override def expectedPrimaryCountColumnTitle: String = "Ballots matching an HTV card"
 
-  override def sut: StandardPredicateBasedReportBuilder = HowToVoteUsageReportBuilder
+  override def sut: StandardReportBuilder = HowToVoteUsageReportBuilder
 }
