@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.computations
 
 import au.id.tmm.senatedb.fixtures._
-import au.id.tmm.senatedb.model.computation.{FirstPreference, NormalisedBallot}
+import au.id.tmm.senatedb.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot}
 import au.id.tmm.senatedb.model.parsing.RegisteredParty
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -45,5 +45,11 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec with TestsBallotFacts 
 
     assert(ballotWithFacts.firstPreference ===
       FirstPreference(ballotMaker.group("A"), RegisteredParty("Liberal Democratic Party")))
+  }
+
+  it should "compute the exhaustion" in {
+    val ballotWithFacts = factsFor(testBallot)
+
+    assert(ballotWithFacts.exhaustion === BallotExhaustion.NotExhausted)
   }
 }
