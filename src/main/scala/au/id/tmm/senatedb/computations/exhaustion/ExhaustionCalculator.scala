@@ -13,7 +13,7 @@ object ExhaustionCalculator {
       case (ballot, normalised) => new TrackedBallot(ballot, normalised)
     }
 
-    countData.steps.foreach { step =>
+    countData.distributionSteps.foreach { step =>
       trackedBallots.foreach(handleBallotForCountStep(step, _))
     }
 
@@ -24,6 +24,8 @@ object ExhaustionCalculator {
       .toMap
   }
 
+  // TODO the isDistributedBy call is essentially a linear search for ballots distributed at this step.
+  // This is causing a big performance hit
   private def handleBallotForCountStep(countStep: CountStep.DistributionStep,
                                        ballot: TrackedBallot): Unit = {
     if (ballot isDistributedBy countStep) {

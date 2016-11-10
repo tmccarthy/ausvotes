@@ -53,7 +53,7 @@ class ParsedDataStoreSpec extends ImprovedFlatSpec {
   it should "retrieve the count data" in {
     val countData = sut.countDataFor(SenateElection.`2016`, GroupsAndCandidates.ACT.groupsAndCandidates, State.ACT)
 
-    assert(countData.steps.size === 28)
+    assert(countData.distributionSteps.size === 28)
 
   }
 

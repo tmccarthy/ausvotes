@@ -1,29 +1,17 @@
 package au.id.tmm.senatedb.parsing.countdata
 
-import au.id.tmm.senatedb.fixtures.{Ballots, GroupsAndCandidates, MockAecResourceStore}
+import au.id.tmm.senatedb.fixtures.{Ballots, TestsCountData}
+import au.id.tmm.senatedb.model.CountData
 import au.id.tmm.senatedb.model.CountStep._
-import au.id.tmm.senatedb.model.{CountData, SenateElection}
-import au.id.tmm.senatedb.rawdata.RawDataStore
 import au.id.tmm.utilities.collection.OrderedSet
-import au.id.tmm.utilities.geo.australia.State
-import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class CountDataGenerationSpec extends ImprovedFlatSpec {
-
-  private val rawDataStore = RawDataStore(MockAecResourceStore)
-  private val election = SenateElection.`2016`
-  private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
-
-  private val state = State.ACT
+class CountDataGenerationSpec extends ImprovedFlatSpec with TestsCountData {
 
   private val ballotMaker = Ballots.ACT.ballotMaker
   import ballotMaker.candidatePosition
 
-  private lazy val actualCountData = resource.managed(rawDataStore.distributionsOfPreferencesFor(election, state))
-    .map(CountDataGeneration.fromDistributionOfPreferencesRows(election, state, groupsAndCandidates, _))
-    .toTry
-    .get
+  private lazy val actualCountData = countData
 
   "the generated count data" should "have the correct initial allocation" in {
     val expectedCandidateTransfers = Map(

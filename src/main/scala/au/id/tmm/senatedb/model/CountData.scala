@@ -12,15 +12,17 @@ final case class CountData(election: SenateElection,
                            totalFormalPapers: Long,
                            quota: Long,
                            initialAllocation: InitialAllocation,
-                           steps: Vector[DistributionStep],
+                           distributionSteps: Vector[DistributionStep],
                            outcomes: Map[CandidatePosition, CountOutcome]) {
   override def toString: String = super.toString
 
   def getDistributionStepForCount(count: Int): DistributionStep = {
     require(count >= 2, "Can't have a distribution count at count 1 or below")
 
-    steps(count - 2)
+    distributionSteps(count - 2)
   }
+
+  val steps: Vector[CountStep] = Vector(initialAllocation) ++ distributionSteps
 }
 
 object CountData {

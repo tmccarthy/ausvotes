@@ -28,7 +28,48 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("GALLAGHER", 'K'), 2, Set(1), 0.113066455002141d))
+    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("GALLAGHER", 'K'),
+      2, Set(1), 0.113066455002141d))
+  }
+
+  it can "indicate a transfer from a candidate elected with a surplus where papers come from more than one count" in {
+    val rawComment = "BERNARDI ,C has 176559 surplus vote(s) to be distributed in count # 5 at a transfer value of " +
+      "0.520945945945945. 338920 papers are involved from count number(s) 1,2."
+
+    val comment = DistributionComment.from(rawComment)
+
+    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("BERNARDI", 'C'),
+      5, Set(1, 2), 0.520945945945945d))
+  }
+
+  it can "indicate a transfer from a candidate elected with a surplus where the candidate name has an apostrophe" in {
+    val rawComment = "O'NEILL ,D has 346702 surplus vote(s) to be distributed in count # 7 at a transfer value of " +
+      "0.251436669074410. 1378884 papers are involved from count number(s) 1,2,3,4,5."
+
+    val comment = DistributionComment.from(rawComment)
+
+    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("O'NEILL" ,'D'),
+      7, Set(1, 2, 3, 4, 5), 0.251436669074410d))
+  }
+
+  it can "indicate a transfer from a candidate elected with a surplus where the candidate name has a hyphen" in {
+    val rawComment = "KAKOSCHKE-MOORE ,S has 13829 surplus vote(s) to be distributed in count # 456 at a transfer " +
+      "value of 0.040791946031568. 339013 papers are involved from count number(s) 1,2,3,4,5."
+
+    val comment = DistributionComment.from(rawComment)
+
+    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("KAKOSCHKE-MOORE" ,'S'),
+      456, Set(1, 2, 3, 4, 5), 0.040791946031568))
+  }
+
+  it can "indicate a transfer from a candidate elected with a surplus where the candidate name has a space" in {
+    val rawComment = "DI NATALE ,R has 106685 surplus vote(s) to be distributed in count # 4 at a transfer value of " +
+      "0.283785760836314. 375935 papers are involved from count number(s) 1."
+
+    val comment = DistributionComment.from(rawComment)
+
+    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("DI NATALE" ,'R'),
+      4, Set(1), 0.283785760836314d))
   }
 
   it can "indicate a candidate was elected without a surplus" in {

@@ -7,8 +7,8 @@ private [countdata] object DistributionComment {
     "count # (\\d+) after the exclusion of (\\d+) candidate\\(s\\). Preferences received at count\\(s\\) ([\\d,]+)\\.")
     .r("transferValue", "distributionCount", "numExcluded", "originatingCounts")
 
-  private val electedWithSurplusPattern = ("(\\w+) ,(\\w) has (\\d+) surplus vote\\(s\\) to be distributed in " +
-    "count # (\\d+) at a transfer value of ([\\d\\.]+)\\. (\\d+) papers are involved from count number\\(s\\) (\\d+)\\.")
+  private val electedWithSurplusPattern = ("([\\w'\\-\\s]+) ,(\\w) has (\\d+) surplus vote\\(s\\) to be distributed in " +
+    "count # (\\d+) at a transfer value of ([\\d\\.]+)\\. (\\d+) papers are involved from count number\\(s\\) ([\\d,]+)\\.")
     .r("surname", "initial", "surplusVotes", "count", "transferValue", "numPapers", "originatingCounts")
 
   private val electedWithQuotaNoSurplusPattern = "(\\w+), (\\w) has been elected at count (\\d+) with (\\d+) votes\\."

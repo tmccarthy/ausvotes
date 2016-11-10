@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.reporting
 import au.id.tmm.senatedb.tallies.{CountAtlAndBtl, PredicateTallier}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class AtlAndBtlVoteReportBuilderSpec extends ImprovedFlatSpec with TestsStandardPredicateBasedReportBuilder {
+class AtlAndBtlVoteReportBuilderSpec extends ImprovedFlatSpec with TestsStandardReportBuilder {
   override def expectedReportTitle: String = "Ballots formal both above and below the line"
 
   override def expectedPredicateTallier: PredicateTallier = CountAtlAndBtl

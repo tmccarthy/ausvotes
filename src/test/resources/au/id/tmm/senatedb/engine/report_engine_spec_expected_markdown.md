@@ -21,7 +21,7 @@
 |ACT|32|42|76.19%|
 |**Total**|**32**|**42**|**76.19%**|
 
-### By group in Australian Capital Territory
+### By group in the Australian Capital Territory
 
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
 |---|---|---|---|
@@ -35,7 +35,7 @@
 |---|---|---|---|
 |**Total**|**0**|**0**|**N/A**|
 
-### By group in Northern Territory
+### By group in the Northern Territory
 
 |Group|Ballots with only '1' above the line|Total formal ballots for group|%|
 |---|---|---|---|

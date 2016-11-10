@@ -5,19 +5,10 @@ import au.id.tmm.senatedb.model.CountStep.{DistributionReason, DistributionSourc
 import au.id.tmm.senatedb.model.parsing.Candidate
 import au.id.tmm.senatedb.parsing.countdata.DistributionComment.{ElectedLastRemaining, ElectedWithQuotaNoSurplus, ElectedWithSurplus, Excluded}
 
-private[countdata] class DistributionSourceCalculator (candidates: Set[Candidate]) {
+private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]) {
 
-  private val candidateByShortName: Map[ShortCandidateName, Candidate] = candidates
+  private val candidatesByShortName: Map[ShortCandidateName, Set[Candidate]] = candidates
     .groupBy(ShortCandidateName.fromCandidate)
-    .map {
-      case (name, candidatesWithSameShortName)  => {
-        if (candidatesWithSameShortName.size > 1) {
-          throw new IllegalStateException(s"More than one candidate with name $name")
-        } else {
-          name -> candidatesWithSameShortName.head
-        }
-      }
-    }
 
   def calculateFor(rawDistributionComment: String,
                    precedingCountSteps: Vector[CountStep]
@@ -43,7 +34,7 @@ private[countdata] class DistributionSourceCalculator (candidates: Set[Candidate
       }
       case ElectedWithSurplus(candidate, distributionCount, originatingCounts, transferValue) => {
         Some(DistributionSource(
-          sourceCandidate = candidateByShortName(candidate).btlPosition,
+          sourceCandidate = identifyCandidateFromSurplusDistribution(candidate, precedingCountSteps).btlPosition,
           sourceOutcome = DistributionReason.ELECTION,
           sourceCounts = originatingCounts,
           transferValue = transferValue
@@ -51,6 +42,30 @@ private[countdata] class DistributionSourceCalculator (candidates: Set[Candidate
       }
       case ElectedWithQuotaNoSurplus(candidate) => None
       case ElectedLastRemaining(candidatesElected) => None
+    }
+  }
+
+  private def identifyCandidateFromSurplusDistribution(candidateShortName: ShortCandidateName,
+                                                       precedingCountSteps: Vector[CountStep]
+                                                      ): Candidate = {
+    val candidatesWithMatchingName = candidatesByShortName.getOrElse(candidateShortName, Set())
+
+    if (candidatesWithMatchingName.isEmpty) {
+      throw new IllegalStateException(s"Count step mentions unknown candidate ${candidateShortName}")
+    } else if (candidatesWithMatchingName.size == 1) {
+      candidatesWithMatchingName.head
+    } else {
+      // This should be good enough
+      val electedCandidatePositions = precedingCountSteps.last.elected
+
+      val electedCandidatesWithMatchingName = candidatesWithMatchingName.filter(c => electedCandidatePositions.contains(c.btlPosition))
+
+      if (electedCandidatesWithMatchingName.size == 1) {
+        electedCandidatesWithMatchingName.head
+      } else {
+        throw new IllegalStateException(s"Multiple elected candidates with the same short " +
+          s"name ${candidateShortName}: $electedCandidatePositions")
+      }
     }
   }
 }

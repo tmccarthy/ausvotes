@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.reporting
 
-import au.id.tmm.senatedb.tallies.PredicateTallier
+import au.id.tmm.senatedb.tallies.PerBallotTallier
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-trait TestsStandardPredicateBasedReportBuilder { this: ImprovedFlatSpec =>
+trait TestsStandardReportBuilder { this: ImprovedFlatSpec =>
 
   def expectedReportTitle: String
 
-  def expectedPredicateTallier: PredicateTallier
+  def expectedPredicateTallier: PerBallotTallier
 
   def expectedPrimaryCountColumnTitle: String
 

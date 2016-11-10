@@ -179,6 +179,6 @@ object TableBuilders {
       )
     }
 
-    override def tableTitle: String = s"By group in ${state.name}"
+    override def tableTitle: String = s"By group in ${state.toNiceString}"
   }
 }

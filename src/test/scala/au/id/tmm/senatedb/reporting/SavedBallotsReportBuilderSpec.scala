@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.reporting
 import au.id.tmm.senatedb.tallies.{CountSavedBallots, PredicateTallier}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class SavedBallotsReportBuilderSpec extends ImprovedFlatSpec with TestsStandardPredicateBasedReportBuilder {
+class SavedBallotsReportBuilderSpec extends ImprovedFlatSpec with TestsStandardReportBuilder {
   override def expectedReportTitle: String = "Saved ballots"
 
   override def expectedPredicateTallier: PredicateTallier = CountSavedBallots
