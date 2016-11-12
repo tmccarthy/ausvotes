@@ -34,6 +34,10 @@ object ExhaustionCalculator {
   @tailrec
   private def trackBallotsThroughDistributionSteps(distributionSteps: Vector[DistributionStep],
                                                    ballotsPerAllocation: mutable.MultiMap[Allocation, TrackedBallot]): Unit = {
+    if (distributionSteps.isEmpty) {
+      return
+    }
+
     val step = distributionSteps.head
 
     val allocationsReallocatedAtThisStep = step.source.sourceCounts.map(count => Allocation(step.source.sourceCandidate, count))
@@ -56,11 +60,7 @@ object ExhaustionCalculator {
       ballot.currentAllocation.foreach(allocation => ballotsPerAllocation.addBinding(allocation, ballot))
     })
 
-    val remainingSteps = distributionSteps.tail
-
-    if (remainingSteps.nonEmpty) {
-      trackBallotsThroughDistributionSteps(remainingSteps, ballotsPerAllocation)
-    }
+    trackBallotsThroughDistributionSteps(distributionSteps.tail, ballotsPerAllocation)
   }
 
   @tailrec
