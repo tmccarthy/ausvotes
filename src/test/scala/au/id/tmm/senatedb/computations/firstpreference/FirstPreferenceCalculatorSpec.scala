@@ -4,7 +4,8 @@ import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.fixtures.{Ballots, Candidates}
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.FirstPreference
-import au.id.tmm.senatedb.model.parsing.{Independent, RegisteredParty, Ungrouped}
+import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
+import au.id.tmm.senatedb.model.parsing.Ungrouped
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

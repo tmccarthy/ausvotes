@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.reportwriting.table
 
+import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.reportwriting.table.Row.DataRow
 import au.id.tmm.utilities.geo.australia.State

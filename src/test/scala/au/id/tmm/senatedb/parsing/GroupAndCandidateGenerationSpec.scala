@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.parsing
 
 import au.id.tmm.senatedb.fixtures.Candidates
 import au.id.tmm.senatedb.model.SenateElection.`2016`
+import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.rawdata.model.FirstPreferencesRow
 import au.id.tmm.utilities.geo.australia.State

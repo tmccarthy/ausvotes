@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.computations
 
 import au.id.tmm.senatedb.fixtures._
 import au.id.tmm.senatedb.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot}
-import au.id.tmm.senatedb.model.parsing.RegisteredParty
+import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class BallotFactsComputationSpec extends ImprovedFlatSpec with TestsBallotFacts {

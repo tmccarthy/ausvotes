@@ -1,7 +1,8 @@
 package au.id.tmm.senatedb.fixtures
 
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.{BallotGroup, Group, RegisteredParty, Ungrouped}
+import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
+import au.id.tmm.senatedb.model.parsing.{BallotGroup, Group, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 
 object Groups {

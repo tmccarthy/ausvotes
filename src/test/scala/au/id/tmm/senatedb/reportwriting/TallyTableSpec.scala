@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.reportwriting
 
 import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates, Divisions, PollingPlaces}
 import au.id.tmm.senatedb.model.SenateElection
+import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.{SimpleTally, Tally}

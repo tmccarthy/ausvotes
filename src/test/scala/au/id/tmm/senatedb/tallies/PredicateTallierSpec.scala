@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.tallies
 
 import au.id.tmm.senatedb.computations.BallotWithFacts
 import au.id.tmm.senatedb.fixtures._
-import au.id.tmm.senatedb.model.parsing.RegisteredParty
+import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

@@ -11,17 +11,17 @@ trait StandardReportBuilder extends ReportBuilder {
 
   override def reportTitle: String
 
-  def predicateTallier: PerBallotTallier
+  def perBallotTallier: PerBallotTallier
 
-  final def nationalTallier: SimpleTallier = predicateTallier.Nationally
+  final def nationalTallier: SimpleTallier = perBallotTallier.Nationally
 
-  final def nationalPerFirstPreferenceTallier: NormalTallier[Party] = predicateTallier.NationallyByFirstPreference
+  final def nationalPerFirstPreferenceTallier: NormalTallier[Party] = perBallotTallier.NationallyByFirstPreference
 
-  final def perStateTallier: NormalTallier[State] = predicateTallier.ByState
+  final def perStateTallier: NormalTallier[State] = perBallotTallier.ByState
 
-  final def perDivisionTallier: NormalTallier[Division] = predicateTallier.ByDivision
+  final def perDivisionTallier: NormalTallier[Division] = perBallotTallier.ByDivision
 
-  final def perFirstPreferencedGroupTallier: TieredTallier[State, BallotGroup] = predicateTallier.ByFirstPreferencedGroup
+  final def perFirstPreferencedGroupTallier: TieredTallier[State, BallotGroup] = perBallotTallier.ByFirstPreferencedGroup
 
   override def tableBuilders: Vector[TableBuilder] = {
     val perGroupTableBuilders = State.ALL_STATES

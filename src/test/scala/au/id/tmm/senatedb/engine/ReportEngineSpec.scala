@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.engine
 
 import au.id.tmm.senatedb.fixtures._
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.RegisteredParty
+import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
 import au.id.tmm.senatedb.reporting.OneAtlReportBuilder
 import au.id.tmm.senatedb.tallies._
 import au.id.tmm.utilities.geo.australia.State

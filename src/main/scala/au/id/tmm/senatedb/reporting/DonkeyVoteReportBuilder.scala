@@ -6,5 +6,5 @@ object DonkeyVoteReportBuilder extends StandardReportBuilder {
 
   override def reportTitle: String = "Donkey votes"
 
-  override def predicateTallier: PredicateTallier = CountDonkeyVotes
+  override def perBallotTallier: PredicateTallier = CountDonkeyVotes
 }

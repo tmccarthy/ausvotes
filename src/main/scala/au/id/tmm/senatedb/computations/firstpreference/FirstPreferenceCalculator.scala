@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.computations.firstpreference
 
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.{FirstPreference, NormalisedBallot}
+import au.id.tmm.senatedb.model.parsing.Party.Independent
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.utilities.geo.australia.State
 

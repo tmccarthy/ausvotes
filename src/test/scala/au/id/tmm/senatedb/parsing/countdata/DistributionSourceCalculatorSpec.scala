@@ -2,7 +2,8 @@ package au.id.tmm.senatedb.parsing.countdata
 
 import au.id.tmm.senatedb.fixtures.{Candidates, TestsCountData}
 import au.id.tmm.senatedb.model.SenateElection
-import au.id.tmm.senatedb.model.parsing.{Candidate, Independent, Name}
+import au.id.tmm.senatedb.model.parsing.Party.Independent
+import au.id.tmm.senatedb.model.parsing.{Candidate, Name}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

@@ -7,6 +7,6 @@ object OneAtlReportBuilder extends StandardReportBuilder {
 
   override def primaryCountColumnTitle: String = "Ballots with only '1' above the line"
 
-  override def predicateTallier: PredicateTallier = CountOneAtl
+  override def perBallotTallier: PredicateTallier = CountOneAtl
 
 }

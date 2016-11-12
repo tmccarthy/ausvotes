@@ -6,5 +6,5 @@ object AtlAndBtlVoteReportBuilder extends StandardReportBuilder {
 
   override def reportTitle: String = "Ballots formal both above and below the line"
 
-  override def predicateTallier: PredicateTallier = CountAtlAndBtl
+  override def perBallotTallier: PredicateTallier = CountAtlAndBtl
 }

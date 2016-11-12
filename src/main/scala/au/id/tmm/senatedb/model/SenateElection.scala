@@ -11,10 +11,6 @@ final case class SenateElection private (date: LocalDate, states: Set[State], ae
 }
 
 object SenateElection {
-  def fromCommonName(commonName: String): Option[SenateElection] = commonName.toLowerCase.trim match {
-    case "2016" => Some(`2016`)
-    case _ => None
-  }
 
   val ordering: Ordering[SenateElection] = new Ordering[SenateElection] {
     override def compare(left: SenateElection, right: SenateElection): Int = left.date compareTo right.date

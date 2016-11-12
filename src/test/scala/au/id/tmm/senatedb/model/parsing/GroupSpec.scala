@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.model.parsing
 
 import au.id.tmm.senatedb.model.SenateElection
+import au.id.tmm.senatedb.model.parsing.Party.Independent
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

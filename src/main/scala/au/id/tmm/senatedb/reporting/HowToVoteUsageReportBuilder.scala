@@ -6,5 +6,5 @@ object HowToVoteUsageReportBuilder extends StandardReportBuilder {
 
   override def reportTitle: String = "How to vote card usage"
 
-  override def predicateTallier: PredicateTallier = CountHowToVoteUsage
+  override def perBallotTallier: PredicateTallier = CountHowToVoteUsage
 }

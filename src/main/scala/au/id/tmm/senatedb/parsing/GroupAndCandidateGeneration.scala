@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.parsing
 
 import au.id.tmm.senatedb.model.flyweights.{GroupFlyweight, RegisteredPartyFlyweight}
+import au.id.tmm.senatedb.model.parsing.Party.Independent
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.rawdata.model.FirstPreferencesRow

@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.model.flyweights
 
-import au.id.tmm.senatedb.model.parsing.RegisteredParty
+import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.collection.Flyweight
 
 final class RegisteredPartyFlyweight private() {
