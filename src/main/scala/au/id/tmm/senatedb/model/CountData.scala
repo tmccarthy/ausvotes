@@ -86,7 +86,7 @@ object CountStep {
                                    ) extends CountStep
 
   final case class DistributionSource(sourceCandidate: CandidatePosition,
-                                      sourceOutcome: DistributionReason,
+                                      distributionReason: DistributionReason,
                                       sourceCounts: Set[Int],
                                       transferValue: Double)
 

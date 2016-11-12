@@ -44,10 +44,12 @@ object ExhaustionCalculator {
 
     allocationsReallocatedAtThisStep.foreach(ballotsPerAllocation.remove)
 
+    val candidatesIneligibleForPreferenceFlows = step.excluded ++ (step.elected diff step.electedThisCount)
+
     ballotsReallocatedAtThisStep.foreach(ballot => {
       ballot.transferValue = step.source.transferValue
 
-      allocateToNextPreference(ballot, step.count, step.elected, step.excluded)
+      allocateToNextPreference(ballot, step.count, candidatesIneligibleForPreferenceFlows, step.elected.size)
     })
 
     ballotsReallocatedAtThisStep.foreach(ballot => {
@@ -64,21 +66,21 @@ object ExhaustionCalculator {
   @tailrec
   private def allocateToNextPreference(ballot: TrackedBallot,
                                        count: Int,
-                                       electedCandidates: Set[CandidatePosition],
-                                       excludedCandidates: Set[CandidatePosition]): Unit = {
+                                       candidatesIneligibleForPreferenceFlows: Set[CandidatePosition],
+                                       numElectedCandidates: Int): Unit = {
     ballot.currentPreferenceIndex = ballot.currentPreferenceIndex + 1
     ballot.allocatedAtCount = count
 
     ballot.currentPreference match {
       case Some(c) => {
-        if (electedCandidates.contains(c) || excludedCandidates.contains(c)) {
-          allocateToNextPreference(ballot, count, electedCandidates, excludedCandidates)
+        if (candidatesIneligibleForPreferenceFlows contains c) {
+          allocateToNextPreference(ballot, count, candidatesIneligibleForPreferenceFlows, numElectedCandidates)
         }
       }
       case None => {
         ballot.isExhausted = true
         ballot.exhaustedAtCount = Some(count)
-        ballot.candidatesElectedAtExhaustion = Some(electedCandidates.size)
+        ballot.candidatesElectedAtExhaustion = Some(numElectedCandidates)
       }
     }
   }

@@ -24,7 +24,7 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
 
         Some(DistributionSource(
           sourceCandidate = lastExcludedCandidate,
-          sourceOutcome = DistributionReason.EXCLUSION,
+          distributionReason = DistributionReason.EXCLUSION,
           sourceCounts = originatingCounts,
           transferValue = transferValue
         ))
@@ -35,7 +35,7 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
       case ElectedWithSurplus(candidate, distributionCount, originatingCounts, transferValue) => {
         Some(DistributionSource(
           sourceCandidate = identifyCandidateFromSurplusDistribution(candidate, precedingCountSteps).btlPosition,
-          sourceOutcome = DistributionReason.ELECTION,
+          distributionReason = DistributionReason.ELECTION,
           sourceCounts = originatingCounts,
           transferValue = transferValue
         ))
