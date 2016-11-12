@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.reportwriting.table
 
+import au.id.tmm.senatedb.model.PartySignificance
 import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.reportwriting.table.Row.DataRow
@@ -67,6 +68,16 @@ object Column {
       case Independent => "Independent"
       case Group(_, _, _, party) => valueForKey(party)
       case Ungrouped(_) => valueForKey(Independent)
+    }
+  }
+
+  case object PartyTypeColumn extends KeyBasedColumn {
+    val heading = "Party type"
+
+    override def valueForKey(key: Any): String = key match {
+      case PartySignificance.MajorParty => "Major parties"
+      case PartySignificance.MinorParty => "Minor parties"
+      case PartySignificance.Independent => "Independents"
     }
   }
 

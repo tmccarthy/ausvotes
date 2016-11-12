@@ -1,9 +1,9 @@
 package au.id.tmm.senatedb.reportwriting
 
 import au.id.tmm.senatedb.fixtures.{BallotMaker, Candidates, Divisions, PollingPlaces}
-import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
+import au.id.tmm.senatedb.model.{PartySignificance, SenateElection}
 import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.{SimpleTally, Tally}
 import au.id.tmm.utilities.collection.Matrix
@@ -113,6 +113,38 @@ class TallyTableSpec extends ImprovedFlatSpec {
       Vector("Oranges", "6", "60.00%"),
       Vector("Apples", "5", "41.67%"),
       Vector("Independent", "2", "50.00%"),
+      Vector("Total", "13", "50.00%")
+    )
+
+    assert(table.asMatrix === expected)
+  }
+
+  "a per first preferenced party type table" should "look as expected" in {
+    val primaryCountTally = Tally[PartySignificance](
+      PartySignificance.MajorParty -> 5d,
+      PartySignificance.MinorParty -> 6d,
+      PartySignificance.Independent -> 2d
+    )
+
+    val denominatorTally = Tally[PartySignificance](
+      PartySignificance.MajorParty -> 12d,
+      PartySignificance.MinorParty -> 10d,
+      PartySignificance.Independent -> 4d
+    )
+
+    val columns = Vector(
+      Column.PartyTypeColumn,
+      Column.PrimaryCountColumn("Monkey votes"),
+      Column.FractionColumn("% of total")
+    )
+
+    val table = TallyTable[PartySignificance](primaryCountTally, denominatorTally(_), 13, 26, columns)
+
+    val expected = Matrix(
+      Vector("Party type", "Monkey votes", "% of total"),
+      Vector("Minor parties", "6", "60.00%"),
+      Vector("Major parties", "5", "41.67%"),
+      Vector("Independents", "2", "50.00%"),
       Vector("Total", "13", "50.00%")
     )
 

@@ -1,10 +1,11 @@
 package au.id.tmm.senatedb.reporting
 
+import au.id.tmm.senatedb.model.PartySignificance
 import au.id.tmm.senatedb.model.parsing.{BallotGroup, Division, Party}
 import au.id.tmm.senatedb.reportwriting.table.Column._
-import au.id.tmm.senatedb.reportwriting.table.TallyTable
+import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.Tallier.{NormalTallier, SimpleTallier, TieredTallier}
-import au.id.tmm.senatedb.tallies.{CountFormalBallots, Tallier, Tallies}
+import au.id.tmm.senatedb.tallies.{CountFormalBallots, Tallier, Tallies, Tally}
 import au.id.tmm.utilities.geo.australia.State
 
 object TableBuilders {
@@ -71,6 +72,59 @@ object TableBuilders {
     }
 
     override def tableTitle: String = "Nationally by first-preferenced party"
+  }
+
+  final case class NationallyPerPartyTypeTableBuilder(nationalTallier: SimpleTallier,
+                                                      perFirstPrefTallier: NormalTallier[Party],
+                                                      primaryCountColumnTitle: String) extends TableBuilder {
+    override def requiredTalliers: Set[Tallier] = Set(
+      perFirstPrefTallier,
+      CountFormalBallots.NationallyByFirstPreference,
+      nationalTallier,
+      CountFormalBallots.Nationally
+    )
+
+    override def tableFrom(tallies: Tallies): TallyTable[PartySignificance] = {
+      val matchingBallotsPerParty = tallies.tallyBy(perFirstPrefTallier)
+      val totalFormalBallotsPerParty = tallies.tallyBy(CountFormalBallots.NationallyByFirstPreference)
+
+      val matchingBallotsPerPartyType = convertToBeByPartySignificance(matchingBallotsPerParty)
+      val totalFormalBallotsPerPartyType = convertToBeByPartySignificance(totalFormalBallotsPerParty)
+
+      val totalMatchingNationally = tallies.tallyBy(nationalTallier)
+      val totalFormalBallotsNationally = tallies.tallyBy(CountFormalBallots.Nationally)
+
+      val columns = Vector(
+        Column.PartyTypeColumn,
+        PrimaryCountColumn(primaryCountColumnTitle),
+        DenominatorCountColumn("Total formal ballots"),
+        FractionColumn()
+      )
+
+      TallyTable[PartySignificance](
+        matchingBallotsPerPartyType,
+        totalFormalBallotsPerPartyType,
+        totalMatchingNationally.count,
+        totalFormalBallotsNationally.count,
+        columns
+      )
+    }
+
+    private def convertToBeByPartySignificance(tallyByParty: Tally[Party]): Tally[PartySignificance] = {
+      val tallyBuilder = Tally.Builder[PartySignificance]()
+
+      tallyByParty.values.foreach {
+        case (party, count) => {
+          val significance = PartySignificance.of(party)
+
+          tallyBuilder.incrementBy(significance, count)
+        }
+      }
+
+      tallyBuilder.build()
+    }
+
+    override def tableTitle: String = "Nationally by first-preferenced party type"
   }
 
   final case class PerStateTableBuilder(nationalTallier: SimpleTallier,

@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.engine
 import au.id.tmm.senatedb.fixtures._
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.parsing.Party.RegisteredParty
-import au.id.tmm.senatedb.reporting.OneAtlReportBuilder
+import au.id.tmm.senatedb.reporting.ExhaustedVotesReportBuilder
 import au.id.tmm.senatedb.tallies._
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -25,11 +25,11 @@ class ReportEngineSpec extends ImprovedFlatSpec {
       CountFormalBallots.ByState -> Tally(State.ACT -> 42d),
       CountFormalBallots.ByDivision -> Tally(Divisions.ACT.CANBERRA -> 42d),
       CountFormalBallots.ByFirstPreferencedGroup -> TieredTally(State.ACT -> Tally(group("C") -> 23, group("I") -> 19)),
-      CountOneAtl.Nationally -> SimpleTally(32),
-      CountOneAtl.NationallyByFirstPreference -> Tally(RegisteredParty("Oranges") -> 17, RegisteredParty("Apples") -> 15),
-      CountOneAtl.ByState -> Tally(State.ACT -> 32d),
-      CountOneAtl.ByDivision -> Tally(Divisions.ACT.CANBERRA -> 32d),
-      CountOneAtl.ByFirstPreferencedGroup -> TieredTally(State.ACT -> Tally(group("C") -> 23, group("I") -> 9))
+      CountExhaustedVotes.Nationally -> SimpleTally(32),
+      CountExhaustedVotes.NationallyByFirstPreference -> Tally(RegisteredParty("Oranges") -> 17, RegisteredParty("Apples") -> 15),
+      CountExhaustedVotes.ByState -> Tally(State.ACT -> 32d),
+      CountExhaustedVotes.ByDivision -> Tally(Divisions.ACT.CANBERRA -> 32d),
+      CountExhaustedVotes.ByFirstPreferencedGroup -> TieredTally(State.ACT -> Tally(group("C") -> 23, group("I") -> 9))
     ))
 
     val reportFuture = ReportEngine.runFor(
@@ -37,7 +37,7 @@ class ReportEngineSpec extends ImprovedFlatSpec {
       tallyEngine,
       SenateElection.`2016`,
       Set(State.ACT),
-      Set(OneAtlReportBuilder)
+      Set(ExhaustedVotesReportBuilder)
     )
 
     val actualReport = Await.result(reportFuture, Duration.Inf).head
