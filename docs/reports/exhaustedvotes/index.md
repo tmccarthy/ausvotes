@@ -1,9 +1,15 @@
-# Exhausted votes
+---
+layout: page
+title: Exhausted votes
+---
 
 These tables show the number of exhausted votes. A ballot's exhaustion is calculated with the 
 [`ExhaustionCalculator` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/exhaustion/ExhaustionCalculator.scala).
 This is done by tracing the path a ballot would have taken through the count proces as described in data made 
 available [on the AEC website](http://results.aec.gov.au/20499/Website/SenateDownloadsMenu-20499-Csv.htm#mainbody_titleDop).
+
+* auto-gen TOC:
+{:toc}
 
 ## Explanation
 
@@ -27,7 +33,7 @@ vote was still formal, but its preferences would stop flowing at the counting er
 At the 2016 Federal Election, group voting tickets were abolished, and voters were required to express their own 
 preferences. They were told to number at least 6 squares above the line, or at least 12 below the line (actual formality
 requirements were less strict, see [the report on saved ballots](../savedballots)). Since the vast majority of ballots
-did not express a preference for every candidate, exhaustion became a much more common occurrence.
+did not express a preference for every candidate, exhaustion became much more common.
 
 #### Exhausted ballots vs exhausted votes
 
@@ -52,7 +58,7 @@ Because a tally of **exhausted votes** counts exhausted ballot papers according 
 reasonably be used to make inferences about the impact of exhausted votes. A tally of **exhausted ballots** is not 
 appropriate for this purpose.
 
-The tables on this page are of **exhausted votes**.
+The tables on this page are of **exhausted votes**. You can view those for *exhausted ballots* [here](../exhaustedballots)
 
 #### Comparison to AEC data
 

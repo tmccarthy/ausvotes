@@ -1,25 +1,30 @@
 ---
-layout: default
+layout: page
 title: Donkey votes
 ---
-
-# Donkey votes
 
 These tables cross-tabulate the number of [donkey votes](https://en.wikipedia.org/wiki/Donkey_vote) at the 2016 federal 
 Senate election.
 
 SenateDB's [`DonkeyVoteDetector` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/donkeyvotes/DonkeyVoteDetector.scala)
 is used to determine whether a ballot is a donkey vote. It considers a ballot to be a donkey vote if it 
-* It preferences *at least 4* squares above the line in their ballot paper order, and
-* No squares are marked below the line.
 
-### National total
+* Preferences *at least 4* squares above the line in their ballot paper order, and
+* Marks no squares below the line.
+
+----
+
+* auto-gen TOC:
+{:toc}
+
+
+## National total
 
 | |Donkey votes|Total formal ballots|%|
 |---|---|---|---|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### Donkey votes nationally by first-preferenced party
+## Donkey votes nationally by first-preferenced party
 
 |Party|Donkey votes|Total formal ballots for party|%|
 |---|---|---|---|
@@ -33,7 +38,7 @@ is used to determine whether a ballot is a donkey vote. It considers a ballot to
 |Family First Party|309|191,112|0.16%|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### Donkey votes by state
+## Donkey votes by state
 
 |State|Donkey votes|Total formal ballots for party|%|
 |---|---|---|---|
@@ -47,7 +52,7 @@ is used to determine whether a ballot is a donkey vote. It considers a ballot to
 |TAS|309|339,159|0.09%|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
-### Donkey votes by division
+## Donkey votes by division
 
 |State|Division|Donkey votes|Total formal ballots for division|%|
 |---|---|---|---|---|

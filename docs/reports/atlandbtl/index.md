@@ -1,13 +1,14 @@
 ---
-layout: default
+layout: page
 title: Votes above and below the line
 ---
-
-# Ballots formal both above and below the line
 
 These tables show the number of ballots that were formal both above and below the line. According to section
 [269(2)](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s269.html) of the Act, the preferences below the 
 line were used in the count.
+
+* auto-gen TOC:
+{:toc}
 
 ### National total
 

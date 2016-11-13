@@ -1,13 +1,14 @@
 ---
-layout: default
+layout: page
 title: Votes above the line
 ---
-
-# Votes above the line
 
 These tables show the number of ballots whose preferences were expressed above the line. Note that this
 does not included ballots that were formal both above and below the line. In that case, the below the
 line preferences were used in the count. See [here](../atlandbtl) for a discussion of these ballots.
+
+* auto-gen TOC:
+{:toc}
 
 ### National total
 

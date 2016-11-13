@@ -1,10 +1,16 @@
-# Exhausted ballots
+---
+layout: page
+title: Exhausted ballots
+---
 
 These tables show the number of exhausted ballots.
 
 See the [report on exhausted votes](../exhaustedvotes) for a discussion of these numbers, what they mean, and how these 
 tallies differ from those in that report. As per the notes on that report, **these tables should not be used to draw 
 conclusions on the effect of exhausted votes at the 2016 Federal Election**.
+
+* auto-gen TOC:
+{:toc}
 
 ### National total
 

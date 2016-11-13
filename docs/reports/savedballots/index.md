@@ -1,9 +1,7 @@
 ---
-layout: default
+layout: page
 title: Saved ballots
 ---
-
-# Saved ballots
 
 Sections [269](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s269.html) and 
 [268A](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s268a.html) of the Electoral Act outline savings 
@@ -18,6 +16,9 @@ A ballot is included in this count if it meets the following conditions:
 * It contains a counting error above the line after the first preference, or
 * It contains a counting error below the line after the sixth preference, or
 * It uses a tick or a cross to express a first preference either above or below the line.
+
+* auto-gen TOC:
+{:toc}
 
 ### National total
 

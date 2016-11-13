@@ -1,9 +1,7 @@
 ---
-layout: default
-title: One ATL
+layout: page
+title: Ballots with only '1' above the line
 ---
-
-# Ballots with only '1' above the line
 
 These tables cross-tabulate the number of Senate ballots at the 2016 federal election that marked only one preference 
 above the line.
@@ -29,6 +27,9 @@ is responsible for determining whether a ballot has marked a single square above
 * Have expressed a single first preference above the line, either with a '1', a tick or a cross (as per 
 [section 269(1A)(a)](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s269.html) of the Act), and
 * Have not marked any squares below the line.
+
+* auto-gen TOC:
+{:toc}
 
 ### National total
 

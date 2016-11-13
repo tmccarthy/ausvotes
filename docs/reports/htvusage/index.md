@@ -1,12 +1,15 @@
 ---
-layout: default
+layout: page
 title: How to vote card usage
 ---
 
-# How to vote card usage
-
 These tables cross-tabulate the number of votes that exactly match a 
 [how-to-vote card](https://en.wikipedia.org/wiki/How-to-vote_card) issued at the 2016 federal Senate election.
+
+* auto-gen TOC:
+{:toc}
+
+## Explanation
 
 How to vote cards are composed by the [`HowToVoteCardGeneration` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/parsing/HowToVoteCardGeneration.scala),
 using the cards [listed on the ABC election website](http://www.abc.net.au/news/federal-election-2016/guide/svic/htv/).
@@ -25,7 +28,7 @@ above the line have been included in this analysis. In order to be considered to
 * Not use a tick or cross to express its first preference,
 * Not have marked below the line at all.
 
-#### Bad how-to-vote cards
+### Bad how-to-vote cards
 
 In Tasmania, the [One Nation how-to-vote card](http://www.abc.net.au/news/federal-election-2016/guide/stas/htv/#I) 
 listed the Shooters, Fishers and Farmers party (group AG) as its third preference. In fact, the Shooters, Fishers and 
@@ -35,6 +38,8 @@ In New South Wales, the [Veteran's party how-to-vote card](http://www.abc.net.au
 listed the Cycling Party as fourth preference, and the Science Party as the fifth preference. In fact, these parties 
 shared group I, and so had to be preferenced together. Because it would have been impossible to follow this how-to-vote
 card and have completed a formal ballot paper, it has been ignored. 
+
+## Tables
 
 ### National total
 
