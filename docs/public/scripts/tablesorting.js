@@ -9,10 +9,9 @@ window.onload = function (e) {
 setupTableForSorting = function(table) {
   affixLastRow(table);
   addSortByForGroups(table);
+  addSortByForParties(table);
 
-  new Tablesort(table, {
-    descending: true
-  });
+  new Tablesort(table);
 };
 
 affixLastRow = function(table) {
@@ -44,6 +43,27 @@ addSortByForGroups = function(table) {
           }
 
           cell.setAttribute("data-sort", groupCode);
+        }
+      }
+    }
+  }
+};
+
+addSortByForParties = function (table) {
+  var headerRow = table.rows[0];
+
+  var extractPartyWithoutThePattern = /^The (.*)$/g;
+
+  if (headerRow.cells[0].innerHTML === "Party") {
+    for (var i = 0, row; row = table.rows[i]; i++) {
+      for (var j = 0, cell; cell = row.cells[j]; j++) {
+
+        var match = extractPartyWithoutThePattern.exec(cell.innerHTML);
+
+        if (match != null) {
+          var sortBy = match[1];
+
+          cell.setAttribute("data-sort", sortBy);
         }
       }
     }
