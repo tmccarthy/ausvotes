@@ -36,7 +36,8 @@ object WriteReports {
         SavedBallotsReportBuilder,
         AtlVoteReportBuilder,
         AtlAndBtlVoteReportBuilder,
-        ExhaustedVotesReportBuilder
+        ExhaustedVotesReportBuilder,
+        ExhaustedBallotsReportBuilder
       )
 
       val executionFuture = ReportEngine.runFor(parsedDataStore,
