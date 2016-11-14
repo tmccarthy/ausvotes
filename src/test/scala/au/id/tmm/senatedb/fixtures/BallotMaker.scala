@@ -25,7 +25,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def atlPreferences(prefPerGroup: (String, String)*): AtlPreferences = {
     prefPerGroup.map {
-      case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> Preference(rawPref)
+      case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> Preference.fromRawValue(rawPref).get
     }.map {
       case (group: Group, preference) => group -> preference
       case (u: Ungrouped, preference) => throw new IllegalArgumentException("Can't have Ungrouped above the line")
@@ -41,7 +41,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def btlPreferences(prefPerCandidate: (String, String)*): BtlPreferences = {
     prefPerCandidate.map {
-      case (posCode, rawPref) => candidatePosition(posCode) -> Preference(rawPref)
+      case (posCode, rawPref) => candidatePosition(posCode) -> Preference.fromRawValue(rawPref).get
     }.toMap
   }
 

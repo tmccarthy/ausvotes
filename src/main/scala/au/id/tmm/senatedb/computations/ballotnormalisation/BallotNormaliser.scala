@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.computations.ballotnormalisation
 
-import au.id.tmm.senatedb.computations.ballotnormalisation.BallotNormaliser.toNumber
 import au.id.tmm.senatedb.model.SenateElection
 import au.id.tmm.senatedb.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.model.parsing.Ballot.AtlPreferences
@@ -79,15 +78,22 @@ class BallotNormaliser private (election: SenateElection,
     @inline def indexForPreference(prefAsNumber: Int) = prefAsNumber - 1
 
     for ((x, preference) <- preferences) {
-      val preferenceAsNumber = toNumber(preference)
+      val preferenceAsNumber = preferenceToNumber(preference)
 
-      if (preferenceAsNumber.isDefined && isWithinValidPreferencesRange(preferenceAsNumber.get)) {
-        val index = indexForPreference(preferenceAsNumber.get)
+      if (isWithinValidPreferencesRange(preferenceAsNumber)) {
+        val index = indexForPreference(preferenceAsNumber)
         returnedVector.update(index, returnedVector(index) + x)
       }
     }
 
     returnedVector.toVector
+  }
+
+  private def preferenceToNumber(preference: Preference): Int = {
+    preference match {
+      case Preference.Numbered(number) => number
+      case Preference.Tick | Preference.Cross => 1
+    }
   }
 
   private def truncateAtCountError[A](rowsInPreferenceOrder: Vector[Set[A]]): Vector[A] = {
@@ -103,12 +109,4 @@ class BallotNormaliser private (election: SenateElection,
 object BallotNormaliser {
   def apply(election: SenateElection, state: State, candidates: Set[Candidate]): BallotNormaliser =
     new BallotNormaliser(election, state, candidates)
-
-  def toNumber(preference: Preference): Option[Int] = {
-    preference match {
-      case Preference.Numbered(number) => Some(number)
-      case Preference.Tick | Preference.Cross => Some(1)
-      case Preference.Missing => None
-    }
-  }
 }

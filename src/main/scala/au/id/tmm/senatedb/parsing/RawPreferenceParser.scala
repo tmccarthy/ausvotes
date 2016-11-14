@@ -34,7 +34,7 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
 
   def preferencesFrom(rawPreferencesString: String): (AtlPreferences, BtlPreferences) = {
     val (groupPreferencesArray, candidatePreferencesArray) = rawPreferencesString.split(",", -1)
-      .map(Preference(_))
+      .map(Preference.fromRawValue)
       .toVector
       .splitAt(numGroupsAtl)
 
@@ -45,21 +45,22 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
     (atlPreferences, btlPreferences)
   }
 
-  private def atlPreferencesFrom(groupPreferences: Vector[Preference]): AtlPreferences = {
+  private def atlPreferencesFrom(groupPreferences: Vector[Option[Preference]]): AtlPreferences = {
     assert(numGroupsAtl == groupPreferences.size)
 
     (groupsInOrder.toStream zip groupPreferences)
-      .filter { case (_, preference) => preference != Preference.Missing }
+      .filter { case (_, preference) => preference.isDefined }
+      .map { case (group, preferenceOption) => group -> preferenceOption.get }
       .toMap
   }
 
-  private def btlPreferencesFrom(candidatePreferences: Vector[Preference]): BtlPreferences = {
+  private def btlPreferencesFrom(candidatePreferences: Vector[Option[Preference]]): BtlPreferences = {
     candidatePreferences
       .toStream
       .zipWithIndex
-      .filterNot { case (preference, index) => preference == Preference.Missing }
+      .filter { case (preference, index) => preference.isDefined }
       .map {
-        case (preference, btlIndex) => indexBtlToCandidatePos(btlIndex) -> preference
+        case (preferenceOption, btlIndex) => indexBtlToCandidatePos(btlIndex) -> preferenceOption.get
       }
       .toMap
   }

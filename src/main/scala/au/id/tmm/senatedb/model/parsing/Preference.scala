@@ -7,20 +7,15 @@ object Preference {
   private val tickChar = '/'
   private val crossChar = '*'
 
-  def apply(rawValue: String): Preference = {
+  def fromRawValue(rawValue: String): Option[Preference] = {
     val trimmedRawValue = rawValue.trim
 
-    asMissing(trimmedRawValue)
-      .orElse(asNumbered(trimmedRawValue))
-      .orElse(asMark(trimmedRawValue))
-      .getOrElse(throw new IllegalArgumentException(s"$rawValue is not a valid preference"))
-  }
-
-  private def asMissing(trimmedRawValue: String): Option[Preference] = {
     if (trimmedRawValue.isEmpty) {
-      Some(Missing)
-    } else {
       None
+    } else {
+      asNumbered(trimmedRawValue)
+        .orElse(asMark(trimmedRawValue))
+        .orElse(throw new IllegalArgumentException(s"$rawValue is not a valid preference"))
     }
   }
 
@@ -56,6 +51,4 @@ object Preference {
   case object Tick extends Preference
 
   case object Cross extends Preference
-
-  case object Missing extends Preference
 }
