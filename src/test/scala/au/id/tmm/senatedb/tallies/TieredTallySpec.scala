@@ -18,39 +18,6 @@ class TieredTallySpec extends ImprovedFlatSpec {
     assert(left + right === TieredTally("!" -> Tally("A" -> 3, "B" -> 5), "@" -> Tally("C" -> 4d)))
   }
 
-  it can "be divided by another tally" in {
-    val left = TieredTally("!" -> Tally("A" -> 1, "B" -> 2), "@" -> Tally("C" -> 4d))
-    val right = TieredTally("!" -> Tally("A" -> 2, "B" -> 4), "@" -> Tally("C" -> 1d))
-
-    assert(left / right === TieredTally("!" -> Tally("A" -> 0.5, "B" -> 0.5), "@" -> Tally("C" -> 4d)))
-  }
-
-  it should "count missing keys in the numerator as empty when dividing" in {
-    val left = TieredTally("!" -> Tally("A" -> 1, "B" -> 2))
-    val right = TieredTally("!" -> Tally("A" -> 2, "B" -> 4), "@" -> Tally("C" -> 1d))
-
-    assert(left / right === TieredTally("!" -> Tally("A" -> 0.5, "B" -> 0.5), "@" -> Tally("C" -> 0d)))
-  }
-
-  it should "fail if keys are missing in the denominator" in {
-    val left = TieredTally("!" -> Tally("A" -> 1, "B" -> 2), "@" -> Tally("C" -> 4d))
-    val right = TieredTally("!" -> Tally("A" -> 2, "B" -> 4))
-
-    intercept[NoSuchElementException](left / right)
-  }
-
-  it can "be divided by a scalar" in {
-    val tally = TieredTally("!" -> Tally("A" -> 1, "B" -> 2), "@" -> Tally("C" -> 4d))
-
-    assert(tally / 2 === TieredTally("!" -> Tally("A" -> 0.5, "B" -> 1), "@" -> Tally("C" -> 2d)))
-  }
-
-  it should "fail if divided by 0" in {
-    val tally = TieredTally("!" -> Tally("A" -> 1, "B" -> 2), "@" -> Tally("C" -> 4d))
-
-    intercept[ArithmeticException](tally / 0)
-  }
-
   it can "be built by incrementing keys by 1" in {
     val builder = TieredTally.Builder[String, String]()
 

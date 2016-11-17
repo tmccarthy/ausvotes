@@ -19,39 +19,6 @@ class TallySpec extends ImprovedFlatSpec {
     assert(left + right === Tally("A" -> 1, "B" -> 5))
   }
 
-  it can "be divided by another tally" in {
-    val left = Tally("A" -> 2, "B" -> 8)
-    val right = Tally("A" -> 1, "B" -> 2)
-
-    assert(left / right === Tally("A" -> 2, "B" -> 4))
-  }
-
-  it should "count missing keys in the numerator as 0 when dividing" in {
-    val left = Tally("A" -> 2d)
-    val right = Tally("A" -> 1, "B" -> 2)
-
-    assert(left / right === Tally("A" -> 2, "B" -> 0))
-  }
-
-  it should "fail if keys are missing in the denominator" in {
-    val left = Tally("A" -> 2, "B" -> 8)
-    val right = Tally("A" -> 1d)
-
-    intercept[NoSuchElementException](left / right)
-  }
-
-  it can "be divided by a scalar" in {
-    val tally = Tally("A" -> 2, "B" -> 8)
-
-    assert(tally / 2 === Tally("A" -> 1, "B" -> 4))
-  }
-
-  it should "fail if divided by 0" in {
-    val tally = Tally("A" -> 2, "B" -> 8)
-
-    intercept[ArithmeticException](tally / 0)
-  }
-
   it can "be built by incrementing keys by 1" in {
     val builder = Tally.Builder[String]()
 

@@ -8,15 +8,4 @@ class SimpleTallySpec extends ImprovedFlatSpec {
     assert(SimpleTally(1) + SimpleTally(2) === SimpleTally(3))
   }
 
-  it can "be divided by another" in {
-    assert(SimpleTally(2) / SimpleTally(2) === SimpleTally(1))
-  }
-
-  it can "be divided by a scalar" in {
-    assert(SimpleTally(2) / 2 === SimpleTally(1))
-  }
-
-  it can "not be divided by 0" in {
-    intercept[ArithmeticException](SimpleTally(2) / 0)
-  }
 }

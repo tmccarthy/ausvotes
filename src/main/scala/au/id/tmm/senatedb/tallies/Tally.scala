@@ -9,10 +9,6 @@ final case class Tally[A](values: Map[A, Double]) extends TallyLike with (A => D
 
   override def +(that: Tally[A]): Tally[A] = Tally(this.values + that.values)
 
-  override def /(that: Tally[A]): Tally[A] = Tally(this.values / that.values)
-
-  override def /(k: Double): Tally[A] = Tally(values / k)
-
   override def apply(key: A): Double = values.getOrElse(key, 0d)
 }
 

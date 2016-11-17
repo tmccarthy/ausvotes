@@ -8,9 +8,6 @@ final case class TieredTally[A, B](values: Map[A, Tally[B]]) extends TallyLike {
   override def +(that: TieredTally[A, B]): TieredTally[A, B] =
     this.mergeWith(that, key => this.values.getOrElse(key, Tally()) + that.values.getOrElse(key, Tally()))
 
-  override def /(that: TieredTally[A, B]): TieredTally[A, B] =
-    this.mergeWith(that, key => this.values.getOrElse(key, Tally()) / that.values(key))
-
   private def mergeWith(that: TieredTally[A, B], newValueForKey: A => Tally[B]): TieredTally[A, B] = {
     val newKeys = this.values.keySet ++ that.values.keySet
 
@@ -18,14 +15,6 @@ final case class TieredTally[A, B](values: Map[A, Tally[B]]) extends TallyLike {
       .map(key => key -> newValueForKey(key))
 
     TieredTally(newEntries.toMap)
-  }
-
-  override def /(k: Double): TieredTally[A, B] = {
-    if (k == 0) {
-      throw new ArithmeticException()
-    }
-
-    TieredTally(values.mapValues(_ / k))
   }
 
   def apply(key: A): Tally[B] = values.getOrElse(key, Tally())
