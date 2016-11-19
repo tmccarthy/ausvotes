@@ -1,41 +1,42 @@
 import sbt.Keys._
 import sbt._
 
-scalaVersion in ThisBuild := "2.11.8"
+Defaults.itSettings
 
-scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
-
-resolvers in ThisBuild +=
-  "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
-
-lazy val root = Project("SenateDB", file("."))
-  .enablePlugins(GitVersioning)
-  .aggregate(core)
-
-lazy val core = project.in(file("core"))
+lazy val _ = Project("SenateDB", file("."))
   .enablePlugins(GitVersioning)
   .configs(IntegrationTest)
-  .settings(Defaults.itSettings)
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
-      "au.id.tmm" %% "tmmtestutils" % "0.1.16" % "test,it",
 
-      "au.id.tmm" %% "tmmutils" % "0.1.16",
+name := "SenateDB"
 
-      "org.slf4j" % "slf4j-simple" % "1.7.19",
-      "com.github.scopt" %% "scopt" % "3.4.0",
-      "com.github.tototoshi" %% "scala-csv" % "1.3.3",
+git.baseVersion := "0.1"
 
-      "com.typesafe.akka" %% "akka-actor" % "2.3.12",
-      "com.typesafe.slick" %% "slick" % "3.1.0",
-      "org.xerial" % "sqlite-jdbc" % "3.8.11.2",
-      "com.h2database" % "h2" % "1.4.192",
-      "org.postgresql" % "postgresql" % "9.4.1209",
+scalaVersion := "2.11.8"
 
-      "commons-io" % "commons-io" % "2.4",
-      "org.apache.commons" % "commons-lang3" % "3.4"
-    )
-  )
-  .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*")
+scalacOptions ++= Seq("-unchecked", "-deprecation")
+
+resolvers +=
+  "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
+
+libraryDependencies ++= Seq(
+  "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
+  "au.id.tmm" %% "tmmtestutils" % "0.1.16" % "test,it",
+
+  "au.id.tmm" %% "tmmutils" % "0.1.16",
+
+  "org.slf4j" % "slf4j-simple" % "1.7.19",
+  "com.github.scopt" %% "scopt" % "3.4.0",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.3",
+
+  "com.typesafe.akka" %% "akka-actor" % "2.3.12",
+  "com.typesafe.slick" %% "slick" % "3.1.0",
+  "org.xerial" % "sqlite-jdbc" % "3.8.11.2",
+  "com.h2database" % "h2" % "1.4.192",
+  "org.postgresql" % "postgresql" % "9.4.1209",
+
+  "commons-io" % "commons-io" % "2.4",
+  "org.apache.commons" % "commons-lang3" % "3.4"
+)
+
+coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*"
