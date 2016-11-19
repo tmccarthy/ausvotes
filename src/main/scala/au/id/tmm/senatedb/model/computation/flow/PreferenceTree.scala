@@ -4,13 +4,10 @@ import scala.collection.mutable
 
 final case class PreferenceTree[A](key: A,
                                    tally: Int,
-                                   children: Set[PreferenceTree[A]]) {
+                                   children: Set[PreferenceTree[A]]) extends PreferenceTreeLike[A] {
 
   checkTalliesConsistent()
-  checkChildKeysUnique()
   checkChildKeysNotThisKey()
-
-  private val lookupChildByKey: Map[A, PreferenceTree[A]] = children.map(tree => tree.key -> tree).toMap
 
   def +(that: PreferenceTree[A]): PreferenceTree[A] = {
     require(this.key == that.key)
@@ -18,60 +15,19 @@ final case class PreferenceTree[A](key: A,
     if (that.isEmpty) return this
     if (this.isEmpty) return that
 
-    def newChildForKey(key: A): PreferenceTree[A] = {
-      Stream(
-        this.lookupChildByKey.get(key),
-        that.lookupChildByKey.get(key)
-      ).flatten
-        .reduce(_ + _)
-    }
-
-    val newTally = this.tally + that.tally
-
-    val allNewChildKeys = this.lookupChildByKey.keySet ++ that.lookupChildByKey.keySet
-
-    val newChildren = allNewChildKeys.map(newChildForKey)
+    val newTally = this sumTallyWith that
+    val newChildren = this sumChildrenWith that
 
     PreferenceTree(key, newTally, newChildren)
   }
 
-  @scala.annotation.tailrec
-  def treeAt(path: Vector[A]): PreferenceTree[A] = {
-    if (path.isEmpty) {
-      this
-    } else {
-      val childMatchingPath = lookupChildByKey.get(path.head)
+  def treeAt(path: Vector[A]): PreferenceTree[A] = childAtPath(path).getOrElse(this)
 
-      if (childMatchingPath.isEmpty) {
-        PreferenceTree.emptyFor(path.head)
-      } else {
-        childMatchingPath.get.treeAt(path.tail)
-      }
-    }
-  }
-
-  def pruneWhere(condition: PreferenceTree[A] => Boolean): PreferenceTree[A] = {
-    val newChildren = children.filterNot(condition).map(_.pruneWhere(condition))
-
-    this.copy(children = newChildren)
-  }
-
-  def isEmpty: Boolean = children.isEmpty
+  def pruneWhere(condition: PreferenceTree[A] => Boolean): PreferenceTree[A] =
+    this.copy(children = childrenPrunedWhere(condition))
 
   private def checkTalliesConsistent() = require(tally >= children.toStream.map(_.tally).sum,
     "Tally is less than the sum of child tallies")
-
-  private def checkChildKeysUnique() = {
-    val allChildKeys = children.toStream.map(_.key).toVector
-
-    val numTimesKeyOccursInChildren: Map[A, Int] = allChildKeys.groupBy(k => k).mapValues(_.size)
-
-    val duplicatedChildKeys = numTimesKeyOccursInChildren.collect {
-      case (childKey, countInChildren) if countInChildren > 1 => childKey
-    }.toSet
-
-    require(duplicatedChildKeys.isEmpty, s"Children contain duplicate keys $duplicatedChildKeys")
-  }
 
   private def checkChildKeysNotThisKey() = require(!children.exists(_.key == key), "Children contain key of parent")
 }
@@ -114,12 +70,20 @@ object PreferenceTree {
       }
     }
 
-    override def clear(): Unit = children.clear()
+    override def clear(): Unit = {
+      children.clear()
+      tally = 0
+      key = None
+    }
 
     override def result(): PreferenceTree[A] = {
-      val builtChildren = children.values.map(_.result()).toSet
+      if (key.isDefined) {
+        val builtChildren = children.values.map(_.result()).toSet
 
-      PreferenceTree(key.get, tally, builtChildren)
+        PreferenceTree(key.get, tally, builtChildren)
+      } else {
+        throw new IllegalStateException("Must provide at least one set of keys.")
+      }
     }
   }
 

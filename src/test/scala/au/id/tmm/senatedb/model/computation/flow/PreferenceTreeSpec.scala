@@ -124,4 +124,32 @@ class PreferenceTreeSpec extends ImprovedFlatSpec {
       PreferenceTree[Group](group("A"), 2, children)
     }
   }
+
+  "the preference tree builder" can "be cleared" in {
+    val builder = PreferenceTree.Builder[Group]()
+
+    builder += Vector(group("D"))
+
+    builder.clear()
+
+    builder += Vector(group("A"))
+
+    assert(builder.result() === PreferenceTree[Group](group("A"), 1, Set()))
+  }
+
+  it should "add nothing when an empty path is provided" in {
+    val builder = PreferenceTree.Builder[Group]()
+
+    builder += Vector()
+
+    builder += Vector(group("A"))
+
+    assert(builder.result() === PreferenceTree[Group](group("A"), 1, Set()))
+  }
+
+  it should "fail if result is called and no path has been provided" in {
+    intercept[IllegalStateException] {
+      PreferenceTree.Builder[Group]().result()
+    }
+  }
 }
