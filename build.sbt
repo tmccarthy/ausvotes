@@ -24,7 +24,6 @@ lazy val core = project.in(file("core"))
 
       "au.id.tmm" %% "tmmutils" % "0.1.16",
 
-      "org.slf4j" % "slf4j-simple" % "1.7.19",
       "com.github.scopt" %% "scopt" % "3.4.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.3",
 
@@ -42,12 +41,17 @@ lazy val core = project.in(file("core"))
 
 lazy val webapp = project.in(file("webapp"))
   .enablePlugins(GitVersioning)
+  .enablePlugins(PlayScala)
+  .disablePlugins(PlayLayoutPlugin)
   .settings(
-    libraryDependencies ++= Seq(
-      jdbc,
-      cache,
-      ws,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
-    )
+    libraryDependencies += jdbc,
+    libraryDependencies += cache,
+    libraryDependencies += ws,
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+  )
+  .settings(
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"        % "2.5.+",
+    libraryDependencies += "org.postgresql"  %  "postgresql"         % "9.4.1212",
+    libraryDependencies += "ch.qos.logback"  %  "logback-classic"    % "1.1.+"
   )
   .dependsOn(core)
