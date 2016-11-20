@@ -10,7 +10,7 @@ resolvers in ThisBuild +=
 
 lazy val root = Project("SenateDB", file("."))
   .enablePlugins(GitVersioning)
-  .aggregate(core)
+  .aggregate(core, webapp)
 
 lazy val core = project.in(file("core"))
   .enablePlugins(GitVersioning)
@@ -39,3 +39,15 @@ lazy val core = project.in(file("core"))
     )
   )
   .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*")
+
+lazy val webapp = project.in(file("webapp"))
+  .enablePlugins(GitVersioning)
+  .settings(
+    libraryDependencies ++= Seq(
+      jdbc,
+      cache,
+      ws,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+    )
+  )
+  .dependsOn(core)
