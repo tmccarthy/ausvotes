@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.reporting
 
 import au.id.tmm.senatedb.model.PartySignificance
-import au.id.tmm.senatedb.model.parsing.{BallotGroup, Division, Party}
+import au.id.tmm.senatedb.model.parsing.{BallotGroup, Division, Party, VoteCollectionPoint}
 import au.id.tmm.senatedb.reportwriting.table.Column._
 import au.id.tmm.senatedb.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.tallies.Tallier.{NormalTallier, SimpleTallier, TieredTallier}
@@ -234,5 +234,43 @@ object TableBuilders {
     }
 
     override def tableTitle: String = s"By group in ${state.toNiceString}"
+  }
+
+  final case class PerVoteCollectionPointTableBuilder(nationalTallier: SimpleTallier,
+                                                      perVoteCollectionPointTallier: NormalTallier[VoteCollectionPoint],
+                                                      primaryCountColumnTitle: String) extends TableBuilder {
+    override def requiredTalliers: Set[Tallier] = Set(
+      perVoteCollectionPointTallier,
+      CountFormalBallots.ByVoteCollectionPoint,
+      nationalTallier,
+      CountFormalBallots.Nationally
+    )
+
+    override def tableFrom(tallies: Tallies): TallyTable[VoteCollectionPoint] = {
+      val matchingBallotsPerPollingPlace = tallies.tallyBy(perVoteCollectionPointTallier)
+      val totalFormalBallotsPerPollingPlace = tallies.tallyBy(CountFormalBallots.ByVoteCollectionPoint)
+
+      val totalMatchingNationally = tallies.tallyBy(nationalTallier)
+      val totalFormalBallotsNationally = tallies.tallyBy(CountFormalBallots.Nationally)
+
+      val columns = Vector(
+        StateNameColumn,
+        DivisionNameColumn,
+        VoteCollectionPointNameColumn,
+        PrimaryCountColumn(primaryCountColumnTitle),
+        DenominatorCountColumn("Total formal ballots for polling place"),
+        FractionColumn()
+      )
+
+      TallyTable[VoteCollectionPoint](
+        matchingBallotsPerPollingPlace,
+        totalFormalBallotsPerPollingPlace,
+        totalMatchingNationally.count,
+        totalFormalBallotsNationally.count,
+        columns
+      )
+    }
+
+    override def tableTitle: String = "By vote collection point"
   }
 }
