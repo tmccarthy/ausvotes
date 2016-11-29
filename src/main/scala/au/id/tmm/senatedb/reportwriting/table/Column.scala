@@ -1,6 +1,7 @@
 package au.id.tmm.senatedb.reportwriting.table
 
 import au.id.tmm.senatedb.model.PartySignificance
+import au.id.tmm.senatedb.model.computation.SavingsProvision
 import au.id.tmm.senatedb.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.model.parsing._
 import au.id.tmm.senatedb.reportwriting.table.Row.DataRow
@@ -87,6 +88,19 @@ object Column {
     override def valueForKey(key: Any): String = key match {
       case Group(_, _, code, party) => s"$code (${PartyNameColumn.valueForKey(party)})"
       case Ungrouped(_) => s"${Ungrouped.code} (Ungrouped)"
+    }
+  }
+
+  case object SavingsProvisionNameColumn extends KeyBasedColumn {
+    val heading = "Savings provision"
+
+    override protected def valueForKey(key: Any): String = key match {
+      case SavingsProvision.UsedTick => "Used tick for first preference"
+      case SavingsProvision.UsedCross => "Used cross for first preference"
+      case SavingsProvision.CountingErrorAtl => "Counting error above-the-line"
+      case SavingsProvision.CountingErrorBtl => "Counting error below-the-line"
+      case SavingsProvision.InsufficientPreferencesAtl => "Insufficient squares numbered above-the-line"
+      case SavingsProvision.InsufficientPreferencesBtl => "Insufficient squares numbered below-the-line"
     }
   }
 

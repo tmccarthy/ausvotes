@@ -134,9 +134,15 @@ squares.
 
 More than a million ballots were saved from being informal by savings provisions in the Electoral Act.
 
-| |Saved ballots|%|
+|Savings provision|Ballots saved by provision|%|
 |---|---|---|
-|**Total**|**1,087,711**|**7.86%**|
+|Insufficient squares numbered above-the-line|913,730|6.60%|
+|Counting error above-the-line|442,132|3.19%|
+|Insufficient squares numbered below-the-line|66,895|0.48%|
+|Counting error below-the-line|44,915|0.32%|
+|Used tick for first preference|28,247|0.20%|
+|Used cross for first preference|23,415|0.17%|
+|**Total**|**1,046,837**|**7.56%**|
 
 ### Votes above the line
 
