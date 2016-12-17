@@ -47,12 +47,17 @@ lazy val webapp = project.in(file("webapp"))
     libraryDependencies += jdbc,
     libraryDependencies += cache,
     libraryDependencies += ws,
-    libraryDependencies += "org.flywaydb" %% "flyway-play" % "3.0.1",
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+    libraryDependencies += "org.flywaydb" %% "flyway-play" % "3.0.1"
   )
   .settings(
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"        % "2.5.0",
     libraryDependencies += "org.postgresql"  %  "postgresql"         % "9.4.1212",
     libraryDependencies += "ch.qos.logback"  %  "logback-classic"    % "1.1.7"
   )
-  .dependsOn(core)
+  .settings(
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
+    libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
+    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
+    libraryDependencies += "au.id.tmm" %% "tmmtestutils" % "0.1.16" % "test"
+  )
+  .dependsOn(core % "compile->compile;test->test")
