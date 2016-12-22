@@ -12,6 +12,7 @@ import scala.concurrent.Future
 class DbPopulation @Inject() (entityPopulationChecker: EntityPopulationChecker,
                               tallyPopulationChecker: TallyPopulationChecker,
                               parsedDataStore: ParsedDataStore,
+                              tallyEngine: TallyEngine,
                               entityClassPopulator: EntityClassPopulator,
                               tallyPopulator: TallyPopulator) {
 
@@ -40,7 +41,7 @@ class DbPopulation @Inject() (entityPopulationChecker: EntityPopulationChecker,
     val allTalliersToRegister = talliersForPopulation ++ talliersRequiredToPopulateEntities
 
     // TODO don't always want to run for all states
-    val eventualTallies = TallyEngine.talliesForStates(parsedDataStore, senateElection, State.ALL_STATES,
+    val eventualTallies = tallyEngine.talliesForStates(parsedDataStore, senateElection, State.ALL_STATES,
       divisionsAndPollingPlaces, groupsAndCandidates, allTalliersToRegister)
 
     eventualTallies.map { tallies =>

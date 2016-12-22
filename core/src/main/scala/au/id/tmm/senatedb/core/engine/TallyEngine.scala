@@ -21,6 +21,14 @@ trait TallyEngine {
              states: Set[State],
              talliers: Set[Tallier])
             (implicit ec: ExecutionContext): Future[Tallies]
+
+  def talliesForStates(parsedDataStore: ParsedDataStore,
+                       election: SenateElection,
+                       states: Set[State],
+                       divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                       groupsAndCandidates: GroupsAndCandidates,
+                       talliers: Set[Tallier])
+                      (implicit ec: ExecutionContext): Future[Tallies]
 }
 
 object TallyEngine extends TallyEngine {
@@ -40,12 +48,12 @@ object TallyEngine extends TallyEngine {
   }
 
   def talliesForStates(parsedDataStore: ParsedDataStore,
-                               election: SenateElection,
-                               states: Set[State],
-                               divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                               groupsAndCandidates: GroupsAndCandidates,
-                               talliers: Set[Tallier])
-                              (implicit ec: ExecutionContext): Future[Tallies] = {
+                       election: SenateElection,
+                       states: Set[State],
+                       divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                       groupsAndCandidates: GroupsAndCandidates,
+                       talliers: Set[Tallier])
+                      (implicit ec: ExecutionContext): Future[Tallies] = {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
     val tallyFuturesPerState = states
