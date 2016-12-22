@@ -8,6 +8,8 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 resolvers in ThisBuild +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
+val tmmUtilsVersion = "0.1.17"
+
 lazy val root = Project("SenateDB", file("."))
   .enablePlugins(GitVersioning)
   .aggregate(core, webapp)
@@ -20,9 +22,9 @@ lazy val core = project.in(file("core"))
     libraryDependencies ++= Seq(
       "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
-      "au.id.tmm" %% "tmmtestutils" % "0.1.16" % "test,it",
+      "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test,it",
 
-      "au.id.tmm" %% "tmmutils" % "0.1.16",
+      "au.id.tmm" %% "tmmutils" % tmmUtilsVersion,
 
       "com.github.scopt" %% "scopt" % "3.4.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.3",
@@ -58,6 +60,6 @@ lazy val webapp = project.in(file("webapp"))
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
     libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
     libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-    libraryDependencies += "au.id.tmm" %% "tmmtestutils" % "0.1.16" % "test"
+    libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
   )
   .dependsOn(core % "compile->compile;test->test")

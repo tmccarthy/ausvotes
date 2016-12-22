@@ -15,6 +15,8 @@ trait DivisionDao {
   def allAtElection(election: SenateElection): Future[Set[Division]]
 
   def fromAecId(aecId: String): Future[Division]
+
+  def hasAnyDivisionsFor(election: SenateElection): Future[Boolean]
 }
 
 class ConcreteDivisionDao @Inject() (db: Database) extends DivisionDao {
@@ -23,4 +25,6 @@ class ConcreteDivisionDao @Inject() (db: Database) extends DivisionDao {
   override def allAtElection(election: SenateElection): Future[Set[Division]] = ???
 
   override def fromAecId(aecId: String): Future[Division] = ???
+
+  override def hasAnyDivisionsFor(election: SenateElection): Future[Boolean] = ???
 }

@@ -10,8 +10,11 @@ trait GeneralDao {
 
   def voteCollectionPointDao: VoteCollectionPointDao
 
+  def generalTallyDao: GeneralTallyDao
+
 }
 
 class ConcreteGeneralDao @Inject() (val divisionDao: DivisionDao,
-                                    val voteCollectionPointDao: VoteCollectionPointDao) extends GeneralDao {
+                                    val voteCollectionPointDao: VoteCollectionPointDao,
+                                    val generalTallyDao: GeneralTallyDao) extends GeneralDao {
 }

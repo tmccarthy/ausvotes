@@ -39,7 +39,7 @@ object TallyEngine extends TallyEngine {
     } yield allTallies
   }
 
-  private def talliesForStates(parsedDataStore: ParsedDataStore,
+  def talliesForStates(parsedDataStore: ParsedDataStore,
                                election: SenateElection,
                                states: Set[State],
                                divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
