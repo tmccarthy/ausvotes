@@ -52,9 +52,12 @@ lazy val webapp = project.in(file("webapp"))
     libraryDependencies += "org.flywaydb" %% "flyway-play" % "3.0.1"
   )
   .settings(
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"        % "2.5.0",
-    libraryDependencies += "org.postgresql"  %  "postgresql"         % "9.4.1212",
-    libraryDependencies += "ch.qos.logback"  %  "logback-classic"    % "1.1.7"
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "2.5.0",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "2.5.0",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.5.1",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-jsr310"             % "2.5.0",
+    libraryDependencies += "org.postgresql"  %  "postgresql"                     % "9.4.1212",
+    libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7"
   )
   .settings(
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,

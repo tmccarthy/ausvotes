@@ -1,21 +1,44 @@
 package au.id.tmm.senatedb.core.model
 
-import java.time.{LocalDate, Month}
+import java.time.LocalDate
+import java.time.Month._
 
 import au.id.tmm.utilities.geo.australia.State
 
-final case class SenateElection private (date: LocalDate, states: Set[State], aecID: String) extends Ordered[SenateElection] {
-  override def toString: String = s"${date.getYear} election"
+// TODO make this a union type
+sealed trait SenateElection extends Ordered[SenateElection] {
+  def date: LocalDate
+  def states: Set[State] = State.ALL_STATES
+  def aecID: String
+  def name: String = s"${date.getYear} election"
 
-  override def compare(that: SenateElection): Int = SenateElection.ordering.compare(this, that)
+  override def compare(that: SenateElection): Int = this.date compareTo that.date
+
+  override def toString: String = name
 }
 
 object SenateElection {
 
-  val ordering: Ordering[SenateElection] = new Ordering[SenateElection] {
-    override def compare(left: SenateElection, right: SenateElection): Int = left.date compareTo right.date
+  case object `2016` extends SenateElection {
+    override def date: LocalDate = LocalDate.of(2016, JULY, 2)
+
+    override def aecID: String = "20499"
   }
 
-  val `2016` = SenateElection(LocalDate.of(2016, Month.JULY, 2), State.ALL_STATES, "20499")
-  val `2013` = SenateElection(LocalDate.of(2013, Month.SEPTEMBER, 7), State.ALL_STATES, "17496")
+  case object `2014 WA` extends SenateElection {
+    override def date: LocalDate = LocalDate.of(2014, APRIL, 5)
+
+    override def states: Set[State] = Set(State.WA)
+
+    override def aecID: String = "17875"
+
+    override def name: String = "2014 WA Senate election"
+  }
+
+  case object `2013` extends SenateElection {
+    override def date: LocalDate = LocalDate.of(2013, SEPTEMBER, 7)
+
+    override def aecID: String = "17496"
+  }
+
 }

@@ -2,8 +2,8 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.tallies.Tally
-import com.google.inject.{ImplementedBy, Inject}
-import play.api.db.Database
+import com.google.inject.{ImplementedBy, Inject, Singleton}
+import scalikejdbc.{ConnectionPoolContext, _}
 
 import scala.concurrent.Future
 
@@ -18,8 +18,13 @@ trait TotalFormalBallotsDao {
   def writePerVoteCollectionPoint(tally: Tally[VoteCollectionPoint]): Future[Unit]
 }
 
-class ConcreteTotalFormalBallotsDao @Inject() (db: Database) extends TotalFormalBallotsDao {
-  override def hasTallyForAnyDivision: Future[Boolean] = ???
+@Singleton
+class ConcreteTotalFormalBallotsDao @Inject() (connectionPool: ConnectionPoolContext) extends TotalFormalBallotsDao {
+  override def hasTallyForAnyDivision: Future[Boolean] = {
+    DB.readOnly { implicit session =>
+      ???
+    }
+  }
 
   override def hasTallyForAnyVoteCollectionPoint: Future[Boolean] = ???
 

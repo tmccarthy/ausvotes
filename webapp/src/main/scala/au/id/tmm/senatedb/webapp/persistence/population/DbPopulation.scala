@@ -5,6 +5,7 @@ import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandid
 import au.id.tmm.senatedb.core.tallies.{CountFormalBallots, Tallier, Tallies}
 import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.{Inject, Singleton}
+import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.Future
 

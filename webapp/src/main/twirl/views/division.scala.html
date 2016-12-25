@@ -1,0 +1,10 @@
+@@import au.id.tmm.senatedb.core.model.SenateElection
+@import au.id.tmm.senatedb.core.model.parsing.Division
+@import au.id.tmm.utilities.geo.australia.State
+@(election: SenateElection, state: State, division: Division)
+
+@main("Index") {
+
+    <h1>@division.name at @election.name</h1>
+
+}

@@ -4,6 +4,7 @@ import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.webapp.persistence.daos.GeneralDao
 import au.id.tmm.utilities.concurrent.FutureCollectionUtils.FutureSetOps
 import com.google.inject.{Inject, Singleton}
+import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.Future
 
