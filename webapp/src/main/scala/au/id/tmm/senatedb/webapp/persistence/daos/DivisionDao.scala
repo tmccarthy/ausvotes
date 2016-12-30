@@ -18,18 +18,19 @@ trait DivisionDao {
   def hasAnyDivisionsFor(election: SenateElection): Future[Boolean]
 
   def fromName(divisionName: String): Future[Option[Division]]
+
+  def allWithIdsInSession(implicit session: DBSession): Map[Division, Long]
 }
 
 @Singleton
 class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
+    val rowsToInsert = divisions.map(divisionToRow).toSeq
+
     DB.localTx { implicit session =>
-
-      val rowsToInsert = divisions.map(divisionToRow).toSeq
-
       sql"INSERT INTO division(election, aec_id, state, name) VALUES ({election}, {aec_id}, {state}, {name})"
-        .batchByName(rowsToInsert : _*)
+        .batchByName(rowsToInsert: _*)
         .apply()
     }
   }
@@ -53,6 +54,8 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
 
       sql"SELECT * FROM division WHERE election = ${electionId} LIMIT 1"
         .first()
+        .map(divisionFromRow)
+        .first()
         .apply()
         .isDefined
     }
@@ -67,6 +70,15 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
         .first
         .apply()
     }
+  }
+
+
+  override def allWithIdsInSession(implicit session: DBSession): Map[Division, Long] = {
+    sql"SELECT * FROM division"
+      .map(row => divisionFromRow(row) -> row.long("id"))
+      .list()
+      .apply()
+      .toMap
   }
 
   private def divisionToRow(division: Division): Seq[(Symbol, Any)] = {

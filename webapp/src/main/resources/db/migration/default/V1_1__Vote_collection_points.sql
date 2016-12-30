@@ -15,7 +15,6 @@ CREATE TABLE vote_collection_point (
   id SERIAL PRIMARY KEY,
 
   election VARCHAR(5) REFERENCES senate_election(id),
-  aec_id INTEGER,
   state VARCHAR(3) REFERENCES state(abbreviation),
   division_id INTEGER REFERENCES division(id),
 
@@ -23,6 +22,8 @@ CREATE TABLE vote_collection_point (
   name VARCHAR,
 
   -- Only if this is a polling place
+
+  aec_id INTEGER,
 
   polling_place_type POLLING_PLACE_TYPE,
 
@@ -32,7 +33,7 @@ CREATE TABLE vote_collection_point (
   address INTEGER REFERENCES address(id),
 
   latitude DOUBLE PRECISION,
-  longtitude DOUBLE PRECISION
+  longitude DOUBLE PRECISION
 );
 
 CREATE TABLE vote_collection_point_stats (

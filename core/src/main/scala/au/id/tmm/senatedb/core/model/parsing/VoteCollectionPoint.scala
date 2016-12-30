@@ -30,6 +30,13 @@ object VoteCollectionPoint {
     override val name = s"PROVISIONAL $number"
   }
 
+  def addressOf(voteCollectionPoint: VoteCollectionPoint): Option[Address] = {
+    voteCollectionPoint match {
+      case p: PollingPlace => PollingPlace.Location.addressOf(p.location)
+      case _ => None
+    }
+  }
+
 }
 final case class PollingPlace(election: SenateElection,
                               state: State,
@@ -66,5 +73,11 @@ object PollingPlace {
 
     final case class PremisesMissingLatLong(name: String,
                                             address: Address) extends Location
+
+    def addressOf(location: Location): Option[Address] = location match {
+      case p: Premises => Some(p.address)
+      case p: PremisesMissingLatLong => Some(p.address)
+      case _ => None
+    }
   }
 }
