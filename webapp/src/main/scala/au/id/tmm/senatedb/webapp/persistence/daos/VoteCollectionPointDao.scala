@@ -77,9 +77,33 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
   override def allAtElection(election: SenateElection): Future[Set[VoteCollectionPoint]] = ???
 
-  override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = ???
+  override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
+    DB.readOnly { implicit session =>
+      sql"""SELECT *
+           |  FROM vote_collection_point
+           |  WHERE type <> 'polling_place'
+           |  LIMIT 1
+         """.stripMargin
+        .map(_ => Unit)
+        .first()
+        .apply()
+        .isDefined
+    }
+  }
 
-  override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = ???
+  override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = Future {
+    DB.readOnly { implicit session =>
+      sql"""SELECT *
+         |  FROM vote_collection_point
+         |  WHERE type = 'polling_place'
+         |  LIMIT 1
+         """.stripMargin
+        .map(_ => Unit)
+        .first()
+        .apply()
+        .isDefined
+    }
+  }
 }
 
 private[daos] object VoteCollectionPointRowConversions extends RowConversions {

@@ -2,7 +2,6 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 
-@Singleton
 @ImplementedBy(classOf[ConcreteGeneralDao])
 trait GeneralDao {
 
@@ -16,6 +15,7 @@ trait GeneralDao {
 
 }
 
+@Singleton
 class ConcreteGeneralDao @Inject() (val divisionDao: DivisionDao,
                                     val voteCollectionPointDao: VoteCollectionPointDao,
                                     val generalTallyDao: GeneralTallyDao,

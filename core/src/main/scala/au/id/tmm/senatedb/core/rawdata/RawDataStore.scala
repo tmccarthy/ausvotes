@@ -32,7 +32,6 @@ final class RawDataStore private (aecResourceStore: AecResourceStore) {
   }
 }
 
-
 object RawDataStore {
   def apply(aecResourceStore: AecResourceStore): RawDataStore = new RawDataStore(aecResourceStore)
 }

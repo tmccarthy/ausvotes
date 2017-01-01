@@ -4,24 +4,23 @@ import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
 import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.senatedb.core.tallies.{CountFormalBallots, Tallier, Tallies}
 import au.id.tmm.utilities.geo.australia.State
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Inject
 import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.Future
 
-@Singleton
-class DbPopulation @Inject() (entityPopulationChecker: EntityPopulationChecker,
-                              tallyPopulationChecker: TallyPopulationChecker,
-                              parsedDataStore: ParsedDataStore,
-                              tallyEngine: TallyEngine,
-                              entityClassPopulator: EntityClassPopulator,
-                              tallyPopulator: TallyPopulator) {
+class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
+                            tallyPopulationChecker: TallyPopulationChecker,
+                            parsedDataStore: ParsedDataStore,
+                            tallyEngine: TallyEngine,
+                            entityClassPopulator: EntityClassPopulator,
+                            tallyPopulator: TallyPopulator) {
 
   def populateAsNeeded(election: SenateElection): Future[Unit] = {
 
     for {
-      entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulation.requiredEntities)
-      talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulation.requiredTallies)
+      entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulator.requiredEntities)
+      talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulator.requiredTallies)
     } yield {
       populate(election, entitiesToPopulate, talliesToPopulate)
     }
@@ -87,7 +86,7 @@ class DbPopulation @Inject() (entityPopulationChecker: EntityPopulationChecker,
   }
 }
 
-object DbPopulation {
+object DbPopulator {
   val requiredEntities: Set[PopulatableEntityClass] = Set(
     PopulatableEntityClass.Divisions,
     PopulatableEntityClass.PollingPlaces,

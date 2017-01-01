@@ -65,4 +65,7 @@ lazy val webapp = project.in(file("webapp"))
     libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
   )
+  .settings(
+    baseDirectory in run := file("..")
+  )
   .dependsOn(core % "compile->compile;test->test")
