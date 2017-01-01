@@ -39,7 +39,7 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
       val divisionIds: Map[Division, Long] = divisionDao.allWithIdsInSession
 
       val voteCollectionPointRowsToWrite = voteCollectionPoints
-        .map(voteCollectionPointToRow(_, addressIds, divisionIds))
+        .map(VoteCollectionPointRowConversions.toRow(divisionIds, addressIds, electionDao))
         .toSeq
 
       val statement = sql"""INSERT INTO vote_collection_point(
@@ -80,22 +80,27 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
   override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = ???
 
   override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = ???
+}
 
-  private def voteCollectionPointToRow(voteCollectionPoint: VoteCollectionPoint,
-                                       addressIds: Map[Address, Long],
-                                       divisionIds: Map[Division, Long]
-                                      ): Seq[(Symbol, Any)] = {
-    voteCollectionPointRowComponentOf(voteCollectionPoint, divisionIds) ++
+private[daos] object VoteCollectionPointRowConversions extends RowConversions {
+
+  protected def fromRow(c: (String) => String, row: WrappedResultSet): VoteCollectionPoint = ???
+
+  def toRow(divisionIdLookup: Map[Division, Long],
+            addressIdLookup: Map[Address, Long],
+            electionDao: ElectionDao)
+           (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
+    voteCollectionPointRowComponentOf(divisionIdLookup, electionDao)(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
-      locationRowComponentOf(voteCollectionPoint, addressIds)
+      locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
   }
 
-  private def voteCollectionPointRowComponentOf(voteCollectionPoint: VoteCollectionPoint,
-                                                divisionIds: Map[Division, Long]): Seq[(Symbol, Any)] = {
+  private def voteCollectionPointRowComponentOf(divisionIdLookup: Map[Division, Long], electionDao: ElectionDao)
+                                               (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     Seq(
       Symbol("election") -> electionDao.idOfBlocking(voteCollectionPoint.election),
       Symbol("state") -> voteCollectionPoint.state.abbreviation,
-      Symbol("division_id") -> divisionIds(voteCollectionPoint.division),
+      Symbol("division_id") -> divisionIdLookup(voteCollectionPoint.division),
       Symbol("type") -> sqlPollingPlaceTypeOf(voteCollectionPoint),
       Symbol("name") -> voteCollectionPoint.name
     )
@@ -111,8 +116,8 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
     }
   }
 
-  private def locationRowComponentOf(voteCollectionPoint: VoteCollectionPoint,
-                                     addressIds: Map[Address, Long]): Seq[(Symbol, Any)] = {
+  private def locationRowComponentOf(addressIdLookup: Map[Address, Long])
+                                    (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     voteCollectionPoint match {
       case p: PollingPlace => p.location match {
         case Multiple => Seq(
@@ -121,14 +126,14 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
         case Premises(name, address, location) => Seq(
           Symbol("multiple_locations") -> false,
           Symbol("premises_name") -> name,
-          Symbol("address") -> addressIds(address),
+          Symbol("address") -> addressIdLookup(address),
           Symbol("latitude") -> location.latitude,
           Symbol("longitude") -> location.longitude
         )
         case PremisesMissingLatLong(name, address) => Seq(
           Symbol("multiple_locations") -> false,
           Symbol("premises_name") -> name,
-          Symbol("address") -> addressIds(address)
+          Symbol("address") -> addressIdLookup(address)
         )
       }
       case _ => Nil
@@ -137,13 +142,11 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
   private def sqlPollingPlaceTypeOf(voteCollectionPoint: VoteCollectionPoint) = {
     voteCollectionPoint match {
-      case Absentee(election, state, division, number) => "absentee"
-      case Postal(election, state, division, number) => "postal"
-      case PrePoll(election, state, division, number) => "prepoll"
-      case Provisional(election, state, division, number) => "provisional"
-      case PollingPlace(election, state, division, aecId, pollingPlaceType, name, location) => "polling_place"
+      case a: Absentee => "absentee"
+      case p: Postal => "postal"
+      case p: PrePoll => "prepoll"
+      case p: Provisional => "provisional"
+      case p: PollingPlace => "polling_place"
     }
   }
-
-  private def voteCollectionPointFromRow(wrappedResultSet: WrappedResultSet): VoteCollectionPoint = ???
 }

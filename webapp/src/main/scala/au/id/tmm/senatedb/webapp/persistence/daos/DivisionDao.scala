@@ -26,7 +26,7 @@ trait DivisionDao {
 class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
-    val rowsToInsert = divisions.map(divisionToRow).toSeq
+    val rowsToInsert = divisions.map(DivisionRowConversions.toRow).toSeq
 
     DB.localTx { implicit session =>
       sql"INSERT INTO division(election, aec_id, state, name) VALUES ({election}, {aec_id}, {state}, {name})"
@@ -41,7 +41,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
 
       // TODO needs native toSet
       sql"SELECT * FROM division WHERE election = ${electionId}"
-        .map(divisionFromRow)
+        .map(DivisionRowConversions.fromRow(electionDao))
         .list()
         .apply()
         .toSet
@@ -54,7 +54,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
 
       sql"SELECT * FROM division WHERE election = ${electionId} LIMIT 1"
         .first()
-        .map(divisionFromRow)
+        .map(DivisionRowConversions.fromRow(electionDao))
         .first()
         .apply()
         .isDefined
@@ -66,41 +66,45 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
       val divisionNameLowerCase = divisionName.toLowerCase
 
       sql"SELECT * FROM division WHERE name = ${divisionNameLowerCase} LIMIT 1"
-        .map(divisionFromRow)
+        .map(DivisionRowConversions.fromRow(electionDao))
         .first
         .apply()
     }
   }
 
-
   override def allWithIdsInSession(implicit session: DBSession): Map[Division, Long] = {
     sql"SELECT * FROM division"
-      .map(row => divisionFromRow(row) -> row.long("id"))
+      .map(row => DivisionRowConversions.fromRow(electionDao)(row) -> row.long("id"))
       .list()
       .apply()
       .toMap
   }
+}
 
-  private def divisionToRow(division: Division): Seq[(Symbol, Any)] = {
+private[daos] object DivisionRowConversions extends RowConversions {
+
+  def fromRow(electionDao: ElectionDao, alias: String = "")(row: WrappedResultSet): Division = {
+    val c = aliasedColumnName(alias)(_)
+
+    val electionId = row.string(c("election"))
+    val election = electionDao.electionWithIdBlocking(electionId).get
+
+    val stateAbbreviation = row.string(c("state"))
+    val state = State.fromAbbreviation(stateAbbreviation).get
+
+    val name = row.string(c("name"))
+
+    val aecId = row.int(c("aec_id"))
+
+    Division(election, state, name, aecId)
+  }
+
+  def toRow(division: Division): Seq[(Symbol, Any)] = {
     Seq(
       Symbol("election") -> division.election.aecID,
       Symbol("aec_id") -> division.aecId,
       Symbol("state") -> division.state.abbreviation,
       Symbol("name") -> division.name
     )
-  }
-
-  private def divisionFromRow(wrappedResultSet: WrappedResultSet): Division = {
-    val electionId = wrappedResultSet.string("election")
-    val election = electionDao.electionWithIdBlocking(electionId).get
-
-    val stateAbbreviation = wrappedResultSet.string("state")
-    val state = State.fromAbbreviation(stateAbbreviation).get
-
-    val name = wrappedResultSet.string("name")
-
-    val aecId = wrappedResultSet.int("aec_id")
-
-    Division(election, state, name, aecId)
   }
 }

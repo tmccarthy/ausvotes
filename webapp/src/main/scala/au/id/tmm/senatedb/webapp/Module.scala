@@ -11,4 +11,6 @@ class Module extends AbstractModule {
   def provideConnectionPoolContext(): ConnectionPoolContext =
     MultipleConnectionPoolContext(ConnectionPool.DEFAULT_NAME -> ConnectionPool())
 
+  // TODO provide a singleton postcode flyweight
+
 }
