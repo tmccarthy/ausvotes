@@ -3,7 +3,7 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.tallies.Tally
 import com.google.inject.{ImplementedBy, Inject, Singleton}
-import scalikejdbc.{ConnectionPoolContext, _}
+import scalikejdbc._
 
 import scala.concurrent.Future
 
@@ -19,7 +19,7 @@ trait TotalFormalBallotsDao {
 }
 
 @Singleton
-class ConcreteTotalFormalBallotsDao @Inject() (connectionPool: ConnectionPoolContext) extends TotalFormalBallotsDao {
+class ConcreteTotalFormalBallotsDao @Inject() () extends TotalFormalBallotsDao {
   override def hasTallyForAnyDivision: Future[Boolean] = {
     DB.readOnly { implicit session =>
       ???
@@ -31,4 +31,8 @@ class ConcreteTotalFormalBallotsDao @Inject() (connectionPool: ConnectionPoolCon
   override def writePerDivision(tally: Tally[Division]): Future[Unit] = ???
 
   override def writePerVoteCollectionPoint(tally: Tally[VoteCollectionPoint]): Future[Unit] = ???
+}
+
+private[daos] class TotalFormalBallotsConversions extends RowConversions {
+
 }

@@ -26,7 +26,7 @@ trait DivisionDao {
 class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
-    val rowsToInsert = divisions.map(DivisionRowConversions.toRow).toSeq
+    val rowsToInsert = divisions.map(DivisionRowConversions.toRow(electionDao)).toSeq
 
     DB.localTx { implicit session =>
       sql"INSERT INTO division(election, aec_id, state, name) VALUES ({election}, {aec_id}, {state}, {name})"
@@ -50,7 +50,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
 
   override def hasAnyDivisionsFor(election: SenateElection): Future[Boolean] = Future {
     DB.readOnly { implicit session =>
-      val electionId = election.aecID
+      val electionId = electionDao.idOfBlocking(election)
 
       sql"SELECT * FROM division WHERE election = ${electionId} LIMIT 1"
         .first()
@@ -65,7 +65,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
     DB.readOnly { implicit session =>
       val divisionNameLowerCase = divisionName.toLowerCase
 
-      sql"SELECT * FROM division WHERE name = ${divisionNameLowerCase} LIMIT 1"
+      sql"SELECT * FROM division WHERE LOWER(name) = ${divisionNameLowerCase} LIMIT 1"
         .map(DivisionRowConversions.fromRow(electionDao))
         .first
         .apply()
@@ -99,9 +99,9 @@ private[daos] object DivisionRowConversions extends RowConversions {
     Division(election, state, name, aecId)
   }
 
-  def toRow(division: Division): Seq[(Symbol, Any)] = {
+  def toRow(electionDao: ElectionDao)(division: Division): Seq[(Symbol, Any)] = {
     Seq(
-      Symbol("election") -> division.election.aecID,
+      Symbol("election") -> electionDao.idOfBlocking(division.election.aecID),
       Symbol("aec_id") -> division.aecId,
       Symbol("state") -> division.state.abbreviation,
       Symbol("name") -> division.name

@@ -1,5 +1,7 @@
 package au.id.tmm.senatedb.webapp.persistence.daos
 
+import java.sql.Connection
+
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.utilities.geo.australia.{Address, State}
 import com.google.inject.{ImplementedBy, Inject, Singleton}
@@ -16,20 +18,29 @@ trait AddressDao {
 class ConcreteAddressDao @Inject() (postcodeFlyweight: PostcodeFlyweight) extends AddressDao {
 
   override def writeInSession(addresses: Iterable[Address])(implicit session: DBSession): Map[Address, Long] = {
-    val rowsToInsert = addresses.map(AddressRowConversions.toRow).toSeq
 
-    val statement = sql"INSERT INTO address(lines, suburb, postcode, state) VALUES ({lines}, {suburb}, {postcode}, {state})"
-      .batchByName(rowsToInsert: _*)
+    addresses.toStream
+      .map { address =>
+        val asRow = AddressRowConversions.toRow(session.connection)(address)
 
-    val idsForInserted: Vector[Int] = statement.apply()
+        val statement = sql"""INSERT INTO address(
+                           |  lines,
+                           |  suburb,
+                           |  postcode,
+                           |  state
+                           |) VALUES (
+                           |  ${asRow("lines")},
+                           |  ${asRow("suburb")},
+                           |  ${asRow("postcode")},
+                           |  ${asRow("state")}
+                           |)""".stripMargin
+          .updateAndReturnGeneratedKey()
 
-    val idsForInsertedLookup = (addresses zip idsForInserted)
-      .map {
-        case (address, indexInDb) => address -> indexInDb.toLong
+        val generatedId = statement.apply()
+
+        address -> generatedId
       }
       .toMap
-
-    idsForInsertedLookup
   }
 }
 
@@ -46,12 +57,14 @@ private[daos] object AddressRowConversions extends RowConversions {
     Address(lines, suburb, postcode, state)
   }
 
-  def toRow(address: Address): Seq[(Symbol, Any)] = {
-    Seq(
-      Symbol("lines") -> address.lines.toArray,
-      Symbol("suburb") -> address.suburb,
-      Symbol("postcode") -> address.postcode.code,
-      Symbol("state") -> address.state.abbreviation
+  def toRow(connection: Connection)(address: Address): Map[String, Any] = {
+    val addressLines = connection.createArrayOf("TEXT", address.lines.toArray)
+
+    Map(
+      "lines" -> addressLines,
+      "suburb" -> address.suburb,
+      "postcode" -> address.postcode.code,
+      "state" -> address.state.abbreviation
     )
   }
 }

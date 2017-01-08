@@ -42,7 +42,8 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
         .map(VoteCollectionPointRowConversions.toRow(divisionIds, addressIds, electionDao))
         .toSeq
 
-      val statement = sql"""INSERT INTO vote_collection_point(
+      val statement = sql"""
+           |INSERT INTO vote_collection_point(
            |  election,
            |  state,
            |  division_id,
@@ -59,10 +60,10 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
            |  {election},
            |  {state},
            |  {division_id},
-           |  {type},
+           |  CAST({type} AS vote_collection_point_type),
            |  {name},
            |  {aec_id},
-           |  {polling_place_type},
+           |  CAST({polling_place_type} AS polling_place_type),
            |  {multiple_locations},
            |  {premises_name},
            |  {address},
@@ -108,15 +109,47 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
 private[daos] object VoteCollectionPointRowConversions extends RowConversions {
 
+  val allBindingNames: Set[Symbol] = Set(
+    Symbol("election"),
+    Symbol("state"),
+    Symbol("division_id"),
+    Symbol("type"),
+    Symbol("name"),
+    Symbol("aec_id"),
+    Symbol("polling_place_type"),
+    Symbol("multiple_locations"),
+    Symbol("premises_name"),
+    Symbol("address"),
+    Symbol("latitude"),
+    Symbol("longitude")
+  )
+
   protected def fromRow(c: (String) => String, row: WrappedResultSet): VoteCollectionPoint = ???
 
   def toRow(divisionIdLookup: Map[Division, Long],
             addressIdLookup: Map[Address, Long],
             electionDao: ElectionDao)
            (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    voteCollectionPointRowComponentOf(divisionIdLookup, electionDao)(voteCollectionPoint) ++
+    val bindings = voteCollectionPointRowComponentOf(divisionIdLookup, electionDao)(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
       locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
+
+    fillInMissingBindings(bindings)
+  }
+
+  private def fillInMissingBindings(bindings: Seq[(Symbol, Any)]): Seq[(Symbol, Any)] = {
+    val usedBindingsNames = bindings.toStream
+      .map {
+        case (bindingName, value) => bindingName
+      }
+      .toSet
+
+    val missingBindingNames = allBindingNames diff usedBindingsNames
+
+    val missingBindings = missingBindingNames.toStream
+      .map(bindingName => bindingName -> null)
+
+    bindings ++ missingBindings
   }
 
   private def voteCollectionPointRowComponentOf(divisionIdLookup: Map[Division, Long], electionDao: ElectionDao)

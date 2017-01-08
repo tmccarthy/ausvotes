@@ -12,7 +12,7 @@ import scala.concurrent.Future
 class EntityPopulationChecker @Inject() (generalDao: GeneralDao) {
 
   def unpopulatedOf(election: SenateElection, entityClasses: Set[PopulatableEntityClass]): Future[Set[PopulatableEntityClass]] = {
-    entityClasses.filterEventually(isPopulatedAtElection(election, _))
+    entityClasses.filterEventually(isPopulatedAtElection(election, _).map(!_))
   }
 
   private def isPopulatedAtElection(election: SenateElection, entityClass: PopulatableEntityClass): Future[Boolean] = {

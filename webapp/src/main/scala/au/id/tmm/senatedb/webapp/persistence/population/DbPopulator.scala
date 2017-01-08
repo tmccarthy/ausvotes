@@ -17,20 +17,20 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
                             tallyPopulator: TallyPopulator) {
 
   def populateAsNeeded(election: SenateElection): Future[Unit] = {
-
     for {
       entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulator.requiredEntities)
       talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulator.requiredTallies)
-    } yield {
-      populate(election, entitiesToPopulate, talliesToPopulate)
-    }
+      _ <- populate(election, entitiesToPopulate, talliesToPopulate)
+    } yield {}
   }
 
   private def populate(senateElection: SenateElection,
                        entitiesForPopulation: Set[PopulatableEntityClass],
                        talliersForPopulation: Set[Tallier]): Future[Unit] = {
 
-    // TODO don't run at all if nothing to do
+    if (entitiesForPopulation.isEmpty && talliersForPopulation.isEmpty) {
+      return Future.successful {}
+    }
 
     // TODO parallelism
     val divisionsAndPollingPlaces = parsedDataStore.divisionsAndPollingPlacesFor(senateElection)
@@ -40,19 +40,25 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
 
     val allTalliersToRegister = talliersForPopulation ++ talliersRequiredToPopulateEntities
 
-    // TODO don't always want to run for all states
-    val eventualTallies = tallyEngine.talliesForStates(parsedDataStore, senateElection, State.ALL_STATES,
-      divisionsAndPollingPlaces, groupsAndCandidates, allTalliersToRegister)
+    val eventualTallies = {
+      if (allTalliersToRegister.isEmpty) {
+        Future.successful(Tallies())
+      } else {
+        // TODO don't always want to run for all states
+        tallyEngine.talliesForStates(parsedDataStore, senateElection, State.ALL_STATES,
+          divisionsAndPollingPlaces, groupsAndCandidates, allTalliersToRegister)
+      }
+    }
 
-    eventualTallies.map { tallies =>
+    eventualTallies.flatMap { tallies =>
       val entityPopulationFutures = entitiesForPopulation.map(populateEntityClass(_, tallies, divisionsAndPollingPlaces, groupsAndCandidates))
       val tallyPopulationFutures = talliersForPopulation.map(tallier => populateFromTallier(tallier, tallies))
 
-      // TODO find something more sophisticated than sequence
+      // TODO Do something more sophisticated than sequence
       for {
         _ <- Future.sequence(entityPopulationFutures)
         _ <- Future.sequence(tallyPopulationFutures)
-      } yield ()
+      } yield {}
     }
   }
 
@@ -89,12 +95,12 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
 object DbPopulator {
   val requiredEntities: Set[PopulatableEntityClass] = Set(
     PopulatableEntityClass.Divisions,
-    PopulatableEntityClass.PollingPlaces,
-    PopulatableEntityClass.OtherVoteCollectionPoints
+    PopulatableEntityClass.PollingPlaces
+//    PopulatableEntityClass.OtherVoteCollectionPoints
   )
 
   val requiredTallies: Set[Tallier] = Set(
-    CountFormalBallots.ByDivision,
-    CountFormalBallots.ByVoteCollectionPoint
+//    CountFormalBallots.ByDivision,
+//    CountFormalBallots.ByVoteCollectionPoint
   )
 }

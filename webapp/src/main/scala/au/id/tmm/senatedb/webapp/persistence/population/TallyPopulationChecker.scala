@@ -12,7 +12,7 @@ import scala.concurrent.Future
 @Singleton
 class TallyPopulationChecker @Inject() (generalTallyDao: GeneralTallyDao) {
   def unpopulatedOf(election: SenateElection, talliers: Set[Tallier]): Future[Set[Tallier]] = {
-    talliers.filterEventually(resultIsPopulated(election, _))
+    talliers.filterEventually(resultIsPopulated(election, _).map(!_))
   }
 
   private def resultIsPopulated(election: SenateElection, tallier: Tallier): Future[Boolean] = {

@@ -15,7 +15,7 @@ class DivisionController @Inject() (electionDao: ElectionDao, divisionDao: Divis
   def index(electionId: String, stateAbbreviation: String, divisionName: String): Action[AnyContent] = Action.async {
     for {
       election <- electionDao.electionWithId(electionId)
-      state <- Future.successful(State.fromAbbreviation(stateAbbreviation))
+      state <- Future.successful(State.fromAbbreviation(stateAbbreviation.toUpperCase))
       division <- divisionDao.fromName(divisionName)
     } yield {
       if (election.isDefined && state.isDefined && division.isDefined) {

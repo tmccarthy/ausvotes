@@ -30,7 +30,7 @@ class Module extends AbstractModule {
 
   @Provides
   @Singleton
-  def provideAecResourceStore: AecResourceStore = AecResourceStore.at(Paths.get("."))
+  def provideAecResourceStore: AecResourceStore = AecResourceStore.at(Paths.get("rawData"))
 
   @Provides
   def provideTallyEngine: TallyEngine = TallyEngine
