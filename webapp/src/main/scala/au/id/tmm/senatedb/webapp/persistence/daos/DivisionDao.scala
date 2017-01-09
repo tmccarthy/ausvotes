@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc.{DB, _}
@@ -19,7 +20,7 @@ trait DivisionDao {
 
   def fromName(divisionName: String): Future[Option[Division]]
 
-  def allWithIdsInSession(implicit session: DBSession): Map[Division, Long]
+  def idOf(division: Division): Long
 }
 
 @Singleton
@@ -29,7 +30,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
     val rowsToInsert = divisions.map(DivisionRowConversions.toRow(electionDao)).toSeq
 
     DB.localTx { implicit session =>
-      sql"INSERT INTO division(election, aec_id, state, name) VALUES ({election}, {aec_id}, {state}, {name})"
+      sql"INSERT INTO division(id, election, aec_id, state, name) VALUES ({id}, {election}, {aec_id}, {state}, {name})"
         .batchByName(rowsToInsert: _*)
         .apply()
     }
@@ -72,13 +73,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
     }
   }
 
-  override def allWithIdsInSession(implicit session: DBSession): Map[Division, Long] = {
-    sql"SELECT * FROM division"
-      .map(row => DivisionRowConversions.fromRow(electionDao)(row) -> row.long("id"))
-      .list()
-      .apply()
-      .toMap
-  }
+  override def idOf(division: Division): Long = DivisionRowConversions.idOf(division)
 }
 
 private[daos] object DivisionRowConversions extends RowConversions {
@@ -101,10 +96,13 @@ private[daos] object DivisionRowConversions extends RowConversions {
 
   def toRow(electionDao: ElectionDao)(division: Division): Seq[(Symbol, Any)] = {
     Seq(
+      Symbol("id") -> idOf(division),
       Symbol("election") -> electionDao.idOfBlocking(division.election.aecID),
       Symbol("aec_id") -> division.aecId,
       Symbol("state") -> division.state.abbreviation,
       Symbol("name") -> division.name
     )
   }
+
+  def idOf(division: Division): Long = Pairing.Szudzik.pair(division.election.aecID, division.aecId)
 }

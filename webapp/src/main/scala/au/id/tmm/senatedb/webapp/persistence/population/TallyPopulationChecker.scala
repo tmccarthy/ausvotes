@@ -11,14 +11,17 @@ import scala.concurrent.Future
 
 @Singleton
 class TallyPopulationChecker @Inject() (generalTallyDao: GeneralTallyDao) {
+
+  private val totalFormalBallotsDao = generalTallyDao.totalFormalBallotsDao
+
   def unpopulatedOf(election: SenateElection, talliers: Set[Tallier]): Future[Set[Tallier]] = {
     talliers.filterEventually(resultIsPopulated(election, _).map(!_))
   }
 
   private def resultIsPopulated(election: SenateElection, tallier: Tallier): Future[Boolean] = {
     tallier match {
-      case CountFormalBallots.ByDivision => generalTallyDao.totalFormalBallotsDao.hasTallyForAnyDivision
-      case CountFormalBallots.ByVoteCollectionPoint => generalTallyDao.totalFormalBallotsDao.hasTallyForAnyVoteCollectionPoint
+      case CountFormalBallots.ByDivision => totalFormalBallotsDao.hasTallyForAnyDivisionAt(election)
+      case CountFormalBallots.ByVoteCollectionPoint => totalFormalBallotsDao.hasTallyForAnyVoteCollectionPointAt(election)
     }
   }
 }

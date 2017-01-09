@@ -15,7 +15,7 @@ trait ElectionDao {
 
   def idOfBlocking(election: SenateElection): Option[String]
 
-  def idOfBlocking(aecElectionId: String): Option[String]
+  def idOfBlocking(aecElectionId: Int): Option[String]
 }
 
 // TODO replace this with something that goes to the db?
@@ -29,7 +29,7 @@ class HardCodedElectionDao extends ElectionDao {
     SenateElection.`2013`, "2013"
   )
 
-  private val electionIdLookupByAecId: ImmutableBiMap[String, String] = ImmutableBiMap.of(
+  private val electionIdLookupByAecId: ImmutableBiMap[Int, String] = ImmutableBiMap.of(
     SenateElection.`2016`.aecID, electionIdLookup.get(SenateElection.`2016`),
     SenateElection.`2014 WA`.aecID, electionIdLookup.get(SenateElection.`2014 WA`),
     SenateElection.`2013`.aecID, electionIdLookup.get(SenateElection.`2013`)
@@ -49,7 +49,7 @@ class HardCodedElectionDao extends ElectionDao {
     Option(electionIdLookup.get(election))
   }
 
-  override def idOfBlocking(aecElectionId: String): Option[String] = {
+  override def idOfBlocking(aecElectionId: Int): Option[String] = {
     Option(electionIdLookupByAecId.get(aecElectionId))
   }
 }

@@ -9,6 +9,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.Future
 
+// TODO log what this is doing
 class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
                             tallyPopulationChecker: TallyPopulationChecker,
                             parsedDataStore: ParsedDataStore,
@@ -95,8 +96,8 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
 object DbPopulator {
   val requiredEntities: Set[PopulatableEntityClass] = Set(
     PopulatableEntityClass.Divisions,
-    PopulatableEntityClass.PollingPlaces
-//    PopulatableEntityClass.OtherVoteCollectionPoints
+    PopulatableEntityClass.PollingPlaces,
+    PopulatableEntityClass.OtherVoteCollectionPoints
   )
 
   val requiredTallies: Set[Tallier] = Set(

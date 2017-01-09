@@ -36,10 +36,9 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
     DB.localTx { implicit session =>
       val addressIds: Map[Address, Long] = addressDao.writeInSession(addressesToWrite)
-      val divisionIds: Map[Division, Long] = divisionDao.allWithIdsInSession
 
       val voteCollectionPointRowsToWrite = voteCollectionPoints
-        .map(VoteCollectionPointRowConversions.toRow(divisionIds, addressIds, electionDao))
+        .map(VoteCollectionPointRowConversions.toRow(addressIds, divisionDao, electionDao))
         .toSeq
 
       val statement = sql"""
@@ -126,11 +125,12 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
 
   protected def fromRow(c: (String) => String, row: WrappedResultSet): VoteCollectionPoint = ???
 
-  def toRow(divisionIdLookup: Map[Division, Long],
-            addressIdLookup: Map[Address, Long],
-            electionDao: ElectionDao)
-           (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val bindings = voteCollectionPointRowComponentOf(divisionIdLookup, electionDao)(voteCollectionPoint) ++
+  def toRow(
+      addressIdLookup: Map[Address, Long],
+      divisionDao: DivisionDao,
+      electionDao: ElectionDao)
+      (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
+    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf, electionDao)(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
       locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
 
@@ -152,7 +152,7 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     bindings ++ missingBindings
   }
 
-  private def voteCollectionPointRowComponentOf(divisionIdLookup: Map[Division, Long], electionDao: ElectionDao)
+  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long, electionDao: ElectionDao)
                                                (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     Seq(
       Symbol("election") -> electionDao.idOfBlocking(voteCollectionPoint.election),
