@@ -8,6 +8,10 @@ Australian Electoral Commission's website. This is essentially a slightly more a
 other project at [HypotheticalSenate](https://github.com/tmccarthy/HypotheticalSenate). The initial focus
 will be analysing the 2016 election.
 
+## Results
+
+Results and reports from version 0.4 of the tool are available at [https://tmccarthy.github.io/SenateDB/](https://tmccarthy.github.io/SenateDB/).
+
 ## Overview
 
 The AEC makes a huge amount of raw data about elections available on 
