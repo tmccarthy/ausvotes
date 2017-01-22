@@ -3,8 +3,9 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.{Absentee, Postal, PrePoll, Provisional}
-import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
+import au.id.tmm.senatedb.core.model.parsing.{PollingPlace, VoteCollectionPoint}
 import au.id.tmm.utilities.geo.australia.Address
+import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc._
@@ -20,6 +21,8 @@ trait VoteCollectionPointDao {
   def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean]
 
   def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean]
+
+  def idOf(voteCollectionPoint: VoteCollectionPoint): Long
 }
 
 @Singleton
@@ -43,6 +46,7 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
       val statement = sql"""
            |INSERT INTO vote_collection_point(
+           |  id,
            |  election,
            |  state,
            |  division_id,
@@ -56,6 +60,7 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
            |  latitude,
            |  longitude
            |) VALUES (
+           |  {id},
            |  {election},
            |  {state},
            |  {division_id},
@@ -104,6 +109,10 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
         .isDefined
     }
   }
+
+  // TODO unit test
+  def idOf(voteCollectionPoint: VoteCollectionPoint): Long =
+    VoteCollectionPointRowConversions.idOf(divisionDao, voteCollectionPoint)
 }
 
 private[daos] object VoteCollectionPointRowConversions extends RowConversions {
@@ -130,7 +139,7 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
       divisionDao: DivisionDao,
       electionDao: ElectionDao)
       (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf, electionDao)(voteCollectionPoint) ++
+    val bindings = voteCollectionPointRowComponentOf(divisionDao, electionDao)(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
       locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
 
@@ -152,12 +161,13 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     bindings ++ missingBindings
   }
 
-  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long, electionDao: ElectionDao)
+  private def voteCollectionPointRowComponentOf(divisionDao: DivisionDao, electionDao: ElectionDao)
                                                (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     Seq(
+      Symbol("id") -> idOf(divisionDao, voteCollectionPoint),
       Symbol("election") -> electionDao.idOfBlocking(voteCollectionPoint.election),
       Symbol("state") -> voteCollectionPoint.state.abbreviation,
-      Symbol("division_id") -> divisionIdLookup(voteCollectionPoint.division),
+      Symbol("division_id") -> divisionDao.idOf(voteCollectionPoint.division),
       Symbol("type") -> sqlPollingPlaceTypeOf(voteCollectionPoint),
       Symbol("name") -> voteCollectionPoint.name
     )
@@ -205,5 +215,29 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
       case p: Provisional => "provisional"
       case p: PollingPlace => "polling_place"
     }
+  }
+
+  def idOf(divisionDao: DivisionDao, voteCollectionPoint: VoteCollectionPoint): Long = {
+    assert(voteCollectionPoint.election == voteCollectionPoint.division.election)
+
+    val vcpTypeCode: Long = voteCollectionPoint match {
+      case _: Absentee => 1
+      case _: Postal => 2
+      case _: PrePoll => 3
+      case _: Provisional => 4
+      case _: PollingPlace => 5
+    }
+
+    val vcpDivisionCode: Long = divisionDao.idOf(voteCollectionPoint.division)
+
+    val vcpIdCode: Long = voteCollectionPoint match {
+      case Absentee(_, _, _, number) => number
+      case Postal(_, _, _, number) => number
+      case PrePoll(_, _, _, number) => number
+      case Provisional(_, _, _, number) => number
+      case PollingPlace(_, _, _, aecId, _, _, _) => aecId
+    }
+
+    Pairing.Szudzik.combine(vcpTypeCode, vcpDivisionCode, vcpIdCode)
   }
 }

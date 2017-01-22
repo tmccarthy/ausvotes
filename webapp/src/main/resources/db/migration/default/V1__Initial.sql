@@ -29,7 +29,7 @@ INSERT INTO state(abbreviation, name, territory) VALUES
   ('ACT', 'Australian Capital Territory', TRUE);
 
 CREATE TABLE division (
-  id INTEGER PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   election VARCHAR(5) REFERENCES senate_election(id),
   aec_id INTEGER,
   state VARCHAR(3) REFERENCES state(abbreviation) ,
@@ -39,7 +39,7 @@ CREATE TABLE division (
 CREATE UNIQUE INDEX uk_division_name ON division(LOWER(name));
 
 CREATE TABLE total_formal_ballot_count (
-  id SERIAL PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
 
   total_formal_ballots INTEGER,
   ordinal_nationally INTEGER,
@@ -50,7 +50,7 @@ CREATE TABLE total_formal_ballot_count (
 );
 
 CREATE TABLE division_stats (
-  division_id INTEGER REFERENCES division(id),
+  division_id BIGINT REFERENCES division(id),
 
   total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
 );
@@ -69,7 +69,7 @@ CREATE TYPE VOTE_COLLECTION_POINT_TYPE AS ENUM ('polling_place', 'absentee', 'po
 CREATE TYPE POLLING_PLACE_TYPE AS ENUM ('polling_place', 'special_hospital_team', 'remote_mobile_team', 'other_mobile_team', 'pre_poll_voting_centre');
 
 CREATE TABLE vote_collection_point (
-  id SERIAL PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
 
   election VARCHAR(5) REFERENCES senate_election(id),
   state VARCHAR(3) REFERENCES state(abbreviation),
@@ -94,7 +94,7 @@ CREATE TABLE vote_collection_point (
 );
 
 CREATE TABLE vote_collection_point_stats (
-  vote_collection_point_id INTEGER REFERENCES vote_collection_point(id),
+  vote_collection_point_id BIGINT REFERENCES vote_collection_point(id),
 
   total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
 );

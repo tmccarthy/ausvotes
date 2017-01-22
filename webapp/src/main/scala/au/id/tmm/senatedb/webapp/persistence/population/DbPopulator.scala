@@ -101,7 +101,7 @@ object DbPopulator {
   )
 
   val requiredTallies: Set[Tallier] = Set(
-//    CountFormalBallots.ByDivision,
-//    CountFormalBallots.ByVoteCollectionPoint
+    CountFormalBallots.ByDivision,
+    CountFormalBallots.ByVoteCollectionPoint
   )
 }
