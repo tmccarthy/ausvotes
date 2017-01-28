@@ -83,7 +83,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
       val statsTableRows = idsPerWrittenTally
         .toStream
-        .flatMap {
+        .map {
           case (tallyForDivision, total_formal_ballot_count_id) =>
             Seq(
               Symbol("division") -> divisionDao.idOf(tallyForDivision.attachedEntity),
@@ -91,14 +91,14 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
             )
         }
 
-      statsTableInsert.batchByName(statsTableRows)
+      statsTableInsert.batchByName(statsTableRows: _*)
         .apply()
     }
   }
 
   override def writePerVoteCollectionPoint(election: SenateElection,
                                            tally: Tally[VoteCollectionPoint]): Future[Unit] = Future {
-    val talliesToWrite = TotalFormalBallotsRowConversions.toEntities[VoteCollectionPoint](tally, Some(_.state), None)
+    val talliesToWrite = TotalFormalBallotsRowConversions.toEntities[VoteCollectionPoint](tally, Some(_.state), Some(_.division))
 
     DB.localTx { implicit session =>
 
@@ -120,7 +120,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
       val statsTableRows = idsPerWrittenTally
         .toStream
-        .flatMap {
+        .map {
           case (tallyForVcp, total_formal_ballot_count_id) =>
             Seq(
               Symbol("vote_collection_point_id") -> idsPerVoteCollectionPoint(tallyForVcp.attachedEntity),
@@ -128,7 +128,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
             )
         }
 
-      statsTableInsert.batchByName(statsTableRows)
+      statsTableInsert.batchByName(statsTableRows: _*)
         .apply()
     }
   }
