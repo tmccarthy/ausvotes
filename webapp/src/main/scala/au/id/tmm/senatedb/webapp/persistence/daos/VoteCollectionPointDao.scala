@@ -1,11 +1,12 @@
 package au.id.tmm.senatedb.webapp.persistence.daos
 
 import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.{Absentee, Postal, PrePoll, Provisional}
-import au.id.tmm.senatedb.core.model.parsing.{PollingPlace, VoteCollectionPoint}
-import au.id.tmm.utilities.geo.australia.Address
-import au.id.tmm.utilities.hashing.Pairing
+import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
+import au.id.tmm.utilities.geo.LatLong
+import au.id.tmm.utilities.geo.australia.{Address, State}
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc._
@@ -22,14 +23,14 @@ trait VoteCollectionPointDao {
 
   def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean]
 
-  def idOf(voteCollectionPoint: VoteCollectionPoint): Long
+  def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long]
 }
 
 @Singleton
-class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolContext,
-                                                addressDao: AddressDao,
+class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                 electionDao: ElectionDao,
-                                                divisionDao: DivisionDao) extends VoteCollectionPointDao {
+                                                divisionDao: DivisionDao,
+                                                postcodeFlyweight: PostcodeFlyweight) extends VoteCollectionPointDao {
 
   override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
 
@@ -46,12 +47,12 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
 
       val statement = sql"""
            |INSERT INTO vote_collection_point(
-           |  id,
            |  election,
            |  state,
-           |  division_id,
+           |  division,
            |  type,
            |  name,
+           |  number,
            |  aec_id,
            |  polling_place_type,
            |  multiple_locations,
@@ -60,12 +61,12 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
            |  latitude,
            |  longitude
            |) VALUES (
-           |  {id},
            |  {election},
            |  {state},
-           |  {division_id},
+           |  {division},
            |  CAST({type} AS vote_collection_point_type),
            |  {name},
+           |  {number},
            |  {aec_id},
            |  CAST({polling_place_type} AS polling_place_type),
            |  {multiple_locations},
@@ -110,9 +111,47 @@ class ConcreteVoteCollectionPointDao @Inject() (connectionPool: ConnectionPoolCo
     }
   }
 
-  // TODO unit test
-  def idOf(voteCollectionPoint: VoteCollectionPoint): Long =
-    VoteCollectionPointRowConversions.idOf(divisionDao, voteCollectionPoint)
+  override def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long] = {
+    val electionId = electionDao.idOf(election)
+
+    sql"""SELECT
+         |  vote_collection_point.id AS "vote_collection_point.id",
+         |  vote_collection_point.election AS "vote_collection_point.election",
+         |  vote_collection_point.state AS "vote_collection_point.state",
+         |  vote_collection_point.division AS "vote_collection_point.division",
+         |  vote_collection_point.type AS "vote_collection_point.type",
+         |  vote_collection_point.name AS "vote_collection_point.name",
+         |  vote_collection_point.number AS "vote_collection_point.number",
+         |  vote_collection_point.aec_id AS "vote_collection_point.aec_id",
+         |  vote_collection_point.polling_place_type AS "vote_collection_point.polling_place_type",
+         |  vote_collection_point.multiple_locations AS "vote_collection_point.multiple_locations",
+         |  vote_collection_point.premises_name AS "vote_collection_point.premises_name",
+         |  vote_collection_point.address AS "vote_collection_point.address",
+         |  vote_collection_point.latitude AS "vote_collection_point.latitude",
+         |  vote_collection_point.longitude AS "vote_collection_point.longitude",
+         |
+         |  address.id AS "address.id",
+         |  address.lines AS "address.lines",
+         |  address.suburb AS "address.suburb",
+         |  address.postcode AS "address.postcode",
+         |  address.state AS "address.state",
+         |
+         |  division.id AS "division.id",
+         |  division.election AS "division.election",
+         |  division.aec_id AS "division.aec_id",
+         |  division.state AS "division.state",
+         |  division.name AS "division.name"
+         |
+         |  FROM vote_collection_point
+         |    LEFT JOIN address ON vote_collection_point.address = address.id
+         |    LEFT JOIN division ON vote_collection_point.division = division.id
+         |  WHERE vote_collection_point.election = $electionId
+      """.stripMargin
+      .map(row => VoteCollectionPointRowConversions.fromRow(electionDao, postcodeFlyweight, alias="vote_collection_point")(row) -> row.long("vote_collection_point.id"))
+      .list()
+      .apply()
+      .toMap
+  }
 }
 
 private[daos] object VoteCollectionPointRowConversions extends RowConversions {
@@ -120,9 +159,10 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
   val allBindingNames: Set[Symbol] = Set(
     Symbol("election"),
     Symbol("state"),
-    Symbol("division_id"),
+    Symbol("division"),
     Symbol("type"),
     Symbol("name"),
+    Symbol("number"),
     Symbol("aec_id"),
     Symbol("polling_place_type"),
     Symbol("multiple_locations"),
@@ -132,14 +172,79 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     Symbol("longitude")
   )
 
-  protected def fromRow(c: (String) => String, row: WrappedResultSet): VoteCollectionPoint = ???
+  def fromRow(electionDao: ElectionDao,
+              postcodeFlyweight: PostcodeFlyweight,
+              alias: String = "",
+              addressAlias: String = "address",
+              divisionAlias: String = "division")
+             (row: WrappedResultSet): VoteCollectionPoint = {
+    val c = aliasedColumnName(alias)(_)
+
+    val election = electionDao.electionWithId(row.string(c("election"))).get
+    val state = State.fromAbbreviation(row.string(c("state"))).get
+    val division = DivisionRowConversions.fromRow(electionDao, divisionAlias)(row)
+
+    val vcpType = row.string(c("type"))
+
+    vcpType match {
+      case "absentee" => VoteCollectionPoint.Absentee(election, state, division, row.int(c("number")))
+      case "postal" => VoteCollectionPoint.Postal(election, state, division, row.int(c("number")))
+      case "prepoll" => VoteCollectionPoint.PrePoll(election, state, division, row.int(c("number")))
+      case "provisional" => VoteCollectionPoint.Provisional(election, state, division, row.int(c("number")))
+      case "polling_place" => {
+        PollingPlace(
+          election,
+          state,
+          division,
+          row.int(c("aec_id")),
+          pollingPlaceTypeFrom(row.string(c("polling_place_type"))),
+          row.string(c("name")),
+          locationFrom(alias, addressAlias, postcodeFlyweight)(row)
+        )
+      }
+    }
+  }
+
+  private def pollingPlaceTypeFrom(sqlTypeString: String): PollingPlace.Type.Type = {
+    sqlTypeString match {
+      case "polling_place" => PollingPlace.Type.POLLING_PLACE
+      case "special_hospital_team" => PollingPlace.Type.SPECIAL_HOSPITAL_TEAM
+      case "remote_mobile_team" => PollingPlace.Type.REMOTE_MOBILE_TEAM
+      case "other_mobile_team" => PollingPlace.Type.OTHER_MOBILE_TEAM
+      case "pre_poll_voting_centre" => PollingPlace.Type.PRE_POLL_VOTING_CENTRE
+    }
+  }
+
+  private def locationFrom(alias: String, addressAlias: String, postcodeFlyweight: PostcodeFlyweight)
+                          (row: WrappedResultSet): PollingPlace.Location = {
+    val c = aliasedColumnName(alias)(_)
+
+    val hasMultipleLocations = row.boolean(c("multiple_locations"))
+
+    val latLong = for {
+      lat <- Option(row.nullableDouble(c("latitude")))
+      long <- Option(row.nullableDouble(c("longitude")))
+    } yield LatLong(lat, long)
+
+    if (hasMultipleLocations) {
+      PollingPlace.Location.Multiple
+    } else {
+      val address = AddressRowConversions.fromRow(postcodeFlyweight, addressAlias)(row)
+      val premisesName = row.string(c("premises_name"))
+
+      latLong
+        .map(PollingPlace.Location.Premises(premisesName, address, _))
+        .getOrElse(PollingPlace.Location.PremisesMissingLatLong(premisesName, address))
+    }
+  }
 
   def toRow(
       addressIdLookup: Map[Address, Long],
       divisionDao: DivisionDao,
       electionDao: ElectionDao)
       (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val bindings = voteCollectionPointRowComponentOf(divisionDao, electionDao)(voteCollectionPoint) ++
+    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf, electionDao)(voteCollectionPoint) ++
+      numberComponentOf(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
       locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
 
@@ -161,16 +266,35 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     bindings ++ missingBindings
   }
 
-  private def voteCollectionPointRowComponentOf(divisionDao: DivisionDao, electionDao: ElectionDao)
+  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long, electionDao: ElectionDao)
                                                (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     Seq(
-      Symbol("id") -> idOf(divisionDao, voteCollectionPoint),
-      Symbol("election") -> electionDao.idOfBlocking(voteCollectionPoint.election),
+      Symbol("election") -> electionDao.idOf(voteCollectionPoint.election),
       Symbol("state") -> voteCollectionPoint.state.abbreviation,
-      Symbol("division_id") -> divisionDao.idOf(voteCollectionPoint.division),
-      Symbol("type") -> sqlPollingPlaceTypeOf(voteCollectionPoint),
+      Symbol("division") -> divisionIdLookup(voteCollectionPoint.division),
+      Symbol("type") -> sqlVcpTypeOf(voteCollectionPoint),
       Symbol("name") -> voteCollectionPoint.name
     )
+  }
+
+  private def sqlVcpTypeOf(voteCollectionPoint: VoteCollectionPoint): String = voteCollectionPoint match {
+    case _: Absentee => "absentee"
+    case _: Postal => "postal"
+    case _: PrePoll => "prepoll"
+    case _: Provisional => "provisional"
+    case _: PollingPlace => "polling_place"
+  }
+
+  private def numberComponentOf(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
+    val number = voteCollectionPoint match {
+      case a: Absentee => Some(a.number)
+      case p: Postal => Some(p.number)
+      case p: PrePoll => Some(p.number)
+      case p: Provisional => Some(p.number)
+      case p: PollingPlace => None
+    }
+
+    number.map(n => Symbol("number") -> n).toSeq
   }
 
   private def pollingPlaceRowComponentOf(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
@@ -209,35 +333,11 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
 
   private def sqlPollingPlaceTypeOf(voteCollectionPoint: VoteCollectionPoint) = {
     voteCollectionPoint match {
-      case a: Absentee => "absentee"
-      case p: Postal => "postal"
-      case p: PrePoll => "prepoll"
-      case p: Provisional => "provisional"
-      case p: PollingPlace => "polling_place"
+      case _: Absentee => "absentee"
+      case _: Postal => "postal"
+      case _: PrePoll => "prepoll"
+      case _: Provisional => "provisional"
+      case _: PollingPlace => "polling_place"
     }
-  }
-
-  def idOf(divisionDao: DivisionDao, voteCollectionPoint: VoteCollectionPoint): Long = {
-    assert(voteCollectionPoint.election == voteCollectionPoint.division.election)
-
-    val vcpTypeCode: Long = voteCollectionPoint match {
-      case _: Absentee => 1
-      case _: Postal => 2
-      case _: PrePoll => 3
-      case _: Provisional => 4
-      case _: PollingPlace => 5
-    }
-
-    val vcpDivisionCode: Long = divisionDao.idOf(voteCollectionPoint.division)
-
-    val vcpIdCode: Long = voteCollectionPoint match {
-      case Absentee(_, _, _, number) => number
-      case Postal(_, _, _, number) => number
-      case PrePoll(_, _, _, number) => number
-      case Provisional(_, _, _, number) => number
-      case PollingPlace(_, _, _, aecId, _, _, _) => aecId
-    }
-
-    Pairing.Szudzik.combine(vcpTypeCode, vcpDivisionCode, vcpIdCode)
   }
 }

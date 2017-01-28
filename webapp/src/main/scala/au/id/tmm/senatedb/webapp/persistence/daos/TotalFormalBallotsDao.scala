@@ -20,7 +20,7 @@ trait TotalFormalBallotsDao {
 
   def writePerDivision(tally: Tally[Division]): Future[Unit]
 
-  def writePerVoteCollectionPoint(tally: Tally[VoteCollectionPoint]): Future[Unit]
+  def writePerVoteCollectionPoint(election: SenateElection, tally: Tally[VoteCollectionPoint]): Future[Unit]
 }
 
 @Singleton
@@ -30,12 +30,12 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
     extends TotalFormalBallotsDao {
 
   override def hasTallyForAnyDivisionAt(election: SenateElection): Future[Boolean] = Future {
-    val electionId = electionDao.idOfBlocking(election).get
+    val electionId = electionDao.idOf(election).get
 
     DB.readOnly { implicit session =>
       val statement = sql"""SELECT *
            |FROM division
-           |  LEFT JOIN division_stats ON division.id = division_stats.division_id
+           |  LEFT JOIN division_stats ON division.id = division_stats.division
            |WHERE division.election = $electionId
            |    AND division_stats.total_formal_ballot_count_id IS NOT NULL""".stripMargin
 
@@ -47,7 +47,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
   }
 
   override def hasTallyForAnyVoteCollectionPointAt(election: SenateElection): Future[Boolean] = Future {
-    val electionId = electionDao.idOfBlocking(election).get
+    val electionId = electionDao.idOf(election).get
 
     DB.readOnly { implicit session =>
       val statement = sql"""SELECT *
@@ -72,13 +72,13 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
       val statsTableInsert =
         sql"""INSERT INTO division_stats (
-             |  division_id,
+             |  division,
              |  total_formal_ballot_count_id
              |) VALUES (
-             |  {division_id},
+             |  {division},
              |  {total_formal_ballot_count_id}
              |)
-             |ON CONFLICT (division_id) DO UPDATE
+             |ON CONFLICT (division) DO UPDATE
              |  SET total_formal_ballot_count_id = excluded.total_formal_ballot_count_id""".stripMargin
 
       val statsTableRows = idsPerWrittenTally
@@ -86,7 +86,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
         .flatMap {
           case (tallyForDivision, total_formal_ballot_count_id) =>
             Seq(
-              Symbol("division_id") -> divisionDao.idOf(tallyForDivision.attachedEntity),
+              Symbol("division") -> divisionDao.idOf(tallyForDivision.attachedEntity),
               Symbol("total_formal_ballot_count_id") -> total_formal_ballot_count_id
             )
         }
@@ -96,12 +96,16 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
     }
   }
 
-  override def writePerVoteCollectionPoint(tally: Tally[VoteCollectionPoint]): Future[Unit] = Future {
+  override def writePerVoteCollectionPoint(election: SenateElection,
+                                           tally: Tally[VoteCollectionPoint]): Future[Unit] = Future {
     val talliesToWrite = TotalFormalBallotsRowConversions.toEntities[VoteCollectionPoint](tally, Some(_.state), None)
 
     DB.localTx { implicit session =>
 
       val idsPerWrittenTally = writeTotalFormalBallotTallies(talliesToWrite)
+
+      val idsPerVoteCollectionPoint: Map[VoteCollectionPoint, Long] =
+        voteCollectionPointDao.idPerVoteCollectionPointInSession(election)
 
       val statsTableInsert =
         sql"""INSERT INTO vote_collection_point_stats (
@@ -119,7 +123,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
         .flatMap {
           case (tallyForVcp, total_formal_ballot_count_id) =>
             Seq(
-              Symbol("vote_collection_point_id") -> voteCollectionPointDao.idOf(tallyForVcp.attachedEntity),
+              Symbol("vote_collection_point_id") -> idsPerVoteCollectionPoint(tallyForVcp.attachedEntity),
               Symbol("total_formal_ballot_count_id") -> total_formal_ballot_count_id
             )
         }

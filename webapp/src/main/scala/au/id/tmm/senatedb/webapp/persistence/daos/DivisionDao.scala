@@ -51,7 +51,7 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
 
   override def hasAnyDivisionsFor(election: SenateElection): Future[Boolean] = Future {
     DB.readOnly { implicit session =>
-      val electionId = electionDao.idOfBlocking(election)
+      val electionId = electionDao.idOf(election)
 
       sql"SELECT * FROM division WHERE election = ${electionId} LIMIT 1"
         .first()
@@ -82,7 +82,7 @@ private[daos] object DivisionRowConversions extends RowConversions {
     val c = aliasedColumnName(alias)(_)
 
     val electionId = row.string(c("election"))
-    val election = electionDao.electionWithIdBlocking(electionId).get
+    val election = electionDao.electionWithId(electionId).get
 
     val stateAbbreviation = row.string(c("state"))
     val state = State.fromAbbreviation(stateAbbreviation).get
@@ -97,7 +97,7 @@ private[daos] object DivisionRowConversions extends RowConversions {
   def toRow(electionDao: ElectionDao)(division: Division): Seq[(Symbol, Any)] = {
     Seq(
       Symbol("id") -> idOf(division),
-      Symbol("election") -> electionDao.idOfBlocking(division.election.aecID),
+      Symbol("election") -> electionDao.idOf(division.election.aecID),
       Symbol("aec_id") -> division.aecId,
       Symbol("state") -> division.state.abbreviation,
       Symbol("name") -> division.name

@@ -46,10 +46,10 @@ class ConcreteAddressDao @Inject() (postcodeFlyweight: PostcodeFlyweight) extend
 
 private[daos] object AddressRowConversions extends RowConversions {
 
-  protected def fromRow(postcodeFlyweight: PostcodeFlyweight, alias: String)(row: WrappedResultSet): Address = {
+  def fromRow(postcodeFlyweight: PostcodeFlyweight, alias: String)(row: WrappedResultSet): Address = {
     val c = aliasedColumnName(alias)(_)
 
-    val lines = row.array(c("lines")).asInstanceOf[Array[String]].toVector
+    val lines = row.array(c("lines")).getArray.asInstanceOf[Array[String]].toVector
     val suburb = row.string(c("suburb"))
     val postcode = postcodeFlyweight(row.string(c("postcode")))
     val state = State.fromAbbreviation(row.string(c("state"))).get

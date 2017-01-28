@@ -9,16 +9,15 @@ import scala.concurrent.Future
 // TODO the election table in the db should be populated from the enum
 @ImplementedBy(classOf[HardCodedElectionDao])
 trait ElectionDao {
-  def electionWithId(electionId: String): Future[Option[SenateElection]]
+  def electionWithIdFuture(electionId: String): Future[Option[SenateElection]]
 
-  def electionWithIdBlocking(electionId: String): Option[SenateElection]
+  def electionWithId(electionId: String): Option[SenateElection]
 
-  def idOfBlocking(election: SenateElection): Option[String]
+  def idOf(election: SenateElection): Option[String]
 
-  def idOfBlocking(aecElectionId: Int): Option[String]
+  def idOf(aecElectionId: Int): Option[String]
 }
 
-// TODO replace this with something that goes to the db?
 @Singleton
 class HardCodedElectionDao extends ElectionDao {
 
@@ -35,21 +34,21 @@ class HardCodedElectionDao extends ElectionDao {
     SenateElection.`2013`.aecID, electionIdLookup.get(SenateElection.`2013`)
   )
 
-  override def electionWithId(electionId: String): Future[Option[SenateElection]] = {
-    val election = electionWithIdBlocking(electionId)
+  override def electionWithIdFuture(electionId: String): Future[Option[SenateElection]] = {
+    val election = electionWithId(electionId)
 
     Future.successful(election)
   }
 
-  override def electionWithIdBlocking(electionId: String): Option[SenateElection] = {
+  override def electionWithId(electionId: String): Option[SenateElection] = {
     Option(electionIdLookup.inverse.get(electionId.toUpperCase))
   }
 
-  override def idOfBlocking(election: SenateElection): Option[String] = {
+  override def idOf(election: SenateElection): Option[String] = {
     Option(electionIdLookup.get(election))
   }
 
-  override def idOfBlocking(aecElectionId: Int): Option[String] = {
+  override def idOf(aecElectionId: Int): Option[String] = {
     Option(electionIdLookupByAecId.get(aecElectionId))
   }
 }

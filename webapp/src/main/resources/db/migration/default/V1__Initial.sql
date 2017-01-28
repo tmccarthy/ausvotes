@@ -39,7 +39,7 @@ CREATE TABLE division (
 CREATE UNIQUE INDEX uk_division_name ON division(LOWER(name));
 
 CREATE TABLE total_formal_ballot_count (
-  id BIGINT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
 
   total_formal_ballots INTEGER,
   ordinal_nationally INTEGER,
@@ -50,7 +50,7 @@ CREATE TABLE total_formal_ballot_count (
 );
 
 CREATE TABLE division_stats (
-  division_id BIGINT REFERENCES division(id),
+  division BIGINT REFERENCES division(id) UNIQUE,
 
   total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
 );
@@ -69,14 +69,17 @@ CREATE TYPE VOTE_COLLECTION_POINT_TYPE AS ENUM ('polling_place', 'absentee', 'po
 CREATE TYPE POLLING_PLACE_TYPE AS ENUM ('polling_place', 'special_hospital_team', 'remote_mobile_team', 'other_mobile_team', 'pre_poll_voting_centre');
 
 CREATE TABLE vote_collection_point (
-  id BIGINT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
 
   election VARCHAR(5) REFERENCES senate_election(id),
   state VARCHAR(3) REFERENCES state(abbreviation),
-  division_id INTEGER REFERENCES division(id),
+  division INTEGER REFERENCES division(id),
 
   type VOTE_COLLECTION_POINT_TYPE,
   name VARCHAR,
+
+  -- Only if this is not a polling place
+  number INTEGER,
 
   -- Only if this is a polling place
 
@@ -94,7 +97,7 @@ CREATE TABLE vote_collection_point (
 );
 
 CREATE TABLE vote_collection_point_stats (
-  vote_collection_point_id BIGINT REFERENCES vote_collection_point(id),
+  vote_collection_point_id INTEGER REFERENCES vote_collection_point(id) UNIQUE,
 
   total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
 );

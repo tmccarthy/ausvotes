@@ -8,7 +8,7 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 resolvers in ThisBuild +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
-val tmmUtilsVersion = "0.1.19"
+val tmmUtilsVersion = "0.1.20"
 
 lazy val root = Project("SenateDB", file("."))
   .enablePlugins(GitVersioning)
