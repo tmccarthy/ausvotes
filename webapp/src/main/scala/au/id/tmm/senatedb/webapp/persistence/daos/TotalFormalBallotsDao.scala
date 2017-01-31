@@ -162,13 +162,16 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
 private[daos] object TotalFormalBallotsRowConversions extends RowConversions {
 
-  def fromRow[A](attachedEntityConverter: WrappedResultSet => A)(row: WrappedResultSet): TotalFormalBallotsTally[A] = {
+  def fromRow[A](attachedEntityConverter: WrappedResultSet => A, alias: String = "")
+                (row: WrappedResultSet): TotalFormalBallotsTally[A] = {
+    val c = aliasedColumnName(alias)(_)
+
     TotalFormalBallotsTally(
       attachedEntityConverter(row),
-      row.long("total_formal_ballots"),
-      row.int("ordinal_nationally"),
-      Option(row.nullableInt("ordinal_state")),
-      Option(row.nullableInt("ordinal_division"))
+      row.long(c("total_formal_ballots")),
+      row.int(c("ordinal_nationally")),
+      Option[Integer](row.nullableInt(c("ordinal_state"))).map(_.toInt),
+      Option[Integer](row.nullableInt(c("ordinal_division"))).map(_.toInt)
     )
   }
 

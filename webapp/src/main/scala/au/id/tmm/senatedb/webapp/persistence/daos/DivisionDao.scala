@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.webapp.persistence.daos
 
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
+import au.id.tmm.senatedb.webapp.persistence.entities.DivisionStats
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
@@ -18,13 +19,15 @@ trait DivisionDao {
 
   def hasAnyDivisionsFor(election: SenateElection): Future[Boolean]
 
-  def fromName(divisionName: String): Future[Option[Division]]
-
   def idOf(division: Division): Long
+
+  def findWithStats(electionId: String,
+                    stateAbbreviation: String,
+                    divisionName: String): Future[Option[(Division, DivisionStats)]]
 }
 
 @Singleton
-class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionDao {
+class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache: DbStructureCache) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
     val rowsToInsert = divisions.map(DivisionRowConversions.toRow(electionDao)).toSeq
@@ -62,13 +65,33 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao) extends DivisionD
     }
   }
 
-  override def fromName(divisionName: String): Future[Option[Division]] = Future {
+  override def findWithStats(electionId: String,
+                             stateAbbreviation: String,
+                             divisionName: String
+                            ): Future[Option[(Division, DivisionStats)]] = Future {
     DB.readOnly { implicit session =>
-      val divisionNameLowerCase = divisionName.toLowerCase
+      val * = dbStructureCache.columnListFor("division", "total_formal_ballot_count")
 
-      sql"SELECT * FROM division WHERE LOWER(name) = ${divisionNameLowerCase} LIMIT 1"
-        .map(DivisionRowConversions.fromRow(electionDao))
-        .first
+      sql"""SELECT
+           |  ${*}
+           |FROM division
+           |  INNER JOIN division_stats ON division.id = division_stats.division
+           |  INNER JOIN total_formal_ballot_count ON division_stats.total_formal_ballot_count_id = total_formal_ballot_count.id
+           |WHERE
+           |  division.election = $electionId AND
+           |  division.state = ${stateAbbreviation.toUpperCase} AND
+           |  LOWER(division.name) = ${divisionName.toLowerCase}
+           |LIMIT 1
+           |""".stripMargin
+        .map { row =>
+          val division = DivisionRowConversions.fromRow(electionDao, "division")(row)
+          val totalFormalBallotsTally = TotalFormalBallotsRowConversions.fromRow(_ => division, alias="total_formal_ballot_count")(row)
+
+          val divisionStats = DivisionStats(totalFormalBallotsTally)
+
+          division -> divisionStats
+        }
+        .first()
         .apply()
     }
   }

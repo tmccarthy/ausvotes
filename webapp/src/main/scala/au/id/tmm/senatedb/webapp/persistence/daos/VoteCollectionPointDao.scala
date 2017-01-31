@@ -17,8 +17,6 @@ import scala.concurrent.Future
 trait VoteCollectionPointDao {
   def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit]
 
-  def allAtElection(election: SenateElection): Future[Set[VoteCollectionPoint]]
-
   def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean]
 
   def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean]
@@ -30,6 +28,7 @@ trait VoteCollectionPointDao {
 class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                 electionDao: ElectionDao,
                                                 divisionDao: DivisionDao,
+                                                dbStructureCache: DbStructureCache,
                                                 postcodeFlyweight: PostcodeFlyweight) extends VoteCollectionPointDao {
 
   override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
@@ -81,8 +80,6 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
     }
   }
 
-  override def allAtElection(election: SenateElection): Future[Set[VoteCollectionPoint]] = ???
-
   override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
     DB.readOnly { implicit session =>
       sql"""SELECT *
@@ -114,33 +111,9 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   override def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long] = {
     val electionId = electionDao.idOf(election)
 
-    sql"""SELECT
-         |  vote_collection_point.id AS "vote_collection_point.id",
-         |  vote_collection_point.election AS "vote_collection_point.election",
-         |  vote_collection_point.state AS "vote_collection_point.state",
-         |  vote_collection_point.division AS "vote_collection_point.division",
-         |  vote_collection_point.type AS "vote_collection_point.type",
-         |  vote_collection_point.name AS "vote_collection_point.name",
-         |  vote_collection_point.number AS "vote_collection_point.number",
-         |  vote_collection_point.aec_id AS "vote_collection_point.aec_id",
-         |  vote_collection_point.polling_place_type AS "vote_collection_point.polling_place_type",
-         |  vote_collection_point.multiple_locations AS "vote_collection_point.multiple_locations",
-         |  vote_collection_point.premises_name AS "vote_collection_point.premises_name",
-         |  vote_collection_point.address AS "vote_collection_point.address",
-         |  vote_collection_point.latitude AS "vote_collection_point.latitude",
-         |  vote_collection_point.longitude AS "vote_collection_point.longitude",
-         |
-         |  address.id AS "address.id",
-         |  address.lines AS "address.lines",
-         |  address.suburb AS "address.suburb",
-         |  address.postcode AS "address.postcode",
-         |  address.state AS "address.state",
-         |
-         |  division.id AS "division.id",
-         |  division.election AS "division.election",
-         |  division.aec_id AS "division.aec_id",
-         |  division.state AS "division.state",
-         |  division.name AS "division.name"
+    val * = dbStructureCache.columnListFor("vote_collection_point", "address", "division")
+
+    sql"""SELECT ${*}
          |
          |  FROM vote_collection_point
          |    LEFT JOIN address ON vote_collection_point.address = address.id

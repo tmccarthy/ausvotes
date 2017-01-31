@@ -1,10 +1,18 @@
-@import au.id.tmm.senatedb.core.model.SenateElection
-@import au.id.tmm.senatedb.core.model.parsing.Division
-@import au.id.tmm.utilities.geo.australia.State
-@(election: SenateElection, state: State, division: Division)
+@@import au.id.tmm.senatedb.core.model.parsing.Division
+@import au.id.tmm.senatedb.webapp.persistence.entities.DivisionStats
 
-@main("Index") {
+@(division: Division, divisionStats: DivisionStats)
 
-    <h1>@division.name at @election.name</h1>
+@main(s"${division.name} at ${division.election.name}") {
+
+    <h1>@division.name at @division.election.name</h1>
+
+    <p>
+        <span class="infoHeading">State:</span> <span class="infoBody">@division.state.name</span>
+        <span class="infoHeading">Name:</span> <span class="infoBody">@division.name</span>
+    </p>
+    <p>
+        <span class="infoHeading">Total formal ballots:</span> <span class="infoBody">@divisionStats.totalFormalBallots.absoluteCount (@divisionStats.totalFormalBallots.ordinalNationally in nation, @divisionStats.totalFormalBallots.ordinalInState in state)</span>
+    </p>
 
 }
