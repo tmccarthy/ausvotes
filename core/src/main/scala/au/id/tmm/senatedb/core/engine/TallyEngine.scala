@@ -22,13 +22,13 @@ trait TallyEngine {
              talliers: Set[Tallier])
             (implicit ec: ExecutionContext): Future[Tallies]
 
-  def talliesForStates(parsedDataStore: ParsedDataStore,
-                       election: SenateElection,
-                       states: Set[State],
-                       divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                       groupsAndCandidates: GroupsAndCandidates,
-                       talliers: Set[Tallier])
-                      (implicit ec: ExecutionContext): Future[Tallies]
+  def runFor(parsedDataStore: ParsedDataStore,
+             election: SenateElection,
+             states: Set[State],
+             divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+             groupsAndCandidates: GroupsAndCandidates,
+             talliers: Set[Tallier])
+            (implicit ec: ExecutionContext): Future[Tallies]
 }
 
 object TallyEngine extends TallyEngine {
@@ -43,17 +43,17 @@ object TallyEngine extends TallyEngine {
     for {
       divisionsAndPollingPlaces <- divisionsAndPollingPlacesFuture
       groupsAndCandidates <- groupsAndCandidatesFuture
-      allTallies <- talliesForStates(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates, talliers)
+      allTallies <- runFor(parsedDataStore, election, states, divisionsAndPollingPlaces, groupsAndCandidates, talliers)
     } yield allTallies
   }
 
-  def talliesForStates(parsedDataStore: ParsedDataStore,
-                       election: SenateElection,
-                       states: Set[State],
-                       divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                       groupsAndCandidates: GroupsAndCandidates,
-                       talliers: Set[Tallier])
-                      (implicit ec: ExecutionContext): Future[Tallies] = {
+  def runFor(parsedDataStore: ParsedDataStore,
+             election: SenateElection,
+             states: Set[State],
+             divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+             groupsAndCandidates: GroupsAndCandidates,
+             talliers: Set[Tallier])
+            (implicit ec: ExecutionContext): Future[Tallies] = {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
     val tallyFuturesPerState = states
@@ -85,7 +85,10 @@ object TallyEngine extends TallyEngine {
       parsedDataStore.countDataFor(election, groupsAndCandidates, state)
     } map { countData =>
       val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates, howToVoteCards)
-      val computationInputData = ComputationInputData(groupsAndCandidates, divisionsAndPollingPlaces, countData)
+      val computationInputData = ComputationInputData(
+        ComputationInputData.ElectionLevelData(divisionsAndPollingPlaces, groupsAndCandidates, howToVoteCards),
+        ComputationInputData.StateLevelData(countData)
+      )
 
       resource.managed(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state))
         .map { ballots =>
@@ -128,7 +131,10 @@ object TallyEngine extends TallyEngine {
     val firstPreferenceCalculator = FirstPreferenceCalculator(election, state, groupsAndCandidates.candidates)
     val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
 
-    ComputationTools(normaliser, firstPreferenceCalculator, matchingHowToVoteCalculator)
+    ComputationTools(
+      ComputationTools.ElectionLevelTools(matchingHowToVoteCalculator),
+      ComputationTools.StateLevelTools(normaliser, firstPreferenceCalculator)
+    )
   }
 
   private def talliesFrom(ballotsWithFactsIterable: Iterable[BallotWithFacts], talliers: Set[Tallier]): Tallies = {

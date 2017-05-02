@@ -29,7 +29,7 @@ lazy val core = project.in(file("core"))
       "com.github.scopt" %% "scopt" % "3.4.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.3",
 
-      "com.typesafe.akka" %% "akka-actor" % "2.3.12",
+      "com.typesafe.akka" %% "akka-actor" % "2.4.17",
       "com.typesafe.slick" %% "slick" % "3.1.0",
       "org.xerial" % "sqlite-jdbc" % "3.8.11.2",
       "com.h2database" % "h2" % "1.4.192",

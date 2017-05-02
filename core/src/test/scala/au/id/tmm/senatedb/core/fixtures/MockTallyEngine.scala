@@ -13,12 +13,12 @@ final class MockTallyEngine private (talliesToReturn: Tallies) extends TallyEngi
                       states: Set[State],
                       talliers: Set[Tallier])(implicit ec: ExecutionContext): Future[Tallies] = Future(talliesToReturn)
 
-  override def talliesForStates(parsedDataStore: ParsedDataStore,
-                                election: SenateElection,
-                                states: Set[State],
-                                divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                groupsAndCandidates: GroupsAndCandidates,
-                                talliers: Set[Tallier]
+  override def runFor(parsedDataStore: ParsedDataStore,
+                      election: SenateElection,
+                      states: Set[State],
+                      divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                      groupsAndCandidates: GroupsAndCandidates,
+                      talliers: Set[Tallier]
                                )(implicit ec: ExecutionContext): Future[Tallies] = Future(talliesToReturn)
 }
 

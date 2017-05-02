@@ -46,7 +46,7 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
         Future.successful(Tallies())
       } else {
         // TODO don't always want to run for all states
-        tallyEngine.talliesForStates(parsedDataStore, election, State.ALL_STATES,
+        tallyEngine.runFor(parsedDataStore, election, State.ALL_STATES,
           divisionsAndPollingPlaces, groupsAndCandidates, allTalliersToRegister)
       }
     }

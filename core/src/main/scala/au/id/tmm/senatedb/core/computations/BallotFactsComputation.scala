@@ -14,10 +14,12 @@ object BallotFactsComputation {
                       computationTools: ComputationTools,
                       ballots: Iterable[Ballot]): Iterable[BallotWithFacts] = {
 
-    val ballotsWithNormalised = ballots.map(ballot => ballot -> computationTools.normaliser.normalise(ballot)).toVector
+    val ballotNormaliser = computationTools.stateLevel.ballotNormaliser
+
+    val ballotsWithNormalised = ballots.map(ballot => ballot -> ballotNormaliser.normalise(ballot)).toVector
 
     val exhaustionsPerBallot = ExhaustionCalculator
-      .exhaustionsOf(computationInputData.countDataForState, ballotsWithNormalised)
+      .exhaustionsOf(computationInputData.stateLevel.countData, ballotsWithNormalised)
 
     ballotsWithNormalised.map {
       case (ballot, normalisedBallot) => {
@@ -25,8 +27,8 @@ object BallotFactsComputation {
           ballot = ballot,
           normalisedBallot = normalisedBallot,
           isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot),
-          firstPreference = computationTools.firstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
-          matchingHowToVote = computationTools.matchingHowToVoteCalculator.findMatchingHowToVoteCard(ballot),
+          firstPreference = computationTools.stateLevel.firstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
+          matchingHowToVote = computationTools.electionLevel.matchingHowToVoteCalculator.findMatchingHowToVoteCard(ballot),
           exhaustionsPerBallot(ballot)
         )
       }
