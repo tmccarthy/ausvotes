@@ -25,6 +25,13 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
     } yield {}
   }
 
+  def isPopulatedFor(election: SenateElection): Future[Boolean] = {
+    for {
+      entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulator.requiredEntities)
+      talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulator.requiredTallies)
+    } yield entitiesToPopulate.isEmpty && talliesToPopulate.isEmpty
+  }
+
   private def populate(election: SenateElection,
                        entitiesForPopulation: Set[PopulatableEntityClass],
                        talliersForPopulation: Set[Tallier]): Future[Unit] = {

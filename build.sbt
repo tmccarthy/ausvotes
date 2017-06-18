@@ -1,7 +1,7 @@
 import sbt.Keys._
 import sbt._
 
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.11.11"
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 
@@ -9,6 +9,7 @@ resolvers in ThisBuild +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
 val tmmUtilsVersion = "0.1.20"
+val akkaVersion = "2.5.1"
 
 lazy val root = Project("SenateDB", file("."))
   .enablePlugins(GitVersioning)
@@ -21,7 +22,7 @@ lazy val core = project.in(file("core"))
   .settings(
     libraryDependencies ++= Seq(
       "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test,it",
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test,it",
       "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test,it",
 
       "au.id.tmm" %% "tmmutils" % tmmUtilsVersion,
@@ -29,7 +30,7 @@ lazy val core = project.in(file("core"))
       "com.github.scopt" %% "scopt" % "3.4.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.3",
 
-      "com.typesafe.akka" %% "akka-actor" % "2.4.17",
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion,
       "com.typesafe.slick" %% "slick" % "3.1.0",
       "org.xerial" % "sqlite-jdbc" % "3.8.11.2",
       "com.h2database" % "h2" % "1.4.192",
@@ -62,7 +63,8 @@ lazy val webapp = project.in(file("webapp"))
   .settings(
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
     libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
-    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
+    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test",
+    libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
   )
   .settings(
