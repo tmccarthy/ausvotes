@@ -8,7 +8,7 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 resolvers in ThisBuild +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
-val tmmUtilsVersion = "0.1.20"
+val tmmUtilsVersion = "0.2.0"
 val akkaVersion = "2.5.1"
 
 lazy val root = Project("SenateDB", file("."))
@@ -21,7 +21,7 @@ lazy val core = project.in(file("core"))
   .settings(Defaults.itSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test,it",
+      "org.scalatest" %% "scalatest" % "3.0.3" % "test,it",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test,it",
       "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test,it",
 
