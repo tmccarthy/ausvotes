@@ -19,7 +19,7 @@ final case class DistributionOfPreferencesResource(election: SenateElection, dig
 
 object DistributionOfPreferencesResource {
   val `2016` = DistributionOfPreferencesResource(SenateElection.`2016`,
-    Digest("c55be91a1c8d7f9b06ff2b3d3f128947c5c807f0ac4efd6045318eeecaa05f37"))
+    Digest("9c64a5a8d535fe9b28704c2214d5b65f6b54ccfee0e1fa22f7612f1410df6bb1"))
 
   def of(election: SenateElection): Option[DistributionOfPreferencesResource] = election match {
     case SenateElection.`2016` => Some(`2016`)
