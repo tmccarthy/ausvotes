@@ -5,9 +5,8 @@ import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandid
 import au.id.tmm.senatedb.core.tallies.{CountFormalBallots, Tallier, Tallies}
 import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.Inject
-import play.api.libs.concurrent.Execution.Implicits._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // TODO log what this is doing
 class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
@@ -15,7 +14,8 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
                             parsedDataStore: ParsedDataStore,
                             tallyEngine: TallyEngine,
                             entityClassPopulator: EntityClassPopulator,
-                            tallyPopulator: TallyPopulator) {
+                            tallyPopulator: TallyPopulator)
+                           (implicit ec: ExecutionContext) {
 
   def populateAsNeeded(election: SenateElection): Future[Unit] = {
     for {

@@ -6,11 +6,10 @@ import au.id.tmm.senatedb.core.tallies.Tally
 import au.id.tmm.senatedb.webapp.persistence.entities.{TallyOrdinalComputations, TotalFormalBallotsTally}
 import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.{ImplementedBy, Inject, Singleton}
-import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc._
 
 import scala.collection.immutable.Seq
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[ConcreteTotalFormalBallotsDao])
 trait TotalFormalBallotsDao {
@@ -27,6 +26,7 @@ trait TotalFormalBallotsDao {
 class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
                                                divisionDao: DivisionDao,
                                                voteCollectionPointDao: VoteCollectionPointDao)
+                                              (implicit ec: ExecutionContext)
     extends TotalFormalBallotsDao {
 
   override def hasTallyForAnyDivisionAt(election: SenateElection): Future[Boolean] = Future {

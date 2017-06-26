@@ -1,7 +1,7 @@
 import sbt.Keys._
 import sbt._
 
-scalaVersion in ThisBuild := "2.11.11"
+scalaVersion in ThisBuild := "2.12.2"
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 
@@ -46,19 +46,19 @@ lazy val webapp = project.in(file("webapp"))
     libraryDependencies += jdbc,
     libraryDependencies += cache,
     libraryDependencies += ws,
-    libraryDependencies += "org.flywaydb" %% "flyway-play" % "3.0.1"
+    libraryDependencies += guice,
+    libraryDependencies += "org.flywaydb" %% "flyway-play" % "4.0.0"
   )
   .settings(
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "2.5.0",
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "2.5.0",
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.5.1",
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-jsr310"             % "2.5.0",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "3.0.1",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "3.0.1",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.6.0",
     libraryDependencies += "org.postgresql"  %  "postgresql"                     % "9.4.1212",
     libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7"
   )
   .settings(
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-    libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test",
     libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test",
     libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"

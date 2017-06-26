@@ -8,10 +8,9 @@ import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollec
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, State}
 import com.google.inject.{ImplementedBy, Inject, Singleton}
-import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[ConcreteVoteCollectionPointDao])
 trait VoteCollectionPointDao {
@@ -29,7 +28,8 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                 electionDao: ElectionDao,
                                                 divisionDao: DivisionDao,
                                                 dbStructureCache: DbStructureCache,
-                                                postcodeFlyweight: PostcodeFlyweight) extends VoteCollectionPointDao {
+                                                postcodeFlyweight: PostcodeFlyweight)
+                                               (implicit ec: ExecutionContext) extends VoteCollectionPointDao {
 
   override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
 

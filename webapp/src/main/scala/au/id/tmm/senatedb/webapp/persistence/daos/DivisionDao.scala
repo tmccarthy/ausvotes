@@ -6,10 +6,9 @@ import au.id.tmm.senatedb.webapp.persistence.entities.DivisionStats
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
-import play.api.libs.concurrent.Execution.Implicits._
 import scalikejdbc.{DB, _}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[ConcreteDivisionDao])
 trait DivisionDao {
@@ -27,7 +26,8 @@ trait DivisionDao {
 }
 
 @Singleton
-class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache: DbStructureCache) extends DivisionDao {
+class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache: DbStructureCache)
+                                    (implicit ec: ExecutionContext) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
     val rowsToInsert = divisions.map(DivisionRowConversions.toRow(electionDao)).toSeq
