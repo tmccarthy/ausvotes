@@ -21,7 +21,7 @@ class DbPopulationActor @Inject() (dbPopulator: DbPopulator)(implicit ec: Execut
 
     case Requests.IsElectionPopulated(election) => {
       if (electionCurrentlyPopulating contains election) {
-        sender ! Responses.CurrentlyPopulatingForElection(electionCurrentlyPopulating)
+        sender ! Responses.ElectionPopulatedStatus(election, isPopulated = false)
       } else {
         dbPopulator.isPopulatedFor(election)
           .map(isPopulatedFlag => Responses.ElectionPopulatedStatus(election, isPopulatedFlag))
@@ -29,20 +29,24 @@ class DbPopulationActor @Inject() (dbPopulator: DbPopulator)(implicit ec: Execut
       }
     }
 
-    case Requests.PleasePopulateForElection(election) => {
-      if (electionCurrentlyPopulating contains election) {
-        actorsToBeToldWhenFinishedCurrentPopulationJob += sender
-
-      } else if (electionCurrentlyPopulating.isDefined && !electionCurrentlyPopulating.contains(election)) {
-        sender ! Responses.AlreadyPopulatingAnotherElection
-
+    case Requests.PleasePopulateForElection(election, replyWhenDone) => {
+      // TODO we should respond differently if the election is already populated
+      if (electionCurrentlyPopulating.isDefined && !electionCurrentlyPopulating.contains(election)) {
+        sender ! Responses.AlreadyPopulatingAnotherElection(electionCurrentlyPopulating.get)
       } else {
-        actorsToBeToldWhenFinishedCurrentPopulationJob += sender
-        electionCurrentlyPopulating = Some(election)
+        if (replyWhenDone) {
+          actorsToBeToldWhenFinishedCurrentPopulationJob += sender
+        } else {
+          sender ! Responses.OkIWillPopulateElection(election)
+        }
 
-        dbPopulator.populateAsNeeded(election)
-          .map(_ => SelfMessages.ElectionPopulationFinished)
-          .pipeTo(self)
+        if (electionCurrentlyPopulating.isEmpty) {
+          electionCurrentlyPopulating = Some(election)
+
+          dbPopulator.populateAsNeeded(election)
+            .map(_ => SelfMessages.ElectionPopulationFinished)
+            .pipeTo(self)
+        }
       }
     }
 
@@ -64,13 +68,16 @@ object DbPopulationActor {
   object Requests {
     case object AreYouCurrentlyPopulating
     case class IsElectionPopulated(election: SenateElection)
-    case class PleasePopulateForElection(election: SenateElection)
+    case class PleasePopulateForElection(election: SenateElection, replyWhenDone: Boolean)
   }
 
   object Responses {
     case class CurrentlyPopulatingForElection(electionCurrentlyPopulating: Option[SenateElection])
     case class ElectionPopulatedStatus(election: SenateElection, isPopulated: Boolean)
-    case object AlreadyPopulatingAnotherElection
+
+    case class OkIWillPopulateElection(election: SenateElection)
+    case class AlreadyPopulatingAnotherElection(election: SenateElection)
+
     case class FinishedPopulatingFor(election: SenateElection)
   }
 

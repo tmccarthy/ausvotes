@@ -8,3 +8,7 @@ GET     /division/:electionId/:state/:divisionName       au.id.tmm.senatedb.weba
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+# TODO make this restful
+GET     /population/:electionId/status         au.id.tmm.senatedb.webapp.controllers.DbPopulationController.checkPopulationStatusFor(electionId: String)
+GET     /population/:electionId/populate       au.id.tmm.senatedb.webapp.controllers.DbPopulationController.populateFor(electionId: String)

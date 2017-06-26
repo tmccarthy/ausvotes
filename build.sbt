@@ -27,14 +27,10 @@ lazy val core = project.in(file("core"))
 
       "au.id.tmm" %% "tmmutils" % tmmUtilsVersion,
 
-      "com.github.scopt" %% "scopt" % "3.4.0",
-      "com.github.tototoshi" %% "scala-csv" % "1.3.3",
+      "com.github.scopt" %% "scopt" % "3.6.0",
+      "com.github.tototoshi" %% "scala-csv" % "1.3.4",
 
       "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-      "com.typesafe.slick" %% "slick" % "3.1.0",
-      "org.xerial" % "sqlite-jdbc" % "3.8.11.2",
-      "com.h2database" % "h2" % "1.4.192",
-      "org.postgresql" % "postgresql" % "9.4.1209",
 
       "commons-io" % "commons-io" % "2.4",
       "org.apache.commons" % "commons-lang3" % "3.4"

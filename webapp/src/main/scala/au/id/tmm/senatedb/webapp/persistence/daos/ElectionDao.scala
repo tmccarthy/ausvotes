@@ -1,10 +1,11 @@
 package au.id.tmm.senatedb.webapp.persistence.daos
 
 import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.senatedb.webapp.services.exceptions.NoSuchElectionException
 import com.google.common.collect.ImmutableBiMap
 import com.google.inject.{ImplementedBy, Singleton}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // TODO the election table in the db should be populated from the enum
 @ImplementedBy(classOf[HardCodedElectionDao])
@@ -16,6 +17,14 @@ trait ElectionDao {
   def idOf(election: SenateElection): Option[String]
 
   def idOf(aecElectionId: Int): Option[String]
+
+  def withParsedElection[A](electionId: String)(block: SenateElection => Future[A])(implicit ec: ExecutionContext): Future[A] = {
+    electionWithIdFuture(electionId)
+      .flatMap {
+        case Some(matchingElection) => block(matchingElection)
+        case None => Future.failed(NoSuchElectionException(electionId))
+      }
+  }
 }
 
 @Singleton

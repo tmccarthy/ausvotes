@@ -44,30 +44,38 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MockFactory with TestK
     assert(response === Responses.ElectionPopulatedStatus(SenateElection.`2016`, isPopulated = true))
   }
 
-  it can "respond that the requested election is currently being populated" in {
+  it should "acknowledge a request to populate" in {
     (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
-    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`)
+    val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = false))
+
+    assert(response === Responses.OkIWillPopulateElection(SenateElection.`2016`))
+  }
+
+  it should "reply when the population has finished if asked" in {
+    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+
+    val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true))
+
+    assert(response === Responses.FinishedPopulatingFor(SenateElection.`2016`))
+  }
+
+  it can "respond that a currently populating election has not been populated" in {
+    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+
+    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.IsElectionPopulated(SenateElection.`2016`)
 
     await(eventualResponse1)
     val response = await(eventualResponse2)
 
-    assert(response === Responses.CurrentlyPopulatingForElection(Some(SenateElection.`2016`)))
-  }
-
-  it should "respond to the original requestor when it finishes populating" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(Future.successful(Unit))
-
-    val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`))
-
-    assert(response === Responses.FinishedPopulatingFor(SenateElection.`2016`))
+    assert(response === Responses.ElectionPopulatedStatus(SenateElection.`2016`, isPopulated = false))
   }
 
   it should "indicate that it is currently populating when it is populating for an election" in {
     (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
-    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`)
+    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.AreYouCurrentlyPopulating
 
     await(eventualResponse1)
@@ -79,8 +87,8 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MockFactory with TestK
   it should "respond to subsequent requestors that have requested it populate the election currently being populated" in {
     (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
-    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`)
-    val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`)
+    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
+    val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
 
     val response1 = await(eventualResponse1)
     val response2 = await(eventualResponse2)
@@ -92,13 +100,13 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MockFactory with TestK
   it should "respond to requests to populate an election other than the one that is currently being populated" in {
     (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
-    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`)
-    val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2013`)
+    val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
+    val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2013`, replyWhenDone = false)
 
     await(eventualResponse1)
     val response2 = await(eventualResponse2)
 
-    assert(response2 === Responses.AlreadyPopulatingAnotherElection)
+    assert(response2 === Responses.AlreadyPopulatingAnotherElection(SenateElection.`2016`))
   }
 
   override protected def afterAll(): Unit = {

@@ -5,12 +5,16 @@ import java.nio.file.Paths
 import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.senatedb.webapp.persistence.population.DbPopulationActor
 import com.google.inject.{AbstractModule, Provides, Singleton}
+import play.api.libs.concurrent.AkkaGuiceSupport
 import scalikejdbc.{ConnectionPool, ConnectionPoolContext, MultipleConnectionPoolContext}
 
-class Module extends AbstractModule {
+class Module extends AbstractModule with AkkaGuiceSupport {
 
-  override def configure(): Unit = {}
+  override def configure(): Unit = {
+    bindActor[DbPopulationActor]("dbPopulationActor")
+  }
 
   @Provides
   def provideConnectionPoolContext(): ConnectionPoolContext =
@@ -34,5 +38,7 @@ class Module extends AbstractModule {
 
   @Provides
   def provideTallyEngine: TallyEngine = TallyEngine
+
+
 
 }
