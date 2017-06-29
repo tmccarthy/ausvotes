@@ -8,10 +8,14 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 resolvers in ThisBuild +=
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 
+val applicationName = "SenateDB"
+
 val tmmUtilsVersion = "0.2.1"
 val akkaVersion = "2.5.1"
 
-lazy val root = Project("SenateDB", file("."))
+def isSnapshot(version: String) = version endsWith "-SNAPSHOT"
+
+lazy val root = Project(applicationName, file("."))
   .enablePlugins(GitVersioning)
   .aggregate(core, webapp)
 
@@ -41,6 +45,7 @@ lazy val core = project.in(file("core"))
 lazy val webapp = project.in(file("webapp"))
   .enablePlugins(GitVersioning)
   .enablePlugins(PlayScala)
+  .enablePlugins(sbtdocker.DockerPlugin)
   .disablePlugins(PlayLayoutPlugin)
   .settings(
     libraryDependencies += jdbc,
@@ -65,5 +70,30 @@ lazy val webapp = project.in(file("webapp"))
   )
   .settings(
     baseDirectory in run := file("..")
+  )
+  .settings(
+    // Docker stuff
+
+    docker <<= (docker dependsOn stage),
+
+    imageNames in docker := Seq(
+      ImageName(
+        namespace=Some("tmccarthy"),
+        repository=applicationName.toLowerCase,
+        tag=Some(if (isSnapshot(version.value)) git.gitHeadCommit.value.get else version.value)
+      )
+    ),
+
+    dockerfile in docker := {
+      val localDistributionLocation: File = stage.value
+      val containerLocation = s"/opt/$applicationName"
+
+      new Dockerfile {
+        from("openjdk:8u131-jre-alpine")
+        runRaw("apk add --update bash && rm -rf /var/cache/apk/*")
+        add(localDistributionLocation, containerLocation)
+        entryPoint(s"$containerLocation/bin/webapp")
+      }
+    }
   )
   .dependsOn(core % "compile->compile;test->test")
