@@ -17,7 +17,7 @@ def isSnapshot(version: String) = version endsWith "-SNAPSHOT"
 
 lazy val root = Project(applicationName, file("."))
   .enablePlugins(GitVersioning)
-  .aggregate(core, webapp)
+  .aggregate(core, api)
 
 lazy val core = project.in(file("core"))
   .enablePlugins(GitVersioning)
@@ -42,7 +42,7 @@ lazy val core = project.in(file("core"))
   )
   .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*")
 
-lazy val webapp = project.in(file("webapp"))
+lazy val api = project.in(file("api"))
   .enablePlugins(GitVersioning)
   .enablePlugins(PlayScala)
   .enablePlugins(sbtdocker.DockerPlugin)
@@ -92,7 +92,7 @@ lazy val webapp = project.in(file("webapp"))
         from("openjdk:8u131-jre-alpine")
         runRaw("apk add --update bash && rm -rf /var/cache/apk/*")
         add(localDistributionLocation, containerLocation)
-        entryPoint(s"$containerLocation/bin/webapp")
+        entryPoint(s"$containerLocation/bin/api")
       }
     }
   )

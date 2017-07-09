@@ -1,0 +1,20 @@
+@import au.id.tmm.senatedb.core.model.parsing.Division
+@import au.id.tmm.senatedb.api.persistence.entities.DivisionStats
+
+@(division: Division, divisionStats: DivisionStats)
+
+@main(s"${division.name} at ${division.election.name}") {
+
+    <h1>@division.name at @division.election.name</h1>
+
+    <p>
+        <span class="infoHeading">State:</span> <span class="infoBody">@division.state.name</span>
+    </p>
+    <p>
+        <span class="infoHeading">Name:</span> <span class="infoBody">@division.name</span>
+    </p>
+    <p>
+        <span class="infoHeading">Total formal ballots:</span> <span class="infoBody">@divisionStats.totalFormalBallots.absoluteCount (@divisionStats.totalFormalBallots.ordinalNationally in nation, @divisionStats.totalFormalBallots.ordinalInState in state)</span>
+    </p>
+
+}

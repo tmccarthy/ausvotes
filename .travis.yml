@@ -6,5 +6,5 @@ scala:
 jdk:
   - oraclejdk8
 
-script: "sbt clean coverage webapp/test core/test core/it:test coverageReport"
+script: "sbt clean coverage api/test core/test core/it:test coverageReport"
 after_success: "sbt coverageAggregate coveralls"
