@@ -58,8 +58,8 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor {
 
   it should "return the found statistics" in {
     val division = Divisions.ACT.CANBERRA
-    val stats = DivisionStats(TotalFormalBallotsTally(Divisions.ACT.CANBERRA, 42, 1, Some(1), Some(1)))
-    val responseFromDao = Future.successful(Some((division, stats)))
+    val stats = DivisionStats(Divisions.ACT.CANBERRA, TotalFormalBallotsTally(42, 1, Some(1), Some(1)))
+    val responseFromDao = Future.successful(Some(stats))
 
     (divisionDao.findStats _).expects(testElectionId, "ACT", "Canberra").returns(responseFromDao)
 
@@ -70,7 +70,7 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor {
 
     val result = await(request)
 
-    assert(result === (division, stats))
+    assert(result === stats)
   }
 
   private def await[A](future: Future[A]) = Await.result(future, Duration.Inf)
