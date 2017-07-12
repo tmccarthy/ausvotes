@@ -20,9 +20,9 @@ trait DivisionDao {
 
   def idOf(division: Division): Long
 
-  def findWithStats(electionId: String,
-                    stateAbbreviation: String,
-                    divisionName: String): Future[Option[(Division, DivisionStats)]]
+  def findStats(electionId: String,
+                stateAbbreviation: String,
+                divisionName: String): Future[Option[DivisionStats]]
 }
 
 @Singleton
@@ -65,10 +65,10 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache:
     }
   }
 
-  override def findWithStats(electionId: String,
-                             stateAbbreviation: String,
-                             divisionName: String
-                            ): Future[Option[(Division, DivisionStats)]] = Future {
+  override def findStats(electionId: String,
+                         stateAbbreviation: String,
+                         divisionName: String
+                            ): Future[Option[DivisionStats]] = Future {
     DB.readOnly { implicit session =>
       val * = dbStructureCache.columnListFor("division", "total_formal_ballot_count")
 
@@ -85,11 +85,11 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache:
            |""".stripMargin
         .map { row =>
           val division = DivisionRowConversions.fromRow(electionDao, "division")(row)
-          val totalFormalBallotsTally = TotalFormalBallotsRowConversions.fromRow(_ => division, alias="total_formal_ballot_count")(row)
+          val totalFormalBallotsTally = TotalFormalBallotsRowConversions.fromRow(alias="total_formal_ballot_count")(row)
 
-          val divisionStats = DivisionStats(totalFormalBallotsTally)
+          val divisionStats = DivisionStats(division, totalFormalBallotsTally)
 
-          division -> divisionStats
+          divisionStats
         }
         .first()
         .apply()

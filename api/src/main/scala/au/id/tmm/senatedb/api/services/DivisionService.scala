@@ -18,12 +18,12 @@ class DivisionService @Inject() (val electionDao: ElectionDao,
                                  @Named("dbPopulationActor") val dbPopulationActor: ActorRef
                                 )(implicit ec: ExecutionContext) extends DbPopulationChecks {
 
-  def divisionWithStatsFor(electionId: String, stateAbbreviation: String, divisionName: String): Future[(Division, DivisionStats)] =
+  def divisionStatsFor(electionId: String, stateAbbreviation: String, divisionName: String): Future[DivisionStats] =
     electionDao.withParsedElection(electionId) { election =>
       requiresElectionPopulated(election) {
-        divisionDao.findWithStats(electionId, stateAbbreviation, divisionName)
+        divisionDao.findStats(electionId, stateAbbreviation, divisionName)
           .map {
-            case Some(divisionAndStats) => divisionAndStats
+            case Some(divisionStats) => divisionStats
             case None => throw CannotFindStatsForDivision(election, stateAbbreviation, divisionName)
           }
       }

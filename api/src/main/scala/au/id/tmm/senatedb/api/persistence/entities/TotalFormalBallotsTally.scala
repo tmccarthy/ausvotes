@@ -1,8 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.entities
 
-final case class TotalFormalBallotsTally[A](
-    attachedEntity: A,
-
+final case class TotalFormalBallotsTally(
     absoluteCount: Long,
 
     ordinalNationally: Int,

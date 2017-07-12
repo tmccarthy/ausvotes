@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.ConcreteTotalFormalBallotsDao.TallyWithJurisdiction
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.tallies.Tally
@@ -86,7 +87,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
         .map {
           case (tallyForDivision, total_formal_ballot_count_id) =>
             Seq(
-              Symbol("division") -> divisionDao.idOf(tallyForDivision.attachedEntity),
+              Symbol("division") -> divisionDao.idOf(tallyForDivision.jurisdiction),
               Symbol("total_formal_ballot_count_id") -> total_formal_ballot_count_id
             )
         }
@@ -98,7 +99,12 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
   override def writePerVoteCollectionPoint(election: SenateElection,
                                            tally: Tally[VoteCollectionPoint]): Future[Unit] = Future {
-    val talliesToWrite = TotalFormalBallotsRowConversions.toEntities[VoteCollectionPoint](tally, Some(_.state), Some(_.division))
+    val talliesToWrite: Set[TallyWithJurisdiction[VoteCollectionPoint]] =
+      TotalFormalBallotsRowConversions.toEntities[VoteCollectionPoint](
+        tally,
+        Some(_.state),
+        Some(_.division)
+      )
 
     DB.localTx { implicit session =>
 
@@ -123,7 +129,7 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
         .map {
           case (tallyForVcp, total_formal_ballot_count_id) =>
             Seq(
-              Symbol("vote_collection_point_id") -> idsPerVoteCollectionPoint(tallyForVcp.attachedEntity),
+              Symbol("vote_collection_point_id") -> idsPerVoteCollectionPoint(tallyForVcp.jurisdiction),
               Symbol("total_formal_ballot_count_id") -> total_formal_ballot_count_id
             )
         }
@@ -133,11 +139,12 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
     }
   }
 
-  private def writeTotalFormalBallotTallies[A](tallies: Set[TotalFormalBallotsTally[A]])
-                                              (implicit session: DBSession): Map[TotalFormalBallotsTally[A], Long] = {
-    tallies.toStream
-      .map { tally =>
-        val asRow = TotalFormalBallotsRowConversions.toRow(tally)
+  private def writeTotalFormalBallotTallies[A](tallies: Set[TallyWithJurisdiction[A]])
+                                              (implicit session: DBSession): Map[TallyWithJurisdiction[A], Long] = {
+    tallies
+      .toStream
+      .map { tallyWithJurisdiction: TallyWithJurisdiction[A] =>
+        val asRow = TotalFormalBallotsRowConversions.toRow(tallyWithJurisdiction.tally)
 
         val statement = sql"""INSERT INTO total_formal_ballot_count(
                              |  total_formal_ballots,
@@ -154,20 +161,23 @@ class ConcreteTotalFormalBallotsDao @Inject() (electionDao: ElectionDao,
 
         val generatedId = statement.apply()
 
-        tally -> generatedId
+        tallyWithJurisdiction -> generatedId
       }
       .toMap
   }
 }
 
+object ConcreteTotalFormalBallotsDao {
+  private[daos] case class TallyWithJurisdiction[A] (tally: TotalFormalBallotsTally, jurisdiction: A)
+}
+
 private[daos] object TotalFormalBallotsRowConversions extends RowConversions {
 
-  def fromRow[A](attachedEntityConverter: WrappedResultSet => A, alias: String = "")
-                (row: WrappedResultSet): TotalFormalBallotsTally[A] = {
+  def fromRow[A](alias: String = "")
+                (row: WrappedResultSet): TotalFormalBallotsTally = {
     val c = aliasedColumnName(alias)(_)
 
     TotalFormalBallotsTally(
-      attachedEntityConverter(row),
       row.long(c("total_formal_ballots")),
       row.int(c("ordinal_nationally")),
       Option[Integer](row.nullableInt(c("ordinal_state"))).map(_.toInt),
@@ -177,7 +187,7 @@ private[daos] object TotalFormalBallotsRowConversions extends RowConversions {
 
   def toEntities[A](tally: Tally[A],
                     computeState: Option[A => State],
-                    computeDivision: Option[A => Division]): Set[TotalFormalBallotsTally[A]] = {
+                    computeDivision: Option[A => Division]): Set[TallyWithJurisdiction[A]] = {
 
     val nationalOrdinalsPerJurisdiction: Map[A, Int] = TallyOrdinalComputations.ordinalNationally(tally)
     val stateOrdinalsPerJurisdiction: Option[Map[A, Int]] = computeState.map(TallyOrdinalComputations.ordinalWithinState(tally, _))
@@ -185,18 +195,21 @@ private[daos] object TotalFormalBallotsRowConversions extends RowConversions {
 
     tally.values.toStream
       .map {
-        case (jurisdiction, count) => TotalFormalBallotsTally(
-          jurisdiction,
-          count.toLong,
-          nationalOrdinalsPerJurisdiction(jurisdiction),
-          stateOrdinalsPerJurisdiction.map(_(jurisdiction)),
-          voteCollectionOrdinalsPerJurisdiction.map(_(jurisdiction))
-        )
+        case (jurisdiction, count) => {
+          val totalFormalBallotsTally = TotalFormalBallotsTally(
+            count.toLong,
+            nationalOrdinalsPerJurisdiction(jurisdiction),
+            stateOrdinalsPerJurisdiction.map(_(jurisdiction)),
+            voteCollectionOrdinalsPerJurisdiction.map(_(jurisdiction))
+          )
+
+          TallyWithJurisdiction(totalFormalBallotsTally, jurisdiction)
+        }
       }
       .toSet
   }
 
-  def toRow[A](entity: TotalFormalBallotsTally[A]): Map[String, Any] = {
+  def toRow[A](entity: TotalFormalBallotsTally): Map[String, Any] = {
     Map(
       "total_formal_ballots" -> entity.absoluteCount,
       "ordinal_nationally" -> entity.ordinalNationally,

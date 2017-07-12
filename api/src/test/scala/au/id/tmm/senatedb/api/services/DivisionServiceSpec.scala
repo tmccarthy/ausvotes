@@ -25,13 +25,13 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor {
   private val sut = new DivisionService(electionDao, divisionDao, mockDbPopulationActor.ref)
 
   "a division service" should "fail if the election is invalid" in {
-    val result = Try(await(sut.divisionWithStatsFor("asdf", "ACT", "Canberra")))
+    val result = Try(await(sut.divisionStatsFor("asdf", "ACT", "Canberra")))
 
     assert(result === Failure(NoSuchElectionException("asdf")))
   }
 
   it should "fail if the election has not been populated" in {
-    val request = sut.divisionWithStatsFor(testElectionId, "ACT", "Canberra")
+    val request = sut.divisionStatsFor(testElectionId, "ACT", "Canberra")
 
     mockDbPopulationActor.expectMsg(DbPopulationActor.Requests.IsElectionPopulated(testElection))
     mockDbPopulationActor.reply(DbPopulationActor.Responses.ElectionPopulatedStatus(testElection, isPopulated = false))
@@ -44,9 +44,9 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor {
   it should "fail if no statistics can be found" in {
     val responseFromDao = Future.successful(None)
 
-    (divisionDao.findWithStats _).expects(testElectionId, "ACT", "Canberra").returns(responseFromDao)
+    (divisionDao.findStats _).expects(testElectionId, "ACT", "Canberra").returns(responseFromDao)
 
-    val request = sut.divisionWithStatsFor(testElectionId, "ACT", "Canberra")
+    val request = sut.divisionStatsFor(testElectionId, "ACT", "Canberra")
 
     mockDbPopulationActor.expectMsg(DbPopulationActor.Requests.IsElectionPopulated(testElection))
     mockDbPopulationActor.reply(DbPopulationActor.Responses.ElectionPopulatedStatus(testElection, isPopulated = true))
@@ -61,9 +61,9 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor {
     val stats = DivisionStats(TotalFormalBallotsTally(Divisions.ACT.CANBERRA, 42, 1, Some(1), Some(1)))
     val responseFromDao = Future.successful(Some((division, stats)))
 
-    (divisionDao.findWithStats _).expects(testElectionId, "ACT", "Canberra").returns(responseFromDao)
+    (divisionDao.findStats _).expects(testElectionId, "ACT", "Canberra").returns(responseFromDao)
 
-    val request = sut.divisionWithStatsFor(testElectionId, "ACT", "Canberra")
+    val request = sut.divisionStatsFor(testElectionId, "ACT", "Canberra")
 
     mockDbPopulationActor.expectMsg(DbPopulationActor.Requests.IsElectionPopulated(testElection))
     mockDbPopulationActor.reply(DbPopulationActor.Responses.ElectionPopulatedStatus(testElection, isPopulated = true))

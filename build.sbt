@@ -55,8 +55,8 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "org.flywaydb" %% "flyway-play" % "4.0.0"
   )
   .settings(
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "3.0.1",
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "3.0.1",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "2.5.1",
+    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "2.5.1",
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.6.0",
     libraryDependencies += "org.postgresql"  %  "postgresql"                     % "9.4.1212",
     libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7"
