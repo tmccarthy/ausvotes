@@ -1,21 +1,18 @@
 package au.id.tmm.senatedb.api.persistence.population
 
-import akka.actor.ActorSystem
 import akka.pattern.ask
-import akka.testkit.{TestKit, TestKitBase}
 import akka.util.Timeout
-import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests, Responses}
+import au.id.tmm.senatedb.api.services.MocksActor
+import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, Awaitable, Future}
 
-class DbPopulationActorSpec extends ImprovedFlatSpec with MockFactory with TestKitBase with BeforeAndAfterAll {
-  override implicit lazy val system = ActorSystem()
+class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
+
   implicit val askTimeout = Timeout(5.seconds)
 
   private val dbPopulator = mock[DbPopulator]
@@ -107,12 +104,6 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MockFactory with TestK
     val response2 = await(eventualResponse2)
 
     assert(response2 === Responses.AlreadyPopulatingAnotherElection(SenateElection.`2016`))
-  }
-
-  override protected def afterAll(): Unit = {
-    super.afterAll()
-
-    TestKit.shutdownActorSystem(system)
   }
 
   private def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
