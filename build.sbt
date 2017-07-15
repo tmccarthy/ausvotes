@@ -40,7 +40,6 @@ lazy val core = project.in(file("core"))
       "org.apache.commons" % "commons-lang3" % "3.4"
     )
   )
-  .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*")
 
 lazy val api = project.in(file("api"))
   .enablePlugins(GitVersioning)
@@ -68,7 +67,6 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
   )
-  .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*;controllers.javascript*;controllers.ref*;router*")
   .settings(
     baseDirectory in run := file("..")
   )
@@ -98,3 +96,12 @@ lazy val api = project.in(file("api"))
     }
   )
   .dependsOn(core % "compile->compile;test->test")
+
+coverageExcludedPackages in ThisBuild := List(
+  "au.id.tmm.senatedb.core.mainclasses.*",
+  "au.id.tmm.senatedb.api.controllers.javascript*",
+  "au.id.tmm.senatedb.api.controllers.ReverseRoutes",
+  "au.id.tmm.senatedb.api.controllers.ref*",
+  "au.id.tmm.senatedb.router*",
+  "router.*"
+).mkString(";")
