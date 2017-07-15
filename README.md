@@ -20,8 +20,8 @@ data into a relational database. You can view that tool [here](https://github.co
 
 ## Running
 
-SenateDB is built and run with [SBT](http://www.scala-sbt.org/). Simply check it out and run `sbt run` to generate the
-reports.
+SenateDB is built and run with [SBT](http://www.scala-sbt.org/). Simply check it out and run `sbt core/run` to generate 
+the reports.
 
 SenateDB will download the raw data from the AEC the first time it is run (about 180 MB), and then reads through these
 files to generate the reports. The report generation takes about 17 minutes on my Macbook Pro.
