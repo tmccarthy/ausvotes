@@ -68,6 +68,7 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
   )
+  .settings(coverageExcludedPackages := "au.id.tmm.senatedb.mainclasses.*;controllers.javascript*;controllers.ref*;router*")
   .settings(
     baseDirectory in run := file("..")
   )
