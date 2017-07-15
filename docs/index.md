@@ -5,7 +5,7 @@ title: SenateDB
 
 SenateDB is a tool for performing analysis of formal ballots cast for the Senate during the 2016 Australian federal 
 election. The source code and instructions for running it are available 
-[on GitHub](https://github.com/tmccarthy/SenateDB).
+[on GitHub](https://github.com/tmccarthy/SenateDB/tree/v0.4.1).
 
 * auto-gen TOC:
 {:toc}
@@ -14,10 +14,10 @@ election. The source code and instructions for running it are available
 
 ### The raw data
 
-These reports are composed by the [SenateDB tool](https://github.com/tmccarthy/SenateDB) from raw data made available on
-[the AEC's website](http://results.aec.gov.au/20499/Website/SenateDownloadsMenu-20499-Csv.htm). In particular, they rely
-on the large csv files on that website containing the preferences on every formal ballot paper at the 2016 federal 
-election.
+These reports are composed by the [SenateDB tool](https://github.com/tmccarthy/SenateDB/tree/v0.4.1) from raw data made 
+available on [the AEC's website](http://results.aec.gov.au/20499/Website/SenateDownloadsMenu-20499-Csv.htm). In 
+particular, they rely on the large csv files on that website containing the preferences on every formal ballot paper at 
+the 2016 federal election.
 
 ### Formal ballots
 
@@ -30,7 +30,7 @@ available in the AEC data, and so are not included in this analysis.
 For each ballot, the AEC data includes the number (or tick or cross) written in each square on the ballot paper. We need
 to apply the rules in the Electoral Act in order to retrieve the actual candidate order used in the count.
 
-This process is performed by the [`BallotNormaliser` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/ballotnormalisation/BallotNormaliser.scala).
+This process is performed by the [`BallotNormaliser` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/computations/ballotnormalisation/BallotNormaliser.scala).
 Broadly, it applies 5 processes:
 
 1. Converts ticks or crosses to a '1' in the marked square, as per sections 

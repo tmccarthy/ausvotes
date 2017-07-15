@@ -6,7 +6,7 @@ title: Donkey votes
 These tables cross-tabulate the number of [donkey votes](https://en.wikipedia.org/wiki/Donkey_vote) at the 2016 federal 
 Senate election.
 
-SenateDB's [`DonkeyVoteDetector` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/donkeyvotes/DonkeyVoteDetector.scala)
+SenateDB's [`DonkeyVoteDetector` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/computations/donkeyvotes/DonkeyVoteDetector.scala)
 is used to determine whether a ballot is a donkey vote. It considers a ballot to be a donkey vote if it 
 
 * Preferences *at least 4* squares above the line in their ballot paper order, and

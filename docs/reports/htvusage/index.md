@@ -11,9 +11,9 @@ These tables cross-tabulate the number of votes that exactly match a
 
 ## Explanation
 
-How to vote cards are composed by the [`HowToVoteCardGeneration` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/parsing/HowToVoteCardGeneration.scala),
+How to vote cards are composed by the [`HowToVoteCardGeneration` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/parsing/HowToVoteCardGeneration.scala),
 using the cards [listed on the ABC election website](http://www.abc.net.au/news/federal-election-2016/guide/svic/htv/).
-Ballots are then matched against these cards by the [`MatchingHowToVoteCalculator` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/howtovote/MatchingHowToVoteCalculator.scala).
+Ballots are then matched against these cards by the [`MatchingHowToVoteCalculator` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/computations/howtovote/MatchingHowToVoteCalculator.scala).
 
 Many how-to-vote cards (eg from the Jacquie Lambie Network) simply told voters where to put their first 
 preference, and then asked them to mark the rest as they liked. Others (eg the Motoring Enthusiasts) gave suggestions 

@@ -8,7 +8,7 @@ Sections [269](http://www.austlii.edu.au/au/legis/cth/consol_act/cea1918233/s269
 provisions. Under these rules, ballots can still be formal if they do not follow instructions given to voters, or if 
 they contain other errors. These tables display the number of ballots that were "saved" by these provisions.
 
-SenateDB determines whether to count a ballot in these tables in the [`CountSavedBallots` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/tallies/CountSavedBallots.scala).
+SenateDB determines whether to count a ballot in these tables in the [`CountSavedBallots` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/tallies/CountSavedBallots.scala).
 A ballot is included in this count if it meets the following conditions:
 
 * It numbers between 1 and 5 squares above the line (voters were told to number at least 6), or

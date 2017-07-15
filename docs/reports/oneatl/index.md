@@ -21,7 +21,7 @@ It is important to note that while numbering a single square above the line did 
 election, it did not have the same effect as doing so at the 2013 election. Without a group voting ticket, ballots with
 only one square marked above the line would almost always exhaust, as they did not express further preferences.
 
-In SenateDB, the [`CountOneAtl` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/tallies/CountOneAtl.scala)
+In SenateDB, the [`CountOneAtl` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/tallies/CountOneAtl.scala)
 is responsible for determining whether a ballot has marked a single square above the line. To be counted, a ballot must:
 
 * Have expressed a single first preference above the line, either with a '1', a tick or a cross (as per 
