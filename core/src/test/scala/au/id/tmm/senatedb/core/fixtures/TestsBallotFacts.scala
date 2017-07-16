@@ -4,6 +4,7 @@ import au.id.tmm.senatedb.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.senatedb.core.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.senatedb.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.senatedb.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
+import au.id.tmm.senatedb.core.model.computation.NormalisedBallot
 import au.id.tmm.senatedb.core.model._
 import au.id.tmm.senatedb.core.model.parsing.Ballot
 import au.id.tmm.senatedb.core.parsing.HowToVoteCardGeneration
@@ -29,6 +30,8 @@ trait TestsBallotFacts {
     ComputationTools.ElectionLevelTools(matchingHowToVoteCalculator),
     ComputationTools.StateLevelTools(normaliser, firstPreferenceCalculator)
   )
+
+  def normalise(ballot: Ballot): NormalisedBallot = normaliser.normalise(ballot)
 
   def factsFor(ballot: Ballot): BallotWithFacts = {
     factsFor(Iterable(ballot)).head

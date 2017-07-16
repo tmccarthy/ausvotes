@@ -2,6 +2,7 @@ package au.id.tmm.senatedb.core.computations
 
 import au.id.tmm.senatedb.core.computations.donkeyvotes.DonkeyVoteDetector
 import au.id.tmm.senatedb.core.computations.exhaustion.ExhaustionCalculator
+import au.id.tmm.senatedb.core.computations.savings.SavingsComputation
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Ballot
 import au.id.tmm.utilities.geo.australia.State
@@ -29,7 +30,8 @@ object BallotFactsComputation {
           isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot),
           firstPreference = computationTools.stateLevel.firstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
           matchingHowToVote = computationTools.electionLevel.matchingHowToVoteCalculator.findMatchingHowToVoteCard(ballot),
-          exhaustionsPerBallot(ballot)
+          exhaustion            = exhaustionsPerBallot(ballot),
+          savingsProvisionsUsed = SavingsComputation.savingsProvisionsUsedBy(ballot, normalisedBallot)
         )
       }
     }

@@ -52,6 +52,29 @@ is used to determine whether a ballot is a donkey vote. It considers a ballot to
 |TAS|309|339,159|0.09%|
 |**Total**|**20,553**|**13,838,900**|**0.15%**|
 
+\hfill
+State & Division & Donkey votes & Total formal ballots for division & \% \\ \hfill
+NT & Lingiari & 1,046 & 45,027 & 2.32\% \\ \hfill
+NSW & Fowler & 321 & 88,417 & 0.36\% \\ \hfill
+VIC & Calwell & 317 & 90,982 & 0.35\% \\ \hfill
+NSW & Blaxland & 307 & 83,969 & 0.37\% \\ \hfill
+VIC & Maribyrnong & 292 & 94,811 & 0.31\% \\ \hfill
+VIC & Gorton & 283 & 99,397 & 0.28\% \\ \hfill
+VIC & Wills & 283 & 96,962 & 0.29\% \\ \hfill
+NSW & Watson & 282 & 87,200 & 0.32\% \\ \hfill
+QLD & Leichhardt & 270 & 92,437 & 0.29\% \\ \hfill
+NSW & Werriwa & 252 & 91,662 & 0.27\% \\ \hfill
+VIC & Scullin & 247 & 96,802 & 0.26\% \\ \hfill
+NSW & McMahon & 234 & 89,555 & 0.26\% \\ \hfill
+NSW & Parkes & 232 & 94,716 & 0.24\% \\ \hfill
+VIC & Hotham & 228 & 87,677 & 0.26\% \\ \hfill
+VIC & Batman & 224 & 94,648 & 0.24\% \\ \hfill
+VIC & Mallee & 223 & 87,316 & 0.26\% \\ \hfill
+VIC & Gellibrand & 223 & 92,824 & 0.24\% \\ \hfill
+VIC & McEwen & 206 & 116,948 & 0.18\% \\ \hfill
+NSW & Farrer & 193 & 98,050 & 0.20\% \\ \hfill
+VIC & Lalor & 192 & 107,821 & 0.18\% \\ \hfill
+
 ## Donkey votes by division
 
 |State|Division|Donkey votes|Total formal ballots for division|%|
@@ -207,3 +230,71 @@ is used to determine whether a ballot is a donkey vote. It considers a ballot to
 |WA|Curtin|43|86,950|0.05%|
 |SA|Mayo|33|95,749|0.03%|
 |**Total**|****|**20,553**|**13,838,900**|**0.15%**|
+
+### By vote collection point
+
+These are the vote collection points with more than 20 total donkey votes.
+
+|State|Division|Vote collection point|Donkey votes|Total formal ballots for polling place|%|
+|---|---|---|---|---|---|
+|NT|Lingiari|Remote Mobile Team 5|136|1,345|10.11%|
+|NT|Lingiari|Remote Mobile Team 2|133|1,297|10.25%|
+|NT|Lingiari|Remote Mobile Team 6|74|876|8.45%|
+|NT|Lingiari|Remote Mobile Team 1|69|1,324|5.21%|
+|NT|Lingiari|Remote Mobile Team 7|67|1,219|5.50%|
+|NT|Lingiari|Remote Mobile Team 3|67|634|10.57%|
+|NSW|Fowler|Fairfield FOWLER PPVC|61|10,249|0.60%|
+|NSW|McMahon|Fairfield MCMAHON PPVC|61|9,742|0.63%|
+|NT|Lingiari|Remote Mobile Team 15|56|790|7.09%|
+|NSW|Barton|Special Hospital Team 1|53|8,015|0.66%|
+|NT|Lingiari|Remote Mobile Team 4|53|909|5.83%|
+|NT|Lingiari|Home Island|45|213|21.13%|
+|VIC|Gellibrand|Sunshine GELLIBRAND PPVC|45|8,753|0.51%|
+|QLD|Leichhardt|Aurukun|44|572|7.69%|
+|NSW|Werriwa|Green Valley WERRIWA PPVC|43|11,937|0.36%|
+|VIC|Gorton|Melton GORTON PPVC|42|10,891|0.39%|
+|NT|Lingiari|Remote Mobile Team 14|41|1,382|2.97%|
+|VIC|Wills|Glenroy WILLS PPVC|38|9,984|0.38%|
+|VIC|Maribyrnong|Sunshine MARIBYRNONG PPVC|37|8,480|0.44%|
+|VIC|Mallee|Special Hospital Team 1|35|7,724|0.45%|
+|NSW|New England|Tamworth PPVC|35|12,845|0.27%|
+|VIC|Calwell|Gladstone Park PPVC|35|10,077|0.35%|
+|QLD|Hinkler|Hervey Bay PPVC|33|15,033|0.22%|
+|NT|Lingiari|Alice Springs PPVC|32|4,649|0.69%|
+|NSW|Whitlam|Warilla WHITLAM PPVC|32|12,421|0.26%|
+|VIC|Hotham|Springvale HOTHAM PPVC|32|6,754|0.47%|
+|NSW|Chifley|Mount Druitt CHIFLEY PPVC|30|11,647|0.26%|
+|NSW|Watson|Belmore WATSON PPVC|30|6,124|0.49%|
+|VIC|Jagajaga|Special Hospital Team 2|29|6,794|0.43%|
+|VIC|Wannon|Warrnambool PPVC|29|12,897|0.22%|
+|NSW|Blaxland|Bankstown BLAXLAND PPVC|29|7,315|0.40%|
+|VIC|Isaacs|Divisional Office (PREPOLL)|28|16,486|0.17%|
+|QLD|Hinkler|Special Hospital Team 3|28|4,975|0.56%|
+|QLD|Capricornia|Special Hospital Team 2|28|7,012|0.40%|
+|VIC|Calwell|Meadow Heights|28|2,616|1.07%|
+|QLD|Blair|Special Hospital Team 1|27|8,322|0.32%|
+|ACT|Fenner|Belconnen FENNER PPVC|27|15,291|0.18%|
+|NT|Lingiari|Remote Mobile Team 12|27|488|5.53%|
+|VIC|Lalor|Werribee PPVC|26|12,349|0.21%|
+|NSW|Dobell|Special Hospital Team 2|25|5,764|0.43%|
+|VIC|Isaacs|Dandenong South|25|1,553|1.61%|
+|NSW|Parkes|Dubbo PPVC|25|11,883|0.21%|
+|NSW|Fowler|Warwick Farm FOWLER PPVC|25|7,638|0.33%|
+|VIC|Mallee|Mildura MALLEE PPVC|25|13,783|0.18%|
+|QLD|Fadden|Runaway Bay FADDEN PPVC|24|13,477|0.18%|
+|VIC|Ballarat|Ballarat PPVC|24|16,267|0.15%|
+|QLD|Capricornia|Rockhampton CAPRICORNIA PPVC|24|11,982|0.20%|
+|VIC|Lalor|Hoppers Crossing LALOR PPVC|23|14,869|0.15%|
+|VIC|Indi|Wangaratta PPVC|23|12,068|0.19%|
+|VIC|Gorton|Caroline Springs PPVC|23|11,543|0.20%|
+|NT|Lingiari|Remote Mobile Team 8|22|897|2.45%|
+|QLD|Longman|Caboolture PPVC|22|14,438|0.15%|
+|QLD|Oxley|Inala|22|2,529|0.87%|
+|VIC|Scullin|South Morang SCULLIN PPVC|22|8,205|0.27%|
+|QLD|Dawson|Mackay DAWSON PPVC|21|16,422|0.13%|
+|VIC|McEwen|Craigieburn MCEWEN PPVC|21|5,547|0.38%|
+|NT|Solomon|Karama|21|2,576|0.82%|
+|VIC|Calwell|Glenroy CALWELL PPVC|20|3,995|0.50%|
+|ACT|Canberra|Woden CANBERRA PPVC|20|10,696|0.19%|
+|VIC|Wills|Fawkner North|20|1,761|1.14%|
+|NSW|Calare|Bathurst PPVC|20|11,137|0.18%|
