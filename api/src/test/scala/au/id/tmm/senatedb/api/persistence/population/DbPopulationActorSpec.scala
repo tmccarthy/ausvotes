@@ -42,7 +42,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "acknowledge a request to populate" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork).repeat(0 to 1)
 
     val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = false))
 

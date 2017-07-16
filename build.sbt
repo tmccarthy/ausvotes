@@ -100,7 +100,7 @@ lazy val api = project.in(file("api"))
 coverageExcludedPackages in ThisBuild := List(
   "au.id.tmm.senatedb.core.mainclasses.*",
   "au.id.tmm.senatedb.api.controllers.javascript*",
-  "au.id.tmm.senatedb.api.controllers.ReverseRoutes",
+  "au.id.tmm.senatedb.api.controllers.ReverseRoutes*",
   "au.id.tmm.senatedb.api.controllers.ref*",
   "au.id.tmm.senatedb.router*",
   "router.*"
