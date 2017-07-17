@@ -5,9 +5,9 @@ import java.text.DecimalFormat
 import au.id.tmm.senatedb.core.reportwriting.Report.TitledTable
 import au.id.tmm.senatedb.core.reportwriting.table.Column.{DenominatorCountColumn, FractionColumn, PrimaryCountColumn}
 import au.id.tmm.senatedb.core.reportwriting.table.Row.{DataRow, TotalsRow}
-import au.id.tmm.senatedb.core.tallies.Tally
+import au.id.tmm.senatedb.core.tallies.Tally1
 
-final case class TallyTable[A](primaryCount: Tally[A],
+final case class TallyTable[A](primaryCount: Tally1[A],
                                denominatorLookup: A => Double,
                                primaryCountTotal: Double,
                                denominatorCountTotal: Double,
@@ -17,7 +17,7 @@ final case class TallyTable[A](primaryCount: Tally[A],
   extends Table[Row[A], Column] {
 
   override def rows: Vector[Row[A]] = {
-    val dataRows = primaryCount.values.keySet.toStream
+    val dataRows = primaryCount.asMap.keySet.toStream
       .map(dataRowFor)
       .sorted(rowOrdering)
       .toVector
@@ -26,7 +26,7 @@ final case class TallyTable[A](primaryCount: Tally[A],
   }
 
   private def dataRowFor(key: A): DataRow[A] = {
-    val count = primaryCount(key)
+    val count = primaryCount(key).value
     val denominator = denominatorLookup(key)
 
     DataRow(key, count, denominator, count / denominator)
@@ -59,13 +59,13 @@ object TallyTable {
                    denominatorCountTotal: Double,
                    columns: Vector[Column]
                   ): TallyTable[Any] = {
-    TallyTable[Any](Tally(), _ => throw new AssertionError(), primaryCountTotal, denominatorCountTotal, columns)
+    TallyTable[Any](Tally1(), _ => throw new AssertionError(), primaryCountTotal, denominatorCountTotal, columns)
   }
 
   val fractionFormat = new DecimalFormat("#0.00%")
   val tallyFormat = new DecimalFormat("#,###")
 
-  def defaultOrdering[A] = new Ordering[DataRow[A]] {
+  def defaultOrdering[A]: Ordering[DataRow[A]] = new Ordering[DataRow[A]] {
     override def compare(left: DataRow[A], right: DataRow[A]): Int = left.count compare right.count
   }.reverse
 

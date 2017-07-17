@@ -5,16 +5,18 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CountAtlAndBtlSpec extends ImprovedFlatSpec with TestsBallotFacts {
 
+  val sut = BallotCounter.VotedAtlAndBtl
+
   it should "not count ballots that are formal above the line" in {
-    assert(!CountAtlAndBtl.shouldCount(factsFor(Ballots.ACT.formalAtl)))
+    assert(!sut.isCounted(factsFor(Ballots.ACT.formalAtl)))
   }
 
   it should "count ballots that are formal both atl and btl" in {
-    assert(CountAtlAndBtl.shouldCount(factsFor(Ballots.ACT.formalAtlAndBtl)))
+    assert(sut.isCounted(factsFor(Ballots.ACT.formalAtlAndBtl)))
   }
 
   it should "not count ballots that are formal btl" in {
-    assert(!CountAtlAndBtl.shouldCount(factsFor(Ballots.ACT.formalBtl)))
+    assert(!sut.isCounted(factsFor(Ballots.ACT.formalBtl)))
   }
 
 }

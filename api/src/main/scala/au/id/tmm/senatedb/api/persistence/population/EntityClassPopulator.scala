@@ -1,9 +1,9 @@
 package au.id.tmm.senatedb.api.persistence.population
 
+import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, VoteCollectionPointDao}
 import au.id.tmm.senatedb.core.model.DivisionsAndPollingPlaces
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint
-import au.id.tmm.senatedb.core.tallies.Tally
-import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, VoteCollectionPointDao}
+import au.id.tmm.senatedb.core.tallies.Tally1
 import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.Future
@@ -17,8 +17,8 @@ class EntityClassPopulator @Inject() (divisionDao: DivisionDao, voteCollectionPo
   def populatePollingPlaces(divisionsAndPollingPlaces: DivisionsAndPollingPlaces): Future[Unit] =
     voteCollectionPointDao.write(divisionsAndPollingPlaces.pollingPlaces)
 
-  def populateOtherVoteCollectionPoints(formalBallotsByVoteCollectionPoint: Tally[VoteCollectionPoint]): Future[Unit] = {
-    val voteCollectionPoints = formalBallotsByVoteCollectionPoint.values.keys
+  def populateOtherVoteCollectionPoints(formalBallotsByVoteCollectionPoint: Tally1[VoteCollectionPoint]): Future[Unit] = {
+    val voteCollectionPoints = formalBallotsByVoteCollectionPoint.asMap.keys
 
     voteCollectionPointDao.write(voteCollectionPoints)
   }

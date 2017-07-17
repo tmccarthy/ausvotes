@@ -5,15 +5,17 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CountHowToVoteUsageSpec extends ImprovedFlatSpec with TestsBallotFacts {
 
+  val sut = BallotCounter.UsedHowToVoteCard
+
   "the how-to-vote usage counter" should "count ballots that used a how to vote card" in {
     val ballotWithFacts = factsFor(Ballots.ACT.usesHtv)
 
-    assert(CountHowToVoteUsage.shouldCount(ballotWithFacts) === true)
+    assert(sut.isCounted(ballotWithFacts) === true)
   }
 
   it should "not count ballots that have not used a how to vote card" in {
     val ballotWithFacts = factsFor(Ballots.ACT.formalBtl)
 
-    assert(CountHowToVoteUsage.shouldCount(ballotWithFacts) === false)
+    assert(sut.isCounted(ballotWithFacts) === false)
   }
 }

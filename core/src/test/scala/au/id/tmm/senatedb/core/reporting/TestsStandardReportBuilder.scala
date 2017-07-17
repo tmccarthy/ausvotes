@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.core.reporting
 
-import au.id.tmm.senatedb.core.tallies.PerBallotTallier
+import au.id.tmm.senatedb.core.tallies.{BallotCounter, BallotGrouping, TallierBuilder}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 trait TestsStandardReportBuilder { this: ImprovedFlatSpec =>
 
   def expectedReportTitle: String
 
-  def expectedPredicateTallier: PerBallotTallier
+  def expectedBallotCounter: BallotCounter
 
   def expectedPrimaryCountColumnTitle: String
 
@@ -18,23 +18,23 @@ trait TestsStandardReportBuilder { this: ImprovedFlatSpec =>
   }
 
   it should "have the correct nationalTallier" in {
-    assert(sut.nationalTallier === expectedPredicateTallier.Nationally)
+    assert(sut.nationalTallier === TallierBuilder.counting(expectedBallotCounter).overall())
   }
 
   it should "have the correct nationalPerFirstPreferenceTallier" in {
-    assert(sut.nationalPerFirstPreferenceTallier === expectedPredicateTallier.NationallyByFirstPreference)
+    assert(sut.nationalPerFirstPreferenceTallier === TallierBuilder.counting(expectedBallotCounter).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent))
   }
 
   it should "have the correct perStateTallier" in {
-    assert(sut.perStateTallier === expectedPredicateTallier.ByState)
+    assert(sut.perStateTallier === TallierBuilder.counting(expectedBallotCounter).groupedBy(BallotGrouping.State))
   }
 
   it should "have the correct perDivisionTallier" in {
-    assert(sut.perDivisionTallier === expectedPredicateTallier.ByDivision)
+    assert(sut.perDivisionTallier === TallierBuilder.counting(expectedBallotCounter).groupedBy(BallotGrouping.Division))
   }
 
   it should "have the correct perFirstPreferencedGroupTallier" in {
-    assert(sut.perFirstPreferencedGroupTallier === expectedPredicateTallier.ByFirstPreferencedGroup)
+    assert(sut.perFirstPreferencedGroupTallier === TallierBuilder.counting(expectedBallotCounter).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup))
   }
 
   it should "have the correct count column title" in {

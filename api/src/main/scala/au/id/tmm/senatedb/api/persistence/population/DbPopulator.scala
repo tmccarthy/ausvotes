@@ -1,8 +1,10 @@
 package au.id.tmm.senatedb.api.persistence.population
 
+import au.id.tmm.senatedb.api.persistence.population.DbPopulator.{talliesFormalBallotsByDivision, talliesFormalBallotsByVoteCollectionPoint}
 import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
+import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
-import au.id.tmm.senatedb.core.tallies.{CountFormalBallots, Tallier, Tallies}
+import au.id.tmm.senatedb.core.tallies._
 import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.Inject
 
@@ -50,7 +52,7 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
 
     val eventualTallies = {
       if (allTalliersToRegister.isEmpty) {
-        Future.successful(Tallies())
+        Future.successful(TallyBundle())
       } else {
         // TODO don't always want to run for all states
         tallyEngine.runFor(parsedDataStore, election, State.ALL_STATES,
@@ -68,30 +70,33 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
 
   private def talliersRequiredFor(populatableEntityClass: PopulatableEntityClass): Set[Tallier] = {
     populatableEntityClass match {
-      case PopulatableEntityClass.OtherVoteCollectionPoints => Set(CountFormalBallots.ByVoteCollectionPoint)
+      case PopulatableEntityClass.OtherVoteCollectionPoints => Set(talliesFormalBallotsByVoteCollectionPoint)
       case _ => Set()
     }
   }
 
   private def populateEntityClass(entityClass: PopulatableEntityClass,
-                                  tallies: Tallies,
+                                  tallies: TallyBundle,
                                   divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                                   groupsAndCandidates: GroupsAndCandidates): Future[Unit] = {
     entityClass match {
       case PopulatableEntityClass.Divisions => entityClassPopulator.populateDivisions(divisionsAndPollingPlaces)
       case PopulatableEntityClass.PollingPlaces => entityClassPopulator.populatePollingPlaces(divisionsAndPollingPlaces)
       case PopulatableEntityClass.OtherVoteCollectionPoints => {
-        val formalBallotsByVoteCollectionPoint = tallies.tallyBy(CountFormalBallots.ByVoteCollectionPoint)
+        val formalBallotsByVoteCollectionPoint = tallies.tallyProducedBy(talliesFormalBallotsByVoteCollectionPoint)
 
         entityClassPopulator.populateOtherVoteCollectionPoints(formalBallotsByVoteCollectionPoint)
       }
     }
   }
 
-  private def populateFromTallier(tallier: Tallier, tallies: Tallies, election: SenateElection): Future[Unit] = {
+  private def populateFromTallier(tallier: Tallier, tallies: TallyBundle, election: SenateElection): Future[Unit] = {
     tallier match {
-      case CountFormalBallots.ByDivision => tallyPopulator.populateFormalBallotsByDivision(election, tallies.tallyBy(CountFormalBallots.ByDivision))
-      case CountFormalBallots.ByVoteCollectionPoint => tallyPopulator.populateFormalBallotsByVoteCollectionPoint(election, tallies.tallyBy(CountFormalBallots.ByVoteCollectionPoint))
+      case x if x == talliesFormalBallotsByDivision =>
+        tallyPopulator.populateFormalBallotsByDivision(election, tallies.tallyProducedBy(talliesFormalBallotsByDivision))
+
+      case x if x == talliesFormalBallotsByVoteCollectionPoint =>
+        tallyPopulator.populateFormalBallotsByVoteCollectionPoint(election, tallies.tallyProducedBy(talliesFormalBallotsByVoteCollectionPoint))
     }
   }
 }
@@ -103,8 +108,16 @@ object DbPopulator {
     PopulatableEntityClass.OtherVoteCollectionPoints
   )
 
+  val talliesFormalBallotsByDivision: Tallier1[Division] = TallierBuilder
+    .counting(BallotCounter.FormalBallots)
+    .groupedBy(BallotGrouping.Division)
+
+  val talliesFormalBallotsByVoteCollectionPoint: Tallier1[VoteCollectionPoint] = TallierBuilder
+    .counting(BallotCounter.FormalBallots)
+    .groupedBy(BallotGrouping.VoteCollectionPoint)
+
   val requiredTallies: Set[Tallier] = Set(
-    CountFormalBallots.ByDivision,
-    CountFormalBallots.ByVoteCollectionPoint
+    talliesFormalBallotsByDivision,
+    talliesFormalBallotsByVoteCollectionPoint
   )
 }

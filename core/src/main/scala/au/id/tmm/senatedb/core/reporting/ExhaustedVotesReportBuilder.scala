@@ -2,14 +2,14 @@ package au.id.tmm.senatedb.core.reporting
 
 import au.id.tmm.senatedb.core.reporting.PerBallotTallierReportBuilder.IncludesTableByPartyType
 import au.id.tmm.senatedb.core.reporting.TableBuilders.NationalPerFirstPrefTableBuilder
-import au.id.tmm.senatedb.core.tallies.{CountExhaustedVotes, PerBallotTallier}
+import au.id.tmm.senatedb.core.tallies.BallotCounter
 
 object ExhaustedVotesReportBuilder extends StandardReportBuilder with IncludesTableByPartyType {
   override def primaryCountColumnTitle: String = "Exhausted votes"
 
   override def reportTitle: String = "Exhausted votes"
 
-  override def perBallotTallier: PerBallotTallier = CountExhaustedVotes
+  override def ballotCounter = BallotCounter.ExhaustedVotes
 
   override def tableBuilders: Vector[TableBuilder] = {
     val normalTableBuilders = super.tableBuilders

@@ -1,43 +1,122 @@
 package au.id.tmm.senatedb.core.tallies
 
-import au.id.tmm.utilities.collection.CollectionUtils.DoubleMapOps
+trait Tally {
+  type SelfType <: Tally
 
-import scala.collection.mutable
+  def +(that: SelfType): SelfType
 
-final case class Tally[A](values: Map[A, Double]) extends TallyLike with (A => Double) {
-  override type SelfType = Tally[A]
-
-  override def +(that: Tally[A]): Tally[A] = Tally(this.values + that.values)
-
-  override def apply(key: A): Double = values.getOrElse(key, 0d)
+  def /(denominator: Double): SelfType
 }
 
-object Tally {
-  private val empty: Tally[Any] = Tally(Map.empty[Any, Double])
+final case class Tally0(value: Double) extends Tally {
+  override type SelfType = Tally0
 
-  def apply[A](): Tally[A] = empty.asInstanceOf[Tally[A]]
+  def +(that: Tally0): Tally0 = Tally0(this.value + that.value)
 
-  def apply[A](entries: (A, Double)*): Tally[A] = Tally(entries.toMap)
+  override def /(denominator: Double): Tally0 = Tally0(this.value / denominator)
+}
 
-  object Builder {
-    def apply[A](): Builder[A] = new Builder[A]()
+object Tally0 {
+  def apply(): Tally0 = Tally0(0d)
+}
+
+final case class Tally1[T_GROUP_1](asMap: Map[T_GROUP_1, Tally0]) extends Tally {
+  override type SelfType = Tally1[T_GROUP_1]
+
+  def +(that: Tally1[T_GROUP_1]): Tally1[T_GROUP_1] = {
+    val newKeys = this.asMap.keySet ++ that.asMap.keySet
+
+    val newUnderlyingMap = newKeys
+      .toStream
+      .map { key =>
+        val thisValue = this.asMap.getOrElse(key, Tally0())
+        val thatValue = that.asMap.getOrElse(key, Tally0())
+        key -> (thisValue + thatValue)
+      }
+      .toMap
+
+    Tally1(newUnderlyingMap)
   }
 
-  final class Builder[A] private () {
-    val values: mutable.Map[A, Double] = mutable.Map[A, Double]()
-
-    def increment(key: A): Unit = incrementBy(key, 1)
-
-    def incrementBy(key: A, amount: Double): Unit = {
-      val newValue = values.getOrElse(key, 0d) + amount
-
-      values.put(key, newValue)
-    }
-
-    def build(): Tally[A] = Tally(values.toMap)
+  override def /(denominator: Double): Tally1[T_GROUP_1] = Tally1 {
+    asMap
+      .mapValues(_ / denominator)
   }
 
-  implicit class MapOps[A](values: Map[A, Double]) {
-    def toTally: Tally[A] = Tally(values)
+  def apply(key: T_GROUP_1): Tally0 = asMap.getOrElse(key, Tally0())
+}
+
+object Tally1 {
+  def apply[T_GROUP_1](entries: (T_GROUP_1, Double)*): Tally1[T_GROUP_1] = Tally1(
+    entries
+      .toStream
+      .map { case (group, rawWeight) =>
+        group -> Tally0(rawWeight)
+      }
+      .toMap
+  )
+}
+
+final case class Tally2[T_GROUP_1, T_GROUP_2](asMap: Map[T_GROUP_1, Tally1[T_GROUP_2]]) extends Tally {
+  override type SelfType = Tally2[T_GROUP_1, T_GROUP_2]
+
+  override def +(that: Tally2[T_GROUP_1, T_GROUP_2]): Tally2[T_GROUP_1, T_GROUP_2] = {
+    val newKeys = this.asMap.keySet ++ that.asMap.keySet
+
+    val newUnderlyingMap = newKeys
+      .toStream
+      .map { key =>
+        val thisValue = this.asMap.getOrElse(key, Tally1())
+        val thatValue = that.asMap.getOrElse(key, Tally1())
+        key -> (thisValue + thatValue)
+      }
+      .toMap
+
+    Tally2(newUnderlyingMap)
   }
+
+  override def /(denominator: Double): Tally2[T_GROUP_1, T_GROUP_2] = Tally2 {
+    asMap
+      .mapValues(_ / denominator)
+  }
+
+  def apply(key: T_GROUP_1): Tally1[T_GROUP_2] = asMap.getOrElse(key, Tally1())
+}
+
+object Tally2 {
+  def apply[T_GROUP_1, T_GROUP_2](entries: (T_GROUP_1, Tally1[T_GROUP_2])*): Tally2[T_GROUP_1, T_GROUP_2] = Tally2(
+    entries.toMap
+  )
+}
+
+final case class Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3](asMap: Map[T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3]]) extends Tally {
+  override type SelfType = Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]
+
+  override def +(that: Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
+    val newKeys = this.asMap.keySet ++ that.asMap.keySet
+
+    val newUnderlyingMap = newKeys
+      .toStream
+      .map { key =>
+        val thisValue = this.asMap.getOrElse(key, Tally2())
+        val thatValue = that.asMap.getOrElse(key, Tally2())
+        key -> (thisValue + thatValue)
+      }
+      .toMap
+
+    Tally3(newUnderlyingMap)
+  }
+
+  override def /(denominator: Double): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = Tally3 {
+    asMap
+      .mapValues(_ / denominator)
+  }
+
+  def apply(key: T_GROUP_1): Tally2[T_GROUP_2, T_GROUP_3] = asMap.getOrElse(key, Tally2())
+}
+
+object Tally3 {
+  def apply[T_GROUP_1, T_GROUP_2, T_GROUP_3](entries: (T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3])*): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = Tally3(
+    entries.toMap
+  )
 }

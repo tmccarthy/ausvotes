@@ -1,8 +1,7 @@
 package au.id.tmm.senatedb.core.reporting
 
 import au.id.tmm.senatedb.core.model.parsing.{BallotGroup, Division, Party}
-import au.id.tmm.senatedb.core.tallies.PerBallotTallier
-import au.id.tmm.senatedb.core.tallies.Tallier.{NormalTallier, SimpleTallier, TieredTallier}
+import au.id.tmm.senatedb.core.tallies._
 import au.id.tmm.utilities.geo.australia.State
 
 trait PerBallotTallierReportBuilder extends ReportBuilder {
@@ -10,43 +9,47 @@ trait PerBallotTallierReportBuilder extends ReportBuilder {
 
   override def reportTitle: String
 
-  def perBallotTallier: PerBallotTallier
+  def ballotCounter: BallotCounter
 
 }
 
 object PerBallotTallierReportBuilder {
 
   trait IncludesNationalTally { this: PerBallotTallierReportBuilder =>
-    final def nationalTallier: SimpleTallier = perBallotTallier.Nationally
+    final val nationalTallier: Tallier0 = TallierBuilder.counting(ballotCounter).overall()
 
     val nationalTallyTableBuilder = TableBuilders.NationalTallyTableBuilder(nationalTallier, primaryCountColumnTitle)
   }
 
   trait IncludesPerFirstPreferenceTally { this: PerBallotTallierReportBuilder with IncludesNationalTally =>
-    final def nationalPerFirstPreferenceTallier: NormalTallier[Party] = perBallotTallier.NationallyByFirstPreference
+    final def nationalPerFirstPreferenceTallier: Tallier1[Party] = TallierBuilder.counting(ballotCounter)
+      .groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)
 
     val perFirstPreferenceTableBuilder = TableBuilders.NationalPerFirstPrefTableBuilder(nationalTallier,
       nationalPerFirstPreferenceTallier, primaryCountColumnTitle)
   }
 
   trait IncludesPerStateTally { this: PerBallotTallierReportBuilder with IncludesNationalTally =>
-    final def perStateTallier: NormalTallier[State] = perBallotTallier.ByState
+    final def perStateTallier: Tallier1[State] = TallierBuilder.counting(ballotCounter)
+      .groupedBy(BallotGrouping.State)
 
-    val perStateTableBuilder = TableBuilders.PerStateTableBuilder(nationalTallier, perBallotTallier.ByState,
+    val perStateTableBuilder = TableBuilders.PerStateTableBuilder(nationalTallier, perStateTallier,
       primaryCountColumnTitle)
   }
 
   trait IncludesPerDivisionTally { this: PerBallotTallierReportBuilder with IncludesNationalTally =>
-    final def perDivisionTallier: NormalTallier[Division] = perBallotTallier.ByDivision
+    final def perDivisionTallier: Tallier1[Division] = TallierBuilder.counting(ballotCounter)
+      .groupedBy(BallotGrouping.Division)
 
     val perDivisionTableBuilder = TableBuilders.PerDivisionTableBuilder(nationalTallier, perDivisionTallier,
       primaryCountColumnTitle)
   }
 
   trait IncludesPerFirstPreferencedGroupTally { this: PerBallotTallierReportBuilder with IncludesPerStateTally =>
-    final def perFirstPreferencedGroupTallier: TieredTallier[State, BallotGroup] = perBallotTallier.ByFirstPreferencedGroup
+    final def perFirstPreferencedGroupTallier: Tallier2[State, BallotGroup] = TallierBuilder.counting(ballotCounter)
+      .groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup)
 
-    val perGroupTableBuilders = State.ALL_STATES
+    val perGroupTableBuilders: Vector[TableBuilders.PerGroupTableBuilder] = State.ALL_STATES
       .toVector
       .sorted
       .map(state => TableBuilders.PerGroupTableBuilder(perStateTallier, perFirstPreferencedGroupTallier,
@@ -56,32 +59,32 @@ object PerBallotTallierReportBuilder {
 
   trait IncludesPerPartyTypeTally { this: PerBallotTallierReportBuilder =>
     val perPartyTypeTableBuilder = TableBuilders.NationallyPerPartyTypeTableBuilder(
-      perBallotTallier.Nationally,
-      perBallotTallier.NationallyByFirstPreference,
+      TallierBuilder.counting(ballotCounter).overall(),
+      TallierBuilder.counting(ballotCounter).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent),
       primaryCountColumnTitle
     )
   }
 
   trait IncludesPerPollingPlaceTable { this: PerBallotTallierReportBuilder =>
     val perPollingPlaceTableBuilder = TableBuilders.PerVoteCollectionPointTableBuilder(
-      perBallotTallier.Nationally,
-      perBallotTallier.ByVoteCollectionPoint,
+      TallierBuilder.counting(ballotCounter).overall(),
+      TallierBuilder.counting(ballotCounter).groupedBy(BallotGrouping.VoteCollectionPoint),
       primaryCountColumnTitle
     )
   }
 
   trait IncludesTableByPollingPlace { this: PerBallotTallierReportBuilder =>
     val perPollingPlaceTableBuilder = TableBuilders.PerVoteCollectionPointTableBuilder(
-      perBallotTallier.Nationally,
-      perBallotTallier.ByVoteCollectionPoint,
+      TallierBuilder.counting(ballotCounter).overall(),
+      TallierBuilder.counting(ballotCounter).groupedBy(BallotGrouping.VoteCollectionPoint),
       primaryCountColumnTitle
     )
   }
 
   trait IncludesTableByPartyType { this: PerBallotTallierReportBuilder =>
     val perPartyTypeTableBuilder = TableBuilders.NationallyPerPartyTypeTableBuilder(
-      perBallotTallier.Nationally,
-      perBallotTallier.NationallyByFirstPreference,
+      TallierBuilder.counting(ballotCounter).overall(),
+      TallierBuilder.counting(ballotCounter).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent),
       primaryCountColumnTitle
     )
   }

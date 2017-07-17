@@ -10,7 +10,7 @@ object SavedBallotsReportBuilder extends StandardReportBuilder {
 
   override def reportTitle: String = "Saved ballots"
 
-  override def perBallotTallier: PredicateTallier = CountSavedBallots
+  override def ballotCounter = BallotCounter.UsedSavingsProvision
 
   override def tableBuilders: Vector[TableBuilder] = {
 
@@ -24,16 +24,26 @@ object SavedBallotsReportBuilder extends StandardReportBuilder {
 
   private object NationallyByUsedSavingsProvisionTableBuilder extends TableBuilder {
 
+    private val tallyFormalBallotsNationally = TallierBuilder
+      .counting(BallotCounter.FormalBallots)
+      .overall()
+
+    private val tallySavingsProvisionsUsed = TallierBuilder
+      .counting(BallotCounter.FormalBallots)
+      .groupedBy(BallotGrouping.UsedSavingsProvision)
+
+    private val tallyBallotsUsingSavingsProvisions = TallierBuilder.counting(BallotCounter.UsedSavingsProvision).overall()
+
     override def requiredTalliers: Set[Tallier] = Set(
-      CountFormalBallots.Nationally,
-      CountBallotSavingsProvisionUsage.Nationally,
-      CountSavedBallots.Nationally
+      tallyFormalBallotsNationally,
+      tallySavingsProvisionsUsed,
+      tallyBallotsUsingSavingsProvisions
     )
 
-    override def tableFrom(tallies: Tallies): TallyTable[_] = {
-      val totalFormalBallots = tallies.tallyBy(CountFormalBallots.Nationally)
-      val totalSavedBallots = tallies.tallyBy(CountSavedBallots.Nationally)
-      val totalBallotsPerSavingsProvision = tallies.tallyBy(CountBallotSavingsProvisionUsage.Nationally)
+    override def tableFrom(tallies: TallyBundle): TallyTable[_] = {
+      val totalFormalBallots = tallies.tallyProducedBy(tallyFormalBallotsNationally)
+      val totalSavedBallots = tallies.tallyProducedBy(tallyBallotsUsingSavingsProvisions)
+      val totalBallotsPerSavingsProvision = tallies.tallyProducedBy(tallySavingsProvisionsUsed)
 
       val columns: Vector[Column] = Vector(
         SavingsProvisionNameColumn,
@@ -43,9 +53,9 @@ object SavedBallotsReportBuilder extends StandardReportBuilder {
 
       TallyTable[SavingsProvision](
         totalBallotsPerSavingsProvision,
-        _ => totalFormalBallots.count,
-        totalSavedBallots.count,
-        totalFormalBallots.count,
+        _ => totalFormalBallots.value,
+        totalSavedBallots.value,
+        totalFormalBallots.value,
         columns
       )
     }

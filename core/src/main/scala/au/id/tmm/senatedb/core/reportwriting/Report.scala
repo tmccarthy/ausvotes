@@ -9,7 +9,7 @@ final case class Report(title: String,
   def asMarkdown: String =
     s"# $title\n" +
       s"\n" +
-      s"${tables.map(asMarkdown(_)).mkString("\n\n")}\n"
+      s"${tables.map(asMarkdown).mkString("\n\n")}\n"
 
   private def asMarkdown(titledTable: TitledTable): String = {
     s"### ${titledTable.title}\n" +

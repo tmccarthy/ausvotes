@@ -2,17 +2,17 @@ package au.id.tmm.senatedb.api.persistence.entities
 
 import au.id.tmm.senatedb.core.fixtures.{Divisions, PollingPlaces}
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
-import au.id.tmm.senatedb.core.tallies.Tally.MapOps
+import au.id.tmm.senatedb.core.tallies.Tally1
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TallyOrdinalComputationsSpec extends ImprovedFlatSpec {
 
   "a tally ordinal map" can "be computed for a group of divisions nationally" in {
-    val tally = Map(
+    val tally = Tally1(
       Divisions.ACT.CANBERRA -> 50d,
       Divisions.NT.LINGIARI -> 40d,
       Divisions.NT.SOLOMON -> 30d
-    ).toTally
+    )
 
     val actualOrdinalsNationally = TallyOrdinalComputations.ordinalNationally(tally)
 
@@ -26,11 +26,11 @@ class TallyOrdinalComputationsSpec extends ImprovedFlatSpec {
   }
 
   it can "be computed for a group of divisions by state" in {
-    val tally = Map(
+    val tally = Tally1(
       Divisions.ACT.CANBERRA -> 50d,
       Divisions.NT.LINGIARI -> 40d,
       Divisions.NT.SOLOMON -> 30d
-    ).toTally
+    )
 
     val actualOrdinals = TallyOrdinalComputations.ordinalWithinState[Division](tally, _.state)
 
@@ -44,11 +44,11 @@ class TallyOrdinalComputationsSpec extends ImprovedFlatSpec {
   }
 
   it can "be computed for a group of vote collection points by state" in {
-    val tally = Map[VoteCollectionPoint, Double](
+    val tally = Tally1[VoteCollectionPoint](
       PollingPlaces.ACT.BARTON -> 50d,
       PollingPlaces.ACT.WODEN_PRE_POLL -> 40d,
       PollingPlaces.NT.ALICE_SPRINGS -> 30d
-    ).toTally
+    )
 
     val actualOrdinals = TallyOrdinalComputations.ordinalWithinDivision[VoteCollectionPoint](tally, _.division)
 

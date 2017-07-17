@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.api.persistence.population
 
-import au.id.tmm.senatedb.core.model.SenateElection
-import au.id.tmm.senatedb.core.tallies.{CountFormalBallots, Tallier}
 import au.id.tmm.senatedb.api.persistence.daos.GeneralTallyDao
+import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.senatedb.core.tallies.Tallier
 import au.id.tmm.utilities.concurrent.FutureCollectionUtils.FutureSetOps
 import com.google.inject.{Inject, Singleton}
 
@@ -20,8 +20,11 @@ class TallyPopulationChecker @Inject() (generalTallyDao: GeneralTallyDao)
 
   private def resultIsPopulated(election: SenateElection, tallier: Tallier): Future[Boolean] = {
     tallier match {
-      case CountFormalBallots.ByDivision => totalFormalBallotsDao.hasTallyForAnyDivisionAt(election)
-      case CountFormalBallots.ByVoteCollectionPoint => totalFormalBallotsDao.hasTallyForAnyVoteCollectionPointAt(election)
+      case x if x == DbPopulator.talliesFormalBallotsByDivision =>
+        totalFormalBallotsDao.hasTallyForAnyDivisionAt(election)
+
+      case x if x == DbPopulator.talliesFormalBallotsByVoteCollectionPoint =>
+        totalFormalBallotsDao.hasTallyForAnyVoteCollectionPointAt(election)
     }
   }
 }

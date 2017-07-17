@@ -1,9 +1,9 @@
 package au.id.tmm.senatedb.core.model.computation.flow
 
-import au.id.tmm.senatedb.core.tallies.TallyLike
+import au.id.tmm.senatedb.core.tallies.Tally
 
 final case class PreferenceFlow[A](tally: Int, children: Set[PreferenceTree[A]])
-  extends PreferenceTreeLike[A] with TallyLike {
+  extends PreferenceTreeLike[A] with Tally {
 
   override type SelfType = PreferenceFlow[A]
 
@@ -16,6 +16,8 @@ final case class PreferenceFlow[A](tally: Int, children: Set[PreferenceTree[A]])
 
     PreferenceFlow(newTally, newChildren)
   }
+
+  override def /(denominator: Double): PreferenceFlow[A] = throw new UnsupportedOperationException()
 }
 
 object PreferenceFlow {

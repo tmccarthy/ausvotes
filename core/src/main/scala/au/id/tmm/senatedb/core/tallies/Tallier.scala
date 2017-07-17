@@ -2,32 +2,87 @@ package au.id.tmm.senatedb.core.tallies
 
 import au.id.tmm.senatedb.core.computations.BallotWithFacts
 
-trait Tallier {
+// TODO visibility
 
-  type TallyType <: TallyLike
+sealed trait Tallier {
+  type ProducedTallyType <: Tally
 
-  def tally(ballotsWithFacts: Vector[BallotWithFacts]): TallyType
+  private[tallies] def subTallier: Tallier
 
-  def isOfTallyType(tallyLike: TallyLike): Boolean
+  def tally(ballots: Iterable[BallotWithFacts]): ProducedTallyType
 
+  def isOfProducedTallyType(tally: Tally): Boolean
 }
 
-object Tallier {
-  trait SimpleTallier extends Tallier {
-    final override type TallyType = SimpleTally
+final case class Tallier0(ballotCounter: BallotCounter) extends Tallier {
 
-    final override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[TallyType]
+  override type ProducedTallyType = Tally0
+
+  private[tallies] override def subTallier: Nothing = throw new NotImplementedError()
+
+  override def tally(ballots: Iterable[BallotWithFacts]): Tally0 = {
+    val groupedBallots = BallotGrouper0.intoGroups(ballots)
+
+    val rawTally = ballotCounter.weigh(groupedBallots)
+
+    Tally0(rawTally)
   }
 
-  trait NormalTallier[A] extends Tallier {
-    final override type TallyType = Tally[A]
+  override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally0]
+}
 
-    final override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[Tally[A]]
+final case class Tallier1[T_GROUP_1](ballotGrouper: BallotGrouper1[T_GROUP_1], ballotCounter: BallotCounter) extends Tallier {
+
+  override type ProducedTallyType = Tally1[T_GROUP_1]
+
+  private[tallies] override val subTallier: Tallier0 = Tallier0(ballotCounter)
+
+  def tallyGrouped(blah: Map[T_GROUP_1, Iterable[BallotWithFacts]]): Tally1[T_GROUP_1] = {
+    Tally1(blah.mapValues(subTallier.tally))
   }
 
-  trait TieredTallier[A, B] extends Tallier {
-    final override type TallyType = TieredTally[A, B]
+  override def tally(ballots: Iterable[BallotWithFacts]): Tally1[T_GROUP_1] = {
 
-    final override def isOfTallyType(tallyLike: TallyLike): Boolean = tallyLike.isInstanceOf[TieredTally[A, B]]
+    val groupedBallots = ballotGrouper.intoGroups(ballots)
+
+    Tally1(groupedBallots.mapValues(subTallier.tally))
   }
+
+  override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally1[T_GROUP_1]]
+}
+
+final case class Tallier2[T_GROUP_1, T_GROUP_2](ballotGrouper: BallotGrouper2[T_GROUP_1, T_GROUP_2], ballotCounter: BallotCounter) extends Tallier {
+
+  override type ProducedTallyType = Tally2[T_GROUP_1, T_GROUP_2]
+
+  private[tallies] override val subTallier: Tallier1[T_GROUP_2] = Tallier1(ballotGrouper.subGrouper, ballotCounter)
+
+  def tallyGrouped(blah: Map[T_GROUP_1, Map[T_GROUP_2, Iterable[BallotWithFacts]]]): Tally2[T_GROUP_1, T_GROUP_2] = {
+    Tally2(blah.mapValues(subTallier.tallyGrouped))
+  }
+
+  override def tally(ballots: Iterable[BallotWithFacts]): Tally2[T_GROUP_1, T_GROUP_2] = {
+
+    val groupedBallots = ballotGrouper.intoGroups(ballots)
+
+    Tally2(groupedBallots.mapValues(subTallier.tallyGrouped))
+  }
+
+  override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally2[T_GROUP_1, T_GROUP_2]]
+}
+
+final case class Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3](ballotGrouper: BallotGrouper3[T_GROUP_1, T_GROUP_2, T_GROUP_3], ballotCounter: BallotCounter) extends Tallier {
+
+  override type ProducedTallyType = Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]
+
+  private[tallies] override val subTallier: Tallier2[T_GROUP_2, T_GROUP_3] = Tallier2(ballotGrouper.subGrouper, ballotCounter)
+
+  override def tally(ballots: Iterable[BallotWithFacts]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
+
+    val groupedBallots = ballotGrouper.intoGroups(ballots)
+
+    Tally3(groupedBallots.mapValues(subTallier.tallyGrouped))
+  }
+
+  override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]]
 }
