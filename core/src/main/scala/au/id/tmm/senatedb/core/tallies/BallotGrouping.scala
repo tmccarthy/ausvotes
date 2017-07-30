@@ -19,6 +19,15 @@ object BallotGrouping {
     def groupOf(facts: BallotWithFacts): A
   }
 
+  def ballotGroupingOf[A](jurisdictionLevel: JurisdictionLevel[A]): BallotGrouping[A] = {
+    jurisdictionLevel match {
+      case JurisdictionLevel.Nation => SenateElection.asInstanceOf[BallotGrouping[A]]
+      case JurisdictionLevel.State => State.asInstanceOf[BallotGrouping[A]]
+      case JurisdictionLevel.Division => Division.asInstanceOf[BallotGrouping[A]]
+      case JurisdictionLevel.VoteCollectionPoint => VoteCollectionPoint.asInstanceOf[BallotGrouping[A]]
+    }
+  }
+
   case object SenateElection extends SingletonBallotGrouping[SenateElection] {
     override def groupOf(ballotWithFacts: BallotWithFacts): SenateElection =
       ballotWithFacts.ballot.election
