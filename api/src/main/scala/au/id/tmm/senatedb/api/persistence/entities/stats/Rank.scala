@@ -11,6 +11,7 @@ object Rank {
     values
       .toStream
       .sortBy(_._2)
+      .reverse
       .zipWithIndex
       .map { case ((key, value), ordinal) =>
           key -> Rank(ordinal, values.size)
