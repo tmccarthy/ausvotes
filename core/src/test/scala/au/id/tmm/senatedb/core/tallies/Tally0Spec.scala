@@ -12,6 +12,12 @@ class Tally0Spec extends ImprovedFlatSpec {
     assert(Tally0(2) / 2 === Tally0(1))
   }
 
+  it can "not be divided by 0" in {
+    intercept[ArithmeticException] {
+      Tally0(0) / 0
+    }
+  }
+
   it can "be divided by another teir 0 tally" in {
     assert(Tally0(2) / Tally0(2) === Tally0(1))
   }

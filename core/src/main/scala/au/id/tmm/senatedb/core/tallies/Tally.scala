@@ -18,7 +18,13 @@ final case class Tally0(value: Double) extends Tally {
 
   override def +(that: Tally0): Tally0 = Tally0(this.value + that.value)
 
-  override def /(denominator: Double): Tally0 = Tally0(this.value / denominator)
+  override def /(denominator: Double): Tally0 = {
+    if (denominator == 0) {
+      throw new ArithmeticException("Cannot divide by 0")
+    } else {
+      Tally0(this.value / denominator)
+    }
+  }
 
   override def /(denominator: Tally0): Tally0 = Tally0(this.value / denominator.value)
 
@@ -70,7 +76,7 @@ final case class Tally1[T_GROUP_1](asMap: Map[T_GROUP_1, Tally0]) extends Tally 
   override def /(denominator: Tally1[T_GROUP_1]): Tally1[T_GROUP_1] = {
     val newMap = asMap
       .map { case (key, value) =>
-        key -> value / denominator(key)
+        key -> value / denominator.asMap.getOrElse(key, throw new NoSuchElementException("key not found: " + key))
       }
 
     Tally1(newMap)
