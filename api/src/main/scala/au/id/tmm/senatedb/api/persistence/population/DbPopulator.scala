@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.population
 
-import au.id.tmm.senatedb.api.persistence.population.DbPopulator.{talliesFormalBallotsByDivision, talliesFormalBallotsByVoteCollectionPoint}
+import au.id.tmm.senatedb.api.persistence.population.DbPopulator.talliesFormalBallotsByVoteCollectionPoint
 import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
@@ -91,13 +91,7 @@ class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
   }
 
   private def populateFromTallier(tallier: Tallier, tallies: TallyBundle, election: SenateElection): Future[Unit] = {
-    tallier match {
-      case x if x == talliesFormalBallotsByDivision =>
-        tallyPopulator.populateFormalBallotsByDivision(election, tallies.tallyProducedBy(talliesFormalBallotsByDivision))
-
-      case x if x == talliesFormalBallotsByVoteCollectionPoint =>
-        tallyPopulator.populateFormalBallotsByVoteCollectionPoint(election, tallies.tallyProducedBy(talliesFormalBallotsByVoteCollectionPoint))
-    }
+    ???
   }
 }
 

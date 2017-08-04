@@ -2,7 +2,6 @@ package au.id.tmm.senatedb.api.persistence.daos
 
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
-import au.id.tmm.senatedb.api.persistence.entities.DivisionStats
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
@@ -19,10 +18,6 @@ trait DivisionDao {
   def hasAnyDivisionsFor(election: SenateElection): Future[Boolean]
 
   def idOf(division: Division): Long
-
-  def findStats(electionId: String,
-                stateAbbreviation: String,
-                divisionName: String): Future[Option[DivisionStats]]
 }
 
 @Singleton
@@ -62,37 +57,6 @@ class ConcreteDivisionDao @Inject() (electionDao: ElectionDao, dbStructureCache:
         .first()
         .apply()
         .isDefined
-    }
-  }
-
-  override def findStats(electionId: String,
-                         stateAbbreviation: String,
-                         divisionName: String
-                            ): Future[Option[DivisionStats]] = Future {
-    DB.readOnly { implicit session =>
-      val * = dbStructureCache.columnListFor("division", "total_formal_ballot_count")
-
-      sql"""SELECT
-           |  ${*}
-           |FROM division
-           |  INNER JOIN division_stats ON division.id = division_stats.division
-           |  INNER JOIN total_formal_ballot_count ON division_stats.total_formal_ballot_count_id = total_formal_ballot_count.id
-           |WHERE
-           |  division.election = $electionId AND
-           |  division.state = ${stateAbbreviation.toUpperCase} AND
-           |  LOWER(division.name) = ${divisionName.toLowerCase}
-           |LIMIT 1
-           |""".stripMargin
-        .map { row =>
-          val division = DivisionRowConversions.fromRow(electionDao, "division")(row)
-          val totalFormalBallotsTally = TotalFormalBallotsRowConversions.fromRow(alias="total_formal_ballot_count")(row)
-
-          val divisionStats = DivisionStats(division, totalFormalBallotsTally)
-
-          divisionStats
-        }
-        .first()
-        .apply()
     }
   }
 
