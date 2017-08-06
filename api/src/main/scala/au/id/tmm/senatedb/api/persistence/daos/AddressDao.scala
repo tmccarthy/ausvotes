@@ -12,6 +12,8 @@ trait AddressDao {
 
   def writeInSession(addresses: Iterable[Address])(implicit session: DBSession): Map[Address, Long]
 
+  def findById(id: Long)(implicit session: DBSession): Option[Address]
+
 }
 
 @Singleton
@@ -41,6 +43,20 @@ class ConcreteAddressDao @Inject() (postcodeFlyweight: PostcodeFlyweight) extend
         address -> generatedId
       }
       .toMap
+  }
+
+  override def findById(id: Long)(implicit session: DBSession): Option[Address] = {
+    val statement = sql"""
+         |SELECT
+         |  *
+         |FROM address
+         |WHERE id = $id
+       """.stripMargin
+
+    statement
+      .map(AddressRowConversions.fromRow(postcodeFlyweight, alias = ""))
+      .headOption()
+      .apply()
   }
 }
 

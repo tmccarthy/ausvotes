@@ -25,7 +25,6 @@ trait VoteCollectionPointDao {
 
 @Singleton
 class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
-                                                electionDao: ElectionDao,
                                                 divisionDao: DivisionDao,
                                                 dbStructureCache: DbStructureCache,
                                                 postcodeFlyweight: PostcodeFlyweight)
@@ -41,7 +40,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
       val addressIds: Map[Address, Long] = addressDao.writeInSession(addressesToWrite)
 
       val voteCollectionPointRowsToWrite = voteCollectionPoints
-        .map(VoteCollectionPointRowConversions.toRow(addressIds, divisionDao, electionDao))
+        .map(VoteCollectionPointRowConversions.toRow(addressIds, divisionDao))
         .toSeq
 
       val statement = sql"""
@@ -109,7 +108,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   }
 
   override def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long] = {
-    val electionId = electionDao.idOf(election)
+    val electionId = ElectionDao.idOf(election)
 
     val * = dbStructureCache.columnListFor("vote_collection_point", "address", "division")
 
@@ -120,7 +119,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
          |    LEFT JOIN division ON vote_collection_point.division = division.id
          |  WHERE vote_collection_point.election = $electionId
       """.stripMargin
-      .map(row => VoteCollectionPointRowConversions.fromRow(electionDao, postcodeFlyweight, alias="vote_collection_point")(row) -> row.long("vote_collection_point.id"))
+      .map(row => VoteCollectionPointRowConversions.fromRow(postcodeFlyweight, alias="vote_collection_point")(row) -> row.long("vote_collection_point.id"))
       .list()
       .apply()
       .toMap
@@ -145,17 +144,16 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     Symbol("longitude")
   )
 
-  def fromRow(electionDao: ElectionDao,
-              postcodeFlyweight: PostcodeFlyweight,
+  def fromRow(postcodeFlyweight: PostcodeFlyweight,
               alias: String = "",
               addressAlias: String = "address",
               divisionAlias: String = "division")
              (row: WrappedResultSet): VoteCollectionPoint = {
     val c = aliasedColumnName(alias)(_)
 
-    val election = electionDao.electionWithId(row.string(c("election"))).get
+    val election = ElectionDao.electionWithId(row.string(c("election"))).get
     val state = State.fromAbbreviation(row.string(c("state"))).get
-    val division = DivisionRowConversions.fromRow(electionDao, divisionAlias)(row)
+    val division = DivisionRowConversions.fromRow(divisionAlias)(row)
 
     val vcpType = row.string(c("type"))
 
@@ -214,9 +212,8 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
   def toRow(
       addressIdLookup: Map[Address, Long],
       divisionDao: DivisionDao,
-      electionDao: ElectionDao)
-      (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf, electionDao)(voteCollectionPoint) ++
+      )(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
+    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf)(voteCollectionPoint) ++
       numberComponentOf(voteCollectionPoint) ++
       pollingPlaceRowComponentOf(voteCollectionPoint) ++
       locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
@@ -239,10 +236,10 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     bindings ++ missingBindings
   }
 
-  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long, electionDao: ElectionDao)
+  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long)
                                                (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
     Seq(
-      Symbol("election") -> electionDao.idOf(voteCollectionPoint.election),
+      Symbol("election") -> ElectionDao.idOf(voteCollectionPoint.election),
       Symbol("state") -> voteCollectionPoint.state.abbreviation,
       Symbol("division") -> divisionIdLookup(voteCollectionPoint.division),
       Symbol("type") -> sqlVcpTypeOf(voteCollectionPoint),

@@ -2,22 +2,21 @@ package au.id.tmm.senatedb.api.services
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
 import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor
+import au.id.tmm.senatedb.core.model.SenateElection
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{ExecutionContext, Future}
 
-class DbPopulationService @Inject() (@Named("dbPopulationActor") dbPopulationActor: ActorRef,
-                                     electionDao: ElectionDao)
+class DbPopulationService @Inject() (@Named("dbPopulationActor") dbPopulationActor: ActorRef)
                                     (implicit ec: ExecutionContext) {
 
 
   def isElectionPopulated(electionId: String): Future[Boolean] =
-    electionDao.withParsedElection(electionId) { election =>
+    ElectionDao.withParsedElection(electionId) { election =>
       isElectionPopulated(election)
     }
 
@@ -30,7 +29,7 @@ class DbPopulationService @Inject() (@Named("dbPopulationActor") dbPopulationAct
   }
 
   def beginPopulationFor(electionId: String): Future[Unit] =
-    electionDao.withParsedElection(electionId) { election =>
+    ElectionDao.withParsedElection(electionId) { election =>
       beginPopulationFor(election)
     }
 

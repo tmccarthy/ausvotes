@@ -46,6 +46,8 @@ lazy val api = project.in(file("api"))
   .enablePlugins(PlayScala)
   .enablePlugins(sbtdocker.DockerPlugin)
   .disablePlugins(PlayLayoutPlugin)
+  .configs(IntegrationTest)
+  .settings(Defaults.itSettings)
   .settings(
     libraryDependencies += jdbc,
     libraryDependencies += cache,
@@ -61,11 +63,13 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7"
   )
   .settings(
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test,
-    libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test",
-    libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
-    libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % "test,it",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test,it",
+    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test,it",
+    libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test,it",
+    libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test,it",
+    libraryDependencies += "com.whisk" %% "docker-testkit-scalatest" % "0.9.0" % "it",
+    libraryDependencies += "com.whisk" %% "docker-testkit-impl-spotify" % "0.9.0" % "it"
   )
   .settings(
     baseDirectory in run := file("..")
@@ -95,7 +99,7 @@ lazy val api = project.in(file("api"))
       }
     }
   )
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test;it->it")
 
 coverageExcludedPackages in ThisBuild := List(
   "au.id.tmm.senatedb.core.mainclasses.*",

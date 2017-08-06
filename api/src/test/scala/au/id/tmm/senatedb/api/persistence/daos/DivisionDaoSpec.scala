@@ -11,7 +11,7 @@ class DivisionDaoSpec extends ImprovedFlatSpec with MockFactory {
   "the division dao" should "generate a unique id for a division" in {
     val dbStructureCache = mock[DbStructureCache]
 
-    val divisionDao = new ConcreteDivisionDao(new HardCodedElectionDao, dbStructureCache)
+    val divisionDao = new ConcreteDivisionDao(dbStructureCache)
 
     val actualId = divisionDao.idOf(Divisions.ACT.CANBERRA)
     val expectedId = 420229601

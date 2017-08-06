@@ -1,11 +1,11 @@
 package au.id.tmm.senatedb.api.services
 
 import akka.testkit.TestProbe
-import au.id.tmm.senatedb.core.model.SenateElection
-import au.id.tmm.senatedb.api.persistence.daos.HardCodedElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
 import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests, Responses}
 import au.id.tmm.senatedb.api.services.DbPopulationService.Exceptions
 import au.id.tmm.senatedb.api.services.exceptions.NoSuchElectionException
+import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,12 +15,11 @@ import scala.util.{Failure, Try}
 
 class DbPopulationServiceSpec extends ImprovedFlatSpec with MocksActor {
   private val mockDbPopulationActor = TestProbe()
-  private val electionDao = new HardCodedElectionDao()
 
   private val testElection = SenateElection.`2016`
-  private val testElectionId = electionDao.idOf(testElection).get
+  private val testElectionId = ElectionDao.idOf(testElection).get
 
-  private val sut = new DbPopulationService(mockDbPopulationActor.ref, electionDao)
+  private val sut = new DbPopulationService(mockDbPopulationActor.ref)
 
   "a DB population service" should "indicate when an election has not been populated" in {
     val request = sut.isElectionPopulated(testElectionId)
