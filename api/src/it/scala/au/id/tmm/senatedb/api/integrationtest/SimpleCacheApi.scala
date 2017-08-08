@@ -16,7 +16,13 @@ class SimpleCacheApi extends SyncCacheApi {
   private val map = new TrieMap[String, (Instant, Any)]()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    val expiryTime = Instant.now().plus(expiration.toMillis, ChronoUnit.MILLIS)
+    val expiryTime = {
+      if (expiration == Duration.Inf) {
+        Instant.MAX
+      } else {
+        Instant.now().plus(expiration.toMillis, ChronoUnit.MILLIS)
+      }
+    }
 
     map.update(key, (expiryTime, value))
   }

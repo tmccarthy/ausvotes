@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
 import com.google.inject.{ImplementedBy, Inject, Singleton}
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import scalikejdbc.DB
 import scalikejdbc.interpolation.SQLSyntax
 
@@ -32,15 +32,15 @@ trait DbStructureCache {
 }
 
 @Singleton
-class ConcreteDbStructureCache @Inject() (cacheApi: CacheApi) extends DbStructureCache {
+class ConcreteDbStructureCache @Inject() (cacheApi: SyncCacheApi) extends DbStructureCache {
 
   private val cacheName = "dbStructureCache"
   private val tableNameCacheKey = s"$cacheName.tableNames"
   private def columnNamesCacheKey(tableName: String) = s"$cacheName.columnNames.$tableName"
 
   override def tableNames(): Set[String] =
-    cacheApi.getOrElse[Set[String]](tableNameCacheKey)(DB.getAllTableNames().toSet)
+    cacheApi.getOrElseUpdate[Set[String]](tableNameCacheKey)(DB.getAllTableNames().toSet)
 
   override def columnNamesFor(tableName: String): Set[String] =
-    cacheApi.getOrElse[Set[String]](columnNamesCacheKey(tableName))(DB.getColumnNames(tableName).toSet)
+    cacheApi.getOrElseUpdate[Set[String]](columnNamesCacheKey(tableName))(DB.getColumnNames(tableName).toSet)
 }

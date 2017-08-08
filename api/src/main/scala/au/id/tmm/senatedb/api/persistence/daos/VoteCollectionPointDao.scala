@@ -80,13 +80,13 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   }
 
   override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
-    DB.readOnly { implicit session =>
-      sql"""SELECT *
+    DB.localTx { implicit session =>
+      sql"""SELECT id
            |  FROM vote_collection_point
            |  WHERE type <> 'polling_place'
            |  LIMIT 1
          """.stripMargin
-        .map(_ => Unit)
+        .map(_.long(1))
         .first()
         .apply()
         .isDefined
@@ -94,13 +94,13 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   }
 
   override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = Future {
-    DB.readOnly { implicit session =>
-      sql"""SELECT *
+    DB.localTx { implicit session =>
+      sql"""SELECT id
          |  FROM vote_collection_point
          |  WHERE type = 'polling_place'
          |  LIMIT 1
          """.stripMargin
-        .map(_ => Unit)
+        .map(_.long(1))
         .first()
         .apply()
         .isDefined

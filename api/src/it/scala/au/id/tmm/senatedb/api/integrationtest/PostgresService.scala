@@ -15,7 +15,7 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-trait PostgresService extends SpotifyClientDockerTestKit with TestSuite with BeforeAndAfterEach {
+trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   private lazy val log = LoggerFactory.getLogger(this.getClass)
 
   val dbAdvertisedPort = 5432
@@ -56,13 +56,14 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite with Bef
     super.stopAllQuietly()
   }
 
-  override protected def beforeEach(): Unit = {
+  override protected def withFixture(test: NoArgTest): Outcome = {
     totallyRefreshDatabase()
-    super.beforeEach()
+    super.withFixture(test)
   }
 
   private def totallyRefreshDatabase(): Unit = {
     val flyway = new Flyway()
+
     flyway.setDataSource(ConnectionPool().dataSource)
     flyway.setLocations("db/migration/default")
 
@@ -88,6 +89,7 @@ object PostgresService {
           isReadyOnPort(port.getOrElse(ports.values.head))
         }
 
+    //noinspection UnitInMap
     def isReadyOnPort(port: Int)(implicit docker: DockerCommandExecutor): Boolean = {
       Try {
         Class.forName("org.postgresql.Driver")
