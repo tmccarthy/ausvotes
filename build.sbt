@@ -75,6 +75,9 @@ lazy val api = project.in(file("api"))
     baseDirectory in run := file("..")
   )
   .settings(
+    parallelExecution in IntegrationTest := false
+  )
+  .settings(
     // Docker stuff
 
     docker <<= (docker dependsOn stage),
@@ -99,7 +102,7 @@ lazy val api = project.in(file("api"))
       }
     }
   )
-  .dependsOn(core % "compile->compile;test->test;it->it")
+  .dependsOn(core % "compile->compile;test->test;it->it;it->test")
 
 coverageExcludedPackages in ThisBuild := List(
   "au.id.tmm.senatedb.core.mainclasses.*",

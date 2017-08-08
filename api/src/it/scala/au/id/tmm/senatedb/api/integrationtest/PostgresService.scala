@@ -40,20 +40,15 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   abstract override def dockerContainers: List[DockerContainer] =
     testDbContainer :: super.dockerContainers
 
-  override def startAllOrFail(): Unit = {
-    super.startAllOrFail()
+  override def beforeAll(): Unit = {
+    super.beforeAll()
 
-    DBs.setupAll()
-  }
-
-  override def stopAllQuietly(): Unit = {
-    try {
-      DBs.closeAll()
-    } catch {
-      case e: Exception => log.error(e.getMessage, e)
+    DbSetupMutex.synchronized {
+      if (!DbSetupMutex.hasBeenSetup) {
+        DBs.setupAll()
+        DbSetupMutex.hasBeenSetup = true
+      }
     }
-
-    super.stopAllQuietly()
   }
 
   override protected def withFixture(test: NoArgTest): Outcome = {
@@ -98,4 +93,8 @@ object PostgresService {
       }.getOrElse(false)
     }
   }
+}
+
+private object DbSetupMutex {
+  var hasBeenSetup = false
 }
