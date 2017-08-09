@@ -36,7 +36,7 @@ class ConcreteDivisionDao @Inject() (dbStructureCache: DbStructureCache)
 
   override def allAtElection(election: SenateElection): Future[Set[Division]] = Future {
     DB.localTx { implicit session =>
-      val electionId = election.aecID
+      val electionId = ElectionDao.idOf(election)
 
       // TODO needs native toSet
       sql"SELECT * FROM division WHERE election = ${electionId}"
