@@ -59,7 +59,7 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   private def totallyRefreshDatabase(): Unit = {
     val flyway = new Flyway()
 
-    flyway.setDataSource(ConnectionPool().dataSource)
+    flyway.setDataSource(ConnectionPool().url, dbUsername, dbPassword)
     flyway.setLocations("db/migration/default")
 
     flyway.clean()
