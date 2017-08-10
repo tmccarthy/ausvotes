@@ -43,12 +43,13 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    DbSetupMutex.synchronized {
-      if (!DbSetupMutex.hasBeenSetup) {
-        DBs.setupAll()
-        DbSetupMutex.hasBeenSetup = true
-      }
-    }
+    DBs.setupAll()
+  }
+
+  override def afterAll(): Unit = {
+    DBs.closeAll()
+
+    super.afterAll()
   }
 
   override protected def withFixture(test: NoArgTest): Outcome = {
@@ -93,8 +94,4 @@ object PostgresService {
       }.getOrElse(false)
     }
   }
-}
-
-private object DbSetupMutex {
-  var hasBeenSetup = false
 }
