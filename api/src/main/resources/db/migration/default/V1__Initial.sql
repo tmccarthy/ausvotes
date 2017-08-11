@@ -49,12 +49,6 @@ CREATE TABLE total_formal_ballot_count (
   ordinal_division INTEGER
 );
 
-CREATE TABLE division_stats (
-  division BIGINT REFERENCES division(id) UNIQUE,
-
-  total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
-);
-
 CREATE TABLE address (
   id SERIAL PRIMARY KEY,
 
@@ -96,8 +90,29 @@ CREATE TABLE vote_collection_point (
   longitude DOUBLE PRECISION
 );
 
-CREATE TABLE vote_collection_point_stats (
-  vote_collection_point_id INTEGER REFERENCES vote_collection_point(id) UNIQUE,
+CREATE TABLE stat (
+  id SERIAL PRIMARY KEY,
 
-  total_formal_ballot_count_id INTEGER REFERENCES total_formal_ballot_count(id)
+  stat_class VARCHAR,
+
+  election VARCHAR(5) REFERENCES senate_election(id),
+  state VARCHAR(3) REFERENCES state(abbreviation),
+  division INTEGER REFERENCES division(id),
+  vote_collection_point INTEGER REFERENCES vote_collection_point(id),
+
+  amount DOUBLE,
+  per_capita DOUBLE
+);
+
+CREATE TABLE rank (
+  id SERIAL PRIMARY KEY,
+
+  stat INTEGER REFERENCES stat(id),
+
+  jurisdiction_level VARCHAR,
+
+  ordinal INTEGER,
+  ordinal_per_capita INTEGER,
+
+  total_count INTEGER
 );
