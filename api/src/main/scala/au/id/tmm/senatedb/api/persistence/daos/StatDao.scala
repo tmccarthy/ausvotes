@@ -5,8 +5,7 @@ import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
 import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.{ImplementedBy, Inject}
-import scalikejdbc.{DB, WrappedResultSet}
-import scalikejdbc._
+import scalikejdbc.{DB, WrappedResultSet, _}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,18 +24,18 @@ trait StatDao {
 
 }
 
-class ConcreteStatDao @Inject() (electionDao: ElectionDao,
-                                 dbStructureCache: DbStructureCache,
+class ConcreteStatDao @Inject() (dbStructureCache: DbStructureCache,
                                 )(implicit ec: ExecutionContext) extends StatDao {
-  private def * = dbStructureCache.aliasedColumnNamesFor("stat", "rank", "division", )
+  private def * = dbStructureCache.aliasedColumnNamesFor("stat", "rank", "division")
 
   override def statsFor(election: SenateElection): Future[Set[Stat[SenateElection]]] = Future {
-    val electionId = electionDao.idOf(election)
+    val electionId = ElectionDao.idOf(election)
 
     DB.readOnly { implicit session =>
       val statement =
-        sql"""SELECT
-             |$*
+        sql"""
+             |SELECT
+             |${*}
              |FROM stat
              |LEFT JOIN rank
              |  ON stat.id = rank.stat

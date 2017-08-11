@@ -32,7 +32,7 @@ class StatRowConversionsTest extends ImprovedFlatSpec {
 
   "stat row conversions" should "convert stat rows" in {
     val rows = mockWrappedResultSets(columnNames)(
-      (1, "formal_ballots", "2016", "SA", "MAKIN", )
+      (1, "formal_ballots", "2016", "SA", "MAKIN")
     )
   }
 
