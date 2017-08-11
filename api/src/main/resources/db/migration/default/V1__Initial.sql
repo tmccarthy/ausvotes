@@ -100,8 +100,8 @@ CREATE TABLE stat (
   division INTEGER REFERENCES division(id),
   vote_collection_point INTEGER REFERENCES vote_collection_point(id),
 
-  amount DOUBLE,
-  per_capita DOUBLE
+  amount DOUBLE PRECISION,
+  per_capita DOUBLE PRECISION
 );
 
 CREATE TABLE rank (
