@@ -9,9 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class DivisionDaoSpec extends ImprovedFlatSpec with MockFactory {
 
   "the division dao" should "generate a unique id for a division" in {
-    val dbStructureCache = mock[DbStructureCache]
-
-    val divisionDao = new ConcreteDivisionDao(dbStructureCache)
+    val divisionDao = new ConcreteDivisionDao()
 
     val actualId = divisionDao.idOf(Divisions.ACT.CANBERRA)
     val expectedId = 420229601

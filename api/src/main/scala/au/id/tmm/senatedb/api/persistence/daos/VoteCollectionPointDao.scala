@@ -1,12 +1,13 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.rowentities.{AddressRow, DivisionRow, VoteCollectionPointRow}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.{Absentee, Postal, PrePoll, Provisional}
 import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
-import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.{Address, State}
+import au.id.tmm.utilities.geo.australia.Address
+import com.google.common.base.CaseFormat
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc._
 
@@ -26,7 +27,6 @@ trait VoteCollectionPointDao {
 @Singleton
 class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                 divisionDao: DivisionDao,
-                                                dbStructureCache: DbStructureCache,
                                                 postcodeFlyweight: PostcodeFlyweight)
                                                (implicit ec: ExecutionContext) extends VoteCollectionPointDao {
 
@@ -48,7 +48,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
            |  election,
            |  state,
            |  division,
-           |  type,
+           |  vote_collection_point_type,
            |  name,
            |  number,
            |  aec_id,
@@ -62,7 +62,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
            |  {election},
            |  {state},
            |  {division},
-           |  CAST({type} AS vote_collection_point_type),
+           |  CAST({vote_collection_point_type} AS vote_collection_point_type),
            |  {name},
            |  {number},
            |  {aec_id},
@@ -81,11 +81,15 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
 
   override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
     DB.localTx { implicit session =>
-      sql"""SELECT id
-           |  FROM vote_collection_point
-           |  WHERE type <> 'polling_place'
-           |  LIMIT 1
-         """.stripMargin
+
+      val v = VoteCollectionPointRow.syntax
+
+      withSQL {
+        select(v.id)
+          .from(VoteCollectionPointRow as v)
+          .where(sqls"CAST(${v.voteCollectionPointType} AS VARCHAR) <> ${"polling_place"}")
+          .limit(1)
+      }
         .map(_.long(1))
         .first()
         .apply()
@@ -95,11 +99,15 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
 
   override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = Future {
     DB.localTx { implicit session =>
-      sql"""SELECT id
-         |  FROM vote_collection_point
-         |  WHERE type = 'polling_place'
-         |  LIMIT 1
-         """.stripMargin
+
+      val v = VoteCollectionPointRow.syntax
+
+      withSQL {
+        select(v.id)
+          .from(VoteCollectionPointRow as v)
+          .where(sqls"CAST(${v.voteCollectionPointType} AS VARCHAR) = ${"polling_place"}")
+          .limit(1)
+      }
         .map(_.long(1))
         .first()
         .apply()
@@ -110,18 +118,20 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   override def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long] = {
     val electionId = ElectionDao.idOf(election)
 
-    val * = dbStructureCache.columnListFor("vote_collection_point", "address", "division")
+    val (v, d, a) = (VoteCollectionPointRow.syntax, DivisionRow.syntax, AddressRow.syntax)
 
-    sql"""SELECT ${*}
-         |
-         |  FROM vote_collection_point
-         |    LEFT JOIN address ON vote_collection_point.address = address.id
-         |    LEFT JOIN division ON vote_collection_point.division = division.id
-         |  WHERE vote_collection_point.election = $electionId
-      """.stripMargin
-      .map(row => VoteCollectionPointRowConversions.fromRow(postcodeFlyweight, alias="vote_collection_point")(row) -> row.long("vote_collection_point.id"))
+    withSQL {
+      select
+        .from(VoteCollectionPointRow as v)
+        .leftJoin(DivisionRow as d).on(v.division, d.id)
+        .leftJoin(AddressRow as a).on(v.address, a.id)
+        .where.eq(v.election, electionId)
+    }
+      .map(VoteCollectionPointRow(postcodeFlyweight, v, d, a))
       .list()
       .apply()
+      .toStream
+      .map(vcpRow => vcpRow.asVoteCollectionPoint -> vcpRow.id)
       .toMap
   }
 }
@@ -132,7 +142,7 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     Symbol("election"),
     Symbol("state"),
     Symbol("division"),
-    Symbol("type"),
+    Symbol("vote_collection_point_type"),
     Symbol("name"),
     Symbol("number"),
     Symbol("aec_id"),
@@ -143,71 +153,6 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     Symbol("latitude"),
     Symbol("longitude")
   )
-
-  def fromRow(postcodeFlyweight: PostcodeFlyweight,
-              alias: String = "",
-              addressAlias: String = "address",
-              divisionAlias: String = "division")
-             (row: WrappedResultSet): VoteCollectionPoint = {
-    val c = aliasedColumnName(alias)(_)
-
-    val election = ElectionDao.electionWithId(row.string(c("election"))).get
-    val state = State.fromAbbreviation(row.string(c("state"))).get
-    val division = DivisionRowConversions.fromRow(divisionAlias)(row)
-
-    val vcpType = row.string(c("type"))
-
-    vcpType match {
-      case "absentee" => VoteCollectionPoint.Absentee(election, state, division, row.int(c("number")))
-      case "postal" => VoteCollectionPoint.Postal(election, state, division, row.int(c("number")))
-      case "prepoll" => VoteCollectionPoint.PrePoll(election, state, division, row.int(c("number")))
-      case "provisional" => VoteCollectionPoint.Provisional(election, state, division, row.int(c("number")))
-      case "polling_place" => {
-        PollingPlace(
-          election,
-          state,
-          division,
-          row.int(c("aec_id")),
-          pollingPlaceTypeFrom(row.string(c("polling_place_type"))),
-          row.string(c("name")),
-          locationFrom(alias, addressAlias, postcodeFlyweight)(row)
-        )
-      }
-    }
-  }
-
-  private def pollingPlaceTypeFrom(sqlTypeString: String): PollingPlace.Type.Type = {
-    sqlTypeString match {
-      case "polling_place" => PollingPlace.Type.POLLING_PLACE
-      case "special_hospital_team" => PollingPlace.Type.SPECIAL_HOSPITAL_TEAM
-      case "remote_mobile_team" => PollingPlace.Type.REMOTE_MOBILE_TEAM
-      case "other_mobile_team" => PollingPlace.Type.OTHER_MOBILE_TEAM
-      case "pre_poll_voting_centre" => PollingPlace.Type.PRE_POLL_VOTING_CENTRE
-    }
-  }
-
-  private def locationFrom(alias: String, addressAlias: String, postcodeFlyweight: PostcodeFlyweight)
-                          (row: WrappedResultSet): PollingPlace.Location = {
-    val c = aliasedColumnName(alias)(_)
-
-    val hasMultipleLocations = row.boolean(c("multiple_locations"))
-
-    val latLong = for {
-      lat <- Option(row.nullableDouble(c("latitude")))
-      long <- Option(row.nullableDouble(c("longitude")))
-    } yield LatLong(lat, long)
-
-    if (hasMultipleLocations) {
-      PollingPlace.Location.Multiple
-    } else {
-      val address = AddressRowConversions.fromRow(postcodeFlyweight, addressAlias)(row)
-      val premisesName = row.string(c("premises_name"))
-
-      latLong
-        .map(PollingPlace.Location.Premises(premisesName, address, _))
-        .getOrElse(PollingPlace.Location.PremisesMissingLatLong(premisesName, address))
-    }
-  }
 
   def toRow(
       addressIdLookup: Map[Address, Long],
@@ -242,7 +187,7 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
       Symbol("election") -> ElectionDao.idOf(voteCollectionPoint.election),
       Symbol("state") -> voteCollectionPoint.state.abbreviation,
       Symbol("division") -> divisionIdLookup(voteCollectionPoint.division),
-      Symbol("type") -> sqlVcpTypeOf(voteCollectionPoint),
+      Symbol("vote_collection_point_type") -> sqlVcpTypeOf(voteCollectionPoint),
       Symbol("name") -> voteCollectionPoint.name
     )
   }
@@ -271,7 +216,7 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
     voteCollectionPoint match {
       case p: PollingPlace => Seq(
         Symbol("aec_id") -> p.aecId,
-        Symbol("polling_place_type") -> p.pollingPlaceType.toString.toLowerCase
+        Symbol("polling_place_type") -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, p.pollingPlaceType.toString)
       )
       case _ => Nil
     }

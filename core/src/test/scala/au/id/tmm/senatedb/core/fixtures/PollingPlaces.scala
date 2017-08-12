@@ -2,7 +2,8 @@ package au.id.tmm.senatedb.core.fixtures
 
 import au.id.tmm.senatedb.core.fixtures.Divisions.DivisionFixture
 import au.id.tmm.senatedb.core.model.SenateElection
-import au.id.tmm.senatedb.core.model.parsing.PollingPlace
+import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace}
+import au.id.tmm.senatedb.core.model.parsing.PollingPlace.PollingPlaceType
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 
@@ -15,24 +16,24 @@ object PollingPlaces {
 
     def divisionFixture: DivisionFixture
 
-    lazy val divisionLookup = divisionFixture.divisionLookup
+    lazy val divisionLookup: Map[String, Division] = divisionFixture.divisionLookup
 
-    lazy val pollingPlaceLookup = pollingPlaces
+    lazy val pollingPlaceLookup: Map[String, PollingPlace] = pollingPlaces
       .groupBy(_.name)
       .mapValues(_.head)
   }
 
   object ACT extends PollingPlaceFixture {
-    override val state = State.ACT
+    override val state: State = State.ACT
 
-    override val divisionFixture = Divisions.ACT
+    override val divisionFixture: Divisions.ACT.type = Divisions.ACT
 
     val BARTON = PollingPlace(
       election = election,
       state = state,
       division = divisionLookup("Canberra"),
       aecId = 8829,
-      pollingPlaceType = PollingPlace.Type.POLLING_PLACE,
+      pollingPlaceType = PollingPlaceType.PollingPlace,
       name = "Barton",
       location = PollingPlace.Location.Premises(
         name = "Telopea Park School",
@@ -45,7 +46,7 @@ object PollingPlaces {
       state = state,
       division = divisionLookup("Canberra"),
       aecId = 65158,
-      pollingPlaceType = PollingPlace.Type.OTHER_MOBILE_TEAM,
+      pollingPlaceType = PollingPlaceType.OtherMobileTeam,
       name = "Other Mobile Team 1",
       location = PollingPlace.Location.PremisesMissingLatLong(
         name = "Alexander Maconachie Centre",
@@ -57,7 +58,7 @@ object PollingPlaces {
       state = state,
       division = divisionLookup("Canberra"),
       aecId = 32712,
-      pollingPlaceType = PollingPlace.Type.SPECIAL_HOSPITAL_TEAM,
+      pollingPlaceType = PollingPlaceType.SpecialHospitalTeam,
       name = "Special Hospital Team 1",
       location = PollingPlace.Location.Multiple
     )
@@ -67,7 +68,7 @@ object PollingPlaces {
       state = state,
       division = divisionLookup("Canberra"),
       aecId = 32705,
-      pollingPlaceType = PollingPlace.Type.PRE_POLL_VOTING_CENTRE,
+      pollingPlaceType = PollingPlaceType.PrePollVotingCentre,
       name = "Woden CANBERRA PPVC",
       location = PollingPlace.Location.Premises(
         name = "15 Bowes St",
@@ -85,16 +86,16 @@ object PollingPlaces {
   }
 
   object NT extends PollingPlaceFixture {
-    override val state = State.NT
+    override val state: State = State.NT
 
-    override val divisionFixture = Divisions.NT
+    override val divisionFixture: Divisions.NT.type = Divisions.NT
 
     val ALICE_SPRINGS = PollingPlace(
       election = election,
       state = state,
       division = divisionLookup("Lingiari"),
       aecId = 8701,
-      pollingPlaceType = PollingPlace.Type.POLLING_PLACE,
+      pollingPlaceType = PollingPlaceType.PollingPlace,
       name = "Alice Springs",
       location = PollingPlace.Location.Premises(
         name = "Alice Springs Civic Centre",

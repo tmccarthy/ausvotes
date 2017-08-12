@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.api.persistence.entities.stats
 
 import au.id.tmm.senatedb.core.tallies._
 
-trait StatClass {
+sealed trait StatClass {
 
   def requiredTalliers: Set[Tallier]
 

@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.rowentities.DivisionRow
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc.{DB, _}
@@ -21,7 +21,7 @@ trait DivisionDao {
 }
 
 @Singleton
-class ConcreteDivisionDao @Inject() (dbStructureCache: DbStructureCache)
+class ConcreteDivisionDao @Inject() ()
                                     (implicit ec: ExecutionContext) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
@@ -38,11 +38,15 @@ class ConcreteDivisionDao @Inject() (dbStructureCache: DbStructureCache)
     DB.localTx { implicit session =>
       val electionId = ElectionDao.idOf(election)
 
+      val d = DivisionRow.syntax
+
       // TODO needs native toSet
-      sql"SELECT * FROM division WHERE election = ${electionId}"
-        .map(DivisionRowConversions.fromRow())
+      withSQL(select.from(DivisionRow as d).where.eq(d.election, electionId))
+        .map(DivisionRow(d))
         .list()
         .apply()
+        .toStream
+        .map(_.asDivision)
         .toSet
     }
   }
@@ -51,9 +55,10 @@ class ConcreteDivisionDao @Inject() (dbStructureCache: DbStructureCache)
     DB.localTx { implicit session =>
       val electionId = ElectionDao.idOf(election)
 
-      sql"SELECT * FROM division WHERE election = ${electionId} LIMIT 1"
-        .first()
-        .map(DivisionRowConversions.fromRow())
+      val d = DivisionRow.syntax
+
+      withSQL(select.from(DivisionRow as d).where.eq(d.election, electionId).limit(1))
+        .map(DivisionRow(d))
         .first()
         .apply()
         .isDefined
@@ -64,22 +69,6 @@ class ConcreteDivisionDao @Inject() (dbStructureCache: DbStructureCache)
 }
 
 private[daos] object DivisionRowConversions extends RowConversions {
-
-  def fromRow(alias: String = "")(row: WrappedResultSet): Division = {
-    val c = aliasedColumnName(alias)(_)
-
-    val electionId = row.string(c("election"))
-    val election = ElectionDao.electionWithId(electionId).get
-
-    val stateAbbreviation = row.string(c("state"))
-    val state = State.fromAbbreviation(stateAbbreviation).get
-
-    val name = row.string(c("name"))
-
-    val aecId = row.int(c("aec_id"))
-
-    Division(election, state, name, aecId)
-  }
 
   def toRow()(division: Division): Seq[(Symbol, Any)] = {
     Seq(

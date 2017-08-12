@@ -6,7 +6,7 @@ import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import scalikejdbc.DB
 
-class AddressDaoSpec extends ImprovedFlatSpec with PostgresService {
+class AddressDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
 
   private val sut = new ConcreteAddressDao(PostcodeFlyweight())
 

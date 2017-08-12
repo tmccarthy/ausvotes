@@ -38,17 +38,6 @@ CREATE TABLE division (
 
 CREATE UNIQUE INDEX uk_division_name ON division(LOWER(name));
 
-CREATE TABLE total_formal_ballot_count (
-  id SERIAL PRIMARY KEY,
-
-  total_formal_ballots INTEGER,
-  ordinal_nationally INTEGER,
-
-  -- TODO unneeded?
-  ordinal_state INTEGER,
-  ordinal_division INTEGER
-);
-
 CREATE TABLE address (
   id SERIAL PRIMARY KEY,
 
@@ -69,7 +58,7 @@ CREATE TABLE vote_collection_point (
   state VARCHAR(3) REFERENCES state(abbreviation),
   division INTEGER REFERENCES division(id),
 
-  type VOTE_COLLECTION_POINT_TYPE,
+  vote_collection_point_type VOTE_COLLECTION_POINT_TYPE,
   name VARCHAR,
 
   -- Only if this is not a polling place

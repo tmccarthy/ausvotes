@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import au.id.tmm.senatedb.api.integrationtest.{PostgresService, SimpleCacheApi}
+import au.id.tmm.senatedb.api.integrationtest.PostgresService
 import au.id.tmm.senatedb.core.fixtures.PollingPlaces
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
@@ -10,10 +10,9 @@ import scalikejdbc.DB
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class VoteCollectionPointDaoSpec extends ImprovedFlatSpec with PostgresService {
+class VoteCollectionPointDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
 
-  private val dbStructureCache = new ConcreteDbStructureCache(new SimpleCacheApi())
-  private val divisionDao = new ConcreteDivisionDao(dbStructureCache)
+  private val divisionDao = new ConcreteDivisionDao()
 
   private val sut = {
     val postcodeFlyweight = PostcodeFlyweight()
@@ -21,10 +20,11 @@ class VoteCollectionPointDaoSpec extends ImprovedFlatSpec with PostgresService {
     new ConcreteVoteCollectionPointDao(
       new ConcreteAddressDao(postcodeFlyweight),
       divisionDao,
-      dbStructureCache,
       postcodeFlyweight,
     )
   }
+
+  // TODO need to write more tests here
 
   "a vote collection point dao" should "indicate when there have been no polling places populated for an election" in {
     val actual = Await.result(sut.hasAnyPollingPlacesFor(SenateElection.`2016`), Duration.Inf)
