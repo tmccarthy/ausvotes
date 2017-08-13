@@ -245,14 +245,4 @@ private[daos] object VoteCollectionPointRowConversions extends RowConversions {
       case _ => Nil
     }
   }
-
-  private def sqlPollingPlaceTypeOf(voteCollectionPoint: VoteCollectionPoint) = {
-    voteCollectionPoint match {
-      case _: Absentee => "absentee"
-      case _: Postal => "postal"
-      case _: PrePoll => "prepoll"
-      case _: Provisional => "provisional"
-      case _: PollingPlace => "polling_place"
-    }
-  }
 }

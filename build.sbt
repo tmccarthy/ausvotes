@@ -105,10 +105,10 @@ lazy val api = project.in(file("api"))
   .dependsOn(core % "compile->compile;test->test;it->it;it->test")
 
 coverageExcludedPackages in ThisBuild := List(
-  "au.id.tmm.senatedb.core.mainclasses.*",
-  "au.id.tmm.senatedb.api.controllers.javascript*",
-  "au.id.tmm.senatedb.api.controllers.ReverseRoutes*",
-  "au.id.tmm.senatedb.api.controllers.ref*",
-  "au.id.tmm.senatedb.router*",
-  "router.*"
+  """au\.id\.tmm\.senatedb\.core\.mainclasses\..*""",
+  """au\.id\.tmm\.senatedb\.api\.controllers\.javascript\..*""",
+  """au\.id\.tmm\.senatedb\.api\.controllers\..*Reverse.*""",
+  """au\.id\.tmm\.senatedb\.api\.controllers\.ref\..*""",
+  """au\.id\.tmm\.senatedb\.router\..*""",
+  """router\..*"""
 ).mkString(";")
