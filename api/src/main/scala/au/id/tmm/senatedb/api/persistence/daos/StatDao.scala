@@ -34,4 +34,5 @@ class ConcreteStatDao @Inject() ()(implicit ec: ExecutionContext) extends StatDa
   override def statsFor(voteCollectionPoint: VoteCollectionPoint): Future[Set[Stat[VoteCollectionPoint]]] = ???
 
   override def writeStats(stats: Iterable[Stat[Any]]): Future[Unit] = ???
+
 }
