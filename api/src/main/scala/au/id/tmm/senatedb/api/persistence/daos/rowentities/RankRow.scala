@@ -21,6 +21,8 @@ private[daos] final case class RankRow(
 
 private[daos] object RankRow extends SQLSyntaxSupport[RankRow] {
 
+  override def tableName: String = "rank"
+
   def apply(r: SyntaxProvider[RankRow])(rs: WrappedResultSet): RankRow = apply(r.resultName)(rs)
 
   def apply(r: ResultName[RankRow])(rs: WrappedResultSet): RankRow = {
@@ -32,6 +34,10 @@ private[daos] object RankRow extends SQLSyntaxSupport[RankRow] {
       ordinalPerCapita = rs.intOpt(r.ordinalPerCapita),
       totalCount = rs.int(r.totalCount),
     )
+  }
+
+  def opt(r: SyntaxProvider[RankRow])(rs: WrappedResultSet): Option[RankRow] = {
+    rs.longOpt(r.id).map(_ => RankRow(r)(rs))
   }
 
   private def parseJurisdictionLevel(asString: String) = {

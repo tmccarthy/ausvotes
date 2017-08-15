@@ -1,9 +1,10 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
 import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
-import au.id.tmm.senatedb.api.persistence.entities.stats.StatClass
+import au.id.tmm.senatedb.api.persistence.entities.stats.{Stat, StatClass}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
+import au.id.tmm.senatedb.core.model.parsing.JurisdictionLevel
 import au.id.tmm.utilities.geo.australia.State
 import scalikejdbc._
 
@@ -16,14 +17,50 @@ private[daos] final case class StatRow(
                                         vcp: Option[VoteCollectionPointRow],
                                         amount: Double,
                                         perCapita: Option[Double],
-                                        rankRows: List[RankRow] = List(),
-                                      )
+                                        rankRows: Vector[RankRow] = Vector(),
+                                      ) {
+  def jurisdictionLevel: JurisdictionLevel[_] = {
+    if (vcp.isDefined) {
+      JurisdictionLevel.VoteCollectionPoint
+    } else if (division.isDefined) {
+      JurisdictionLevel.Division
+    } else if (state.isDefined) {
+      JurisdictionLevel.State
+    } else {
+      JurisdictionLevel.Nation
+    }
+  }
+
+  def jurisdiction: AnyRef = {
+    if (vcp.isDefined) {
+      vcp.get
+    } else if (division.isDefined) {
+      division.get
+    } else if (state.isDefined) {
+      state.get
+    } else {
+      election
+    }
+  }
+
+  def asStat[A]: Stat[A] = Stat(
+    statClass,
+    jurisdictionLevel.asInstanceOf[JurisdictionLevel[A]],
+  )(
+    jurisdiction.asInstanceOf[A],
+    amount,
+    rankRows.map(r => r.jurisdictionLevel -> r.rank).toMap,
+    perCapita,
+    rankRows.flatMap(rankRow => rankRow.rankPerCapita.map(rank => rankRow.jurisdictionLevel -> rank)).toMap,
+  )
+}
 
 private[daos] object StatRow extends SQLSyntaxSupport[StatRow] {
 
+  override def tableName: String = "stat"
+
   def apply(postcodeFlyweight: PostcodeFlyweight,
             s: SyntaxProvider[StatRow],
-            r: SyntaxProvider[RankRow],
             d: SyntaxProvider[DivisionRow],
             v: SyntaxProvider[VoteCollectionPointRow],
             a: SyntaxProvider[AddressRow],
@@ -31,7 +68,6 @@ private[daos] object StatRow extends SQLSyntaxSupport[StatRow] {
     apply(
       postcodeFlyweight,
       s.resultName,
-      r.resultName,
       d.resultName,
       v.resultName,
       a.resultName,
@@ -40,7 +76,6 @@ private[daos] object StatRow extends SQLSyntaxSupport[StatRow] {
 
   def apply(postcodeFlyweight: PostcodeFlyweight,
             s: ResultName[StatRow],
-            r: ResultName[RankRow],
             d: ResultName[DivisionRow],
             v: ResultName[VoteCollectionPointRow],
             a: ResultName[AddressRow],
