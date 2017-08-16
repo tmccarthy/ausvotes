@@ -1,7 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import java.sql.Connection
-
+import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.AddressInsertableHelper
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.AddressRow
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.utilities.geo.australia.Address
@@ -11,7 +10,7 @@ import scalikejdbc._
 @ImplementedBy(classOf[ConcreteAddressDao])
 trait AddressDao {
 
-  def writeInSession(addresses: Iterable[Address])(implicit session: DBSession): Map[Address, Long]
+  def writeInSession(addresses: Vector[Address])(implicit session: DBSession): Map[Address, Long]
 
   def findById(id: Long)(implicit session: DBSession): Option[Address]
 
@@ -20,30 +19,17 @@ trait AddressDao {
 @Singleton
 class ConcreteAddressDao @Inject() (postcodeFlyweight: PostcodeFlyweight) extends AddressDao {
 
-  override def writeInSession(addresses: Iterable[Address])(implicit session: DBSession): Map[Address, Long] = {
+  override def writeInSession(addresses: Vector[Address])(implicit session: DBSession): Map[Address, Long] = {
+    val insertStatement =
+      sql"""INSERT INTO address(lines, suburb, postcode, state)
+           |  VALUES (?, ?, ?, ?);
+           |""".stripMargin
 
-    addresses.toStream
-      .map { address =>
-        val asRow = AddressRowConversions.toRow(session.connection)(address)
+    val insertables: Seq[Seq[Any]] = addresses.map(AddressInsertableHelper.toInsertableTuple(session.connection))
 
-        val statement = sql"""INSERT INTO address(
-                           |  lines,
-                           |  suburb,
-                           |  postcode,
-                           |  state
-                           |) VALUES (
-                           |  ${asRow("lines")},
-                           |  ${asRow("suburb")},
-                           |  ${asRow("postcode")},
-                           |  ${asRow("state")}
-                           |)""".stripMargin
-          .updateAndReturnGeneratedKey()
+    val keys: Vector[Long] = insertStatement.batchAndReturnGeneratedKey(insertables: _*).apply()
 
-        val generatedId = statement.apply()
-
-        address -> generatedId
-      }
-      .toMap
+    (addresses zip keys).toMap
   }
 
   override def findById(id: Long)(implicit session: DBSession): Option[Address] = {
@@ -55,19 +41,5 @@ class ConcreteAddressDao @Inject() (postcodeFlyweight: PostcodeFlyweight) extend
       .headOption()
       .apply()
       .map(_.asAddress)
-  }
-}
-
-private[daos] object AddressRowConversions extends RowConversions {
-
-  def toRow(connection: Connection)(address: Address): Map[String, Any] = {
-    val addressLines = connection.createArrayOf("TEXT", address.lines.toArray)
-
-    Map(
-      "lines" -> addressLines,
-      "suburb" -> address.suburb,
-      "postcode" -> address.postcode.code,
-      "state" -> address.state.abbreviation
-    )
   }
 }

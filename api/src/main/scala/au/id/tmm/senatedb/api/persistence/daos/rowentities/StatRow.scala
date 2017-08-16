@@ -86,7 +86,7 @@ private[daos] object StatRow extends SQLSyntaxSupport[StatRow] {
       election = ElectionDao.electionWithId(rs.string(s.election)).get,
       state = rs.stringOpt(s.state).flatMap(State.fromAbbreviation),
       division = DivisionRow.opt(d)(rs),
-      vcp = VoteCollectionPointRow.opt(postcodeFlyweight, v, d, a)(rs),
+      vcp = ???,
       amount = rs.double(s.amount),
       perCapita = rs.doubleOpt(s.perCapita),
     )

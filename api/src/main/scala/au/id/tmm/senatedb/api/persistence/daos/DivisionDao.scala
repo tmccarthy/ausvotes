@@ -1,9 +1,9 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.DivisionInsertableHelper
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.DivisionRow
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
-import au.id.tmm.utilities.hashing.Pairing
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc.{DB, _}
 
@@ -25,7 +25,7 @@ class ConcreteDivisionDao @Inject() ()
                                     (implicit ec: ExecutionContext) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
-    val rowsToInsert = divisions.map(DivisionRowConversions.toRow()).toSeq
+    val rowsToInsert = divisions.map(DivisionInsertableHelper.toInsertable).toSeq
 
     DB.localTx { implicit session =>
       sql"INSERT INTO division(id, election, aec_id, state, name) VALUES ({id}, {election}, {aec_id}, {state}, {name})"
@@ -65,20 +65,5 @@ class ConcreteDivisionDao @Inject() ()
     }
   }
 
-  override def idOf(division: Division): Long = DivisionRowConversions.idOf(division)
-}
-
-private[daos] object DivisionRowConversions extends RowConversions {
-
-  def toRow()(division: Division): Seq[(Symbol, Any)] = {
-    Seq(
-      Symbol("id") -> idOf(division),
-      Symbol("election") -> ElectionDao.idOf(division.election.aecID),
-      Symbol("aec_id") -> division.aecId,
-      Symbol("state") -> division.state.abbreviation,
-      Symbol("name") -> division.name
-    )
-  }
-
-  def idOf(division: Division): Long = Pairing.Szudzik.pair(division.election.aecID, division.aecId)
+  override def idOf(division: Division): Long = DivisionInsertableHelper.idOf(division)
 }

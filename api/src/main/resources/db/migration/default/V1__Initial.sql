@@ -37,6 +37,7 @@ CREATE TABLE division (
 );
 
 CREATE UNIQUE INDEX uk_division_name ON division(LOWER(name));
+CREATE UNIQUE INDEX uk_division_aec_id ON division(election, aec_id);
 
 CREATE TABLE address (
   id SERIAL PRIMARY KEY,
@@ -49,10 +50,9 @@ CREATE TABLE address (
 );
 
 CREATE TYPE VOTE_COLLECTION_POINT_TYPE AS ENUM ('polling_place', 'absentee', 'postal', 'prepoll', 'provisional');
-CREATE TYPE POLLING_PLACE_TYPE AS ENUM ('polling_place', 'special_hospital_team', 'remote_mobile_team', 'other_mobile_team', 'pre_poll_voting_centre');
 
-CREATE TABLE vote_collection_point (
-  id SERIAL PRIMARY KEY,
+CREATE TABLE special_vote_collection_point (
+  id BIGINT PRIMARY KEY,
 
   election VARCHAR(5) REFERENCES senate_election(id),
   state VARCHAR(3) REFERENCES state(abbreviation),
@@ -61,14 +61,25 @@ CREATE TABLE vote_collection_point (
   vote_collection_point_type VOTE_COLLECTION_POINT_TYPE,
   name VARCHAR,
 
-  -- Only if this is not a polling place
-  number INTEGER,
+  number INTEGER
+);
 
-  -- Only if this is a polling place
+CREATE UNIQUE INDEX uk_special_vote_collection_point_number ON special_vote_collection_point(election, state, division, vote_collection_point_type, number);
+
+CREATE TYPE POLLING_PLACE_TYPE AS ENUM ('polling_place', 'special_hospital_team', 'remote_mobile_team', 'other_mobile_team', 'pre_poll_voting_centre');
+
+CREATE TABLE polling_place (
+  id BIGINT PRIMARY KEY,
+
+  election VARCHAR(5) REFERENCES senate_election(id),
+  state VARCHAR(3) REFERENCES state(abbreviation),
+  division INTEGER REFERENCES division(id),
 
   aec_id INTEGER,
 
   polling_place_type POLLING_PLACE_TYPE,
+
+  name VARCHAR,
 
   multiple_locations BOOLEAN,
 
@@ -79,6 +90,8 @@ CREATE TABLE vote_collection_point (
   longitude DOUBLE PRECISION
 );
 
+CREATE UNIQUE INDEX uk_polling_place_aec_id ON polling_place(election, aec_id);
+
 CREATE TABLE stat (
   id SERIAL PRIMARY KEY,
 
@@ -87,7 +100,8 @@ CREATE TABLE stat (
   election VARCHAR(5) REFERENCES senate_election(id),
   state VARCHAR(3) REFERENCES state(abbreviation),
   division INTEGER REFERENCES division(id),
-  vote_collection_point INTEGER REFERENCES vote_collection_point(id),
+  special_vcp INTEGER REFERENCES special_vote_collection_point(id),
+  polling_place INTEGER REFERENCES polling_place(id),
 
   amount DOUBLE PRECISION,
   per_capita DOUBLE PRECISION

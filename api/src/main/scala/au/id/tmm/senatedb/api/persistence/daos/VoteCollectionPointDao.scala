@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import au.id.tmm.senatedb.api.persistence.daos.rowentities.{AddressRow, DivisionRow, VoteCollectionPointRow}
+import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
+import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.{DivisionInsertableHelper, PollingPlaceInsertableHelper, SpecialVcpInsertableHelper}
+import au.id.tmm.senatedb.api.persistence.daos.rowentities._
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
-import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.{Absentee, Postal, PrePoll, Provisional}
+import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint._
 import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
-import au.id.tmm.utilities.geo.australia.Address
-import com.google.common.base.CaseFormat
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc._
 
@@ -17,11 +17,19 @@ import scala.concurrent.{ExecutionContext, Future}
 trait VoteCollectionPointDao {
   def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit]
 
-  def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean]
+  def hasAnySpecialVoteCollectionPointsFor(election: SenateElection): Future[Boolean]
 
   def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean]
 
-  def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long]
+  def allForDivision(division: Division): Future[Set[VoteCollectionPoint]]
+
+  def allPollingPlacesForDivision(division: Division): Future[Set[PollingPlace]]
+
+  def allSpecialVoteCollectionPointsForDivision(division: Division): Future[Set[SpecialVoteCollectionPoint]]
+
+  def idOf(pollingPlace: PollingPlace): Long
+
+  def idOf(specialVoteCollectionPoint: SpecialVoteCollectionPoint): Long
 }
 
 @Singleton
@@ -31,81 +39,74 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                (implicit ec: ExecutionContext) extends VoteCollectionPointDao {
 
   override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
-
-    val addressesToWrite = voteCollectionPoints.toStream
-      .flatMap(VoteCollectionPoint.addressOf)
-      .toSet
-
     DB.localTx { implicit session =>
-      val addressIds: Map[Address, Long] = addressDao.writeInSession(addressesToWrite)
+      writeBatch(voteCollectionPoints.toVector)
+    }
+  }
 
-      val voteCollectionPointRowsToWrite = voteCollectionPoints
-        .map(VoteCollectionPointRowConversions.toRow(addressIds, divisionDao))
-        .toSeq
+  private def writeBatch(vcps: Vector[VoteCollectionPoint])(implicit session: DBSession): Unit = {
+    val (pollingPlaces, specialVcps) = vcps.partition {
+      case _: PollingPlace => true
+      case _: SpecialVoteCollectionPoint => false
+    }
 
-      val statement = sql"""
-           |INSERT INTO vote_collection_point(
-           |  election,
-           |  state,
-           |  division,
-           |  vote_collection_point_type,
-           |  name,
-           |  number,
-           |  aec_id,
-           |  polling_place_type,
-           |  multiple_locations,
-           |  premises_name,
-           |  address,
-           |  latitude,
-           |  longitude
-           |) VALUES (
+    writePollingPlaceBatch(pollingPlaces.asInstanceOf[Vector[PollingPlace]])
+    writeSpecialVcpBatch(specialVcps.asInstanceOf[Vector[SpecialVoteCollectionPoint]])
+  }
+
+  private def writePollingPlaceBatch(pollingPlaces: Vector[PollingPlace])(implicit session: DBSession): Unit = {
+    val addressesToWrite = pollingPlaces.map(_.location).flatMap {
+      case Multiple => None
+      case Premises(_, address, _) => Some(address)
+      case PremisesMissingLatLong(_, address) => Some(address)
+    }
+
+    val idsPerAddress = addressDao.writeInSession(addressesToWrite)
+
+    val insertStatement =
+      sql"""
+           |INSERT INTO polling_place(id, election, state, division, aec_id, polling_place_type, name, multiple_locations, premises_name, address, latitude, longitude)
+           |  VALUES (
+           |  {id},
            |  {election},
            |  {state},
            |  {division},
-           |  CAST({vote_collection_point_type} AS vote_collection_point_type),
-           |  {name},
-           |  {number},
            |  {aec_id},
            |  CAST({polling_place_type} AS polling_place_type),
+           |  {name},
            |  {multiple_locations},
            |  {premises_name},
            |  {address},
            |  {latitude},
            |  {longitude}
-           |)""".stripMargin
-        .batchByName(voteCollectionPointRowsToWrite: _*)
+           |)
+           |""".stripMargin
 
-      statement.apply()
-    }
+    val toInsert: Vector[Insertable] = pollingPlaces.map(PollingPlaceInsertableHelper.toInsertable(idsPerAddress))
+
+    insertStatement.batchByName(toInsert: _*).apply()
   }
 
-  override def hasAnyNonPollingPlaceVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
-    DB.localTx { implicit session =>
+  private def writeSpecialVcpBatch(specialVcps: Vector[SpecialVoteCollectionPoint])(implicit session: DBSession): Unit = {
+    val insertStatement =
+      sql"""
+           |INSERT INTO special_vote_collection_point(id, election, state, division, vote_collection_point_type, name, number)
+           |  VALUES ({id}, {election}, {state}, {division}, CAST({vote_collection_point_type} AS vote_collection_point_type), {name}, {number});
+           |""".stripMargin
 
-      val v = VoteCollectionPointRow.syntax
+    val toInsert: Vector[Insertable] = specialVcps.map(SpecialVcpInsertableHelper.toInsertable)
 
-      withSQL {
-        select(v.id)
-          .from(VoteCollectionPointRow as v)
-          .where(sqls"CAST(${v.voteCollectionPointType} AS VARCHAR) <> ${"polling_place"}")
-          .limit(1)
-      }
-        .map(_.long(1))
-        .first()
-        .apply()
-        .isDefined
-    }
+    insertStatement.batchByName(toInsert: _*).apply()
   }
 
   override def hasAnyPollingPlacesFor(election: SenateElection): Future[Boolean] = Future {
     DB.localTx { implicit session =>
 
-      val v = VoteCollectionPointRow.syntax
+      val p = PollingPlaceRow.syntax
 
       withSQL {
-        select(v.id)
-          .from(VoteCollectionPointRow as v)
-          .where(sqls"CAST(${v.voteCollectionPointType} AS VARCHAR) = ${"polling_place"}")
+        select(p.id)
+          .from(PollingPlaceRow as p)
           .limit(1)
       }
         .map(_.long(1))
@@ -115,134 +116,77 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
     }
   }
 
-  override def idPerVoteCollectionPointInSession(election: SenateElection)(implicit session: DBSession): Map[VoteCollectionPoint, Long] = {
-    val electionId = ElectionDao.idOf(election)
+  override def hasAnySpecialVoteCollectionPointsFor(election: SenateElection): Future[Boolean] = Future {
+    DB.localTx { implicit session =>
+      val v = SpecialVcpRow.syntax
 
-    val (v, d, a) = (VoteCollectionPointRow.syntax, DivisionRow.syntax, AddressRow.syntax)
-
-    withSQL {
-      select
-        .from(VoteCollectionPointRow as v)
-        .leftJoin(DivisionRow as d).on(v.division, d.id)
-        .leftJoin(AddressRow as a).on(v.address, a.id)
-        .where.eq(v.election, electionId)
-    }
-      .map(VoteCollectionPointRow(postcodeFlyweight, v, d, a))
-      .list()
-      .apply()
-      .toStream
-      .map(vcpRow => vcpRow.asVoteCollectionPoint -> vcpRow.id)
-      .toMap
-  }
-}
-
-private[daos] object VoteCollectionPointRowConversions extends RowConversions {
-
-  val allBindingNames: Set[Symbol] = Set(
-    Symbol("election"),
-    Symbol("state"),
-    Symbol("division"),
-    Symbol("vote_collection_point_type"),
-    Symbol("name"),
-    Symbol("number"),
-    Symbol("aec_id"),
-    Symbol("polling_place_type"),
-    Symbol("multiple_locations"),
-    Symbol("premises_name"),
-    Symbol("address"),
-    Symbol("latitude"),
-    Symbol("longitude")
-  )
-
-  def toRow(
-      addressIdLookup: Map[Address, Long],
-      divisionDao: DivisionDao,
-      )(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val bindings = voteCollectionPointRowComponentOf(divisionDao.idOf)(voteCollectionPoint) ++
-      numberComponentOf(voteCollectionPoint) ++
-      pollingPlaceRowComponentOf(voteCollectionPoint) ++
-      locationRowComponentOf(addressIdLookup)(voteCollectionPoint)
-
-    fillInMissingBindings(bindings)
-  }
-
-  private def fillInMissingBindings(bindings: Seq[(Symbol, Any)]): Seq[(Symbol, Any)] = {
-    val usedBindingsNames = bindings.toStream
-      .map {
-        case (bindingName, value) => bindingName
+      withSQL {
+        select(v.id)
+          .from(SpecialVcpRow as v)
+          .limit(1)
       }
-      .toSet
-
-    val missingBindingNames = allBindingNames diff usedBindingsNames
-
-    val missingBindings = missingBindingNames.toStream
-      .map(bindingName => bindingName -> null)
-
-    bindings ++ missingBindings
-  }
-
-  private def voteCollectionPointRowComponentOf(divisionIdLookup: Division => Long)
-                                               (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    Seq(
-      Symbol("election") -> ElectionDao.idOf(voteCollectionPoint.election),
-      Symbol("state") -> voteCollectionPoint.state.abbreviation,
-      Symbol("division") -> divisionIdLookup(voteCollectionPoint.division),
-      Symbol("vote_collection_point_type") -> sqlVcpTypeOf(voteCollectionPoint),
-      Symbol("name") -> voteCollectionPoint.name
-    )
-  }
-
-  private def sqlVcpTypeOf(voteCollectionPoint: VoteCollectionPoint): String = voteCollectionPoint match {
-    case _: Absentee => "absentee"
-    case _: Postal => "postal"
-    case _: PrePoll => "prepoll"
-    case _: Provisional => "provisional"
-    case _: PollingPlace => "polling_place"
-  }
-
-  private def numberComponentOf(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    val number = voteCollectionPoint match {
-      case a: Absentee => Some(a.number)
-      case p: Postal => Some(p.number)
-      case p: PrePoll => Some(p.number)
-      case p: Provisional => Some(p.number)
-      case p: PollingPlace => None
-    }
-
-    number.map(n => Symbol("number") -> n).toSeq
-  }
-
-  private def pollingPlaceRowComponentOf(voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    voteCollectionPoint match {
-      case p: PollingPlace => Seq(
-        Symbol("aec_id") -> p.aecId,
-        Symbol("polling_place_type") -> CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, p.pollingPlaceType.toString)
-      )
-      case _ => Nil
+        .map(_.long(1))
+        .first()
+        .apply()
+        .isDefined
     }
   }
 
-  private def locationRowComponentOf(addressIdLookup: Map[Address, Long])
-                                    (voteCollectionPoint: VoteCollectionPoint): Seq[(Symbol, Any)] = {
-    voteCollectionPoint match {
-      case p: PollingPlace => p.location match {
-        case Multiple => Seq(
-          Symbol("multiple_locations") -> true
-        )
-        case Premises(name, address, location) => Seq(
-          Symbol("multiple_locations") -> false,
-          Symbol("premises_name") -> name,
-          Symbol("address") -> addressIdLookup(address),
-          Symbol("latitude") -> location.latitude,
-          Symbol("longitude") -> location.longitude
-        )
-        case PremisesMissingLatLong(name, address) => Seq(
-          Symbol("multiple_locations") -> false,
-          Symbol("premises_name") -> name,
-          Symbol("address") -> addressIdLookup(address)
-        )
+  override def allForDivision(division: Division): Future[Set[VoteCollectionPoint]] = {
+    val eventualPollingPlaces = allPollingPlacesForDivision(division)
+    val eventualSpecialVoteCollectionPoints = allSpecialVoteCollectionPointsForDivision(division)
+
+    for {
+      pollingPlaces <- eventualPollingPlaces
+      specialVoteCollectionPoints <- eventualSpecialVoteCollectionPoints
+    } yield pollingPlaces ++ specialVoteCollectionPoints
+  }
+
+  override def allPollingPlacesForDivision(division: Division): Future[Set[PollingPlace]] = Future {
+    DB.localTx { implicit session =>
+
+      val (p, d, a) = (PollingPlaceRow.syntax, DivisionRow.syntax, AddressRow.syntax)
+
+      withSQL {
+        select
+          .from(PollingPlaceRow as p)
+          .leftJoin(DivisionRow as d).on(p.division, d.id)
+          .leftJoin(AddressRow as a).on(p.address, a.id)
+          .where
+          .eq(p.division, DivisionInsertableHelper.idOf(division))
+          .and
+          .eq(p.election, ElectionDao.idOf(division.election).get)
       }
-      case _ => Nil
+        .map(PollingPlaceRow(postcodeFlyweight, p, d, a))
+        .traversable()
+        .apply()
+        .map(_.asVoteCollectionPoint)
+        .toSet
     }
   }
+
+  override def allSpecialVoteCollectionPointsForDivision(division: Division): Future[Set[SpecialVoteCollectionPoint]] = Future {
+    DB.localTx { implicit session =>
+      val (v, d) = (SpecialVcpRow.syntax, DivisionRow.syntax)
+
+      withSQL {
+        select
+          .from(SpecialVcpRow as v)
+          .leftJoin(DivisionRow as d).on(v.division, d.id)
+          .where
+          .eq(v.division, DivisionInsertableHelper.idOf(division))
+          .and
+          .eq(v.election, ElectionDao.idOf(division.election).get)
+      }
+        .map(SpecialVcpRow(v, d))
+        .traversable()
+        .apply()
+        .map(_.asVoteCollectionPoint)
+        .toSet
+    }
+  }
+
+  override def idOf(specialVcp: SpecialVoteCollectionPoint): Long = SpecialVcpInsertableHelper.idOf(specialVcp)
+
+  override def idOf(pollingPlace: PollingPlace): Long = PollingPlaceInsertableHelper.idOf(pollingPlace)
 }

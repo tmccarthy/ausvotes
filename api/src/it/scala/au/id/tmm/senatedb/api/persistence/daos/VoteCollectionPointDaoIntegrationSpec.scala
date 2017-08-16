@@ -7,10 +7,9 @@ import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
-import scalikejdbc.DB
 
-import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 class VoteCollectionPointDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
 
@@ -45,7 +44,7 @@ class VoteCollectionPointDaoIntegrationSpec extends ImprovedFlatSpec with Postgr
     Await.result(divisionDao.write(divisionsToWrite), Duration.Inf)
     Await.result(sut.write(pollingPlacesToWrite), Duration.Inf)
 
-    val actual = Await.result(sut.hasAnyNonPollingPlaceVoteCollectionPointsFor(SenateElection.`2016`), Duration.Inf)
+    val actual = Await.result(sut.hasAnySpecialVoteCollectionPointsFor(SenateElection.`2016`), Duration.Inf)
 
     assert(actual === false)
   }
@@ -57,10 +56,11 @@ class VoteCollectionPointDaoIntegrationSpec extends ImprovedFlatSpec with Postgr
     Await.result(divisionDao.write(divisionsToWrite), Duration.Inf)
     Await.result(sut.write(pollingPlacesToWrite), Duration.Inf)
 
-    DB.localTx { implicit session =>
-      val idPerVcp = sut.idPerVoteCollectionPointInSession(SenateElection.`2016`)
+    val storedPollingPlaces = Await.result(
+      Future.sequence(divisionsToWrite.map(sut.allPollingPlacesForDivision)).map(_.flatten),
+      Duration.Inf,
+    )
 
-      assert(idPerVcp.keySet === pollingPlacesToWrite)
-    }
+    assert(storedPollingPlaces === pollingPlacesToWrite)
   }
 }

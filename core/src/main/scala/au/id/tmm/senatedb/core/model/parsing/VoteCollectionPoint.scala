@@ -14,19 +14,23 @@ sealed trait VoteCollectionPoint {
 
 object VoteCollectionPoint {
 
-  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  sealed trait SpecialVoteCollectionPoint extends VoteCollectionPoint {
+    def number: Int
+  }
+
+  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"ABSENTEE $number"
   }
 
-  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"POSTAL $number"
   }
 
-  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"PRE-POLL $number"
   }
 
-  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"PROVISIONAL $number"
   }
 
