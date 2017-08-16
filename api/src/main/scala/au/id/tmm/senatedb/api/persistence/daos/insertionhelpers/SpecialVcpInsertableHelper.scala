@@ -9,18 +9,22 @@ import au.id.tmm.utilities.hashing.Pairing
 private[daos] object SpecialVcpInsertableHelper {
 
   def idOf(specialVcp: SpecialVoteCollectionPoint): Long = {
-    val electionCode = specialVcp.election.aecID
+    val divisionCode = DivisionInsertableHelper.idOf(specialVcp.division)
 
-    val vcpTypeCode = specialVcp match {
-      case _: Absentee => 1
-      case _: Postal => 2
-      case _: PrePoll => 3
-      case _: Provisional => 4
+    val vcpCode = {
+      val vcpTypeCode = specialVcp match {
+        case _: Absentee => 1
+        case _: Postal => 2
+        case _: PrePoll => 3
+        case _: Provisional => 4
+      }
+
+      val number = specialVcp.number
+
+      Pairing.Szudzik.pair(vcpTypeCode, number)
     }
 
-    val number = specialVcp.number
-
-    Pairing.Szudzik.combine(electionCode, vcpTypeCode, number)
+    Pairing.Szudzik.pair(divisionCode, vcpCode)
   }
 
   def toInsertable(specialVcp: SpecialVoteCollectionPoint): Insertable = {
