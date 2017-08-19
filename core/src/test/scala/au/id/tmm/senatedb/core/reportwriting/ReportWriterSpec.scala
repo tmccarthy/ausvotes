@@ -2,7 +2,7 @@ package au.id.tmm.senatedb.core.reportwriting
 
 import java.nio.file.Files
 
-import au.id.tmm.senatedb.core.fixtures.Divisions
+import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.senatedb.core.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.senatedb.core.tallies.{Tally0, Tally1}
@@ -42,13 +42,13 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
     val table2 = {
       val primaryCountTally = Tally1[Division](
-        Divisions.ACT.CANBERRA -> 5d,
-        Divisions.NT.LINGIARI -> 2d
+        DivisionFixture.ACT.CANBERRA -> 5d,
+        DivisionFixture.NT.LINGIARI -> 2d
       )
 
       val denominatorTally = Tally1[Division](
-        Divisions.ACT.CANBERRA -> 10d,
-        Divisions.NT.LINGIARI -> 8d
+        DivisionFixture.ACT.CANBERRA -> 10d,
+        DivisionFixture.NT.LINGIARI -> 8d
       )
 
       val columns = Vector(

@@ -1,12 +1,12 @@
 package au.id.tmm.senatedb.core.fixtures
 
-import au.id.tmm.senatedb.core.fixtures.Groups.GroupFixture
+import au.id.tmm.senatedb.core.fixtures.GroupFixture.GroupFixture
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.core.model.parsing._
 import au.id.tmm.utilities.geo.australia.State
 
-object Candidates {
+object CandidateFixture {
 
   trait CandidateFixture {
     val election: SenateElection = SenateElection.`2016`
@@ -25,7 +25,7 @@ object Candidates {
   object NT extends CandidateFixture {
     override val state = State.NT
 
-    override val groupFixture = Groups.NT
+    override val groupFixture = GroupFixture.NT
 
     override val candidates = Set(
       Candidate(election, state, "28559", Name("Jimmy", "GIMINI"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 1)),
@@ -53,7 +53,7 @@ object Candidates {
   object ACT extends CandidateFixture {
     override val state = State.ACT
 
-    override val groupFixture = Groups.ACT
+    override val groupFixture = GroupFixture.ACT
 
     override val candidates = Set(
       Candidate(election, state, "29611",    Name("Matt", "DONNELLY"),       RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("A"), 0)),
@@ -84,7 +84,7 @@ object Candidates {
   object TAS extends CandidateFixture {
     override val state = State.TAS
 
-    override val groupFixture = Groups.TAS
+    override val groupFixture = GroupFixture.TAS
 
     override lazy val candidates = Set(
       Candidate(election, state, "28580", Name("Eric", "ABETZ"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 0)),

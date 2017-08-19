@@ -4,7 +4,7 @@ import au.id.tmm.senatedb.core.model
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 
-object GroupsAndCandidates {
+object GroupAndCandidateFixture {
 
   trait GroupsAndCandidatesFixture {
     def election: SenateElection = SenateElection.`2016`
@@ -16,7 +16,7 @@ object GroupsAndCandidates {
   object ACT extends GroupsAndCandidatesFixture {
     override val state = State.ACT
 
-    val groupsAndCandidates = model.GroupsAndCandidates(Groups.ACT.groups, Candidates.ACT.candidates)
+    val groupsAndCandidates = model.GroupsAndCandidates(GroupFixture.ACT.groups, CandidateFixture.ACT.candidates)
   }
 
 }

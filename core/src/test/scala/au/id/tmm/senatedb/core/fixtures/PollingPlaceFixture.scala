@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.core.fixtures
 
-import au.id.tmm.senatedb.core.fixtures.Divisions.DivisionFixture
+import au.id.tmm.senatedb.core.fixtures.DivisionFixture.DivisionFixture
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace}
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.PollingPlaceType
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 
-object PollingPlaces {
+object PollingPlaceFixture {
 
   trait PollingPlaceFixture {
     val election: SenateElection = SenateElection.`2016`
@@ -26,7 +26,7 @@ object PollingPlaces {
   object ACT extends PollingPlaceFixture {
     override val state: State = State.ACT
 
-    override val divisionFixture: Divisions.ACT.type = Divisions.ACT
+    override val divisionFixture: DivisionFixture.ACT.type = DivisionFixture.ACT
 
     val BARTON = PollingPlace(
       election = election,
@@ -88,7 +88,7 @@ object PollingPlaces {
   object NT extends PollingPlaceFixture {
     override val state: State = State.NT
 
-    override val divisionFixture: Divisions.NT.type = Divisions.NT
+    override val divisionFixture: DivisionFixture.NT.type = DivisionFixture.NT
 
     val ALICE_SPRINGS = PollingPlace(
       election = election,

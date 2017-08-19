@@ -5,7 +5,7 @@ import au.id.tmm.senatedb.core.model.parsing.Party.RegisteredParty
 import au.id.tmm.senatedb.core.model.parsing.{BallotGroup, Group, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 
-object Groups {
+object GroupFixture {
 
   trait GroupFixture {
     val election: SenateElection = SenateElection.`2016`

@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.core.computations.firstpreference
 
 import au.id.tmm.senatedb.core.computations.ballotnormalisation.BallotNormaliser
-import au.id.tmm.senatedb.core.fixtures.{Ballots, Candidates}
+import au.id.tmm.senatedb.core.fixtures.{BallotFixture, CandidateFixture}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.computation.FirstPreference
 import au.id.tmm.senatedb.core.model.parsing.Party.{Independent, RegisteredParty}
@@ -12,12 +12,12 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
   private val state = State.ACT
-  private val candidates = Candidates.ACT.candidates
+  private val candidates = CandidateFixture.ACT.candidates
 
   private val normaliser = BallotNormaliser(SenateElection.`2016`, state, candidates)
   private val sut = FirstPreferenceCalculator(SenateElection.`2016`, state, candidates)
 
-  import Ballots.ACT._
+  import BallotFixture.ACT._
   import normaliser._
 
   "the first preference calculator" should "reject informal ballots" in {
@@ -36,12 +36,12 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
 
   it should "not have a first preference if the first preferenced candidate was independent" in {
     // Have to run this test in the NT cos all of the ACT candidates had parties
-    val ntCandidates = Candidates.NT.candidates
+    val ntCandidates = CandidateFixture.NT.candidates
     val ntNormaliser = BallotNormaliser(SenateElection.`2016`, State.NT, ntCandidates)
 
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
-    assert(sut.firstPreferenceOf(ntNormaliser.normalise(Ballots.NT.firstPreferenceUngroupedIndy)) ===
+    assert(sut.firstPreferenceOf(ntNormaliser.normalise(BallotFixture.NT.firstPreferenceUngroupedIndy)) ===
       FirstPreference(Ungrouped(State.NT), Independent))
   }
 

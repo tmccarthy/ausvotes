@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.reportwriting
 
-import au.id.tmm.senatedb.core.fixtures.{BallotMaker, Candidates, Divisions, PollingPlaces}
+import au.id.tmm.senatedb.core.fixtures.{BallotMaker, CandidateFixture, DivisionFixture, PollingPlaceFixture}
 import au.id.tmm.senatedb.core.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.core.model.parsing._
 import au.id.tmm.senatedb.core.model.{PartySignificance, SenateElection}
@@ -152,7 +152,7 @@ class TallyTableSpec extends ImprovedFlatSpec {
   }
 
   "a per group table" should "look as expected" in {
-    val ballotMaker = BallotMaker(Candidates.ACT)
+    val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
     import ballotMaker.group
 
@@ -188,13 +188,13 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   "a per division table" should "look as expected" in {
     val primaryCountTally = Tally1[Division](
-      Divisions.ACT.CANBERRA -> 5d,
-      Divisions.NT.LINGIARI -> 2d
+      DivisionFixture.ACT.CANBERRA -> 5d,
+      DivisionFixture.NT.LINGIARI -> 2d
     )
 
     val denominatorTally = Tally1[Division](
-      Divisions.ACT.CANBERRA -> 10d,
-      Divisions.NT.LINGIARI -> 8d
+      DivisionFixture.ACT.CANBERRA -> 10d,
+      DivisionFixture.NT.LINGIARI -> 8d
     )
 
     val columns = Vector(
@@ -218,15 +218,15 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   "a per vote vote collection place table" should "look as expected" in {
     val absenteeVoteCollectionPoint =
-      VoteCollectionPoint.Absentee(SenateElection.`2016`, State.NT, Divisions.NT.SOLOMON, 1)
+      VoteCollectionPoint.Absentee(SenateElection.`2016`, State.NT, DivisionFixture.NT.SOLOMON, 1)
 
     val primaryCountTally = Tally1[VoteCollectionPoint](
-      PollingPlaces.ACT.BARTON -> 5d,
+      PollingPlaceFixture.ACT.BARTON -> 5d,
       absenteeVoteCollectionPoint -> 2d
     )
 
     val denominatorTally = Tally1[VoteCollectionPoint](
-      PollingPlaces.ACT.BARTON -> 10d,
+      PollingPlaceFixture.ACT.BARTON -> 10d,
       absenteeVoteCollectionPoint -> 8d
     )
 

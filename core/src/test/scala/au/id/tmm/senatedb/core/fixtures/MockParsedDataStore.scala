@@ -9,10 +9,10 @@ import au.id.tmm.utilities.geo.australia.State
 
 object MockParsedDataStore extends ParsedDataStore {
   override def groupsAndCandidatesFor(election: SenateElection): au.id.tmm.senatedb.core.model.GroupsAndCandidates =
-    GroupsAndCandidates.ACT.groupsAndCandidates
+    GroupAndCandidateFixture.ACT.groupsAndCandidates
 
   override def divisionsAndPollingPlacesFor(election: SenateElection): au.id.tmm.senatedb.core.model.DivisionsAndPollingPlaces =
-    DivisionsAndPollingPlaces.ACT.divisionsAndPollingPlaces
+    DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces
 
   override def countDataFor(election: SenateElection,
                             allGroupsAndCandidates: au.id.tmm.senatedb.core.model.GroupsAndCandidates,

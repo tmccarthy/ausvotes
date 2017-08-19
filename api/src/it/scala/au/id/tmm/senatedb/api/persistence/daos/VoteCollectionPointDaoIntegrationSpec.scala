@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
 import au.id.tmm.senatedb.api.integrationtest.PostgresService
-import au.id.tmm.senatedb.core.fixtures.PollingPlaces
+import au.id.tmm.senatedb.core.fixtures.PollingPlaceFixture
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint
@@ -12,7 +12,7 @@ import scala.concurrent.{Await, Future}
 
 class VoteCollectionPointDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
 
-  private val pollingPlaces = PollingPlaces.ACT.pollingPlaces ++ PollingPlaces.NT.pollingPlaces
+  private val pollingPlaces = PollingPlaceFixture.ACT.pollingPlaces ++ PollingPlaceFixture.NT.pollingPlaces
   private val divisions = pollingPlaces.map(_.division)
   private val specialVcps = divisions.flatMap { division =>
     Set(

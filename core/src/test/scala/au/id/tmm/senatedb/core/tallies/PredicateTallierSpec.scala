@@ -8,10 +8,10 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PredicateTallierSpec extends ImprovedFlatSpec with TestsBallotFacts {
 
-  private val countedBallot = Ballots.ACT.formalAtl
-  private val notCountedBallot = Ballots.ACT.formalBtl
+  private val countedBallot = BallotFixture.ACT.formalAtl
+  private val notCountedBallot = BallotFixture.ACT.formalBtl
 
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   import ballotMaker.group
 
@@ -44,13 +44,13 @@ class PredicateTallierSpec extends ImprovedFlatSpec with TestsBallotFacts {
   "the count per division" should "produce the right tally per division" in {
     val tally = sut.groupedBy(BallotGrouping.Division).tally(testBallotsWithFacts)
 
-    assert(tally === Tally1(Divisions.ACT.CANBERRA -> 1d))
+    assert(tally === Tally1(DivisionFixture.ACT.CANBERRA -> 1d))
   }
 
   "the count per polling place" should "produce the right tally per polling place" in {
     val tally = sut.groupedBy(BallotGrouping.VoteCollectionPoint).tally(testBallotsWithFacts)
 
-    assert(tally === Tally1(PollingPlaces.ACT.BARTON -> 1d))
+    assert(tally === Tally1(PollingPlaceFixture.ACT.BARTON -> 1d))
   }
 
   "the count per first preferenced group" should "produce the right tally per state per group" in {

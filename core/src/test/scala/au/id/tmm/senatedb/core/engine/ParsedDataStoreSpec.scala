@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.engine
 
-import au.id.tmm.senatedb.core.fixtures.{GroupsAndCandidates, MockAecResourceStore}
+import au.id.tmm.senatedb.core.fixtures.{GroupAndCandidateFixture, MockAecResourceStore}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.rawdata.RawDataStore
 import au.id.tmm.utilities.geo.australia.State
@@ -41,7 +41,7 @@ class ParsedDataStoreSpec extends ImprovedFlatSpec {
     for {
       ballots <- resource.managed(sut.ballotsFor(
         election = SenateElection.`2016`,
-        groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates,
+        groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates,
         divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(SenateElection.`2016`),
         state = State.ACT)
       )
@@ -51,7 +51,7 @@ class ParsedDataStoreSpec extends ImprovedFlatSpec {
   }
 
   it should "retrieve the count data" in {
-    val countData = sut.countDataFor(SenateElection.`2016`, GroupsAndCandidates.ACT.groupsAndCandidates, State.ACT)
+    val countData = sut.countDataFor(SenateElection.`2016`, GroupAndCandidateFixture.ACT.groupsAndCandidates, State.ACT)
 
     assert(countData.distributionSteps.size === 28)
 

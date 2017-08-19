@@ -14,8 +14,8 @@ trait TestsBallotFacts {
 
   protected val election: SenateElection.`2016`.type = SenateElection.`2016`
   protected val state = State.ACT
-  protected val groupsAndCandidates: GroupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
-  protected val divisionsAndPollingPlaces: DivisionsAndPollingPlaces = DivisionsAndPollingPlaces.ACT.divisionsAndPollingPlaces
+  protected val groupsAndCandidates: GroupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates
+  protected val divisionsAndPollingPlaces: DivisionsAndPollingPlaces = DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces
   protected val countData: CountData = MockParsedDataStore.countDataFor(election, groupsAndCandidates, state)
   protected val howToVoteCards: Set[HowToVoteCard] = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
   protected val computationInputData = ComputationInputData(

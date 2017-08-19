@@ -1,12 +1,12 @@
 package au.id.tmm.senatedb.core.model.parsing
 
-import au.id.tmm.senatedb.core.fixtures.{BallotMaker, Candidates, GroupsAndCandidates}
+import au.id.tmm.senatedb.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CandidatePositionSpec extends ImprovedFlatSpec {
 
-  private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   "the ballot position to candidate position map" should "be constructed correctly" in {
     import ballotMaker.candidatePosition

@@ -5,7 +5,7 @@ import au.id.tmm.senatedb.core.model.parsing.Ballot
 import au.id.tmm.senatedb.core.model.parsing.Ballot._
 import au.id.tmm.utilities.geo.australia.State
 
-object Ballots {
+object BallotFixture {
 
   trait BallotsFixture {
     def election: SenateElection = SenateElection.`2016`
@@ -17,13 +17,13 @@ object Ballots {
 
   object ACT extends BallotsFixture {
     override val state = State.ACT
-    override val ballotMaker = BallotMaker(Candidates.ACT)
+    override val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
     import ballotMaker._
 
     private def makeBallot(atlPrefs: AtlPreferences,
                            btlPrefs: BtlPreferences
-                          ) = ballotMaker.makeBallot(atlPrefs, btlPrefs, Divisions.ACT.CANBERRA, PollingPlaces.ACT.BARTON)
+                          ) = ballotMaker.makeBallot(atlPrefs, btlPrefs, DivisionFixture.ACT.CANBERRA, PollingPlaceFixture.ACT.BARTON)
 
     val formalAtlAndBtl: Ballot = {
       val atlPrefs = orderedAtlPreferences("A", "B", "C", "D", "E", "F")
@@ -181,14 +181,14 @@ object Ballots {
 
   object NT extends BallotsFixture {
     override val state = State.NT
-    override val ballotMaker = BallotMaker(Candidates.NT)
+    override val ballotMaker = BallotMaker(CandidateFixture.NT)
 
     val firstPreferenceUngroupedIndy = {
       ballotMaker.makeBallot(
         atlPreferences = Map.empty,
         btlPreferences = ballotMaker.orderedBtlPreferences("UG0", "UG1", "A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1"),
-        division = Divisions.NT.LINGIARI,
-        pollingPlace = PollingPlaces.NT.ALICE_SPRINGS
+        division = DivisionFixture.NT.LINGIARI,
+        pollingPlace = PollingPlaceFixture.NT.ALICE_SPRINGS
       )
     }
   }

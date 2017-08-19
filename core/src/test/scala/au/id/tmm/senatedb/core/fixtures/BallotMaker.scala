@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.fixtures
 
-import au.id.tmm.senatedb.core.fixtures.Candidates.CandidateFixture
+import au.id.tmm.senatedb.core.fixtures.CandidateFixture.CandidateFixture
 import au.id.tmm.senatedb.core.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
 import au.id.tmm.senatedb.core.model.parsing._
 
@@ -8,8 +8,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def makeBallot(atlPreferences: AtlPreferences = Map.empty,
                  btlPreferences: BtlPreferences = Map.empty,
-                 division: Division = Divisions.ACT.CANBERRA,
-                 pollingPlace: PollingPlace = PollingPlaces.ACT.BARTON,
+                 division: Division = DivisionFixture.ACT.CANBERRA,
+                 pollingPlace: PollingPlace = PollingPlaceFixture.ACT.BARTON,
                  batch: Int = 1,
                  paper: Int = 1
             ) = {

@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
 import au.id.tmm.senatedb.api.integrationtest.PostgresService
-import au.id.tmm.senatedb.core.fixtures.Divisions
+import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -19,7 +19,7 @@ class DivisionDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
   }
 
   it should "store divisions for an election" in {
-    val divisionsToWrite = Divisions.ACT.divisions ++ Divisions.NT.divisions
+    val divisionsToWrite = DivisionFixture.ACT.divisions ++ DivisionFixture.NT.divisions
 
     Await.result(sut.write(divisionsToWrite), Duration.Inf)
 

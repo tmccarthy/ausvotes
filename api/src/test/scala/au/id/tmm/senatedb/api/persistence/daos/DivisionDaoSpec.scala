@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import au.id.tmm.senatedb.core.fixtures.Divisions
+import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.scalamock.scalatest.MockFactory
 
@@ -11,7 +11,7 @@ class DivisionDaoSpec extends ImprovedFlatSpec with MockFactory {
   "the division dao" should "generate a unique id for a division" in {
     val divisionDao = new ConcreteDivisionDao()
 
-    val actualId = divisionDao.idOf(Divisions.ACT.CANBERRA)
+    val actualId = divisionDao.idOf(DivisionFixture.ACT.CANBERRA)
     val expectedId = 420229601
 
     assert(expectedId === actualId)

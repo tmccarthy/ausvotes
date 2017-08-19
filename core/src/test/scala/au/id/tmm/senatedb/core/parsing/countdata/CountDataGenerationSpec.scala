@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.parsing.countdata
 
-import au.id.tmm.senatedb.core.fixtures.{Ballots, TestsCountData}
+import au.id.tmm.senatedb.core.fixtures.{BallotFixture, TestsCountData}
 import au.id.tmm.senatedb.core.model.CountData
 import au.id.tmm.senatedb.core.model.CountStep._
 import au.id.tmm.utilities.collection.OrderedSet
@@ -8,7 +8,7 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CountDataGenerationSpec extends ImprovedFlatSpec with TestsCountData {
 
-  private val ballotMaker = Ballots.ACT.ballotMaker
+  private val ballotMaker = BallotFixture.ACT.ballotMaker
   import ballotMaker.candidatePosition
 
   private lazy val actualCountData = countData

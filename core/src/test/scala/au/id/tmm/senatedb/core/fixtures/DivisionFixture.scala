@@ -4,7 +4,7 @@ import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.utilities.geo.australia.State
 
-object Divisions {
+object DivisionFixture {
 
   trait DivisionFixture {
     val election: SenateElection = SenateElection.`2016`

@@ -6,9 +6,9 @@ import au.id.tmm.senatedb.core.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class BallotFactsComputationSpec extends ImprovedFlatSpec with TestsBallotFacts {
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
-  private val testBallot = Ballots.ACT.formalAtl
+  private val testBallot = BallotFixture.ACT.formalAtl
 
   "ballot facts computation" should "correctly match the original ballot to its facts" in {
     val ballotWithFacts = factsFor(testBallot)

@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 class ReportEngineSpec extends ImprovedFlatSpec {
 
   "the report engine" should "construct a report as expected" in {
-    val ballotMaker = BallotMaker(Candidates.ACT)
+    val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
     import ballotMaker.group
 
@@ -26,12 +26,12 @@ class ReportEngineSpec extends ImprovedFlatSpec {
       countFormalBallots.overall() -> Tally0(42),
       countFormalBallots.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(RegisteredParty("Oranges") -> 22, RegisteredParty("Apples") -> 20),
       countFormalBallots.groupedBy(BallotGrouping.State) -> Tally1(State.ACT -> 42d),
-      countFormalBallots.groupedBy(BallotGrouping.Division) -> Tally1(Divisions.ACT.CANBERRA -> 42d),
+      countFormalBallots.groupedBy(BallotGrouping.Division) -> Tally1(DivisionFixture.ACT.CANBERRA -> 42d),
       countFormalBallots.groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup) -> Tally2(State.ACT -> Tally1(group("C") -> 23, group("I") -> 19)),
       countExhaustedVotes.overall() -> Tally0(32),
       countExhaustedVotes.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(RegisteredParty("Oranges") -> 17, RegisteredParty("Apples") -> 15),
       countExhaustedVotes.groupedBy(BallotGrouping.State) -> Tally1(State.ACT -> 32d),
-      countExhaustedVotes.groupedBy(BallotGrouping.Division) -> Tally1(Divisions.ACT.CANBERRA -> 32d),
+      countExhaustedVotes.groupedBy(BallotGrouping.Division) -> Tally1(DivisionFixture.ACT.CANBERRA -> 32d),
       countExhaustedVotes.groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup) -> Tally2(State.ACT -> Tally1(group("C") -> 23, group("I") -> 9))
     ))
 

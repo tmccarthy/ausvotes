@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.parsing
 
-import au.id.tmm.senatedb.core.fixtures.{Divisions, PollingPlaces}
+import au.id.tmm.senatedb.core.fixtures.{DivisionFixture, PollingPlaceFixture}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace
@@ -27,35 +27,35 @@ class DivisionAndPollingPlaceGenerationSpec extends ImprovedFlatSpec {
     val actualDivision = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
       .division
 
-    assert(Divisions.ACT.CANBERRA === actualDivision)
+    assert(DivisionFixture.ACT.CANBERRA === actualDivision)
   }
 
   it should "generate a polling place with a physical location" in {
     val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
       .pollingPlace
 
-    assert(PollingPlaces.ACT.BARTON === actual)
+    assert(PollingPlaceFixture.ACT.BARTON === actual)
   }
 
   it should "generate a polling place with an address but no lat/long" in {
     val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocationNoLatLong)
       .pollingPlace
 
-    assert(PollingPlaces.ACT.MOBILE_TEAM_1 === actual)
+    assert(PollingPlaceFixture.ACT.MOBILE_TEAM_1 === actual)
   }
 
   it should "generate a polling place with no address lines but a lat/long" in {
     val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithNoAddressLinesAndLatLong)
       .pollingPlace
 
-    assert(PollingPlaces.ACT.WODEN_PRE_POLL === actual)
+    assert(PollingPlaceFixture.ACT.WODEN_PRE_POLL === actual)
   }
 
   it should "generate a polling place with multiple locations" in {
     val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations)
       .pollingPlace
 
-    assert(PollingPlaces.ACT.HOSPITAL_TEAM_1 === actual)
+    assert(PollingPlaceFixture.ACT.HOSPITAL_TEAM_1 === actual)
   }
 
   it should "flyweight divisions" in {
@@ -93,7 +93,7 @@ class DivisionAndPollingPlaceGenerationSpec extends ImprovedFlatSpec {
     val actualPollingPlaces = DivisionAndPollingPlaceGeneration.fromPollingPlaceRows(SenateElection.`2016`,
       Vector(pollingPlaceWithLocation, pollingPlaceWithMultlipleLocations)).pollingPlaces
 
-    val expectedPollingPlaces = Set(PollingPlaces.ACT.BARTON, PollingPlaces.ACT.HOSPITAL_TEAM_1)
+    val expectedPollingPlaces = Set(PollingPlaceFixture.ACT.BARTON, PollingPlaceFixture.ACT.HOSPITAL_TEAM_1)
 
     assert(expectedPollingPlaces === actualPollingPlaces)
   }
