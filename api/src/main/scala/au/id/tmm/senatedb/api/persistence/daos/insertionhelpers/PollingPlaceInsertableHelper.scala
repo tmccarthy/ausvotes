@@ -1,10 +1,9 @@
 package au.id.tmm.senatedb.api.persistence.daos.insertionhelpers
 
-import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, PollingPlaceTypeEnumConverter, StateEnumConverter}
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
-import au.id.tmm.senatedb.core.model.parsing.PollingPlace.PollingPlaceType
 import au.id.tmm.utilities.geo.australia.Address
 import au.id.tmm.utilities.hashing.Pairing
 
@@ -48,25 +47,14 @@ private[daos] object PollingPlaceInsertableHelper {
 
     val mainFields: Insertable = Seq(
       'id -> idOf(pollingPlace),
-      'election -> ElectionDao.idOf(pollingPlace.election).get,
-      'state -> pollingPlace.state.abbreviation,
+      'election -> ElectionEnumConverter(pollingPlace.election),
+      'state -> StateEnumConverter(pollingPlace.state),
       'division -> DivisionInsertableHelper.idOf(pollingPlace.division),
       'aec_id -> pollingPlace.aecId,
-      'polling_place_type -> pollingPlaceTypeToString(pollingPlace.pollingPlaceType),
+      'polling_place_type -> PollingPlaceTypeEnumConverter(pollingPlace.pollingPlaceType),
       'name -> pollingPlace.name,
     )
 
     mainFields ++ locationFields
   }
-
-  def pollingPlaceTypeToString(pollingPlaceType: PollingPlaceType): String = {
-    pollingPlaceType match {
-      case PollingPlaceType.PollingPlace => "polling_place"
-      case PollingPlaceType.SpecialHospitalTeam => "special_hospital_team"
-      case PollingPlaceType.RemoteMobileTeam => "remote_mobile_team"
-      case PollingPlaceType.OtherMobileTeam => "other_mobile_team"
-      case PollingPlaceType.PrePollVotingCentre => "pre_poll_voting_centre"
-    }
-  }
-
 }

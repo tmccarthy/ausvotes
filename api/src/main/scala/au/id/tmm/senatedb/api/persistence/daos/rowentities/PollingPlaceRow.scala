@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
-import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, PollingPlaceTypeEnumConverter, StateEnumConverter}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace
@@ -75,28 +75,18 @@ object PollingPlaceRow extends SQLSyntaxSupport[PollingPlaceRow] {
            )(rs: WrappedResultSet): PollingPlaceRow = {
     PollingPlaceRow(
       id = rs.long(p.id),
-      election = ElectionDao.electionWithId(rs.string(p.election)).get,
-      state = State.fromAbbreviation(rs.string(p.state)).get,
+      election = ElectionEnumConverter(rs.string(p.election)),
+      state = StateEnumConverter(rs.string(p.state)),
       division = DivisionRow(d)(rs),
       name = rs.string(p.name),
       aecId = rs.int(p.aecId),
-      pollingPlaceType = parsePollingPlaceType(rs.string(p.pollingPlaceType)),
+      pollingPlaceType = PollingPlaceTypeEnumConverter(rs.string(p.pollingPlaceType)),
       multipleLocations = rs.boolean(p.multipleLocations),
       premisesName = rs.stringOpt(p.premisesName),
       address = AddressRow.opt(postcodeFlyweight, a)(rs),
       latitude = rs.doubleOpt(p.latitude),
       longitude = rs.doubleOpt(p.longitude),
     )
-  }
-
-  private def parsePollingPlaceType(asString: String): PollingPlaceType = {
-    asString match {
-      case "polling_place" => PollingPlaceType.PollingPlace
-      case "special_hospital_team" => PollingPlaceType.SpecialHospitalTeam
-      case "remote_mobile_team" => PollingPlaceType.RemoteMobileTeam
-      case "other_mobile_team" => PollingPlaceType.OtherMobileTeam
-      case "pre_poll_voting_centre" => PollingPlaceType.PrePollVotingCentre
-    }
   }
 
   def opt(postcodeFlyweight: PostcodeFlyweight,

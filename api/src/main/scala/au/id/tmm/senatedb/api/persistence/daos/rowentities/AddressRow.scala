@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.StateEnumConverter
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import scalikejdbc._
@@ -27,7 +28,7 @@ private[daos] object AddressRow extends SQLSyntaxSupport[AddressRow] {
       lines = rs.array(a.lines).getArray.asInstanceOf[Array[String]].toVector,
       suburb = rs.string(a.suburb),
       postcode = postcodeFlyweight(rs.string(a.postcode)),
-      state = State.fromAbbreviation(rs.string(a.state)).get,
+      state = StateEnumConverter(rs.string(a.state)),
     )
   }
 

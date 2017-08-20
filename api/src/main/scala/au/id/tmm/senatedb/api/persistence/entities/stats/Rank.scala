@@ -8,6 +8,7 @@ final case class Rank(ordinal: Int, totalCount: Int)
 object Rank {
 
   def ranksFrom[A](values: Map[A, Double]): Map[A, Rank] = {
+    // TODO Should handle the case where two values are equal
     values
       .toStream
       .sortBy(_._2)

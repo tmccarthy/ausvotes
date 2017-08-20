@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
-import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, StateEnumConverter}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.utilities.geo.australia.State
@@ -24,9 +24,9 @@ private[daos] object DivisionRow extends SQLSyntaxSupport[DivisionRow] {
   def apply(d: ResultName[DivisionRow])(rs: WrappedResultSet): DivisionRow = {
     DivisionRow(
       id = rs.long(d.id),
-      election = ElectionDao.electionWithId(rs.string(d.election)).get,
+      election = ElectionEnumConverter(rs.string(d.election)),
       aecId = rs.int(d.aecId),
-      state = State.fromAbbreviation(rs.string(d.state)).get,
+      state = StateEnumConverter(rs.string(d.state)),
       name = rs.string(d.name),
     )
   }

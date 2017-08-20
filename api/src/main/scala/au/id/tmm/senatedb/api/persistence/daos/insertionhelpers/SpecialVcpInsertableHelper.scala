@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos.insertionhelpers
 
-import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, VcpTypeEnumConverter}
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.VoteCollectionPointRow.VcpType
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint._
@@ -30,10 +30,10 @@ private[daos] object SpecialVcpInsertableHelper {
   def toInsertable(specialVcp: SpecialVoteCollectionPoint): Insertable = {
     Seq(
       'id -> idOf(specialVcp),
-      'election -> ElectionDao.idOf(specialVcp.election).get,
+      'election -> ElectionEnumConverter(specialVcp.election),
       'state -> specialVcp.state.abbreviation,
       'division -> DivisionInsertableHelper.idOf(specialVcp.division),
-      'vote_collection_point_type -> VcpType.asString(VcpType.of(specialVcp)),
+      'vote_collection_point_type -> VcpTypeEnumConverter(VcpType.of(specialVcp)),
       'name -> specialVcp.name,
       'number -> specialVcp.number,
     )

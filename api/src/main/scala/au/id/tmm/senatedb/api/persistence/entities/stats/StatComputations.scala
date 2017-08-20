@@ -20,8 +20,7 @@ private[stats] object StatComputations {
       .map { case (election, totalFormalBallotsInElection) =>
         Stat(
           statClass,
-          JurisdictionLevel.Nation
-        )(
+          JurisdictionLevel.Nation,
           election,
           totalFormalBallotsInElection.value,
           Map(),
@@ -52,8 +51,7 @@ private[stats] object StatComputations {
           .map { case (state, tallyForThisState) =>
             Stat(
               statClass,
-              JurisdictionLevel.State
-            )(
+              JurisdictionLevel.State,
               state,
               tallyForThisState,
               Map(JurisdictionLevel.Nation -> rankNationally(state)),
@@ -103,8 +101,7 @@ private[stats] object StatComputations {
           .map { case (state, division, numFormalBallots) =>
             Stat(
               statClass,
-              JurisdictionLevel.Division
-            )(
+              JurisdictionLevel.Division,
               division,
               numFormalBallots,
               Map(
@@ -190,8 +187,7 @@ private[stats] object StatComputations {
           .map { case (state, division, vcp, amount) =>
             Stat(
               statClass,
-              JurisdictionLevel.VoteCollectionPoint
-            )(
+              JurisdictionLevel.VoteCollectionPoint,
               vcp,
               amount,
               Map(

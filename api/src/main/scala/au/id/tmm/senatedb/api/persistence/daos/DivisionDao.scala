@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.ElectionEnumConverter
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.DivisionInsertableHelper
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.DivisionRow
 import au.id.tmm.senatedb.core.model.SenateElection
@@ -36,12 +37,10 @@ class ConcreteDivisionDao @Inject() ()
 
   override def allAtElection(election: SenateElection): Future[Set[Division]] = Future {
     DB.localTx { implicit session =>
-      val electionId = ElectionDao.idOf(election)
-
       val d = DivisionRow.syntax
 
       // TODO needs native toSet
-      withSQL(select.from(DivisionRow as d).where.eq(d.election, electionId))
+      withSQL(select.from(DivisionRow as d).where.eq(d.election, ElectionEnumConverter(election)))
         .map(DivisionRow(d))
         .list()
         .apply()
@@ -53,11 +52,9 @@ class ConcreteDivisionDao @Inject() ()
 
   override def hasAnyDivisionsFor(election: SenateElection): Future[Boolean] = Future {
     DB.localTx { implicit session =>
-      val electionId = ElectionDao.idOf(election)
-
       val d = DivisionRow.syntax
 
-      withSQL(select.from(DivisionRow as d).where.eq(d.election, electionId).limit(1))
+      withSQL(select.from(DivisionRow as d).where.eq(d.election, ElectionEnumConverter(election)).limit(1))
         .map(DivisionRow(d))
         .first()
         .apply()

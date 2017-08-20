@@ -21,7 +21,8 @@ class StatRowSpec extends ImprovedFlatSpec {
         state = State.SA,
         name = "Mayo",
       )),
-      vcp = None,
+      pollingPlace = None,
+      specialVcp = None,
       amount = 42d,
       perCapita = Some(42d),
     )
@@ -31,7 +32,6 @@ class StatRowSpec extends ImprovedFlatSpec {
     val expectedStat = Stat(
       statClass = StatClass.FormalBallots,
       jurisdictionLevel = JurisdictionLevel.Division,
-    )(
       jurisdiction = Division(
         election = SenateElection.`2016`,
         state = State.SA,

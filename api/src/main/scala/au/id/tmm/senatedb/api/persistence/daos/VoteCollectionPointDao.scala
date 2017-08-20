@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.ElectionEnumConverter
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.{DivisionInsertableHelper, PollingPlaceInsertableHelper, SpecialVcpInsertableHelper}
 import au.id.tmm.senatedb.api.persistence.daos.rowentities._
@@ -155,7 +156,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
           .where
           .eq(p.division, DivisionInsertableHelper.idOf(division))
           .and
-          .eq(p.election, ElectionDao.idOf(division.election).get)
+          .eq(p.election, ElectionEnumConverter(division.election))
       }
         .map(PollingPlaceRow(postcodeFlyweight, p, d, a))
         .traversable()
@@ -176,7 +177,7 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
           .where
           .eq(v.division, DivisionInsertableHelper.idOf(division))
           .and
-          .eq(v.election, ElectionDao.idOf(division.election).get)
+          .eq(v.election, ElectionEnumConverter(division.election))
       }
         .map(SpecialVcpRow(v, d))
         .traversable()

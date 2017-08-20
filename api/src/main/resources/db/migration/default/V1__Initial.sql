@@ -99,9 +99,9 @@ CREATE TABLE stat (
 
   election VARCHAR(5) REFERENCES senate_election(id),
   state VARCHAR(3) REFERENCES state(abbreviation),
-  division INTEGER REFERENCES division(id),
-  special_vcp INTEGER REFERENCES special_vote_collection_point(id),
-  polling_place INTEGER REFERENCES polling_place(id),
+  division BIGINT REFERENCES division(id),
+  special_vcp BIGINT REFERENCES special_vote_collection_point(id),
+  polling_place BIGINT REFERENCES polling_place(id),
 
   amount DOUBLE PRECISION,
   per_capita DOUBLE PRECISION

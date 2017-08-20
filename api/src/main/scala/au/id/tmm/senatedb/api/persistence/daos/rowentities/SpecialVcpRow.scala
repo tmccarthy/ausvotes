@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
-import au.id.tmm.senatedb.api.persistence.daos.ElectionDao
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, StateEnumConverter, VcpTypeEnumConverter}
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.VoteCollectionPointRow.VcpType
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint
@@ -42,10 +42,10 @@ object SpecialVcpRow extends SQLSyntaxSupport[SpecialVcpRow] {
            )(rs: WrappedResultSet): SpecialVcpRow = {
     SpecialVcpRow(
       id = rs.long(v.id),
-      election = ElectionDao.electionWithId(rs.string(v.election)).get,
-      state = State.fromAbbreviation(rs.string(v.state)).get,
+      election = ElectionEnumConverter(rs.string(v.election)),
+      state = StateEnumConverter(rs.string(v.state)),
       division = DivisionRow(d)(rs),
-      voteCollectionPointType = VcpType.parse(rs.string(v.voteCollectionPointType)),
+      voteCollectionPointType = VcpTypeEnumConverter(rs.string(v.voteCollectionPointType)),
       name = rs.string(v.name),
       number = rs.int(v.number),
     )
