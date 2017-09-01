@@ -2,8 +2,8 @@ package au.id.tmm.senatedb.api.persistence.population
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.pipe
-import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests, Responses, SelfMessages}
+import au.id.tmm.senatedb.core.model.SenateElection
 import com.google.inject.Inject
 
 import scala.collection.mutable
@@ -43,7 +43,7 @@ class DbPopulationActor @Inject() (dbPopulator: DbPopulator)(implicit ec: Execut
         if (electionCurrentlyPopulating.isEmpty) {
           electionCurrentlyPopulating = Some(election)
 
-          dbPopulator.populateAsNeeded(election)
+          dbPopulator.populateAsRequired(election)
             .map(_ => SelfMessages.ElectionPopulationFinished)
             .pipeTo(self)
         }

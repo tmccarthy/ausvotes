@@ -13,7 +13,7 @@ import scala.concurrent.{Await, Awaitable, Future}
 
 class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
 
-  implicit val askTimeout = Timeout(5.seconds)
+  private implicit val askTimeout: Timeout = Timeout(5.seconds)
 
   private val dbPopulator = mock[DbPopulator]
 
@@ -42,7 +42,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "acknowledge a request to populate" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork).repeat(0 to 1)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork).repeat(0 to 1)
 
     val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = false))
 
@@ -50,7 +50,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "reply when the population has finished if asked" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
     val response = await(sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true))
 
@@ -58,7 +58,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it can "respond that a currently populating election has not been populated" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
     val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.IsElectionPopulated(SenateElection.`2016`)
@@ -70,7 +70,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "indicate that it is currently populating when it is populating for an election" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
     val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.AreYouCurrentlyPopulating
@@ -82,7 +82,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "respond to subsequent requestors that have requested it populate the election currently being populated" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
     val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
@@ -95,7 +95,7 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
   }
 
   it should "respond to requests to populate an election other than the one that is currently being populated" in {
-    (dbPopulator.populateAsNeeded _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
+    (dbPopulator.populateAsRequired _).expects(SenateElection.`2016`).returns(futureWithSomeWork)
 
     val eventualResponse1 = sut ? Requests.PleasePopulateForElection(SenateElection.`2016`, replyWhenDone = true)
     val eventualResponse2 = sut ? Requests.PleasePopulateForElection(SenateElection.`2013`, replyWhenDone = false)

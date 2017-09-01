@@ -6,4 +6,4 @@ GET     /division/:electionId/:state/:divisionName       au.id.tmm.senatedb.api.
 
 # TODO make this restful
 GET     /population/:electionId/status         au.id.tmm.senatedb.api.controllers.DbPopulationController.checkPopulationStatusFor(electionId: String)
-GET     /population/:electionId/populate       au.id.tmm.senatedb.api.controllers.DbPopulationController.populateFor(electionId: String)
+POST    /population/:electionId/populate       au.id.tmm.senatedb.api.controllers.DbPopulationController.populateFor(electionId: String)

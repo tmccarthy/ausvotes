@@ -1,10 +1,10 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, StateEnumConverter}
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, StatClassEnumConverter, StateEnumConverter}
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers._
 import au.id.tmm.senatedb.api.persistence.daos.rowentities._
-import au.id.tmm.senatedb.api.persistence.entities.stats.Stat
+import au.id.tmm.senatedb.api.persistence.entities.stats.{Stat, StatClass}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.SpecialVoteCollectionPoint
@@ -27,6 +27,8 @@ trait StatDao {
   def statsFor(voteCollectionPoint: VoteCollectionPoint): Future[Set[Stat[VoteCollectionPoint]]]
 
   def writeStats(election: SenateElection, stats: Iterable[Stat[Any]]): Future[Unit]
+
+  def hasSomeStatsForEachOf(election: SenateElection, statClasses: Set[StatClass]): Future[Boolean]
 
 }
 
@@ -187,6 +189,30 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
       }
     }
       .toSeq
+  }
+
+  override def hasSomeStatsForEachOf(election: SenateElection, statClasses: Set[StatClass]): Future[Boolean] = Future {
+    DB.localTx { implicit session =>
+      val electionId = ElectionDao.idOf(election).get
+
+      val query = sql"""SELECT
+                       |  stat_class,
+                       |  COUNT(DISTINCT id) AS num_stats
+                       |FROM stat
+                       |WHERE
+                       |  election = ${electionId}
+                       |GROUP BY stat_class
+                     """.stripMargin
+
+      val numStatsPerClass = query
+        .map(rs => StatClassEnumConverter.apply(rs.string("stat_class")) -> rs.int("num_stats"))
+        .traversable()
+        .apply()
+        .toMap
+        .withDefaultValue(0)
+
+      statClasses.forall(numStatsPerClass(_) > 0)
+    }
   }
 
 }

@@ -1,117 +1,98 @@
 package au.id.tmm.senatedb.api.persistence.population
 
-import au.id.tmm.senatedb.api.persistence.population.DbPopulator.talliesFormalBallotsByVoteCollectionPoint
+import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, StatDao, VoteCollectionPointDao}
+import au.id.tmm.senatedb.api.persistence.entities.stats.StatClass
+import au.id.tmm.senatedb.api.persistence.population.DbPopulator.{formalBallotsByVcpTallier, requiredStatClasses}
 import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
-import au.id.tmm.senatedb.core.model.parsing.{Division, VoteCollectionPoint}
-import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
-import au.id.tmm.senatedb.core.tallies._
+import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.SpecialVoteCollectionPoint
+import au.id.tmm.senatedb.core.tallies.{BallotCounter, BallotGrouping, TallierBuilder}
 import au.id.tmm.utilities.geo.australia.State
-import com.google.inject.Inject
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-// TODO log what this is doing
-class DbPopulator @Inject()(entityPopulationChecker: EntityPopulationChecker,
-                            tallyPopulationChecker: TallyPopulationChecker,
+// TODO logging
+@Singleton
+class DbPopulator @Inject()(divisionDao: DivisionDao,
+                            voteCollectionPointDao: VoteCollectionPointDao,
+                            statDao: StatDao,
                             parsedDataStore: ParsedDataStore,
                             tallyEngine: TallyEngine,
-                            entityClassPopulator: EntityClassPopulator,
-                            tallyPopulator: TallyPopulator)
-                           (implicit ec: ExecutionContext) {
+                             )(implicit ec: ExecutionContext) {
 
-  def populateAsNeeded(election: SenateElection): Future[Unit] = {
-    for {
-      entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulator.requiredEntities)
-      talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulator.requiredTallies)
-      _ <- populate(election, entitiesToPopulate, talliesToPopulate)
-    } yield {}
+  def populateAsRequired(election: SenateElection): Future[Unit] = {
+    isPopulatedFor(election).flatMap { isPopulated =>
+      if (isPopulated) {
+        Future.successful(Unit)
+      } else {
+        populateFor(election)
+      }
+    }
   }
 
   def isPopulatedFor(election: SenateElection): Future[Boolean] = {
-    for {
-      entitiesToPopulate <- entityPopulationChecker.unpopulatedOf(election, DbPopulator.requiredEntities)
-      talliesToPopulate <- tallyPopulationChecker.unpopulatedOf(election, DbPopulator.requiredTallies)
-    } yield entitiesToPopulate.isEmpty && talliesToPopulate.isEmpty
+
+    val areDivisionsPopulated = divisionDao.hasAnyDivisionsFor(election)
+    val arePollingPlacesPopulated = voteCollectionPointDao.hasAnyPollingPlacesFor(election)
+    val areSpecialVcpsPopulated = voteCollectionPointDao.hasAnySpecialVoteCollectionPointsFor(election)
+
+    val areAllRequiredStatsAreRequired = statDao.hasSomeStatsForEachOf(election, requiredStatClasses)
+
+    Future.sequence(Vector(
+      areDivisionsPopulated,
+      arePollingPlacesPopulated,
+      areSpecialVcpsPopulated,
+      areAllRequiredStatsAreRequired,
+    ))
+      .map(_.reduce(_ && _))
   }
 
-  private def populate(election: SenateElection,
-                       entitiesForPopulation: Set[PopulatableEntityClass],
-                       talliersForPopulation: Set[Tallier]): Future[Unit] = {
+  def populateFor(election: SenateElection): Future[Unit] = {
 
-    if (entitiesForPopulation.isEmpty && talliersForPopulation.isEmpty) {
-      return Future.successful {}
-    }
+    val talliers = requiredStatClasses.flatMap(_.requiredTalliers) + formalBallotsByVcpTallier
 
-    // TODO parallelism
     val divisionsAndPollingPlaces = parsedDataStore.divisionsAndPollingPlacesFor(election)
     val groupsAndCandidates = parsedDataStore.groupsAndCandidatesFor(election)
 
-    val talliersRequiredToPopulateEntities = entitiesForPopulation.flatMap(talliersRequiredFor)
+    clearDbFor(election).flatMap { _ =>
+      tallyEngine.runFor(
+        parsedDataStore,
+        election,
+        State.ALL_STATES,
+        divisionsAndPollingPlaces,
+        groupsAndCandidates,
+        talliers,
+      )
+    }.map { tallyBundle =>
+      val specialVoteCollectionPoints = tallyBundle.tallyProducedBy(formalBallotsByVcpTallier).asMap
+        .keys
+        .collect {
+          case specialVcp: SpecialVoteCollectionPoint => specialVcp
+        }
 
-    val allTalliersToRegister = talliersForPopulation ++ talliersRequiredToPopulateEntities
+      val stats = requiredStatClasses
+        .toVector
+        .flatMap(_.statsFromTallyBundle(tallyBundle))
 
-    val eventualTallies = {
-      if (allTalliersToRegister.isEmpty) {
-        Future.successful(TallyBundle())
-      } else {
-        // TODO don't always want to run for all states
-        tallyEngine.runFor(parsedDataStore, election, State.ALL_STATES,
-          divisionsAndPollingPlaces, groupsAndCandidates, allTalliersToRegister)
-      }
-    }
-
-    for {
-      tallies <- eventualTallies
-      // TODO Do something more sophisticated than sequence
-      _ <- Future.sequence(entitiesForPopulation.map(populateEntityClass(_, tallies, divisionsAndPollingPlaces, groupsAndCandidates)))
-      _ <- Future.sequence(talliersForPopulation.map(tallier => populateFromTallier(tallier, tallies, election)))
-    } yield {}
-  }
-
-  private def talliersRequiredFor(populatableEntityClass: PopulatableEntityClass): Set[Tallier] = {
-    populatableEntityClass match {
-      case PopulatableEntityClass.OtherVoteCollectionPoints => Set(talliesFormalBallotsByVoteCollectionPoint)
-      case _ => Set()
-    }
-  }
-
-  private def populateEntityClass(entityClass: PopulatableEntityClass,
-                                  tallies: TallyBundle,
-                                  divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                  groupsAndCandidates: GroupsAndCandidates): Future[Unit] = {
-    entityClass match {
-      case PopulatableEntityClass.Divisions => entityClassPopulator.populateDivisions(divisionsAndPollingPlaces)
-      case PopulatableEntityClass.PollingPlaces => entityClassPopulator.populatePollingPlaces(divisionsAndPollingPlaces)
-      case PopulatableEntityClass.OtherVoteCollectionPoints => {
-        val formalBallotsByVoteCollectionPoint = tallies.tallyProducedBy(talliesFormalBallotsByVoteCollectionPoint)
-
-        entityClassPopulator.populateOtherVoteCollectionPoints(formalBallotsByVoteCollectionPoint)
-      }
+      for {
+        _ <- divisionDao.write(divisionsAndPollingPlaces.divisions)
+        _ <- voteCollectionPointDao.write(divisionsAndPollingPlaces.pollingPlaces)
+        _ <- voteCollectionPointDao.write(specialVoteCollectionPoints)
+        _ <- statDao.writeStats(election, stats)
+      } yield {}
     }
   }
 
-  private def populateFromTallier(tallier: Tallier, tallies: TallyBundle, election: SenateElection): Future[Unit] = {
-    ???
+  private def clearDbFor(election: SenateElection): Future[Unit] = {
+    Future.successful() // TODO
   }
 }
 
 object DbPopulator {
-  val requiredEntities: Set[PopulatableEntityClass] = Set(
-    PopulatableEntityClass.Divisions,
-    PopulatableEntityClass.PollingPlaces,
-    PopulatableEntityClass.OtherVoteCollectionPoints
-  )
+  private val requiredStatClasses = StatClass.ALL
 
-  val talliesFormalBallotsByDivision: Tallier1[Division] = TallierBuilder
-    .counting(BallotCounter.FormalBallots)
-    .groupedBy(BallotGrouping.Division)
-
-  val talliesFormalBallotsByVoteCollectionPoint: Tallier1[VoteCollectionPoint] = TallierBuilder
+  private val formalBallotsByVcpTallier = TallierBuilder
     .counting(BallotCounter.FormalBallots)
     .groupedBy(BallotGrouping.VoteCollectionPoint)
-
-  val requiredTallies: Set[Tallier] = Set(
-    talliesFormalBallotsByDivision,
-    talliesFormalBallotsByVoteCollectionPoint
-  )
 }

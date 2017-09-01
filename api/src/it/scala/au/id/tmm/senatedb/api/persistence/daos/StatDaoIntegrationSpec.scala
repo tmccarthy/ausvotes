@@ -77,6 +77,26 @@ class StatDaoIntegrationSpec extends ImprovedFlatSpec with PostgresService {
     assert(actualStatsForSpecialVcp === expectedStatsForSpecialVcp)
   }
 
+  it should "indicate if at least one stat exists for each of a set of stat classes" in {
+    insertTestData()
+
+    val statClasses: Set[StatClass] = Set(StatClass.FormalBallots)
+
+    val actual = Await.result(sut.hasSomeStatsForEachOf(SenateElection.`2016`, statClasses), Duration.Inf)
+
+    assert(actual === true)
+  }
+
+  it should "indicate if at least one of a set of stat classes has no stats" in {
+    insertTestData()
+
+    val statClasses: Set[StatClass] = Set(StatClass.FormalBallots, StatClass.DonkeyVotes)
+
+    val actual = Await.result(sut.hasSomeStatsForEachOf(SenateElection.`2016`, statClasses), Duration.Inf)
+
+    assert(actual === false)
+  }
+
 }
 
 object StatDaoIntegrationSpec {

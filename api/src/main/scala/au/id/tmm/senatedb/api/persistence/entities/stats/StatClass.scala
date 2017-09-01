@@ -12,6 +12,19 @@ sealed trait StatClass {
 
 object StatClass {
 
+  val ALL: Set[StatClass] = Set(
+    FormalBallots,
+    DonkeyVotes,
+    VotedAtl,
+    VotedAtlAndBtl,
+    VotedBtl,
+    ExhaustedBallots,
+    ExhaustedVotes,
+    UsedHowToVoteCard,
+    Voted1Atl,
+    UsedSavingsProvision,
+  )
+
   trait SimpleCountStatClass extends StatClass {
     def ballotCounter: BallotCounter
 

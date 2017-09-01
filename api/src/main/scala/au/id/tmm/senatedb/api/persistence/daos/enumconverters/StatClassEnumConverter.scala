@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableBiMap
 
 private[daos] object StatClassEnumConverter extends EnumConverter[StatClass] {
 
+  // TODO this should be generated
   private val lookup: ImmutableBiMap[StatClass, String] = ImmutableBiMap.builder[StatClass, String]()
     .put(StatClass.FormalBallots, "FormalBallots")
     .put(StatClass.DonkeyVotes, "DonkeyVotes")
