@@ -173,8 +173,22 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
     val rankInsertables: Seq[Insertable] = rankInsertablesFrom(idsPerStat)
 
     val insertStatement =
-      sql"""INSERT INTO rank(stat, jurisdiction_level, ordinal, ordinal_per_capita, total_count)
-           |  VALUES ({stat}, {jurisdiction_level}, {ordinal}, {ordinal_per_capita}, {total_count});
+      sql"""INSERT INTO rank(stat,
+           |    jurisdiction_level,
+           |    ordinal,
+           |    ordinal_is_shared,
+           |    ordinal_per_capita,
+           |    ordinal_per_capita_is_shared,
+           |    total_count
+           |  ) VALUES (
+           |    {stat},
+           |    {jurisdiction_level},
+           |    {ordinal},
+           |    {ordinal_is_shared},
+           |    {ordinal_per_capita},
+           |    {ordinal_per_capita_is_shared},
+           |    {total_count}
+           |  );
          """.stripMargin
 
     insertStatement.batchByName(rankInsertables: _*).apply()

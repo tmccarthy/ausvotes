@@ -2,8 +2,8 @@ package au.id.tmm.senatedb.api.persistence.daos.insertionhelpers
 
 import au.id.tmm.senatedb.api.persistence.daos.enumconverters.JurisdictionLevelEnumConverter
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.InsertableSupport.Insertable
-import au.id.tmm.senatedb.api.persistence.entities.stats.Rank
 import au.id.tmm.senatedb.core.model.parsing.JurisdictionLevel
+import au.id.tmm.utilities.collection.Rank
 
 private[daos] object RankInsertableHelper {
 
@@ -16,7 +16,9 @@ private[daos] object RankInsertableHelper {
       'stat -> statRowId,
       'jurisdiction_level -> JurisdictionLevelEnumConverter(jurisdictionLevel),
       'ordinal -> rank.ordinal,
+      'ordinal_is_shared -> rank.rankIsShared,
       'ordinal_per_capita -> rankPerCapita.map(_.ordinal).orNull,
+      'ordinal_per_capita_is_shared -> rankPerCapita.map(_.rankIsShared).orNull,
       'total_count -> rank.totalCount,
     )
   }

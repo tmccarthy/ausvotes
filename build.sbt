@@ -10,7 +10,7 @@ resolvers in ThisBuild +=
 
 val applicationName = "SenateDB"
 
-val tmmUtilsVersion = "0.2.2"
+val tmmUtilsVersion = "0.2.4"
 val akkaVersion = "2.5.1"
 
 def isSnapshot(version: String) = version endsWith "-SNAPSHOT"

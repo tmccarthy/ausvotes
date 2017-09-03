@@ -115,7 +115,10 @@ CREATE TABLE rank (
   jurisdiction_level VARCHAR,
 
   ordinal INTEGER,
+  ordinal_is_shared BOOLEAN,
+
   ordinal_per_capita INTEGER,
+  ordinal_per_capita_is_shared BOOLEAN,
 
   total_count INTEGER
 );

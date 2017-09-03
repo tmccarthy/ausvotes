@@ -1,8 +1,8 @@
 package au.id.tmm.senatedb.api.persistence.daos.rowentities
 
 import au.id.tmm.senatedb.api.persistence.daos.enumconverters.JurisdictionLevelEnumConverter
-import au.id.tmm.senatedb.api.persistence.entities.stats.Rank
 import au.id.tmm.senatedb.core.model.parsing.JurisdictionLevel
+import au.id.tmm.utilities.collection.Rank
 import scalikejdbc._
 
 private[daos] final case class RankRow(
@@ -10,13 +10,20 @@ private[daos] final case class RankRow(
                                         stat: Long,
                                         jurisdictionLevel: JurisdictionLevel[_],
                                         ordinal: Int,
+                                        ordinalIsShared: Boolean,
                                         ordinalPerCapita: Option[Int],
+                                        ordinalPerCapitaIsShared: Option[Boolean],
                                         totalCount: Int,
                                       ) {
 
-  def rank: Rank = Rank(ordinal, totalCount)
+  def rank: Rank = Rank(ordinal, totalCount, rankIsShared = ordinalIsShared)
 
-  def rankPerCapita: Option[Rank] = ordinalPerCapita.map(Rank(_, totalCount))
+  def rankPerCapita: Option[Rank] = {
+    for {
+      ordinalPerCapita <- this.ordinalPerCapita
+      ordinalPerCapitaIsShared <- this.ordinalPerCapitaIsShared
+    } yield Rank(ordinalPerCapita, totalCount, ordinalPerCapitaIsShared)
+  }
 
 }
 
@@ -32,7 +39,9 @@ private[daos] object RankRow extends SQLSyntaxSupport[RankRow] {
       stat = rs.long(r.stat),
       jurisdictionLevel = JurisdictionLevelEnumConverter(rs.string(r.jurisdictionLevel)),
       ordinal = rs.int(r.ordinal),
+      ordinalIsShared = rs.boolean(r.ordinalIsShared),
       ordinalPerCapita = rs.intOpt(r.ordinalPerCapita),
+      ordinalPerCapitaIsShared = rs.booleanOpt(r.ordinalPerCapitaIsShared),
       totalCount = rs.int(r.totalCount),
     )
   }

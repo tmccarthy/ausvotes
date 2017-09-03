@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.api.persistence.entities.stats
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.{Division, JurisdictionLevel, VoteCollectionPoint}
 import au.id.tmm.senatedb.core.tallies._
+import au.id.tmm.utilities.collection.Rank
 import au.id.tmm.utilities.geo.australia.State
 
 private[stats] object StatComputations {
@@ -43,8 +44,8 @@ private[stats] object StatComputations {
       .toStream
       .flatMap { case (election, talliesByStateForThisElection) =>
 
-        val rankNationally = Rank.ranksFromTallies(talliesByStateForThisElection.asMap)
-        val rankNationallyPerCapita = perCapitaTally.map(_(election)).map(_.asMap).map(Rank.ranksFromTallies)
+        val rankNationally = ranksFromTallies(talliesByStateForThisElection.asMap)
+        val rankNationallyPerCapita = perCapitaTally.map(_(election)).map(_.asMap).map(ranksFromTallies)
 
         talliesByStateForThisElection
           .asStream
@@ -69,7 +70,7 @@ private[stats] object StatComputations {
     def divisionRanksWithinState(tally: Tally2[State, Division]): Map[Division, Rank] = {
       tally.asMap
         .flatMap { case (state, talliesByDivisionForState) =>
-          Rank.ranksFromTallies(talliesByDivisionForState.asMap)
+          ranksFromTallies(talliesByDivisionForState.asMap)
         }
     }
 
@@ -79,7 +80,7 @@ private[stats] object StatComputations {
           talliesByDivisionForState.asMap
         }
 
-      Rank.ranksFromTallies(formalBallotsPerDivision)
+      ranksFromTallies(formalBallotsPerDivision)
     }
 
     val primaryTally = tallyBundle.tallyProducedBy(primaryTallier)
@@ -207,5 +208,13 @@ private[stats] object StatComputations {
           }
       }
 
+  }
+
+  private def ranksFromTallies[A](values: Map[A, Tally0]): Map[A, Rank] = {
+    val valuesWithResolvedTallies = values.map { case (key, tally) =>
+      key -> tally.value
+    }
+
+    Rank.ranksFrom(valuesWithResolvedTallies)
   }
 }

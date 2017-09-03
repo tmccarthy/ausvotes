@@ -2,11 +2,12 @@ package au.id.tmm.senatedb.api.persistence.daos
 
 import au.id.tmm.senatedb.api.integrationtest.PostgresService
 import au.id.tmm.senatedb.api.persistence.daos.StatDaoIntegrationSpec._
-import au.id.tmm.senatedb.api.persistence.entities.stats.{Rank, Stat, StatClass}
+import au.id.tmm.senatedb.api.persistence.entities.stats.{Stat, StatClass}
 import au.id.tmm.senatedb.core.fixtures.{DivisionFixture, PollingPlaceFixture}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.{Division, JurisdictionLevel, VoteCollectionPoint}
+import au.id.tmm.utilities.collection.Rank
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -124,11 +125,11 @@ object StatDaoIntegrationSpec {
     jurisdiction = State.ACT,
     amount = 42d,
     rankPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(0, 8),
+      JurisdictionLevel.Nation -> Rank(0, 8, rankIsShared = false),
     ),
     perCapita = Some(1d),
     rankPerCapitaPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(0, 8),
+      JurisdictionLevel.Nation -> Rank(0, 8, rankIsShared = false),
     ),
   )
 
@@ -138,13 +139,13 @@ object StatDaoIntegrationSpec {
     jurisdiction = DivisionFixture.ACT.CANBERRA,
     amount = 42d,
     rankPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(4, 100),
-      JurisdictionLevel.State -> Rank(2, 25),
+      JurisdictionLevel.Nation -> Rank(4, 100, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(2, 25, rankIsShared = false),
     ),
     perCapita = Some(1d),
     rankPerCapitaPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(0, 100),
-      JurisdictionLevel.State -> Rank(0, 25),
+      JurisdictionLevel.Nation -> Rank(0, 100, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(0, 25, rankIsShared = false),
     ),
   )
 
@@ -154,15 +155,15 @@ object StatDaoIntegrationSpec {
     jurisdiction = PollingPlaceFixture.ACT.BARTON,
     amount = 42d,
     rankPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(16, 300),
-      JurisdictionLevel.State -> Rank(8, 80),
-      JurisdictionLevel.Division -> Rank(2, 15),
+      JurisdictionLevel.Nation -> Rank(16, 300, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(8, 80, rankIsShared = false),
+      JurisdictionLevel.Division -> Rank(2, 15, rankIsShared = false),
     ),
     perCapita = Some(1d),
     rankPerCapitaPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(0, 300),
-      JurisdictionLevel.State -> Rank(0, 80),
-      JurisdictionLevel.Division -> Rank(0, 15),
+      JurisdictionLevel.Nation -> Rank(0, 300, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(0, 80, rankIsShared = false),
+      JurisdictionLevel.Division -> Rank(0, 15, rankIsShared = false),
     ),
   )
 
@@ -172,15 +173,15 @@ object StatDaoIntegrationSpec {
     jurisdiction = canberraPostalVcp1,
     amount = 42d,
     rankPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(17, 300),
-      JurisdictionLevel.State -> Rank(9, 80),
-      JurisdictionLevel.Division -> Rank(3, 15),
+      JurisdictionLevel.Nation -> Rank(17, 300, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(9, 80, rankIsShared = false),
+      JurisdictionLevel.Division -> Rank(3, 15, rankIsShared = false),
     ),
     perCapita = Some(1d),
     rankPerCapitaPerJurisdictionLevel = Map(
-      JurisdictionLevel.Nation -> Rank(0, 300),
-      JurisdictionLevel.State -> Rank(0, 80),
-      JurisdictionLevel.Division -> Rank(0, 15),
+      JurisdictionLevel.Nation -> Rank(0, 300, rankIsShared = false),
+      JurisdictionLevel.State -> Rank(0, 80, rankIsShared = false),
+      JurisdictionLevel.Division -> Rank(0, 15, rankIsShared = false),
     ),
   )
 
