@@ -1,10 +1,14 @@
 package au.id.tmm.senatedb.api.services.exceptions
 
-abstract class NoSuchEntityException(entityName: String, val badIdentifier: String)
-  extends Exception(s"There is no $entityName with identifier $badIdentifier")
+import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.utilities.geo.australia.State
 
-final case class NoSuchElectionException(electionId: String)
-  extends NoSuchEntityException(
-    entityName = "election",
-    badIdentifier = electionId
-  )
+sealed abstract class NoSuchEntityException
+  extends Exception()
+
+final case class NoSuchElectionException(electionId: String) extends NoSuchEntityException
+
+final case class NoSuchStateException(stateAbbreviation: String) extends NoSuchEntityException
+
+final case class NoSuchDivisionException(election: SenateElection, state: State, divisionName: String)
+  extends NoSuchEntityException

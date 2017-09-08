@@ -1,10 +1,11 @@
 package au.id.tmm.senatedb.api.persistence.daos
 
-import au.id.tmm.senatedb.api.persistence.daos.enumconverters.ElectionEnumConverter
+import au.id.tmm.senatedb.api.persistence.daos.enumconverters.{ElectionEnumConverter, StateEnumConverter}
 import au.id.tmm.senatedb.api.persistence.daos.insertionhelpers.DivisionInsertableHelper
 import au.id.tmm.senatedb.api.persistence.daos.rowentities.DivisionRow
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
+import au.id.tmm.utilities.geo.australia.State
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc.{DB, _}
 
@@ -19,6 +20,8 @@ trait DivisionDao {
   def hasAnyDivisionsFor(election: SenateElection): Future[Boolean]
 
   def idOf(division: Division): Long
+
+  def find(election: SenateElection, state: State, divisionName: String): Future[Option[Division]]
 }
 
 @Singleton
@@ -63,4 +66,27 @@ class ConcreteDivisionDao @Inject() ()
   }
 
   override def idOf(division: Division): Long = DivisionInsertableHelper.idOf(division)
+
+  override def find(election: SenateElection, state: State, divisionName: String): Future[Option[Division]] = Future {
+    DB.localTx { implicit session =>
+
+      val d = DivisionRow.syntax
+
+      withSQL(
+        select
+          .from(DivisionRow as d)
+          .where
+          .eq(d.election, ElectionEnumConverter(election))
+            .and
+          .eq(d.state, StateEnumConverter(state))
+            .and
+          .eq(sqls"LOWER(${d.name})", divisionName.toLowerCase)  // TODO LOWER should have its own SqlSyntax
+          .limit(1)
+      )
+        .map(DivisionRow(d))
+        .first()
+        .apply()
+        .map(_.asDivision)
+    }
+  }
 }
