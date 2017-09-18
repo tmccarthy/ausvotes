@@ -4,6 +4,7 @@ import java.nio.file.Paths
 import java.sql.DriverManager
 
 import au.id.tmm.senatedb.api.integrationtest.PostgresService.PostgresReadyChecker
+import com.spotify.docker.client.exceptions.DockerException
 import com.whisk.docker.{DockerCommandExecutor, DockerContainer, DockerContainerState, DockerReadyChecker}
 import org.flywaydb.core.Flyway
 import org.scalatest._
@@ -22,6 +23,14 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   val dbExposedPort = 45454
   val dbUsername = "test_user"
   val dbPassword = "test_password"
+
+  {
+    try {
+      client.ping()
+    } catch {
+      case e: DockerException => throw new IllegalStateException("Docker isn't available", e)
+    }
+  }
 
   private val imageName = "tmccarthy/senatedb-integration-test-db"
   private val testDbImageId = {

@@ -9,13 +9,13 @@ import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.{Division, JurisdictionLevel}
 import au.id.tmm.utilities.collection.Rank
+import au.id.tmm.utilities.concurrent.FutureUtils.await
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFactory {
   private val mockDbPopulationActor = TestProbe()
@@ -26,8 +26,6 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFact
   private val testElectionId = ElectionDao.idOf(testElection).get
 
   private val sut = new DivisionService(divisionDao, statDao, mockDbPopulationActor.ref)
-
-  private def await[A](future: Future[A]) = Await.result(future, Duration.Inf)
 
   "the division service" should "lookup a division by name" in {
     (divisionDao.find _)

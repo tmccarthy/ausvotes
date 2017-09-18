@@ -77,9 +77,9 @@ class ConcreteDivisionDao @Inject() ()
           .from(DivisionRow as d)
           .where
           .eq(d.election, ElectionEnumConverter(election))
-            .and
+          .and
           .eq(d.state, StateEnumConverter(state))
-            .and
+          .and
           .eq(sqls"LOWER(${d.name})", divisionName.toLowerCase)  // TODO LOWER should have its own SqlSyntax
           .limit(1)
       )

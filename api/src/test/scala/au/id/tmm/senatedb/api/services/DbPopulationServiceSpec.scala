@@ -6,11 +6,10 @@ import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests
 import au.id.tmm.senatedb.api.services.DbPopulationService.Exceptions
 import au.id.tmm.senatedb.api.services.exceptions.NoSuchElectionException
 import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.utilities.concurrent.FutureUtils.await
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Try}
 
 class DbPopulationServiceSpec extends ImprovedFlatSpec with MocksActor {
@@ -49,7 +48,7 @@ class DbPopulationServiceSpec extends ImprovedFlatSpec with MocksActor {
     mockDbPopulationActor.expectMsg(Requests.PleasePopulateForElection(testElection, replyWhenDone = false))
     mockDbPopulationActor.reply(Responses.OkIWillPopulateElection(testElection))
 
-    val response = await(request)
+    val response: Unit = await(request)
 
     assert(response === {})
   }
@@ -70,6 +69,4 @@ class DbPopulationServiceSpec extends ImprovedFlatSpec with MocksActor {
 
     assert(response === Failure(NoSuchElectionException("asdf")))
   }
-
-  private def await[A](future: Future[A]) = Await.result(future, Duration.Inf)
 }

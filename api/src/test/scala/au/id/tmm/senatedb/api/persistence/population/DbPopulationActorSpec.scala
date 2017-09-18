@@ -5,11 +5,12 @@ import akka.util.Timeout
 import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests, Responses}
 import au.id.tmm.senatedb.api.services.MocksActor
 import au.id.tmm.senatedb.core.model.SenateElection
+import au.id.tmm.utilities.concurrent.FutureUtils.await
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, DurationInt}
-import scala.concurrent.{Await, Awaitable, Future}
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
 
@@ -105,8 +106,6 @@ class DbPopulationActorSpec extends ImprovedFlatSpec with MocksActor {
 
     assert(response2 === Responses.AlreadyPopulatingAnotherElection(SenateElection.`2016`))
   }
-
-  private def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
 
   private def futureWithSomeWork: Future[Unit] = Future {
     Thread.sleep(200)

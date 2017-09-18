@@ -1,16 +1,19 @@
-import sbt.Keys._
+import sbt.Keys.{libraryDependencies, _}
 import sbt._
 
 scalaVersion in ThisBuild := "2.12.2"
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation")
 
-resolvers in ThisBuild +=
+resolvers in ThisBuild ++= Seq(
+  Resolver.jcenterRepo,
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
+)
+
 
 val applicationName = "SenateDB"
 
-val tmmUtilsVersion = "0.2.5"
+val tmmUtilsVersion = "0.2.6"
 val akkaVersion = "2.5.1"
 
 def isSnapshot(version: String) = version endsWith "-SNAPSHOT"
@@ -60,7 +63,15 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "2.5.1",
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.6.0",
     libraryDependencies += "org.postgresql"  %  "postgresql"                     % "9.4.1212",
-    libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7"
+    libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7",
+    libraryDependencies += "net.codingwell"  %% "scala-guice"                    % "4.1.0"
+  )
+  .settings(
+    libraryDependencies += "com.mohiva" %% "play-silhouette" % "5.0.0",
+    libraryDependencies += "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0",
+    libraryDependencies += "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0",
+    libraryDependencies += "com.mohiva" %% "play-silhouette-persistence" % "5.0.0",
+    libraryDependencies += "com.mohiva" %% "play-silhouette-testkit" % "5.0.0" % "test"
   )
   .settings(
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % "test,it",

@@ -1,3 +1,5 @@
+-- TODO null constraints
+
 CREATE TABLE senate_election (
   id TEXT PRIMARY KEY,
   name TEXT,
@@ -61,10 +63,10 @@ CREATE TABLE special_vote_collection_point (
   vote_collection_point_type VOTE_COLLECTION_POINT_TYPE,
   name VARCHAR,
 
-  number INTEGER
-);
+  number INTEGER,
 
-CREATE UNIQUE INDEX uk_special_vote_collection_point_number ON special_vote_collection_point(election, state, division, vote_collection_point_type, number);
+  CONSTRAINT uk_special_vote_collection_point_number UNIQUE(election, state, division, vote_collection_point_type, number)
+);
 
 CREATE TYPE POLLING_PLACE_TYPE AS ENUM ('polling_place', 'special_hospital_team', 'remote_mobile_team', 'other_mobile_team', 'pre_poll_voting_centre');
 
@@ -87,10 +89,10 @@ CREATE TABLE polling_place (
   address INTEGER REFERENCES address(id),
 
   latitude DOUBLE PRECISION,
-  longitude DOUBLE PRECISION
-);
+  longitude DOUBLE PRECISION,
 
-CREATE UNIQUE INDEX uk_polling_place_aec_id ON polling_place(election, aec_id);
+  CONSTRAINT uk_polling_place_aec_id UNIQUE(election, aec_id)
+);
 
 CREATE TABLE stat (
   id SERIAL PRIMARY KEY,
@@ -121,4 +123,35 @@ CREATE TABLE rank (
   ordinal_per_capita_is_shared BOOLEAN,
 
   total_count INTEGER
+);
+
+CREATE TABLE login_info (
+  id SERIAL PRIMARY KEY,
+
+  provider_id VARCHAR,
+  provider_key VARCHAR,
+
+  CONSTRAINT uk_provider_key UNIQUE(provider_id, provider_key)
+);
+
+CREATE TABLE password (
+  id SERIAL PRIMARY KEY,
+
+  login_info INTEGER REFERENCES login_info(id) ON DELETE CASCADE,
+
+  hasher VARCHAR(256),
+  password VARCHAR(256),
+  salt VARCHAR(256),
+
+  CONSTRAINT uk_password_login_info UNIQUE(login_info)
+);
+
+CREATE TABLE admin_user (
+  id SERIAL PRIMARY KEY,
+
+  username VARCHAR(256),
+  login_info INTEGER REFERENCES login_info(id) ON DELETE CASCADE,
+
+  CONSTRAINT uk_admin_username UNIQUE(username),
+  CONSTRAINT uk_admin_login_info UNIQUE(login_info)
 );
