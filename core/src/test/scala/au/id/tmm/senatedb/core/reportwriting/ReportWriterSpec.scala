@@ -2,10 +2,10 @@ package au.id.tmm.senatedb.core.reportwriting
 
 import java.nio.file.Files
 
-import au.id.tmm.senatedb.core.fixtures.Divisions
+import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.senatedb.core.reportwriting.table.{Column, TallyTable}
-import au.id.tmm.senatedb.core.tallies.{SimpleTally, Tally}
+import au.id.tmm.senatedb.core.tallies.{Tally0, Tally1}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
@@ -16,7 +16,7 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
     Given("a report with two tables")
 
     val table1 = {
-      val primaryCountTally = Tally(
+      val primaryCountTally = Tally1(
         NSW -> 4492197d,
         VIC -> 3500237d,
         QLD -> 2723166d,
@@ -27,7 +27,7 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
         NT -> 102027d
       )
 
-      val totalCount = SimpleTally(13838900d)
+      val totalCount = Tally0(13838900d)
 
       val columns = Vector(
         Column.StateNameColumn,
@@ -36,19 +36,19 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
         Column.FractionColumn("% of total")
       )
 
-      TallyTable[State](primaryCountTally, _ => totalCount.count, totalCount.count, totalCount.count, columns)
+      TallyTable[State](primaryCountTally, _ => totalCount.value, totalCount.value, totalCount.value, columns)
         .withTitle("Total formal ballots")
     }
 
     val table2 = {
-      val primaryCountTally = Tally[Division](
-        Divisions.ACT.CANBERRA -> 5d,
-        Divisions.NT.LINGIARI -> 2d
+      val primaryCountTally = Tally1[Division](
+        DivisionFixture.ACT.CANBERRA -> 5d,
+        DivisionFixture.NT.LINGIARI -> 2d
       )
 
-      val denominatorTally = Tally[Division](
-        Divisions.ACT.CANBERRA -> 10d,
-        Divisions.NT.LINGIARI -> 8d
+      val denominatorTally = Tally1[Division](
+        DivisionFixture.ACT.CANBERRA -> 10d,
+        DivisionFixture.NT.LINGIARI -> 8d
       )
 
       val columns = Vector(
@@ -58,7 +58,7 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
         Column.FractionColumn("% of total")
       )
 
-      TallyTable[Division](primaryCountTally, denominatorTally(_), 13, 26, columns)
+      TallyTable[Division](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
         .withTitle("Monkey votes by division")
     }
 

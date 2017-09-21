@@ -1,7 +1,7 @@
 package au.id.tmm.senatedb.core.model.parsing
 
 import au.id.tmm.senatedb.core.model.SenateElection
-import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Type.Type
+import au.id.tmm.senatedb.core.model.parsing.PollingPlace.PollingPlaceType
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, State}
 
@@ -14,19 +14,23 @@ sealed trait VoteCollectionPoint {
 
 object VoteCollectionPoint {
 
-  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  sealed trait SpecialVoteCollectionPoint extends VoteCollectionPoint {
+    def number: Int
+  }
+
+  final case class Absentee(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"ABSENTEE $number"
   }
 
-  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class Postal(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"POSTAL $number"
   }
 
-  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class PrePoll(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"PRE-POLL $number"
   }
 
-  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends VoteCollectionPoint {
+  final case class Provisional(election: SenateElection, state: State, division: Division, number: Int) extends SpecialVoteCollectionPoint {
     override val name = s"PROVISIONAL $number"
   }
 
@@ -38,24 +42,25 @@ object VoteCollectionPoint {
   }
 
 }
+
 final case class PollingPlace(election: SenateElection,
                               state: State,
                               division: Division,
                               aecId: Int,
-                              pollingPlaceType: Type,
+                              pollingPlaceType: PollingPlaceType,
                               name: String,
                               location: PollingPlace.Location) extends VoteCollectionPoint {
 }
 
 object PollingPlace {
-  object Type extends Enumeration {
-    type Type = Value
+  sealed trait PollingPlaceType
 
-    val POLLING_PLACE = Value(1)
-    val SPECIAL_HOSPITAL_TEAM = Value(2)
-    val REMOTE_MOBILE_TEAM = Value(3)
-    val OTHER_MOBILE_TEAM = Value(4)
-    val PRE_POLL_VOTING_CENTRE = Value(5)
+  object PollingPlaceType {
+    case object PollingPlace extends PollingPlaceType
+    case object SpecialHospitalTeam extends PollingPlaceType
+    case object RemoteMobileTeam extends PollingPlaceType
+    case object OtherMobileTeam extends PollingPlaceType
+    case object PrePollVotingCentre extends PollingPlaceType
   }
 
   sealed trait Location {

@@ -1,13 +1,13 @@
 package au.id.tmm.senatedb.core.parsing
 
-import au.id.tmm.senatedb.core.fixtures.{BallotMaker, Candidates, Groups}
+import au.id.tmm.senatedb.core.fixtures.{BallotMaker, CandidateFixture, GroupFixture}
 import au.id.tmm.senatedb.core.model.{HowToVoteCard, SenateElection}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class HowToVoteCardGenerationSpec extends ImprovedFlatSpec {
 
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   import ballotMaker.groupOrder
 
@@ -15,12 +15,12 @@ class HowToVoteCardGenerationSpec extends ImprovedFlatSpec {
     val expected = HowToVoteCard(SenateElection.`2016`, State.ACT, groupOrder("H").head,
       groupOrder("H", "B", "J", "G", "C", "E"))
 
-    val generatedHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, Groups.ACT.groups)
+    val generatedHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, GroupFixture.ACT.groups)
 
     assert(generatedHtvs contains expected)
   }
 
   it should "fail if asked for the 2013 election" in {
-    intercept[IllegalArgumentException](HowToVoteCardGeneration.from(SenateElection.`2013`, Groups.ACT.groups))
+    intercept[IllegalArgumentException](HowToVoteCardGeneration.from(SenateElection.`2013`, GroupFixture.ACT.groups))
   }
 }

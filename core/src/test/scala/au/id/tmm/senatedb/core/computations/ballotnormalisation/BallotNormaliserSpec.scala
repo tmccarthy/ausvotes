@@ -9,9 +9,9 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 // Section references in this spec refer to the Commonwealth Electoral Act 1918
 class BallotNormaliserSpec extends ImprovedFlatSpec {
 
-  private val ballots = Ballots.ACT
+  private val ballots = BallotFixture.ACT
 
-  private val candidates = Candidates.ACT.candidates
+  private val candidates = CandidateFixture.ACT.candidates
 
   private val sut = BallotNormaliser(SenateElection.`2016`, State.ACT, candidates)
 

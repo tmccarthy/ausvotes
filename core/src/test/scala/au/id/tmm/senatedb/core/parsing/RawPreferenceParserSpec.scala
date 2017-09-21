@@ -1,14 +1,14 @@
 package au.id.tmm.senatedb.core.parsing
 
-import au.id.tmm.senatedb.core.fixtures.{BallotMaker, Candidates, GroupsAndCandidates}
+import au.id.tmm.senatedb.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RawPreferenceParserSpec extends ImprovedFlatSpec {
 
-  private val sut = RawPreferenceParser(SenateElection.`2016`, State.ACT, GroupsAndCandidates.ACT.groupsAndCandidates)
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val sut = RawPreferenceParser(SenateElection.`2016`, State.ACT, GroupAndCandidateFixture.ACT.groupsAndCandidates)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   behaviour of "the raw preferences parser"
 

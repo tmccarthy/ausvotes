@@ -8,6 +8,10 @@ Australian Electoral Commission's website. This is essentially a slightly more a
 other project at [HypotheticalSenate](https://github.com/tmccarthy/HypotheticalSenate). The initial focus
 will be analysing the 2016 election.
 
+## Results
+
+Results and reports from version 0.4 of the tool are available at [https://tmccarthy.github.io/SenateDB/](https://tmccarthy.github.io/SenateDB/).
+
 ## Overview
 
 The AEC makes a huge amount of raw data about elections available on 
@@ -20,8 +24,8 @@ data into a relational database. You can view that tool [here](https://github.co
 
 ## Running
 
-SenateDB is built and run with [SBT](http://www.scala-sbt.org/). Simply check it out and run `sbt run` to generate the
-reports.
+SenateDB is built and run with [SBT](http://www.scala-sbt.org/). Simply check it out and run `sbt core/run` to generate 
+the reports.
 
 SenateDB will download the raw data from the AEC the first time it is run (about 180 MB), and then reads through these
 files to generate the reports. The report generation takes about 17 minutes on my Macbook Pro.

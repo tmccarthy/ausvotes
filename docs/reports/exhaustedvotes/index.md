@@ -4,7 +4,7 @@ title: Exhausted votes
 ---
 
 These tables show the number of exhausted votes. A ballot's exhaustion is calculated with the 
-[`ExhaustionCalculator` class](https://github.com/tmccarthy/SenateDB/blob/master/src/main/scala/au/id/tmm/senatedb/computations/exhaustion/ExhaustionCalculator.scala).
+[`ExhaustionCalculator` class](https://github.com/tmccarthy/SenateDB/blob/v0.4.1/src/main/scala/au/id/tmm/senatedb/computations/exhaustion/ExhaustionCalculator.scala).
 This is done by tracing the path a ballot would have taken through the count proces as described in data made 
 available [on the AEC website](http://results.aec.gov.au/20499/Website/SenateDownloadsMenu-20499-Csv.htm#mainbody_titleDop).
 

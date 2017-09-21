@@ -1,19 +1,21 @@
 package au.id.tmm.senatedb.core.tallies
 
-import au.id.tmm.senatedb.core.fixtures.{Ballots, TestsBallotFacts}
+import au.id.tmm.senatedb.core.fixtures.{BallotFixture, TestsBallotFacts}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CountHowToVoteUsageSpec extends ImprovedFlatSpec with TestsBallotFacts {
 
-  "the how-to-vote usage counter" should "count ballots that used a how to vote card" in {
-    val ballotWithFacts = factsFor(Ballots.ACT.usesHtv)
+  val sut = BallotCounter.UsedHowToVoteCard
 
-    assert(CountHowToVoteUsage.shouldCount(ballotWithFacts) === true)
+  "the how-to-vote usage counter" should "count ballots that used a how to vote card" in {
+    val ballotWithFacts = factsFor(BallotFixture.ACT.usesHtv)
+
+    assert(sut.isCounted(ballotWithFacts) === true)
   }
 
   it should "not count ballots that have not used a how to vote card" in {
-    val ballotWithFacts = factsFor(Ballots.ACT.formalBtl)
+    val ballotWithFacts = factsFor(BallotFixture.ACT.formalBtl)
 
-    assert(CountHowToVoteUsage.shouldCount(ballotWithFacts) === false)
+    assert(sut.isCounted(ballotWithFacts) === false)
   }
 }

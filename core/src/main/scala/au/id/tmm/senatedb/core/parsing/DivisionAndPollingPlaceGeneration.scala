@@ -3,6 +3,7 @@ package au.id.tmm.senatedb.core.parsing
 import au.id.tmm.senatedb.core.model.DivisionsAndPollingPlaces.DivisionAndPollingPlace
 import au.id.tmm.senatedb.core.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace
+import au.id.tmm.senatedb.core.model.parsing.PollingPlace.PollingPlaceType
 import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, SenateElection}
 import au.id.tmm.senatedb.core.rawdata.model.PollingPlacesRow
 import au.id.tmm.utilities.geo.LatLong
@@ -27,7 +28,13 @@ object DivisionAndPollingPlaceGeneration {
                           postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): DivisionAndPollingPlace = {
     val state = GenerationUtils.stateFrom(row.state, row)
 
-    val pollingPlaceType = PollingPlace.Type(row.pollingPlaceTypeId)
+    val pollingPlaceType = row.pollingPlaceTypeId match {
+      case 1 => PollingPlaceType.PollingPlace
+      case 2 => PollingPlaceType.SpecialHospitalTeam
+      case 3 => PollingPlaceType.RemoteMobileTeam
+      case 4 => PollingPlaceType.OtherMobileTeam
+      case 5 => PollingPlaceType.PrePollVotingCentre
+    }
 
     val location = locationFrom(row, postcodeFlyweight)
 

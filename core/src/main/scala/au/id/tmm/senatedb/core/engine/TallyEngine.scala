@@ -7,8 +7,8 @@ import au.id.tmm.senatedb.core.computations.{BallotFactsComputation, BallotWithF
 import au.id.tmm.senatedb.core.model.parsing.Ballot
 import au.id.tmm.senatedb.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, HowToVoteCard, SenateElection}
 import au.id.tmm.senatedb.core.parsing.HowToVoteCardGeneration
-import au.id.tmm.senatedb.core.tallies.Tallies.TraversableOps
-import au.id.tmm.senatedb.core.tallies.{Tallier, Tallies}
+import au.id.tmm.senatedb.core.tallies.TallyBundle.TraversableOps
+import au.id.tmm.senatedb.core.tallies.{Tallier, TallyBundle}
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
@@ -20,7 +20,7 @@ trait TallyEngine {
              election: SenateElection,
              states: Set[State],
              talliers: Set[Tallier])
-            (implicit ec: ExecutionContext): Future[Tallies]
+            (implicit ec: ExecutionContext): Future[TallyBundle]
 
   def runFor(parsedDataStore: ParsedDataStore,
              election: SenateElection,
@@ -28,7 +28,7 @@ trait TallyEngine {
              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
              groupsAndCandidates: GroupsAndCandidates,
              talliers: Set[Tallier])
-            (implicit ec: ExecutionContext): Future[Tallies]
+            (implicit ec: ExecutionContext): Future[TallyBundle]
 }
 
 object TallyEngine extends TallyEngine {
@@ -36,7 +36,7 @@ object TallyEngine extends TallyEngine {
              election: SenateElection,
              states: Set[State],
              talliers: Set[Tallier])
-            (implicit ec: ExecutionContext): Future[Tallies] = {
+            (implicit ec: ExecutionContext): Future[TallyBundle] = {
     val divisionsAndPollingPlacesFuture = Future(parsedDataStore.divisionsAndPollingPlacesFor(election))
     val groupsAndCandidatesFuture = Future(parsedDataStore.groupsAndCandidatesFor(election))
 
@@ -53,7 +53,7 @@ object TallyEngine extends TallyEngine {
              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
              groupsAndCandidates: GroupsAndCandidates,
              talliers: Set[Tallier])
-            (implicit ec: ExecutionContext): Future[Tallies] = {
+            (implicit ec: ExecutionContext): Future[TallyBundle] = {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
     val tallyFuturesPerState = states
@@ -79,7 +79,7 @@ object TallyEngine extends TallyEngine {
                               groupsAndCandidates: GroupsAndCandidates,
                               howToVoteCards: Set[HowToVoteCard],
                               talliers: Set[Tallier])
-                             (implicit ec: ExecutionContext): Future[Tallies] = {
+                             (implicit ec: ExecutionContext): Future[TallyBundle] = {
 
     Future {
       parsedDataStore.countDataFor(election, groupsAndCandidates, state)
@@ -104,7 +104,7 @@ object TallyEngine extends TallyEngine {
                                  talliers: Set[Tallier],
                                  computationTools: ComputationTools,
                                  computationInputData: ComputationInputData,
-                                 ballots: CloseableIterator[Ballot]): Tallies = {
+                                 ballots: CloseableIterator[Ballot]): TallyBundle = {
     val groupedIterator = ballots.grouped(5000) // TODO constant
 
     val tallies = groupedIterator
@@ -117,7 +117,7 @@ object TallyEngine extends TallyEngine {
           ballots)
       })
       .map(ballotsWithFacts => talliesFrom(ballotsWithFacts, talliers))
-      .foldLeft(Tallies())((left, right) => left + right)
+      .foldLeft(TallyBundle())((left, right) => left + right)
 
     tallies
   }
@@ -137,11 +137,11 @@ object TallyEngine extends TallyEngine {
     )
   }
 
-  private def talliesFrom(ballotsWithFactsIterable: Iterable[BallotWithFacts], talliers: Set[Tallier]): Tallies = {
+  private def talliesFrom(ballotsWithFactsIterable: Iterable[BallotWithFacts], talliers: Set[Tallier]): TallyBundle = {
     val ballotsWithFacts = ballotsWithFactsIterable.toVector
 
     talliers
       .map(tallier => tallier -> tallier.tally(ballotsWithFacts))
-      .toTallies
+      .toTallyBundle
   }
 }

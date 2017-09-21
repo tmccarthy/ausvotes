@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.parsing.countdata
 
-import au.id.tmm.senatedb.core.fixtures.{Candidates, TestsCountData}
+import au.id.tmm.senatedb.core.fixtures.{CandidateFixture, TestsCountData}
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Party.Independent
 import au.id.tmm.senatedb.core.model.parsing.{Candidate, Name}
@@ -9,9 +9,9 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class DistributionSourceCalculatorSpec extends ImprovedFlatSpec with TestsCountData {
 
-  import au.id.tmm.senatedb.core.fixtures.Ballots.ACT.ballotMaker.candidatePosition
+  import au.id.tmm.senatedb.core.fixtures.BallotFixture.ACT.ballotMaker.candidatePosition
 
-  private val sut = new DistributionSourceCalculator(Candidates.ACT.candidates)
+  private val sut = new DistributionSourceCalculator(CandidateFixture.ACT.candidates)
 
   "a distribution source calculator" should "fail if the comment mentions an unknown candidate" in {
     val comment = "CRANIUM ,R has 176559 surplus vote(s) to be distributed in count # 5 at a transfer value of " +
@@ -36,7 +36,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec with TestsCountD
 
   it should "pick up the elected candidate if two candidates have the same name as the candidate listed in an election comment" in {
     // There's already a Katy GALLAGHER
-    val candidates = Candidates.ACT.candidates +
+    val candidates = CandidateFixture.ACT.candidates +
       Candidate(SenateElection.`2016`, State.ACT, "42", Name("Keith", "GALLAGHER"), Independent, candidatePosition("UG2"))
 
     val sut = new DistributionSourceCalculator(candidates)
@@ -47,7 +47,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec with TestsCountD
     val distributionSource = sut.calculateFor(comment, countData.steps.take(1))
 
     assert(distributionSource.get.sourceCandidate ===
-      Candidates.ACT.candidateWithName(Name("Katy", "GALLAGHER")).btlPosition)
+      CandidateFixture.ACT.candidateWithName(Name("Katy", "GALLAGHER")).btlPosition)
   }
 
   it should "not produce a source if the candidate was elected as the last woman standing" in {

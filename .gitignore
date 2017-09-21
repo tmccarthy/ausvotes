@@ -21,6 +21,7 @@ gradle-app.setting
 .scala_dependencies
 .worksheet
 
+/out
 /rawData
 /testingRawData
 /reports

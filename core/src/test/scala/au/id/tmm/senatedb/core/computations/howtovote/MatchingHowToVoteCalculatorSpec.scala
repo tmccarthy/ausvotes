@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.computations.howtovote
 
-import au.id.tmm.senatedb.core.fixtures.{BallotMaker, Ballots, Candidates, Groups}
+import au.id.tmm.senatedb.core.fixtures.{BallotMaker, BallotFixture, CandidateFixture, GroupFixture}
 import au.id.tmm.senatedb.core.model.{HowToVoteCard, SenateElection}
 import au.id.tmm.senatedb.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.utilities.geo.australia.State
@@ -8,10 +8,10 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class MatchingHowToVoteCalculatorSpec extends ImprovedFlatSpec {
 
-  private val actHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, Groups.ACT.groups)
+  private val actHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, GroupFixture.ACT.groups)
   private val sut = MatchingHowToVoteCalculator(actHtvs)
 
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   import ballotMaker.groupOrder
 
@@ -19,7 +19,7 @@ class MatchingHowToVoteCalculatorSpec extends ImprovedFlatSpec {
     val expected = HowToVoteCard(SenateElection.`2016`, State.ACT, groupOrder("H").head,
       groupOrder("H", "B", "J", "G", "C", "E"))
 
-    val actual = sut.findMatchingHowToVoteCard(Ballots.ACT.usesHtv)
+    val actual = sut.findMatchingHowToVoteCard(BallotFixture.ACT.usesHtv)
 
     assert(actual contains expected)
   }

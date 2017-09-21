@@ -8,52 +8,56 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PredicateTallierSpec extends ImprovedFlatSpec with TestsBallotFacts {
 
-  private val countedBallot = Ballots.ACT.formalAtl
-  private val notCountedBallot = Ballots.ACT.formalBtl
+  private val countedBallot = BallotFixture.ACT.formalAtl
+  private val notCountedBallot = BallotFixture.ACT.formalBtl
 
-  private val ballotMaker = BallotMaker(Candidates.ACT)
+  private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   import ballotMaker.group
 
-  private object sut extends PredicateTallier {
-    override def shouldCount(ballotWithFacts: BallotWithFacts): Boolean = ballotWithFacts.ballot == countedBallot
+  private object TestCounter extends BallotCounter.PredicateBallotCounter {
+    override def isCounted(ballotWithFacts: BallotWithFacts): Boolean = ballotWithFacts.ballot == countedBallot
   }
+
+  private val sut = TallierBuilder.counting(TestCounter)
 
   private val testBallotsWithFacts = factsFor(Vector(countedBallot, notCountedBallot))
 
   "the national count" should "produce a simple tally" in {
-    val tally = sut.Nationally.tally(testBallotsWithFacts)
+    val tally = sut.overall().tally(testBallotsWithFacts)
 
-    assert(tally === SimpleTally(1))
+    assert(tally === Tally0(1))
   }
 
   "the national count per first preference" should "produce the right tally per party" in {
-    val tally = sut.NationallyByFirstPreference.tally(testBallotsWithFacts)
+    val tally = sut.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent).tally(testBallotsWithFacts)
 
-    assert(tally === Tally(RegisteredParty("Liberal Democratic Party") -> 1d))
+    assert(tally === Tally1(RegisteredParty("Liberal Democratic Party") -> 1d))
   }
 
   "the count per state" should "produce the right tally per state" in {
-    val tally = sut.ByState.tally(testBallotsWithFacts)
+    val tally = sut.groupedBy(BallotGrouping.State).tally(testBallotsWithFacts)
 
-    assert(tally === Tally(State.ACT -> 1d))
+    assert(tally === Tally1(State.ACT -> 1d))
   }
 
   "the count per division" should "produce the right tally per division" in {
-    val tally = sut.ByDivision.tally(testBallotsWithFacts)
+    val tally = sut.groupedBy(BallotGrouping.Division).tally(testBallotsWithFacts)
 
-    assert(tally === Tally(Divisions.ACT.CANBERRA -> 1d))
+    assert(tally === Tally1(DivisionFixture.ACT.CANBERRA -> 1d))
   }
 
   "the count per polling place" should "produce the right tally per polling place" in {
-    val tally = sut.ByVoteCollectionPoint.tally(testBallotsWithFacts)
+    val tally = sut.groupedBy(BallotGrouping.VoteCollectionPoint).tally(testBallotsWithFacts)
 
-    assert(tally === Tally(PollingPlaces.ACT.BARTON -> 1d))
+    assert(tally === Tally1(PollingPlaceFixture.ACT.BARTON -> 1d))
   }
 
   "the count per first preferenced group" should "produce the right tally per state per group" in {
-    val tieredTally = sut.ByFirstPreferencedGroup.tally(testBallotsWithFacts)
+    val tieredTally = sut
+      .groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup)
+      .tally(testBallotsWithFacts)
 
-    assert(tieredTally === TieredTally(State.ACT -> Tally(group("A") -> 1d)))
+    assert(tieredTally === Tally2(State.ACT -> Tally1(group("A") -> 1d)))
   }
 }

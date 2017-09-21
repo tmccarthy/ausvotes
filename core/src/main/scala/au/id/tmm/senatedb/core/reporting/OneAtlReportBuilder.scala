@@ -1,5 +1,6 @@
 package au.id.tmm.senatedb.core.reporting
-import au.id.tmm.senatedb.core.tallies.{CountOneAtl, PredicateTallier}
+
+import au.id.tmm.senatedb.core.tallies.BallotCounter
 
 object OneAtlReportBuilder extends StandardReportBuilder {
 
@@ -7,6 +8,6 @@ object OneAtlReportBuilder extends StandardReportBuilder {
 
   override def primaryCountColumnTitle: String = "Ballots with only '1' above the line"
 
-  override def perBallotTallier: PredicateTallier = CountOneAtl
+  override def ballotCounter = BallotCounter.Voted1Atl
 
 }

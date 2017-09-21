@@ -1,4 +1,5 @@
 language: scala
+sudo: required
 
 scala:
    - 2.12.2
@@ -6,5 +7,8 @@ scala:
 jdk:
   - oraclejdk8
 
-script: "sbt clean coverage webapp/test core/test core/it:test coverageReport"
+services:
+  - docker
+
+script: "sbt clean coverage core/test api/test core/it:test api/it:test coverageReport"
 after_success: "sbt coverageAggregate coveralls"

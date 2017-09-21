@@ -1,6 +1,6 @@
 package au.id.tmm.senatedb.core.parsing
 
-import au.id.tmm.senatedb.core.fixtures.Candidates
+import au.id.tmm.senatedb.core.fixtures.CandidateFixture
 import au.id.tmm.senatedb.core.model.SenateElection.`2016`
 import au.id.tmm.senatedb.core.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.senatedb.core.model.parsing._
@@ -55,7 +55,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a grouped candidate" in {
-    val expectedCandidate = Candidates.ACT.candidateWithId("28147")
+    val expectedCandidate = CandidateFixture.ACT.candidateWithId("28147")
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -63,7 +63,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate an ungrouped candidate" in {
-    val expectedCandidate = Candidates.ACT.candidateWithId("28150")
+    val expectedCandidate = CandidateFixture.ACT.candidateWithId("28150")
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -71,7 +71,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate an independent candidate" in {
-    val expectedCandidate = Candidates.NT.candidateWithId("28538")
+    val expectedCandidate = CandidateFixture.NT.candidateWithId("28538")
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 

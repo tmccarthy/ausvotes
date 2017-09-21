@@ -9,11 +9,11 @@ import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedReso
 trait TestsCountData {
   private val rawDataStore = RawDataStore(MockAecResourceStore)
   private val election = SenateElection.`2016`
-  private val groupsAndCandidates = GroupsAndCandidates.ACT.groupsAndCandidates
+  private val groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates
 
   private val state = State.ACT
 
-  private val ballotMaker = Ballots.ACT.ballotMaker
+  private val ballotMaker = BallotFixture.ACT.ballotMaker
 
   lazy val countData = resource.managed(rawDataStore.distributionsOfPreferencesFor(election, state))
     .map(CountDataGeneration.fromDistributionOfPreferencesRows(election, state, groupsAndCandidates, _))
