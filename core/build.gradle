@@ -1,9 +1,8 @@
 plugins {
-    id "com.github.maiflai.scalatest" version "0.16"
-    id "org.scoverage" version "2.1.0"
+    id 'com.github.maiflai.scalatest' version '0.16'
+    id 'org.scoverage' version '2.1.0'
+    id 'scala'
 }
-
-apply plugin: 'scala'
 
 repositories {
     mavenCentral()
