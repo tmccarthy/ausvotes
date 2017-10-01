@@ -125,6 +125,8 @@ CREATE TABLE rank (
   total_count INTEGER
 );
 
+-- TODO admin users can have more than one login_info
+
 CREATE TABLE login_info (
   id SERIAL PRIMARY KEY,
 
