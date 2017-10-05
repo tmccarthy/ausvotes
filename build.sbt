@@ -10,7 +10,6 @@ resolvers in ThisBuild ++= Seq(
   "Ambitious Tools Artifactory" at "http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/"
 )
 
-
 val applicationName = "SenateDB"
 
 val tmmUtilsVersion = "0.2.6"
@@ -47,13 +46,11 @@ lazy val core = project.in(file("core"))
 lazy val api = project.in(file("api"))
   .enablePlugins(GitVersioning)
   .enablePlugins(PlayScala)
-  .enablePlugins(sbtdocker.DockerPlugin)
   .disablePlugins(PlayLayoutPlugin)
   .configs(IntegrationTest)
   .settings(Defaults.itSettings)
   .settings(
     libraryDependencies += jdbc,
-    libraryDependencies += cache,
     libraryDependencies += ws,
     libraryDependencies += guice,
     libraryDependencies += "org.flywaydb" %% "flyway-play" % "4.0.0"
@@ -87,31 +84,6 @@ lazy val api = project.in(file("api"))
   )
   .settings(
     parallelExecution in IntegrationTest := false
-  )
-  .settings(
-    // Docker stuff
-
-    docker <<= (docker dependsOn stage),
-
-    imageNames in docker := Seq(
-      ImageName(
-        namespace=Some("tmccarthy"),
-        repository=applicationName.toLowerCase,
-        tag=Some(if (isSnapshot(version.value)) git.gitHeadCommit.value.get else version.value)
-      )
-    ),
-
-    dockerfile in docker := {
-      val localDistributionLocation: File = stage.value
-      val containerLocation = s"/opt/$applicationName"
-
-      new Dockerfile {
-        from("openjdk:8u131-jre-alpine")
-        runRaw("apk add --update bash && rm -rf /var/cache/apk/*")
-        add(localDistributionLocation, containerLocation)
-        entryPoint(s"$containerLocation/bin/api")
-      }
-    }
   )
   .dependsOn(core % "compile->compile;test->test;it->it;it->test")
 

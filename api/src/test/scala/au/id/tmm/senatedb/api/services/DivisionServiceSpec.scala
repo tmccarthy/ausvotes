@@ -3,7 +3,6 @@ package au.id.tmm.senatedb.api.services
 import akka.testkit.TestProbe
 import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, ElectionDao, StatDao}
 import au.id.tmm.senatedb.api.persistence.entities.stats.{Stat, StatClass}
-import au.id.tmm.senatedb.api.persistence.population.DbPopulationActor.{Requests, Responses}
 import au.id.tmm.senatedb.api.services.exceptions.{NoSuchDivisionException, NoSuchStateException}
 import au.id.tmm.senatedb.core.fixtures.DivisionFixture
 import au.id.tmm.senatedb.core.model.SenateElection
@@ -34,8 +33,6 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFact
 
     val eventualDivision = sut.divisionWith("2016", "ACT", "Canberra")
 
-    expectElectionIsPopulated()
-
     val division = await(eventualDivision)
 
     assert(division === DivisionFixture.ACT.CANBERRA)
@@ -43,8 +40,6 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFact
 
   it should "throw when the state can't be identified" in {
     val eventualDivision = sut.divisionWith("2016", "asdf", "Canberra")
-
-    expectElectionIsPopulated()
 
     val exception = intercept[NoSuchStateException](await(eventualDivision))
 
@@ -57,8 +52,6 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFact
       .returns(Future.successful(None))
 
     val eventualDivision = sut.divisionWith("2016", "ACT", "asdf")
-
-    expectElectionIsPopulated()
 
     val exception = intercept[NoSuchDivisionException](await(eventualDivision))
 
@@ -90,15 +83,8 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFact
 
     val eventualActualStats = sut.statsFor("2016", "ACT", "Canberra")
 
-    expectElectionIsPopulated()
-
     val actualStats = await(eventualActualStats)
 
     assert(actualStats === expectedStats)
-  }
-
-  private def expectElectionIsPopulated(): Unit = {
-    mockDbPopulationActor.expectMsg(Requests.IsElectionPopulated(testElection))
-    mockDbPopulationActor.reply(Responses.ElectionPopulatedStatus(testElection, isPopulated = true))
   }
 }
