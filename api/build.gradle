@@ -1,0 +1,73 @@
+plugins {
+    id 'com.github.maiflai.scalatest' version '0.16'
+//    id 'org.scoverage' version '2.1.0'
+    id 'scala'
+    id 'play'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
+    }
+}
+
+model {
+    //noinspection GroovyAssignabilityCheck
+    components {
+        play {
+            platform play: '2.6.0', scala: "$scalaVersion"
+            sources {
+                java {
+                    source.srcDirs = ['src/main/java']
+                }
+                scala {
+                    source.srcDirs = ['src/main/scala']
+                }
+                //noinspection GroovyAssignabilityCheck
+                resources {
+                    source.srcDirs = ['src/main/resources']
+                }
+                routes {
+                    source.srcDirs = ['src/main/routes']
+                }
+                javaScript {
+                    source.srcDirs = ['src/main/javascript']
+                }
+                twirlTemplates {
+                    source.srcDirs = ['src/main/twirl']
+                }
+            }
+        }
+    }
+}
+
+tasks.compilePlayBinaryTests.source = files('src/test/java', 'src/test/scala', 'src/test/resources')
+
+dependencies {
+    play "org.flywaydb:flyway-play${s}:4.0.0"
+
+    play "org.scalikejdbc:scalikejdbc${s}:2.5.1"
+    play "org.scalikejdbc:scalikejdbc-config${s}:2.5.1"
+    play "org.scalikejdbc:scalikejdbc-play-dbapi-adapter${s}:2.6.0"
+    play "org.postgresql:postgresql:9.4.1212"
+    play "ch.qos.logback:logback-classic:1.1.7"
+    play "net.codingwell:scala-guice${s}:4.1.0"
+
+    play "com.mohiva:play-silhouette${s}:5.0.0"
+    play "com.mohiva:play-silhouette-password-bcrypt${s}:5.0.0"
+    play "com.mohiva:play-silhouette-crypto-jca${s}:5.0.0"
+    play "com.mohiva:play-silhouette-persistence${s}:5.0.0"
+
+    playTest "com.mohiva:play-silhouette-testkit${s}:5.0.0"
+    playTest "org.scalatestplus.play:scalatestplus-play${s}:3.0.0"
+    playTest "org.scalatest:scalatest${s}:2.2.1"
+    playTest "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
+    playTest "com.typesafe.akka:akka-testkit${s}:$akkaVersion"
+    playTest "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+
+    // goes in integration tests
+//    libraryDependencies += "com.whisk" %% "docker-testkit-scalatest" % "0.9.0" % "it",
+//    libraryDependencies += "com.whisk" %% "docker-testkit-impl-spotify" % "0.9.0" % "it"
+
+}
