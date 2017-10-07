@@ -1,14 +1,20 @@
 plugins {
     id 'com.github.maiflai.scalatest' version '0.16'
-    id 'org.scoverage' version '2.1.0'
     id 'scala'
 }
+
+apply plugin: 'org.scoverage'
+
 
 repositories {
     mavenCentral()
     maven {
         url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
     }
+}
+
+configurations {
+    testOutput
 }
 
 sourceSets {
@@ -34,8 +40,6 @@ dependencies {
     compile "com.github.scopt:scopt${s}:3.6.0"
     compile "com.github.tototoshi:scala-csv${s}:1.3.4"
 
-    compile "com.typesafe.akka:akka-actor${s}:$akkaVersion"
-
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.4'
 
@@ -53,13 +57,22 @@ dependencies {
     integrationTestCompile sourceSets.test.output
     integrationTestCompile configurations.testCompile
     integrationTestRuntime configurations.testRuntime
+
+    testOutput sourceSets.test.output
 }
 
 task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
     testClassesDirs = sourceSets.integrationTest.output
     classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
 }
 
 check.dependsOn integrationTest
 
-// TODO code coverage tasks
+task integrationTestScoverage(type: Test, dependsOn: integrationTestClasses) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.scoverage.runtimeClasspath + sourceSets.integrationTest.runtimeClasspath
+    reports.html.destination = reporting.file('integrationTest')
+}
+
+[reportScoverage, checkScoverage].each { it.dependsOn(integrationTestScoverage) }

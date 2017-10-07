@@ -1,9 +1,9 @@
 plugins {
     id 'com.github.maiflai.scalatest' version '0.16'
-//    id 'org.scoverage' version '2.1.0'
     id 'scala'
-    id 'play'
 }
+
+apply plugin: 'org.scoverage'
 
 repositories {
     mavenCentral()
@@ -12,62 +12,67 @@ repositories {
     }
 }
 
-model {
-    //noinspection GroovyAssignabilityCheck
-    components {
-        play {
-            platform play: '2.6.0', scala: "$scalaVersion"
-            sources {
-                java {
-                    source.srcDirs = ['src/main/java']
-                }
-                scala {
-                    source.srcDirs = ['src/main/scala']
-                }
-                //noinspection GroovyAssignabilityCheck
-                resources {
-                    source.srcDirs = ['src/main/resources']
-                }
-                routes {
-                    source.srcDirs = ['src/main/routes']
-                }
-                javaScript {
-                    source.srcDirs = ['src/main/javascript']
-                }
-                twirlTemplates {
-                    source.srcDirs = ['src/main/twirl']
-                }
-            }
+sourceSets {
+    integrationTest {
+        scala {
+            srcDirs = ['src/integration-test/scala']
         }
+        resources {
+            srcDirs = ['src/integration-test/resources']
+        }
+    }
+    testScoverage {
+        compileClasspath.add(configurations.integrationTestCompile)
+        runtimeClasspath.add(configurations.integrationTestRuntime)
     }
 }
 
-tasks.compilePlayBinaryTests.source = files('src/test/java', 'src/test/scala', 'src/test/resources')
-
 dependencies {
-    play "org.flywaydb:flyway-play${s}:4.0.0"
+    compile project(":core")
 
-    play "org.scalikejdbc:scalikejdbc${s}:2.5.1"
-    play "org.scalikejdbc:scalikejdbc-config${s}:2.5.1"
-    play "org.scalikejdbc:scalikejdbc-play-dbapi-adapter${s}:2.6.0"
-    play "org.postgresql:postgresql:9.4.1212"
-    play "ch.qos.logback:logback-classic:1.1.7"
-    play "net.codingwell:scala-guice${s}:4.1.0"
+    compile "com.google.inject:guice:4.1.0"
+    compile "org.flywaydb:flyway-core:4.2.0"
 
-    play "com.mohiva:play-silhouette${s}:5.0.0"
-    play "com.mohiva:play-silhouette-password-bcrypt${s}:5.0.0"
-    play "com.mohiva:play-silhouette-crypto-jca${s}:5.0.0"
-    play "com.mohiva:play-silhouette-persistence${s}:5.0.0"
+    compile "org.scalikejdbc:scalikejdbc${s}:2.5.1"
+    compile "org.scalikejdbc:scalikejdbc-config${s}:2.5.1"
+    compile "org.scalikejdbc:scalikejdbc-play-dbapi-adapter${s}:2.6.0"
+    compile "org.postgresql:postgresql:9.4.1212"
+    compile "ch.qos.logback:logback-classic:1.1.7"
+    compile "net.codingwell:scala-guice${s}:4.1.0"
 
-    playTest "com.mohiva:play-silhouette-testkit${s}:5.0.0"
-    playTest "org.scalatestplus.play:scalatestplus-play${s}:3.0.0"
-    playTest "org.scalatest:scalatest${s}:2.2.1"
-    playTest "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
-    playTest "com.typesafe.akka:akka-testkit${s}:$akkaVersion"
-    playTest "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+    testCompile project(path: ':core', configuration: 'testOutput')
 
-    // goes in integration tests
-//    libraryDependencies += "com.whisk" %% "docker-testkit-scalatest" % "0.9.0" % "it",
-//    libraryDependencies += "com.whisk" %% "docker-testkit-impl-spotify" % "0.9.0" % "it"
+    testCompile "org.scalatest:scalatest${s}:2.2.1"
+    testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
+    testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
 
+    integrationTestCompile "com.whisk:docker-testkit-scalatest${s}:0.9.0"
+    integrationTestCompile "com.whisk:docker-testkit-impl-spotify${s}:0.9.0"
+
+    // Needed to produce scalatest report
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+
+    scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
+    scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
+
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
 }
+
+task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
+    testClassesDirs = sourceSets.integrationTest.output
+    classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
+}
+
+check.dependsOn integrationTest
+
+task integrationTestScoverage(type: Test, dependsOn: integrationTestClasses) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.scoverage.runtimeClasspath + sourceSets.integrationTest.runtimeClasspath
+    reports.html.destination = reporting.file('integrationTest')
+}
+
+[reportScoverage, checkScoverage].each { it.dependsOn(integrationTestScoverage) }

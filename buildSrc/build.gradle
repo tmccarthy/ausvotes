@@ -1,0 +1,12 @@
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
+    }
+}
+
+dependencies {
+    compile 'org.scoverage:gradle-scoverage:2.1.0'
+    compile "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
+    compile "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
+}
