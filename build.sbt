@@ -45,29 +45,22 @@ lazy val core = project.in(file("core"))
 
 lazy val api = project.in(file("api"))
   .enablePlugins(GitVersioning)
-  .enablePlugins(PlayScala)
-  .disablePlugins(PlayLayoutPlugin)
   .configs(IntegrationTest)
   .settings(Defaults.itSettings)
   .settings(
-    libraryDependencies += jdbc,
-    libraryDependencies += ws,
-    libraryDependencies += guice,
-    libraryDependencies += "org.flywaydb" %% "flyway-play" % "4.0.0"
+    libraryDependencies += "com.google.inject" % "guice" % "4.1.0",
+    libraryDependencies += "org.flywaydb" % "flyway-core" % "4.2.0"
   )
   .settings(
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc"                    % "2.5.1",
     libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config"             % "2.5.1",
-    libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.6.0",
     libraryDependencies += "org.postgresql"  %  "postgresql"                     % "9.4.1212",
     libraryDependencies += "ch.qos.logback"  %  "logback-classic"                % "1.1.7",
     libraryDependencies += "net.codingwell"  %% "scala-guice"                    % "4.1.0"
   )
   .settings(
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % "test,it",
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test,it",
     libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test,it",
-    libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test,it",
     libraryDependencies += "au.id.tmm" %% "tmmtestutils" % tmmUtilsVersion % "test,it",
     libraryDependencies += "com.whisk" %% "docker-testkit-scalatest" % "0.9.0" % "it",
     libraryDependencies += "com.whisk" %% "docker-testkit-impl-spotify" % "0.9.0" % "it"

@@ -2,22 +2,19 @@ package au.id.tmm.senatedb.api.services
 
 import javax.inject.Inject
 
-import akka.actor.ActorRef
 import au.id.tmm.senatedb.api.persistence.daos.ElectionDao.withParsedElection
-import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, ElectionDao, StatDao}
+import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, StatDao}
 import au.id.tmm.senatedb.api.persistence.entities.stats.Stat
 import au.id.tmm.senatedb.api.services.exceptions.{NoSuchDivisionException, NoSuchStateException}
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.utilities.concurrent.FutureUtils.TryFutureOps
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
-import com.google.inject.name.Named
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DivisionService @Inject() (divisionDao: DivisionDao,
                                  statDao: StatDao,
-                                 @Named("dbPopulationActor") val dbPopulationActor: ActorRef
                                 )(implicit ec: ExecutionContext) {
 
   def divisionWith(electionId: String, stateAbbreviation: String, divisionName: String): Future[Division] =

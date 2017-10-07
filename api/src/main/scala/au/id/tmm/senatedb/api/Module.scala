@@ -7,10 +7,9 @@ import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.rawdata.{AecResourceStore, RawDataStore}
 import com.google.inject.{AbstractModule, Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
-import play.api.libs.concurrent.AkkaGuiceSupport
 import scalikejdbc.{ConnectionPool, ConnectionPoolContext, MultipleConnectionPoolContext}
 
-class Module extends AbstractModule with AkkaGuiceSupport with ScalaModule {
+class Module extends AbstractModule with ScalaModule {
 
   override def configure(): Unit = {
   }

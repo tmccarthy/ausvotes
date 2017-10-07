@@ -1,6 +1,5 @@
 package au.id.tmm.senatedb.api.services
 
-import akka.testkit.TestProbe
 import au.id.tmm.senatedb.api.persistence.daos.{DivisionDao, ElectionDao, StatDao}
 import au.id.tmm.senatedb.api.persistence.entities.stats.{Stat, StatClass}
 import au.id.tmm.senatedb.api.services.exceptions.{NoSuchDivisionException, NoSuchStateException}
@@ -16,15 +15,14 @@ import org.scalamock.scalatest.MockFactory
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DivisionServiceSpec extends ImprovedFlatSpec with MocksActor with MockFactory {
-  private val mockDbPopulationActor = TestProbe()
+class DivisionServiceSpec extends ImprovedFlatSpec with MockFactory {
   private val divisionDao = mock[DivisionDao]
   private val statDao = mock[StatDao]
 
   private val testElection = SenateElection.`2016`
   private val testElectionId = ElectionDao.idOf(testElection).get
 
-  private val sut = new DivisionService(divisionDao, statDao, mockDbPopulationActor.ref)
+  private val sut = new DivisionService(divisionDao, statDao)
 
   "the division service" should "lookup a division by name" in {
     (divisionDao.find _)
