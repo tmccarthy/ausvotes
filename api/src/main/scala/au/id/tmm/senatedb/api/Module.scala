@@ -2,7 +2,6 @@ package au.id.tmm.senatedb.api
 
 import java.nio.file.Paths
 
-import au.id.tmm.senatedb.api.authentication.SilhouetteModule
 import au.id.tmm.senatedb.core.engine.{ParsedDataStore, TallyEngine}
 import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.rawdata.{AecResourceStore, RawDataStore}
@@ -14,7 +13,6 @@ import scalikejdbc.{ConnectionPool, ConnectionPoolContext, MultipleConnectionPoo
 class Module extends AbstractModule with AkkaGuiceSupport with ScalaModule {
 
   override def configure(): Unit = {
-    install(new SilhouetteModule)
   }
 
   @Provides

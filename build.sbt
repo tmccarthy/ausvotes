@@ -64,13 +64,6 @@ lazy val api = project.in(file("api"))
     libraryDependencies += "net.codingwell"  %% "scala-guice"                    % "4.1.0"
   )
   .settings(
-    libraryDependencies += "com.mohiva" %% "play-silhouette" % "5.0.0",
-    libraryDependencies += "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0",
-    libraryDependencies += "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0",
-    libraryDependencies += "com.mohiva" %% "play-silhouette-persistence" % "5.0.0",
-    libraryDependencies += "com.mohiva" %% "play-silhouette-testkit" % "5.0.0" % "test"
-  )
-  .settings(
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % "test,it",
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test,it",
     libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % "test,it",
