@@ -31,4 +31,4 @@ gradle-app.setting
 /buildSrc/build
 /core/build
 /build
-/webapp/build
+/backend/build
