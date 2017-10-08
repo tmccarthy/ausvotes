@@ -8,6 +8,9 @@ import au.id.tmm.senatedb.core.rawdata.{AecResourceStore, RawDataStore}
 import com.google.inject.{AbstractModule, Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
 
+/**
+  * The module for wiring together the root classes from the "core" module
+  */
 class CoreModule extends AbstractModule with ScalaModule {
 
   override def configure(): Unit = {}
