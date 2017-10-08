@@ -3,8 +3,6 @@ plugins {
     id 'scala'
 }
 
-apply plugin: 'org.scoverage'
-
 repositories {
     mavenCentral()
     maven {
@@ -20,10 +18,6 @@ sourceSets {
         resources {
             srcDirs = ['src/integration-test/resources']
         }
-    }
-    testScoverage {
-        compileClasspath.add(configurations.integrationTestCompile)
-        runtimeClasspath.add(configurations.integrationTestRuntime)
     }
 }
 
@@ -52,9 +46,6 @@ dependencies {
     // Needed to produce scalatest report
     testRuntime 'org.pegdown:pegdown:1.4.2'
 
-    scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
-    scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
-
     integrationTestCompile sourceSets.main.output
     integrationTestCompile sourceSets.test.output
     integrationTestCompile configurations.testCompile
@@ -68,11 +59,3 @@ task integrationTest(type: Test) {
 }
 
 check.dependsOn integrationTest
-
-task integrationTestScoverage(type: Test, dependsOn: integrationTestClasses) {
-    testClassesDir = sourceSets.integrationTest.output.classesDir
-    classpath = sourceSets.scoverage.runtimeClasspath + sourceSets.integrationTest.runtimeClasspath
-    reports.html.destination = reporting.file('integrationTest')
-}
-
-[reportScoverage, checkScoverage].each { it.dependsOn(integrationTestScoverage) }

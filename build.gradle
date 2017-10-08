@@ -1,5 +1,3 @@
-apply plugin: 'org.scoverage'
-
 repositories {
     mavenCentral()
     maven {
@@ -7,14 +5,7 @@ repositories {
     }
 }
 
-dependencies {
-    scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
-    scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = '4.2'
     distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
-
-// TODO aggregate coverage
