@@ -29,7 +29,6 @@ dependencies {
 
     compile "org.scalikejdbc:scalikejdbc${s}:2.5.1"
     compile "org.scalikejdbc:scalikejdbc-config${s}:2.5.1"
-    compile "org.scalikejdbc:scalikejdbc-play-dbapi-adapter${s}:2.6.0"
     compile "org.postgresql:postgresql:9.4.1212"
     compile "ch.qos.logback:logback-classic:1.1.7"
     compile "net.codingwell:scala-guice${s}:4.1.0"

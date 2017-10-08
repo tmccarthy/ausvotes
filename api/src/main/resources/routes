@@ -1,5 +1,0 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-GET     /division/:electionId/:state/:divisionName       au.id.tmm.senatedb.api.controllers.DivisionController.index(electionId: String, state: String, divisionName: String)

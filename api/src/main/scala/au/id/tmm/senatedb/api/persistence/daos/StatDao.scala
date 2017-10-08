@@ -10,6 +10,7 @@ import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint.SpecialVoteCollectionPoint
 import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
 import au.id.tmm.utilities.geo.australia.State
+import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject}
 import scalikejdbc.{DB, _}
 
@@ -33,7 +34,7 @@ trait StatDao {
 }
 
 class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
-                                )(implicit ec: ExecutionContext) extends StatDao {
+                                )(implicit @Named("dbExecutionContext") ec: ExecutionContext) extends StatDao {
 
   private val (s, d, p, v, a, r) = (
     StatRow.syntax,

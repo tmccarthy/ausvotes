@@ -9,6 +9,7 @@ import au.id.tmm.senatedb.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.senatedb.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
 import au.id.tmm.senatedb.core.model.parsing.VoteCollectionPoint._
 import au.id.tmm.senatedb.core.model.parsing.{Division, PollingPlace, VoteCollectionPoint}
+import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc._
 
@@ -37,7 +38,8 @@ trait VoteCollectionPointDao {
 class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                 divisionDao: DivisionDao,
                                                 postcodeFlyweight: PostcodeFlyweight)
-                                               (implicit ec: ExecutionContext) extends VoteCollectionPointDao {
+                                               (implicit @Named("dbExecutionContext") ec: ExecutionContext)
+  extends VoteCollectionPointDao {
 
   override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
     DB.localTx { implicit session =>

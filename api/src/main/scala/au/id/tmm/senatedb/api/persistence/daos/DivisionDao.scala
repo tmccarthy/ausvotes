@@ -6,6 +6,7 @@ import au.id.tmm.senatedb.api.persistence.daos.rowentities.DivisionRow
 import au.id.tmm.senatedb.core.model.SenateElection
 import au.id.tmm.senatedb.core.model.parsing.Division
 import au.id.tmm.utilities.geo.australia.State
+import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import scalikejdbc.{DB, _}
 
@@ -26,7 +27,7 @@ trait DivisionDao {
 
 @Singleton
 class ConcreteDivisionDao @Inject() ()
-                                    (implicit ec: ExecutionContext) extends DivisionDao {
+                                    (implicit @Named("dbExecutionContext") ec: ExecutionContext) extends DivisionDao {
 
   override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
     val rowsToInsert = divisions.map(DivisionInsertableHelper.toInsertable).toSeq
