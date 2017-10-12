@@ -1,0 +1,59 @@
+plugins {
+    id 'com.github.maiflai.scalatest' version '0.16'
+    id 'scala'
+    id "org.akhikhl.gretty" version "2.0.0"
+}
+
+apply plugin: 'war'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
+    }
+}
+
+configurations {
+    testOutput
+}
+
+sourceSets {
+    integrationTest {
+        scala {
+            srcDirs = ['src/integration-test/scala']
+        }
+        resources {
+            srcDirs = ['src/integration-test/resources']
+        }
+    }
+}
+
+dependencies {
+    compile project(':backend')
+
+    compile "org.scalatra:scalatra${s}:2.5.1"
+    compile "ch.qos.logback:logback-classic:1.1.7"
+
+
+    testCompile project(path: ':core', configuration: 'testOutput')
+
+    testCompile "org.scalatest:scalatest${s}:2.2.1"
+    testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
+    testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+
+    // Needed to produce scalatest report
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+}
+
+task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
+    testClassesDirs = sourceSets.integrationTest.output
+    classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
+}
+
+check.dependsOn integrationTest
