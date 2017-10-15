@@ -3,7 +3,7 @@
 
 **This repository is retained for historical purposes, and serve the associated 
 [results site](https://tmccarthy.github.io/SenateDB/). All new development continues at 
-[https://tmccarthy.github.io/ausvotes/](https://tmccarthy.github.io/ausvotes/).**
+[https://github.com/tmccarthy/ausvotes](https://github.com/tmccarthy/ausvotes).**
 
 # SenateDB
 
