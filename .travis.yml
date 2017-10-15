@@ -10,5 +10,4 @@ jdk:
 services:
   - docker
 
-script: "sbt clean coverage core/test api/test core/it:test api/it:test coverageReport"
-after_success: "sbt coverageAggregate coveralls"
+script: "./gradlew build --info --stacktrace"

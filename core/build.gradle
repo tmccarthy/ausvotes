@@ -1,0 +1,62 @@
+plugins {
+    id 'com.github.maiflai.scalatest' version '0.16'
+    id 'scala'
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
+    }
+}
+
+configurations {
+    testOutput
+}
+
+sourceSets {
+    integrationTest {
+        scala {
+            srcDirs = ['src/integration-test/scala']
+        }
+        resources {
+            srcDirs = ['src/integration-test/resources']
+        }
+    }
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:$scalaVersion"
+
+    compile "au.id.tmm:tmmutils${s}:$tmmUtilsVersion"
+
+    compile "com.github.scopt:scopt${s}:3.6.0"
+    compile "com.github.tototoshi:scala-csv${s}:1.3.4"
+
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.commons:commons-lang3:3.4'
+
+    testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
+    testCompile "org.scalamock:scalamock-scalatest-support${s}:$scalaMockVersion"
+    testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+
+    // Needed to produce scalatest report
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+
+    testOutput sourceSets.test.output
+}
+
+task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
+    testClassesDirs = sourceSets.integrationTest.output
+    classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
+}
+
+check.dependsOn integrationTest

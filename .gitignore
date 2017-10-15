@@ -3,22 +3,27 @@
 *.class
 *.log
 
-# sbt specific
-.cache
-.history
-.lib/
-dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
-/.idea
-/native/.idea
+/.idea/*
+!.idea/runConfigurations
+!.idea/runConfigurations/*
+*.iml
+
+**/.gradle
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
 
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+
+**/.DS_Store
 
 /out
 /rawData
@@ -26,3 +31,14 @@ project/plugins/project/
 /reports
 *.db
 *.db-journal
+
+/buildSrc/build/
+/core/build/
+/core/out/
+/build/
+/backend/build/
+/backend/out/
+/api/build/
+/api/out/
+/docker/build/
+/docker/backend_database/build/

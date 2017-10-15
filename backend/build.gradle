@@ -1,0 +1,64 @@
+plugins {
+    id 'com.github.maiflai.scalatest' version '0.16'
+    id 'scala'
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
+    }
+}
+
+sourceSets {
+    integrationTest {
+        scala {
+            srcDirs = ['src/integration-test/scala']
+        }
+        resources {
+            srcDirs = ['src/integration-test/resources']
+        }
+    }
+}
+
+dependencies {
+    compile project(":core")
+
+    compile "com.google.inject:guice:4.1.0"
+    compile "org.flywaydb:flyway-core:4.2.0"
+
+    compile "org.scalikejdbc:scalikejdbc${s}:2.5.1"
+    compile "org.scalikejdbc:scalikejdbc-config${s}:2.5.1"
+    compile 'org.pegdown:pegdown:1.6.0'
+    compile "org.postgresql:postgresql:9.4.1212"
+    compile "ch.qos.logback:logback-classic:1.1.7"
+    compile "net.codingwell:scala-guice${s}:4.1.0"
+
+    testCompile project(path: ':core', configuration: 'testOutput')
+
+    testCompile "org.scalatest:scalatest${s}:2.2.1"
+    testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
+    testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+
+    integrationTestCompile "com.whisk:docker-testkit-scalatest${s}:0.9.0"
+    integrationTestCompile "com.whisk:docker-testkit-impl-spotify${s}:0.9.0"
+
+    // Needed to produce scalatest report
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+}
+
+task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
+    testClassesDirs = sourceSets.integrationTest.output
+    classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
+    maxParallelForks = 1
+}
+
+check.dependsOn integrationTest
