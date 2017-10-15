@@ -3,7 +3,9 @@
 *.class
 *.log
 
-/.idea
+/.idea/*
+!.idea/runConfigurations
+!.idea/runConfigurations/*
 *.iml
 
 **/.gradle
@@ -21,6 +23,8 @@ gradle-app.setting
 .scala_dependencies
 .worksheet
 
+**/.DS_Store
+
 /out
 /rawData
 /testingRawData
@@ -28,7 +32,13 @@ gradle-app.setting
 *.db
 *.db-journal
 
-/buildSrc/build
-/core/build
-/build
-/backend/build
+/buildSrc/build/
+/core/build/
+/core/out/
+/build/
+/backend/build/
+/backend/out/
+/api/build/
+/api/out/
+/docker/build/
+/docker/backend_database/build/

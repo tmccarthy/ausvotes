@@ -4,13 +4,13 @@ import java.nio.file.Paths
 import java.sql.DriverManager
 
 import au.id.tmm.ausvotes.backend.integrationtest.PostgresService.PostgresReadyChecker
+import au.id.tmm.ausvotes.backend.persistence.ManagePersistence
 import com.spotify.docker.client.exceptions.DockerException
 import com.whisk.docker.{DockerCommandExecutor, DockerContainer, DockerContainerState, DockerReadyChecker}
 import org.flywaydb.core.Flyway
 import org.scalatest._
 import org.slf4j.LoggerFactory
 import scalikejdbc.ConnectionPool
-import scalikejdbc.config.DBs
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,7 +21,8 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
 
   val dbAdvertisedPort = 5432
   val dbExposedPort = 45454
-  val dbUsername = "test_user"
+  val dbName = "ausvotes_backend"
+  val dbUsername = "ausvotes_backend"
   val dbPassword = "test_password"
 
   {
@@ -34,16 +35,16 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
 
   private val imageName = "tmccarthy/ausvotes-integration-test-db"
   private val testDbImageId = {
-    val dockerfileDir = Paths.get(getClass.getResource("/docker/database").toURI)
+    val dockerfileDir = Paths.get(getClass.getResource("/docker/backend_database").toURI)
 
     client.build(dockerfileDir, imageName)
   }
 
   val testDbContainer: DockerContainer = DockerContainer(image = imageName)
     .withPorts(dbAdvertisedPort -> Some(dbExposedPort))
-    .withEnv(s"POSTGRES_USER=$dbUsername", s"POSTGRES_PASSWORD=$dbPassword")
-    .withReadyChecker(new PostgresReadyChecker(dbUsername, dbPassword, Some(dbExposedPort))
-      .looped(15, 1.second)
+    .withEnv(s"POSTGRES_DB=$dbName", s"POSTGRES_USER=$dbUsername", s"POSTGRES_PASSWORD=$dbPassword")
+    .withReadyChecker(
+      new PostgresReadyChecker(dbName, dbUsername, dbPassword, Some(dbExposedPort)).looped(15, 1.second)
     )
 
   abstract override def dockerContainers: List[DockerContainer] =
@@ -52,11 +53,14 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    DBs.setupAll()
+    System.setProperty("DB_DEFAULT_URL", s"jdbc:postgresql://localhost:$dbExposedPort/$dbName")
+    System.setProperty("DB_DEFAULT_PASSWORD", dbPassword)
+
+    ManagePersistence.start()
   }
 
   override def afterAll(): Unit = {
-    DBs.closeAll()
+    ManagePersistence.shutdown()
 
     super.afterAll()
   }
@@ -83,7 +87,7 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
 }
 
 object PostgresService {
-  private class PostgresReadyChecker(user: String, password: String, port: Option[Int] = None)
+  private class PostgresReadyChecker(dbName: String, user: String, password: String, port: Option[Int] = None)
     extends DockerReadyChecker {
 
     override def apply(container: DockerContainerState)(implicit docker: DockerCommandExecutor,
@@ -98,7 +102,7 @@ object PostgresService {
     def isReadyOnPort(port: Int)(implicit docker: DockerCommandExecutor): Boolean = {
       Try {
         Class.forName("org.postgresql.Driver")
-        val url = s"jdbc:postgresql://${docker.host}:$port/"
+        val url = s"jdbc:postgresql://${docker.host}:$port/$dbName"
         Option(DriverManager.getConnection(url, user, password)).map(_.close).isDefined
       }.getOrElse(false)
     }

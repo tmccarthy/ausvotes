@@ -1,0 +1,38 @@
+import au.id.tmm.ausvotes.buildsrc.BuildUtils
+
+plugins {
+    id 'com.palantir.docker' version '0.13.0'
+    id 'com.palantir.docker-run' version '0.13.0'
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+apply plugin: 'idea'
+
+def dockerSrcDir = file('src').toPath()
+
+docker {
+    name 'tmccarthy/ausvotes-backend-database'
+    tags (isSnapshot ? 'latest' : project.version)
+    dockerfile dockerSrcDir.resolve('Dockerfile').toFile()
+    files fileTree(dockerSrcDir.toFile()).exclude('Dockerfile')
+}
+
+// This configuration is designed to support a local development stack
+dockerRun {
+    name 'devenv_backend_db'
+    image docker.name
+    volumes 'devenv_data': '/var/lib/postgresql/data'
+    env(
+            'POSTGRES_DB': 'ausvotes_backend',
+            'POSTGRES_USER': 'ausvotes_backend',
+            'POSTGRES_PASSWORD': BuildUtils.writeIfMissing(file('devenv_password.txt'), 'password').getText("UTF-8")
+    )
+    ports '5432:5432'
+    clean = true
+}
+
+def devenvDataDir = file('devenv_data')
+idea.module.excludeDirs += devenvDataDir
+tasks.dockerRun.doFirst {
+    BuildUtils.createDirectoryIfMissing(devenvDataDir)
+}

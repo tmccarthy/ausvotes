@@ -1,10 +1,10 @@
 plugins {
     id 'com.github.maiflai.scalatest' version '0.16'
     id 'scala'
-    id "org.akhikhl.gretty" version "2.0.0"
 }
 
 apply plugin: 'war'
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
 
 repositories {
     mavenCentral()
@@ -33,9 +33,7 @@ dependencies {
 
     compile "org.scalatra:scalatra${s}:2.5.1"
     compile "ch.qos.logback:logback-classic:1.1.7"
-
-
-    testCompile project(path: ':core', configuration: 'testOutput')
+    compile 'org.eclipse.jetty:jetty-webapp:9.4.7.v20170914'
 
     testCompile "org.scalatest:scalatest${s}:2.2.1"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
@@ -57,3 +55,4 @@ task integrationTest(type: Test) {
 }
 
 check.dependsOn integrationTest
+
