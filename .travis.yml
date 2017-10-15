@@ -10,4 +10,4 @@ jdk:
 services:
   - docker
 
-script: "./gradlew build"
+script: "./gradlew build --info --stacktrace"

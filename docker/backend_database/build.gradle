@@ -17,11 +17,14 @@ docker {
     files fileTree(dockerSrcDir.toFile()).exclude('Dockerfile')
 }
 
+def devenvDataDir = BuildUtils.createDirectoryIfMissing(file('devenv_data'))
+idea.module.excludeDirs += devenvDataDir
+
 // This configuration is designed to support a local development stack
 dockerRun {
     name 'devenv_backend_db'
     image docker.name
-    volumes 'devenv_data': '/var/lib/postgresql/data'
+    volumes "${devenvDataDir.absolutePath}": '/var/lib/postgresql/data'
     env(
             'POSTGRES_DB': 'ausvotes_backend',
             'POSTGRES_USER': 'ausvotes_backend',
@@ -29,10 +32,4 @@ dockerRun {
     )
     ports '5432:5432'
     clean = true
-}
-
-def devenvDataDir = file('devenv_data')
-idea.module.excludeDirs += devenvDataDir
-tasks.dockerRun.doFirst {
-    BuildUtils.createDirectoryIfMissing(devenvDataDir)
 }
