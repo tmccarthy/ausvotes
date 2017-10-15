@@ -1,6 +1,10 @@
 [![Build Status](https://travis-ci.org/tmccarthy/SenateDB.svg?branch=master)](https://travis-ci.org/tmccarthy/SenateDB)
 [![Coverage Status](https://coveralls.io/repos/github/tmccarthy/SenateDB/badge.svg?branch=master)](https://coveralls.io/github/tmccarthy/SenateDB?branch=master)
 
+**This repository is retained for historical purposes, and serve the associated 
+[results site](https://tmccarthy.github.io/SenateDB/). All new development continues at 
+[https://tmccarthy.github.io/ausvotes/](https://tmccarthy.github.io/ausvotes/).**
+
 # SenateDB
 
 A tool for collating and analysing the raw data about Australian Senate elections made available on the 
