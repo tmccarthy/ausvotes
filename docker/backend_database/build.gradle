@@ -17,14 +17,17 @@ docker {
     files fileTree(dockerSrcDir.toFile()).exclude('Dockerfile')
 }
 
-def devenvDataDir = BuildUtils.createDirectoryIfMissing(file('devenv_data'))
+// Workaround for bug in dockerRun plugin when volume names are specified using absolute path
+def devenvDataDir = 'devenv_data'
+BuildUtils.createDirectoryIfMissing(file(devenvDataDir))
+// def devenvDataDir = BuildUtils.createDirectoryIfMissing(file('devenv_data'))
 idea.module.excludeDirs += devenvDataDir
 
 // This configuration is designed to support a local development stack
 dockerRun {
     name 'devenv_backend_db'
     image docker.name
-    volumes "${devenvDataDir.absolutePath}": '/var/lib/postgresql/data'
+    volumes "${devenvDataDir}": '/var/lib/postgresql/data'
     env(
             'POSTGRES_DB': 'ausvotes_backend',
             'POSTGRES_USER': 'ausvotes_backend',
