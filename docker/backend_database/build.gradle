@@ -21,7 +21,7 @@ docker {
 def devenvDataDir = 'devenv_data'
 BuildUtils.createDirectoryIfMissing(file(devenvDataDir))
 // def devenvDataDir = BuildUtils.createDirectoryIfMissing(file('devenv_data'))
-idea.module.excludeDirs += devenvDataDir
+idea.module.excludeDirs += file(devenvDataDir)
 
 // This configuration is designed to support a local development stack
 dockerRun {
