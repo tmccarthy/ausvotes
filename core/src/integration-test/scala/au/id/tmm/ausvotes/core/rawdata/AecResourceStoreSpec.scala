@@ -5,7 +5,7 @@ import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
 class AecResourceStoreSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
-  val aecResourceStore = AecResourceStore.at(cleanDirectory)
+  private val aecResourceStore = AecResourceStore.at(cleanDirectory)
 
   "the loading of distribution of preferences data" should "be successful" in {
     val source = aecResourceStore.distributionOfPreferencesFor(SenateElection.`2016`, State.NT)

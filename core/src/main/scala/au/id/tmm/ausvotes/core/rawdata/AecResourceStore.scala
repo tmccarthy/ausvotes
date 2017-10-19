@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core.rawdata
 
-import java.nio.file.Path
+import java.nio.file.{Files, NotDirectoryException, Path}
 
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.download.{LoadingDistributionsOfPreferences, LoadingFirstPreferences, LoadingFormalPreferences, LoadingPollingPlaces}
@@ -16,7 +16,7 @@ trait AecResourceStore {
   def pollingPlacesFor(election: SenateElection): Try[Source]
 }
 
-private final class LocalAecResourceStore(val location: Path) extends AecResourceStore {
+private [rawdata] final class LocalAecResourceStore(val location: Path) extends AecResourceStore {
   override def distributionOfPreferencesFor(election: SenateElection, state: State): Try[Source] =
     LoadingDistributionsOfPreferences.csvLinesOf(location, election, state)
 
@@ -31,5 +31,21 @@ private final class LocalAecResourceStore(val location: Path) extends AecResourc
 }
 
 object AecResourceStore {
-  def at(location: Path): AecResourceStore = new LocalAecResourceStore(location)
+
+  @scala.annotation.tailrec
+  def at(location: Path): AecResourceStore = {
+    if (!location.isAbsolute) {
+      at(location.toAbsolutePath)
+
+    } else if (Files.isDirectory(location)) {
+      new LocalAecResourceStore(location)
+
+    } else if (Files.exists(location)) {
+      throw new NotDirectoryException(location.toString)
+
+    } else {
+      new LocalAecResourceStore(Files.createDirectories(location))
+
+    }
+  }
 }
