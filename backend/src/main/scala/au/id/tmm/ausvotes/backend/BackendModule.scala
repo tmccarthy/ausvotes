@@ -7,7 +7,7 @@ import scalikejdbc.{ConnectionPool, ConnectionPoolContext, MultipleConnectionPoo
 
 import scala.concurrent.ExecutionContext
 
-class Module extends AbstractModule with ScalaModule {
+class BackendModule extends AbstractModule with ScalaModule {
 
   override def configure(): Unit = {
     install(new CoreModule())

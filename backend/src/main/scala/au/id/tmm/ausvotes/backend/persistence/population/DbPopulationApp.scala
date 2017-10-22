@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.backend.persistence.population
 
-import au.id.tmm.ausvotes.backend.Module
+import au.id.tmm.ausvotes.backend.BackendModule
 import au.id.tmm.ausvotes.backend.persistence.ManagePersistence
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.utilities.concurrent.FutureUtils.await
@@ -9,7 +9,7 @@ import net.codingwell.scalaguice.InjectorExtensions._
 
 object DbPopulationApp {
   def main(args: Array[String]): Unit = {
-    val injector = Guice.createInjector(new Module())
+    val injector = Guice.createInjector(new BackendModule())
 
     try {
       ManagePersistence.start()

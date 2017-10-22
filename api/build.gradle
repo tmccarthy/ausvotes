@@ -28,10 +28,14 @@ sourceSets {
     }
 }
 
+def scalatraVersion = "2.5.1"
+
 dependencies {
     compile project(':backend')
 
-    compile "org.scalatra:scalatra${s}:2.5.1"
+    compile "org.scalatra:scalatra${s}:$scalatraVersion"
+    compile "org.scalatra:scalatra-json${s}:$scalatraVersion"
+    compile "org.json4s:json4s-jackson${s}:3.5.3"
     compile "ch.qos.logback:logback-classic:1.1.7"
     compile 'org.eclipse.jetty:jetty-webapp:9.4.7.v20170914'
 
