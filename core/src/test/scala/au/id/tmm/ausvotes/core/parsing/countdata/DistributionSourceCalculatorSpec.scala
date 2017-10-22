@@ -1,15 +1,16 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.fixtures.{CandidateFixture, TestsCountData}
+import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture, CountDataTestUtils}
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Party.Independent
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Name}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class DistributionSourceCalculatorSpec extends ImprovedFlatSpec with TestsCountData {
+class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
 
-  import au.id.tmm.ausvotes.core.fixtures.BallotFixture.ACT.ballotMaker.candidatePosition
+  import BallotFixture.ACT.ballotMaker.candidatePosition
+  import CountDataTestUtils.ACT._
 
   private val sut = new DistributionSourceCalculator(CandidateFixture.ACT.candidates)
 

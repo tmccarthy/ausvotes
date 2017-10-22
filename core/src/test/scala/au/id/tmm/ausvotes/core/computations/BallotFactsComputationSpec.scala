@@ -5,7 +5,9 @@ import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPrefere
 import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class BallotFactsComputationSpec extends ImprovedFlatSpec with TestsBallotFacts {
+class BallotFactsComputationSpec extends ImprovedFlatSpec {
+  import BallotFactsTestUtils.ACT._
+
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   private val testBallot = BallotFixture.ACT.formalAtl

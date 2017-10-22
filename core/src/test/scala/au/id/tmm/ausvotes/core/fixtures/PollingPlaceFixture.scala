@@ -106,4 +106,28 @@ object PollingPlaceFixture {
 
     override val pollingPlaces = Set(ALICE_SPRINGS)
   }
+
+  object WA extends PollingPlaceFixture {
+    override def state: State = State.WA
+
+    override def divisionFixture: DivisionFixture.WA.type = DivisionFixture.WA
+
+    val ASHFIELD = PollingPlace(
+      election = election,
+      state = state,
+      division = DivisionFixture.WA.PERTH,
+      aecId = 8127,
+      pollingPlaceType = PollingPlaceType.PollingPlace,
+      name = "Ashfield",
+      location = PollingPlace.Location.Premises(
+        name = "Ashfield Primary School",
+        address = Address(Vector("65 Margaret St"), "ASHFIELD", Postcode("6054"), State.WA),
+        location = LatLong(-31.9150, 115.9405),
+      )
+    )
+
+    override def pollingPlaces: Set[PollingPlace] = Set(
+      ASHFIELD,
+    )
+  }
 }

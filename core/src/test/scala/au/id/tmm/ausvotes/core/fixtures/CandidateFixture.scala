@@ -15,17 +15,17 @@ object CandidateFixture {
 
     def groupFixture: GroupFixture
 
-    lazy val groupLookup = groupFixture.groupLookup
+    lazy val groupLookup: Map[String, BallotGroup] = groupFixture.groupLookup
 
-    def candidateWithId(aecId: String) = candidates.find(_.aecId == aecId).get
+    def candidateWithId(aecId: String): Candidate = candidates.find(_.aecId == aecId).get
 
-    def candidateWithName(name: Name) = candidates.find(_.name equalsIgnoreCase name).get
+    def candidateWithName(name: Name): Candidate = candidates.find(_.name equalsIgnoreCase name).get
   }
 
   object NT extends CandidateFixture {
-    override val state = State.NT
+    override val state: State = State.NT
 
-    override val groupFixture = GroupFixture.NT
+    override val groupFixture: GroupFixture.NT.type = GroupFixture.NT
 
     override val candidates = Set(
       Candidate(election, state, "28559", Name("Jimmy", "GIMINI"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 1)),
@@ -51,9 +51,9 @@ object CandidateFixture {
   }
 
   object ACT extends CandidateFixture {
-    override val state = State.ACT
+    override val state: State = State.ACT
 
-    override val groupFixture = GroupFixture.ACT
+    override val groupFixture: GroupFixture.ACT.type = GroupFixture.ACT
 
     override val candidates = Set(
       Candidate(election, state, "29611",    Name("Matt", "DONNELLY"),       RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("A"), 0)),
@@ -82,9 +82,9 @@ object CandidateFixture {
   }
 
   object TAS extends CandidateFixture {
-    override val state = State.TAS
+    override val state: State = State.TAS
 
-    override val groupFixture = GroupFixture.TAS
+    override val groupFixture: GroupFixture.TAS.type = GroupFixture.TAS
 
     override lazy val candidates = Set(
       Candidate(election, state, "28580", Name("Eric", "ABETZ"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 0)),
@@ -145,6 +145,94 @@ object CandidateFixture {
       Candidate(election, state, "28767", Name("Grant", "RUSSELL"), RegisteredParty("Independent"), CandidatePosition(groupLookup("UG"), 3)),
       Candidate(election, state, "28800", Name("Tony", "ROBINSON"), RegisteredParty("Australian Liberty Alliance"), CandidatePosition(groupLookup("N"), 0)),
       Candidate(election, state, "29307", Name("Matt", "OWEN"), RegisteredParty("Marijuana (HEMP) Party"), CandidatePosition(groupLookup("H"), 1))
+    )
+  }
+
+  object WA extends CandidateFixture {
+    override val state: State = State.WA
+
+    override val groupFixture: GroupFixture = GroupFixture.WA
+
+    override lazy val candidates: Set[Candidate] = Set(
+      Candidate(election, state, "29437", Name("Mark David", "IMISIDES"),          RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("A"), 0)),
+      Candidate(election, state, "29440", Name("Philip Campbell", "READ"),         RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("A"), 1)),
+      Candidate(election, state, "28400", Name("Andrew", "SKERRITT"),              RegisteredParty("Shooters, Fishers and Farmers"),                CandidatePosition(groupLookup("B"), 0)),
+      Candidate(election, state, "28401", Name("Ross", "WILLIAMSON"),              RegisteredParty("Shooters, Fishers and Farmers"),                CandidatePosition(groupLookup("B"), 1)),
+      Candidate(election, state, "28527", Name("Luke", "BOLTON"),                  RegisteredParty("Nick Xenophon Team"),                           CandidatePosition(groupLookup("C"), 0)),
+      Candidate(election, state, "28528", Name("Michael", "BOVELL"),               RegisteredParty("Nick Xenophon Team"),                           CandidatePosition(groupLookup("C"), 1)),
+      Candidate(election, state, "28516", Name("Sue", "LINES"),                    RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 0)),
+      Candidate(election, state, "28517", Name("Glenn", "STERLE"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 1)),
+      Candidate(election, state, "28518", Name("Patrick", "DODSON"),               RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 2)),
+      Candidate(election, state, "28519", Name("Louise", "PRATT"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 3)),
+      Candidate(election, state, "28520", Name("Mark", "REED"),                    RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 4)),
+      Candidate(election, state, "28521", Name("Susan", "BOWERS"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 5)),
+      Candidate(election, state, "28522", Name("Mia", "ONORATO"),                  RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 6)),
+      Candidate(election, state, "28098", Name("Jean", "ROBINSON"),                RegisteredParty("Citizens Electoral Council of Australia"),      CandidatePosition(groupLookup("E"), 0)),
+      Candidate(election, state, "28099", Name("Judy", "SUDHOLZ"),                 RegisteredParty("Citizens Electoral Council of Australia"),      CandidatePosition(groupLookup("E"), 1)),
+      Candidate(election, state, "29189", Name("Kado", "MUIR"),                    RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 0)),
+      Candidate(election, state, "29190", Name("Nick", "FARDELL"),                 RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 1)),
+      Candidate(election, state, "29191", Name("Elizabeth", "RE"),                 RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 2)),
+      Candidate(election, state, "28341", Name("Kamala", "EMANUEL"),               RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 0)),
+      Candidate(election, state, "28342", Name("Seamus", "DOHERTY"),               RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 1)),
+      Candidate(election, state, "28343", Name("Farida", "IQBAL"),                 RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 2)),
+      Candidate(election, state, "29604", Name("Nicki", "HIDE"),                   RegisteredParty("Derryn Hinch's Justice Party"),                 CandidatePosition(groupLookup("H"), 0)),
+      Candidate(election, state, "29605", Name("Rachael", "HIGGINS"),              RegisteredParty("Derryn Hinch's Justice Party"),                 CandidatePosition(groupLookup("H"), 1)),
+      Candidate(election, state, "29193", Name("Zhenya Dio", "WANG"),              RegisteredParty("Palmer United Party"),                          CandidatePosition(groupLookup("I"), 0)),
+      Candidate(election, state, "29194", Name("Jacque", "KRUGER"),                RegisteredParty("Palmer United Party"),                          CandidatePosition(groupLookup("I"), 1)),
+      Candidate(election, state, "28246", Name("Scott", "LUDLAM"),                 RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 0)),
+      Candidate(election, state, "28247", Name("Rachel", "SIEWERT"),               RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 1)),
+      Candidate(election, state, "28248", Name("Jordon", "STEELE-JOHN"),           RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 2)),
+      Candidate(election, state, "28249", Name("Samantha", "JENKINSON"),           RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 3)),
+      Candidate(election, state, "28250", Name("Michael", "BALDOCK"),              RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 4)),
+      Candidate(election, state, "28251", Name("Rai", "ISMAIL"),                   RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 5)),
+      Candidate(election, state, "28831", Name("Katrina", "LOVE"),                 RegisteredParty("Animal Justice Party"),                         CandidatePosition(groupLookup("K"), 0)),
+      Candidate(election, state, "28834", Name("Alicia", "SUTTON"),                RegisteredParty("Animal Justice Party"),                         CandidatePosition(groupLookup("K"), 1)),
+      Candidate(election, state, "28270", Name("Stuart", "DONALD"),                RegisteredParty("Mature Australia"),                             CandidatePosition(groupLookup("L"), 0)),
+      Candidate(election, state, "28271", Name("Patti", "BRADSHAW"),               RegisteredParty("Mature Australia"),                             CandidatePosition(groupLookup("L"), 1)),
+      Candidate(election, state, "28264", Name("Robert", "BURATTI"),               RegisteredParty("The Arts Party"),                               CandidatePosition(groupLookup("M"), 0)),
+      Candidate(election, state, "28265", Name("Robert Kenneth Leslie", "TAYLOR"), RegisteredParty("The Arts Party"),                               CandidatePosition(groupLookup("M"), 1)),
+      Candidate(election, state, "29197", Name("Peter", "MAH"),                    RegisteredParty("Australian Cyclists Party"),                    CandidatePosition(groupLookup("N"), 0)),
+      Candidate(election, state, "29198", Name("Christopher John", "HOWARD"),      RegisteredParty("Australian Cyclists Party"),                    CandidatePosition(groupLookup("N"), 1)),
+      Candidate(election, state, "28272", Name("Pedro", "SCHWINDT"),               RegisteredParty("Renewable Energy Party"),                       CandidatePosition(groupLookup("O"), 0)),
+      Candidate(election, state, "28273", Name("Camilla", "SUNDBLADH"),            RegisteredParty("Renewable Energy Party"),                       CandidatePosition(groupLookup("O"), 1)),
+      Candidate(election, state, "28402", Name("Anthony", "HARDWICK"),             RegisteredParty("Rise Up Australia Party"),                      CandidatePosition(groupLookup("Q"), 0)),
+      Candidate(election, state, "28403", Name("Sheila", "MUNDY"),                 RegisteredParty("Rise Up Australia Party"),                      CandidatePosition(groupLookup("Q"), 1)),
+      Candidate(election, state, "28523", Name("Debbie", "ROBINSON"),              RegisteredParty("Australian Liberty Alliance"),                  CandidatePosition(groupLookup("P"), 0)),
+      Candidate(election, state, "28524", Name("Marion", "HERCOCK"),               RegisteredParty("Australian Liberty Alliance"),                  CandidatePosition(groupLookup("P"), 1)),
+      Candidate(election, state, "29186", Name("Rodney Norman", "CULLETON"),       RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 0)),
+      Candidate(election, state, "29187", Name("Peter", "GEORGIOU"),               RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 1)),
+      Candidate(election, state, "29188", Name("Ioanna", "CULLETON"),              RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 2)),
+      Candidate(election, state, "29607", Name("Michael", "BALDERSTONE"),          RegisteredParty("Marijuana (HEMP) Party"),                       CandidatePosition(groupLookup("S"), 0)),
+      Candidate(election, state, "29608", Name("James", "HURLEY"),                 RegisteredParty("Australian Sex Party"),                         CandidatePosition(groupLookup("S"), 1)),
+      Candidate(election, state, "28804", Name("Fernando", "BOVE"),                RegisteredParty("Democratic Labour Party"),                      CandidatePosition(groupLookup("T"), 0)),
+      Candidate(election, state, "28807", Name("Troy", "KIERNAN"),                 RegisteredParty("Democratic Labour Party"),                      CandidatePosition(groupLookup("T"), 1)),
+      Candidate(election, state, "28494", Name("Michaelia", "CASH"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 1)),
+      Candidate(election, state, "28497", Name("Chris", "BACK"),                   RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 4)),
+      Candidate(election, state, "29395", Name("Sara", "FARGHER"),                 RegisteredParty("Health Australia Party"),                       CandidatePosition(groupLookup("U"), 1)),
+      Candidate(election, state, "29360", Name("Samantha", "TILBURY"),             RegisteredParty("Health Australia Party"),                       CandidatePosition(groupLookup("U"), 0)),
+      Candidate(election, state, "28864", Name("Stuey", "PAULL"),                  Independent,                                                     CandidatePosition(groupLookup("V"), 0)),
+      Candidate(election, state, "28865", Name("Gary J", "MORRIS"),                Independent,                                                     CandidatePosition(groupLookup("V"), 1)),
+      Candidate(election, state, "28821", Name("Lindsay", "CAMERON"),              RegisteredParty("Australian Christians"),                        CandidatePosition(groupLookup("W"), 0)),
+      Candidate(election, state, "28825", Name("Jacky", "YOUNG"),                  RegisteredParty("Australian Christians"),                        CandidatePosition(groupLookup("W"), 1)),
+      Candidate(election, state, "28493", Name("Mathias", "CORMANN"),              RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 0)),
+      Candidate(election, state, "28495", Name("Dean", "SMITH"),                   RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 2)),
+      Candidate(election, state, "28496", Name("Linda", "REYNOLDS"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 3)),
+      Candidate(election, state, "28502", Name("Sheridan", "INGRAM"),              RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 6)),
+      Candidate(election, state, "28500", Name("David", "JOHNSTON"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 5)),
+      Candidate(election, state, "28153", Name("Lyn", "VICKERY"),                  RegisteredParty("Australia First Party"),                        CandidatePosition(groupLookup("Y"), 0)),
+      Candidate(election, state, "28155", Name("Brian", "McREA"),                  RegisteredParty("Australia First Party"),                        CandidatePosition(groupLookup("Y"), 1)),
+      Candidate(election, state, "28514", Name("Graeme Michael", "KLASS"),         RegisteredParty("Liberal Democratic Party"),                     CandidatePosition(groupLookup("Z"), 0)),
+      Candidate(election, state, "28515", Name("Connor", "WHITTLE"),               RegisteredParty("Liberal Democratic Party"),                     CandidatePosition(groupLookup("Z"), 1)),
+      Candidate(election, state, "29200", Name("Richard", "THOMAS"),               RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"),            CandidatePosition(groupLookup("AA"), 0)),
+      Candidate(election, state, "29201", Name("Mark", "CONNOLLY"),                RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"),            CandidatePosition(groupLookup("AA"), 1)),
+      Candidate(election, state, "28525", Name("Linda", "ROSE"),                   RegisteredParty("Family First Party"),                           CandidatePosition(groupLookup("AB"), 0)),
+      Candidate(election, state, "28526", Name("Henry", "HENG"),                   RegisteredParty("Family First Party"),                           CandidatePosition(groupLookup("AB"), 1)),
+      Candidate(election, state, "28097", Name("Kai", "JONES"),                    Independent,                                                     CandidatePosition(groupLookup("UG"), 0)),
+      Candidate(election, state, "28279", Name("Tammara", "MOODY"),                RegisteredParty("Australian Antipaedophile Party"),              CandidatePosition(groupLookup("UG"), 1)),
+      Candidate(election, state, "28188", Name("Julie", "MATHESON"),               Independent,                                                     CandidatePosition(groupLookup("UG"), 2)),
+      Candidate(election, state, "29356", Name("Peter", "CASTIEAU"),               Independent,                                                     CandidatePosition(groupLookup("UG"), 3)),
+      Candidate(election, state, "29401", Name("Susan", "HODDINOTT"),              RegisteredParty("Katter's Australian Party"),                    CandidatePosition(groupLookup("UG"), 4)),
+      Candidate(election, state, "29428", Name("Norm", "RAMSAY"),                  Independent,                                                     CandidatePosition(groupLookup("UG"), 5)),
     )
   }
 }

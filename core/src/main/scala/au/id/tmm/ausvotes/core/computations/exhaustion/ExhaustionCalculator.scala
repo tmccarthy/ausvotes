@@ -12,7 +12,12 @@ object ExhaustionCalculator {
 
   def exhaustionsOf(countData: CountData, ballots: Vector[(Ballot, NormalisedBallot)]): Map[Ballot, BallotExhaustion] = {
     val trackedBallots = ballots.map {
-      case (ballot, normalised) => new TrackedBallot(ballot, normalised)
+      case (ballot, normalised) =>
+        val trackedBallot = new TrackedBallot(ballot, normalised)
+
+        skipIneligibleFirstPreferences(countData.ineligibleCandidates, trackedBallot)
+
+        trackedBallot
     }
 
     val ballotsPerAllocation = new mutable.HashMap[Allocation, mutable.Set[TrackedBallot]]
@@ -22,17 +27,40 @@ object ExhaustionCalculator {
       .filter(_.currentAllocation.isDefined)
       .foreach(ballot => ballotsPerAllocation.addBinding(ballot.currentAllocation.get, ballot))
 
-    trackBallotsThroughDistributionSteps(countData.distributionSteps, ballotsPerAllocation)
+    trackBallotsThroughDistributionSteps(
+      countData.ineligibleCandidates,
+      countData.distributionSteps,
+      ballotsPerAllocation,
+    )
 
     trackedBallots.toStream
       .map { trackedBallot =>
-        trackedBallot.ballot -> trackedBallot.toExhaustion
+        trackedBallot.ballot -> trackedBallot.exhaustion
       }
       .toMap
   }
 
   @tailrec
-  private def trackBallotsThroughDistributionSteps(distributionSteps: Vector[DistributionStep],
+  private def skipIneligibleFirstPreferences(ineligibleCandidates: Set[CandidatePosition],
+                                             trackedBallot: TrackedBallot): Unit = {
+    trackedBallot.currentPreference match {
+      case Some(currentPreference) => {
+        if (ineligibleCandidates contains currentPreference) {
+          trackedBallot.currentPreferenceIndex = trackedBallot.currentPreferenceIndex + 1
+
+          skipIneligibleFirstPreferences(ineligibleCandidates, trackedBallot)
+        }
+      }
+      case None => {
+        // We've gone through all this ballot's initial preferences and they're all ineligible
+        trackedBallot.exhaustion = BallotExhaustion.ExhaustedBeforeInitialAllocation
+      }
+    }
+  }
+
+  @tailrec
+  private def trackBallotsThroughDistributionSteps(ineligibleCandidates: Set[CandidatePosition],
+                                                   distributionSteps: Vector[DistributionStep],
                                                    ballotsPerAllocation: mutable.MultiMap[Allocation, TrackedBallot]): Unit = {
     if (distributionSteps.isEmpty) {
       return
@@ -48,7 +76,9 @@ object ExhaustionCalculator {
 
     allocationsReallocatedAtThisStep.foreach(ballotsPerAllocation.remove)
 
-    val candidatesIneligibleForPreferenceFlows = step.excluded ++ (step.elected diff step.electedThisCount)
+    val candidatesIneligibleForPreferenceFlows = ineligibleCandidates ++
+      step.excluded ++
+      (step.elected diff step.electedThisCount)
 
     ballotsReallocatedAtThisStep.foreach(ballot => {
       ballot.transferValue = step.source.transferValue
@@ -60,7 +90,7 @@ object ExhaustionCalculator {
       ballot.currentAllocation.foreach(allocation => ballotsPerAllocation.addBinding(allocation, ballot))
     })
 
-    trackBallotsThroughDistributionSteps(distributionSteps.tail, ballotsPerAllocation)
+    trackBallotsThroughDistributionSteps(ineligibleCandidates, distributionSteps.tail, ballotsPerAllocation)
   }
 
   @tailrec
@@ -68,8 +98,7 @@ object ExhaustionCalculator {
                                        count: Int,
                                        candidatesIneligibleForPreferenceFlows: Set[CandidatePosition],
                                        numElectedCandidates: Int): Unit = {
-    ballot.currentPreferenceIndex = ballot.currentPreferenceIndex + 1
-    ballot.allocatedAtCount = count
+    ballot.incrementCurrentPreference(count)
 
     ballot.currentPreference match {
       case Some(c) => {
@@ -78,9 +107,7 @@ object ExhaustionCalculator {
         }
       }
       case None => {
-        ballot.isExhausted = true
-        ballot.exhaustedAtCount = Some(count)
-        ballot.candidatesElectedAtExhaustion = Some(numElectedCandidates)
+        ballot.exhaustion = BallotExhaustion.Exhausted(count, ballot.transferValue, numElectedCandidates)
       }
     }
   }
@@ -95,20 +122,15 @@ object ExhaustionCalculator {
 
                                     var transferValue: Double = 1d,
 
-                                    var isExhausted: Boolean = false,
-                                    var exhaustedAtCount: Option[Int] = None,
-                                    var candidatesElectedAtExhaustion: Option[Int] = None
+                                    var exhaustion: BallotExhaustion = BallotExhaustion.NotExhausted,
                                    ) {
     def currentAllocation: Option[Allocation] = currentPreference.map(Allocation(_, allocatedAtCount))
 
     def currentPreference: Option[CandidatePosition] = normalisedBallot.canonicalOrder.lift(currentPreferenceIndex)
 
-    def toExhaustion: BallotExhaustion = {
-      if (isExhausted) {
-        BallotExhaustion.Exhausted(exhaustedAtCount.get, transferValue, candidatesElectedAtExhaustion.get)
-      } else {
-        BallotExhaustion.NotExhausted
-      }
+    def incrementCurrentPreference(currentCount: Int): Unit = {
+      currentPreferenceIndex = currentPreferenceIndex + 1
+      allocatedAtCount = currentCount
     }
   }
 }

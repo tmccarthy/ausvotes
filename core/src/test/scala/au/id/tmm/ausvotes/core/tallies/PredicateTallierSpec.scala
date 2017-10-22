@@ -6,7 +6,9 @@ import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class PredicateTallierSpec extends ImprovedFlatSpec with TestsBallotFacts {
+class PredicateTallierSpec extends ImprovedFlatSpec {
+
+  import BallotFactsTestUtils.ACT._
 
   private val countedBallot = BallotFixture.ACT.formalAtl
   private val notCountedBallot = BallotFixture.ACT.formalBtl

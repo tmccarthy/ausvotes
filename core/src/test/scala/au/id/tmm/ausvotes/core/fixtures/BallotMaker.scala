@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture.CandidateFixture
+import au.id.tmm.ausvotes.core.fixtures.GroupFixture.GroupFixture
 import au.id.tmm.ausvotes.core.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
 import au.id.tmm.ausvotes.core.model.parsing._
 
@@ -45,12 +46,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     }.toMap
   }
 
-  private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
-
-  def candidatePosition(positionCode: String) = positionCode match {
-    case candidatePositionCodePattern(groupCode, position) =>
-      CandidatePosition(candidateFixture.groupLookup(groupCode), position.toInt)
-  }
+  def candidatePosition(positionCode: String): CandidatePosition =
+    BallotMaker.candidatePosition(candidateFixture.groupFixture)(positionCode)
 
   def group(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
     case g: Group => g
@@ -63,5 +60,14 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def groupOrder(groupsInOrder: String*): Vector[Group] = {
     groupsInOrder.map(group).toVector
+  }
+}
+
+object BallotMaker {
+  private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
+
+  def candidatePosition(groupFixture: GroupFixture)(positionCode: String): CandidatePosition = positionCode match {
+    case candidatePositionCodePattern(groupCode, position) =>
+      CandidatePosition(groupFixture.groupLookup(groupCode), position.toInt)
   }
 }

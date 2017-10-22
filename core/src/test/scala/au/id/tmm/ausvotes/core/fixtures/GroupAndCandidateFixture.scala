@@ -14,9 +14,15 @@ object GroupAndCandidateFixture {
   }
 
   object ACT extends GroupsAndCandidatesFixture {
-    override val state = State.ACT
+    override val state: State = State.ACT
 
     val groupsAndCandidates = model.GroupsAndCandidates(GroupFixture.ACT.groups, CandidateFixture.ACT.candidates)
+  }
+
+  object WA extends GroupsAndCandidatesFixture {
+    override val state: State = State.WA
+
+    val groupsAndCandidates = model.GroupsAndCandidates(GroupFixture.WA.groups, CandidateFixture.WA.candidates)
   }
 
 }

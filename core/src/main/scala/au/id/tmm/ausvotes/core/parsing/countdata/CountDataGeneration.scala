@@ -79,8 +79,15 @@ object CountDataGeneration {
     val nextStepDistributionSource = distributionSourceCalculator.calculateFor(parsedCountStepData.distributionComment,
       Vector(initialAllocation))
 
-    val emptyOutcomesMap = candidatePositionLookup.values.map(_ -> CountOutcome.Remainder).toMap
-    val outcomesAfterFirstStep = accumulateCandidateOutcomes(1, emptyOutcomesMap, parsedCountStepData)
+    val ineligableCandidates = candidatePositionLookup.values.toSet diff parsedCountStepData.candidateTransfers.keySet
+    val zerothOutcomesMap: CandidateOutcomes = candidatePositionLookup.values.map { candidatePosition =>
+      if (ineligableCandidates.contains(candidatePosition)) {
+        candidatePosition -> CountOutcome.Ineligible
+      } else {
+        candidatePosition -> CountOutcome.Remainder
+      }
+    }.toMap
+    val outcomesAfterFirstStep = accumulateCandidateOutcomes(1, zerothOutcomesMap, parsedCountStepData)
 
     InitialAllocationAndMetadata(
       initialAllocation,
@@ -188,7 +195,6 @@ object CountDataGeneration {
     assert(countRows.forall(_.count == expectedCount))
 
     val candidateTransferRows = countRows.filterNot(row => specialBallotPositions.contains(row.ballotPosition))
-    assert(candidateTransferRows.size == candidatePositionLookup.size)
 
     val exhaustedBallotsRow = countRows(candidateTransferRows.size)
     assert(exhaustedBallotsRow.ballotPosition == ballotPositionForExhausted)

@@ -1,12 +1,14 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, TestsCountData}
+import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CountDataTestUtils}
 import au.id.tmm.ausvotes.core.model.CountData
 import au.id.tmm.ausvotes.core.model.CountStep._
 import au.id.tmm.utilities.collection.OrderedSet
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class CountDataGenerationSpec extends ImprovedFlatSpec with TestsCountData {
+class CountDataGenerationSpec extends ImprovedFlatSpec {
+
+  import CountDataTestUtils.ACT._
 
   private val ballotMaker = BallotFixture.ACT.ballotMaker
   import ballotMaker.candidatePosition

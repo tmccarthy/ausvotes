@@ -21,6 +21,12 @@ final case class CountData(election: SenateElection,
   }
 
   val steps: Vector[CountStep] = Vector(initialAllocation) ++ distributionSteps
+
+  val ineligibleCandidates: Set[CandidatePosition] = outcomes
+    .collect {
+      case (candidate, CountOutcome.Ineligible) => candidate
+    }
+    .toSet
 }
 
 object CountData {
@@ -33,6 +39,9 @@ object CountData {
     final case class Elected(orderElected: Int, electedAtCount: Int) extends CountOutcome
 
     case object Remainder extends CountOutcome
+
+    case object Ineligible extends CountOutcome
+
   }
 }
 

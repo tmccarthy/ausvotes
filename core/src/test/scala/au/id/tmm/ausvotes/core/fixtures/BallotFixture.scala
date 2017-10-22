@@ -168,12 +168,12 @@ object BallotFixture {
       Map.empty
     )
 
-    val exhaustingBallot :Ballot = ballotMaker.makeBallot(
+    val exhaustingBallot: Ballot = ballotMaker.makeBallot(
       atlPreferences = Map.empty,
       btlPreferences = ballotMaker.orderedBtlPreferences("C0", "UG1", "E1", "J1", "B1", "I1")
     )
 
-    val nonExhaustingBallot :Ballot = ballotMaker.makeBallot(
+    val nonExhaustingBallot: Ballot = ballotMaker.makeBallot(
       atlPreferences = Map.empty,
       btlPreferences = ballotMaker.orderedBtlPreferences("C0", "C1", "F0", "F1", "H0", "H1")
     )
@@ -183,7 +183,7 @@ object BallotFixture {
     override val state = State.NT
     override val ballotMaker = BallotMaker(CandidateFixture.NT)
 
-    val firstPreferenceUngroupedIndy = {
+    val firstPreferenceUngroupedIndy: Ballot = {
       ballotMaker.makeBallot(
         atlPreferences = Map.empty,
         btlPreferences = ballotMaker.orderedBtlPreferences("UG0", "UG1", "A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1"),
@@ -191,5 +191,22 @@ object BallotFixture {
         pollingPlace = PollingPlaceFixture.NT.ALICE_SPRINGS
       )
     }
+  }
+
+  object WA extends BallotsFixture {
+    override val state: State = State.WA
+    override val ballotMaker = BallotMaker(CandidateFixture.WA)
+
+    val firstPreferenceIneligible: Ballot = ballotMaker.makeBallot(
+      btlPreferences = ballotMaker.orderedBtlPreferences("R0", "UG0", "UG1", "UG2", "UG3", "UG4")
+    )
+
+    val secondPreferenceIneligible: Ballot = ballotMaker.makeBallot(
+      btlPreferences = ballotMaker.orderedBtlPreferences("UG0", "R0", "UG1", "UG2", "UG3", "UG4")
+    )
+
+    val onlyPreferencesIneligible: Ballot = ballotMaker.makeBallot(
+      btlPreferences = ballotMaker.orderedBtlPreferences("R0")
+    )
   }
 }

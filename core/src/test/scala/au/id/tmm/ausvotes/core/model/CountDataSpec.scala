@@ -1,10 +1,12 @@
 package au.id.tmm.ausvotes.core.model
 
-import au.id.tmm.ausvotes.core.fixtures.TestsCountData
+import au.id.tmm.ausvotes.core.fixtures.CountDataTestUtils
 import au.id.tmm.ausvotes.core.model.CountStep.InitialAllocation
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class CountDataSpec extends ImprovedFlatSpec with TestsCountData {
+class CountDataSpec extends ImprovedFlatSpec {
+
+  import CountDataTestUtils.ACT._
 
   "a count data" should "not return a distribution step for step 1" in {
     intercept[IllegalArgumentException](countData.getDistributionStepForCount(1))
