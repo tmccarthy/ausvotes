@@ -64,7 +64,7 @@ class DbPopulator @Inject()(divisionDao: DivisionDao,
         groupsAndCandidates,
         talliers,
       )
-    }.map { tallyBundle =>
+    }.flatMap { tallyBundle =>
       val specialVoteCollectionPoints = tallyBundle.tallyProducedBy(formalBallotsByVcpTallier).asMap
         .keys
         .collect {
