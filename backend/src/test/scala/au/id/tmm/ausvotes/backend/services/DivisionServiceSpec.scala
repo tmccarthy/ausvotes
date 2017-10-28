@@ -20,7 +20,7 @@ class DivisionServiceSpec extends ImprovedFlatSpec with MockFactory {
   private val statDao = mock[StatDao]
 
   private val testElection = SenateElection.`2016`
-  private val testElectionId = ElectionDao.idOf(testElection).get
+  private val testElectionId = ElectionDao.idOf(testElection)
 
   private val sut = new DivisionService(divisionDao, statDao)
 

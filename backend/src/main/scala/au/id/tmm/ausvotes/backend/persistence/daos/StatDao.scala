@@ -208,7 +208,7 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
 
   override def hasSomeStatsForEachOf(election: SenateElection, statClasses: Set[StatClass]): Future[Boolean] = Future {
     DB.localTx { implicit session =>
-      val electionId = ElectionDao.idOf(election).get
+      val electionId = ElectionDao.idOf(election)
 
       val query = sql"""SELECT
                        |  stat_class,

@@ -29,6 +29,7 @@ sourceSets {
 
 dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
+    compile "com.typesafe.scala-logging:scala-logging${s}:3.7.2"
 
     compile "au.id.tmm:tmmutils${s}:$tmmUtilsVersion"
 

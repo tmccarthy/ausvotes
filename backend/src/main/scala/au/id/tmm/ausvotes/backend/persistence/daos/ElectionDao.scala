@@ -26,8 +26,8 @@ object ElectionDao {
     Option(lookup.inverse(electionId.toUpperCase))
   }
 
-  def idOf(election: SenateElection): Option[String] = {
-    Option(lookup(election))
+  def idOf(election: SenateElection): String = {
+    lookup(election)
   }
 
   def idOf(aecElectionId: Int): Option[String] = {
