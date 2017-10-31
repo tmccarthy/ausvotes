@@ -9,6 +9,8 @@ import net.codingwell.scalaguice.InjectorExtensions._
 
 object DbPopulationApp {
   def main(args: Array[String]): Unit = {
+    // TODO specify what to run
+
     val injector = Guice.createInjector(new BackendModule())
 
     try {

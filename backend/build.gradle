@@ -1,5 +1,6 @@
 plugins {
     id 'com.github.maiflai.scalatest' version '0.16'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
     id 'scala'
 }
 
@@ -62,3 +63,15 @@ task integrationTest(type: Test) {
 }
 
 check.dependsOn integrationTest
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'au.id.tmm.ausvotes.backend.persistence.population.DbPopulationApp'
+    }
+}
+
+shadowJar {
+    baseName = 'ausvotes-backend'
+}
+
+tasks.build.dependsOn(tasks.shadowJar)

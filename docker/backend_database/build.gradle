@@ -36,3 +36,8 @@ dockerRun {
     ports '5432:5432'
     clean = true
 }
+
+task clean(type: Delete) {
+    dependsOn tasks.dockerClean
+    delete buildDir
+}

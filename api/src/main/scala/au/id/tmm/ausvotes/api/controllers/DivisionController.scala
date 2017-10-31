@@ -34,8 +34,4 @@ class DivisionController @Inject()(divisionService: DivisionService)
       }
     }
   }
-
-  get("/anError") {
-    throw new Exception("this is a thing")
-  }
 }

@@ -1,0 +1,42 @@
+version: "3"
+
+volumes:
+  backend-db-data:
+
+services:
+  api:
+    image: tmccarthy/ausvotes-api:${AUSVOTES_VERSION:-latest}
+
+    environment:
+      # API environment variables
+      ENVIRONMENT_KEY: ${API_ENVIRONMENT_KEY:-development}
+      HOST_NAME: ${API_HOST_NAME:-localhost}
+      PORT: 80
+      JAVA_OPTS: -Xmx256m
+
+      # Backend environment variables
+      DB_DEFAULT_PASSWORD: ${BACKEND_DB_PASSWORD}
+      DB_DEFAULT_URL: jdbc:postgresql://backend_db/ausvotes_backend
+
+    ports:
+      - "${API_PORT:-8080}:80"
+
+  backend_db:
+    image: tmccarthy/ausvotes-backend-database:${AUSVOTES_VERSION:-latest}
+    environment:
+      POSTGRES_DB: ausvotes_backend
+      POSTGRES_USER: ausvotes_backend
+      POSTGRES_PASSWORD: ${BACKEND_DB_PASSWORD}
+
+    ports:
+      - "${BACKEND_DB_PORT:-5432}:5432"
+
+    volumes:
+      - backend-db-data:/var/lib/postgresql/data
+
+  backend_db_migration:
+    image: tmccarthy/ausvotes-backend-db-migration:${AUSVOTES_VERSION:-latest}
+    environment:
+      DB_DEFAULT_PASSWORD: ${BACKEND_DB_PASSWORD}
+      DB_DEFAULT_URL: jdbc:postgresql://backend_db/ausvotes_backend
+      JAVA_OPTS: -Xmx1024m

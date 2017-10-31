@@ -1,0 +1,25 @@
+plugins {
+    id 'com.palantir.docker' version '0.13.0'
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+apply plugin: 'idea'
+
+def dockerSrcDir = file('src').toPath()
+
+docker {
+    name 'tmccarthy/ausvotes-api'
+    tags (isSnapshot ? 'latest' : project.version)
+    dockerfile dockerSrcDir.resolve('Dockerfile').toFile()
+
+    def apiJarTask = tasks.getByPath(':api:shadowJar')
+
+    files fileTree(dockerSrcDir.toFile()).exclude('Dockerfile')
+    files apiJarTask.archivePath
+    dependsOn(apiJarTask)
+}
+
+task clean(type: Delete) {
+    dependsOn tasks.dockerClean
+    delete buildDir
+}

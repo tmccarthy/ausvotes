@@ -1,0 +1,31 @@
+plugins {
+    id "com.avast.gradle.docker-compose" version "0.6.1"
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+
+evaluationDependsOnChildren()
+
+dockerCompose {
+    startedServices = ['backend_db', 'api']
+    removeContainers = true
+    environment.putAll(
+            BACKEND_DB_PASSWORD: project.project('backend_database').file('devenv_password.txt').getText("UTF-8"),
+    )
+
+    backendDbMigration {
+        startedServices = ['backend_db', 'backend_db_migration']
+        captureContainersOutput = false
+    }
+}
+
+tasks.backendDbMigrationComposeUp.dependsOn(
+        project.project('backend_database').tasks.docker,
+        project.project('api').tasks.docker,
+        project.project('backend_db_migration').tasks.docker,
+)
+
+tasks.composeUp.dependsOn(
+        project.project('backend_database').tasks.docker,
+        project.project('api').tasks.docker,
+)

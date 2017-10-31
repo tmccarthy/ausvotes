@@ -18,6 +18,7 @@
     <module name="SenateDB-api_main" />
     <envs>
       <env name="DB_DEFAULT_PASSWORD" value="password" />
+      <env name="PORT" value="8080" />
     </envs>
     <method />
   </configuration>
