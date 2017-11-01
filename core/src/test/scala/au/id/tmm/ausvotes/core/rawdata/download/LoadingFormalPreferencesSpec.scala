@@ -8,7 +8,7 @@ class LoadingFormalPreferencesSpec extends ImprovedFlatSpec with NeedsCleanDirec
 
   "the loading of formal preferences" should "not be supported for the 2013 election" in {
     intercept[UnsupportedOperationException] {
-      LoadingFormalPreferences.csvLinesOf(cleanDirectory, SenateElection.`2013`, State.ACT).get
+      LoadingFormalPreferences.resourceMatching(SenateElection.`2013`, State.ACT).get
     }
   }
 

@@ -3,9 +3,11 @@ package au.id.tmm.ausvotes.core.rawdata
 import java.nio.file.{Files, NotDirectoryException, Path}
 
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.rawdata.download.{LoadingDistributionsOfPreferences, LoadingFirstPreferences, LoadingFormalPreferences, LoadingPollingPlaces}
+import au.id.tmm.ausvotes.core.rawdata.download._
+import au.id.tmm.ausvotes.core.rawdata.resources.{Resource, ResourceWithDigest}
 import au.id.tmm.utilities.geo.australia.State
 
+import scala.collection.concurrent.TrieMap
 import scala.io.Source
 import scala.util.Try
 
@@ -17,17 +19,46 @@ trait AecResourceStore {
 }
 
 private [rawdata] final class LocalAecResourceStore(val location: Path) extends AecResourceStore {
+
+  private val downloadMutexes: scala.collection.concurrent.Map[Resource, Object] = TrieMap()
+
+  private def resourcePathFor(resource: Resource): Try[Path] = {
+    downloadMutexes.getOrElseUpdate(resource, new Object).synchronized {
+      resource match {
+        case r: ResourceWithDigest => StorageUtils.findRawDataWithIntegrityCheckFor(location, r)
+        case r: Resource => StorageUtils.findRawDataFor(location, r)
+      }
+    }
+  }
+
   override def distributionOfPreferencesFor(election: SenateElection, state: State): Try[Source] =
-    LoadingDistributionsOfPreferences.csvLinesOf(location, election, state)
+    for {
+      resource <- LoadingDistributionsOfPreferences.resourceMatching(election)
+      resourcePath <- resourcePathFor(resource)
+      source <- LoadingDistributionsOfPreferences.csvLinesFor(resource, resourcePath, state)
+    } yield source
 
   override def firstPreferencesFor(election: SenateElection): Try[Source] =
-    LoadingFirstPreferences.csvLinesOf(location, election)
+    for {
+      resource <- LoadingFirstPreferences.resourceMatching(election)
+      resourcePath <- resourcePathFor(resource)
+      source <- LoadingFirstPreferences.csvLinesOf(resourcePath)
+    } yield source
 
   override def formalPreferencesFor(election: SenateElection, state: State): Try[Source] =
-    LoadingFormalPreferences.csvLinesOf(location, election, state)
+    for {
+      resource <- LoadingFormalPreferences.resourceMatching(election, state)
+      resourcePath <- resourcePathFor(resource)
+      source <- LoadingFormalPreferences.csvLinesOf(resource, resourcePath)
+    } yield source
 
   override def pollingPlacesFor(election: SenateElection): Try[Source] =
-    LoadingPollingPlaces.csvLinesOf(location, election)
+    for {
+      resource <- LoadingPollingPlaces.resourceMatching(election)
+      resourcePath <- resourcePathFor(resource)
+      source <- LoadingPollingPlaces.csvLinesOf(resourcePath)
+    } yield source
+
 }
 
 object AecResourceStore {

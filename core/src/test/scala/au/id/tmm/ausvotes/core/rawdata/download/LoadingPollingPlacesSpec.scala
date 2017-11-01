@@ -7,7 +7,7 @@ class LoadingPollingPlacesSpec extends ImprovedFlatSpec with NeedsCleanDirectory
 
   "the loading of polling place data" should "not be supported for the 2013 election" in {
     intercept[UnsupportedOperationException] {
-      LoadingPollingPlaces.csvLinesOf(cleanDirectory, SenateElection.`2013`).get
+      LoadingPollingPlaces.resourceMatching(SenateElection.`2013`).get
     }
   }
 

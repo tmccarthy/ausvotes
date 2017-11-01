@@ -7,7 +7,7 @@ class LoadingFirstPreferencesSpec extends ImprovedFlatSpec with NeedsCleanDirect
 
   "the loading of first preferences data" should "not be supported for the 2013 election" in {
     intercept[UnsupportedOperationException] {
-      LoadingFirstPreferences.csvLinesOf(cleanDirectory, SenateElection.`2013`).get
+      LoadingFirstPreferences.resourceMatching(SenateElection.`2013`).get
     }
   }
 

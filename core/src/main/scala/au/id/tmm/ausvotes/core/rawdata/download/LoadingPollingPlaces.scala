@@ -10,15 +10,13 @@ import scala.io.Source
 import scala.util.Try
 
 object LoadingPollingPlaces {
-  def csvLinesOf(dataDir: Path, election: SenateElection): Try[Source] = {
+  def csvLinesOf(localRawDataFile: Path): Try[Source] = {
     for {
-      matchingResource <- resourceMatching(election)
-      localRawDataFile <- StorageUtils.findRawDataFor(dataDir, matchingResource)
       source <- Try(Source.fromFile(localRawDataFile.toFile))
     } yield source
   }
 
-  private def resourceMatching(election: SenateElection): Try[PollingPlacesResource] =
+  def resourceMatching(election: SenateElection): Try[PollingPlacesResource] =
     PollingPlacesResource.of(election)
       .failIfAbsent(new UnsupportedOperationException(s"Could not find raw polling places data for $election"))
 

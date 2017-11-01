@@ -1,11 +1,9 @@
 package au.id.tmm.ausvotes.core.rawdata.download
 
-import java.io.InputStream
 import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipFile}
 
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.rawdata.download.StorageUtils.findRawDataWithIntegrityCheckFor
 import au.id.tmm.ausvotes.core.rawdata.resources.DistributionOfPreferencesResource
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.io.ZipFileUtils.{ImprovedPath, ImprovedZipFile}
@@ -16,25 +14,18 @@ import scala.util.Try
 
 object LoadingDistributionsOfPreferences {
 
-  def csvLinesOf(dataDir: Path, election: SenateElection, state: State): Try[Source] = {
+  def csvLinesFor(resource: DistributionOfPreferencesResource, resourceLocation: Path, state: State): Try[Source] = {
     for {
-      matchingResource <- resourceMatching(election)
-      dataFilePath <- findRawDataWithIntegrityCheckFor(dataDir, matchingResource)
-      inputStream <- csvInputStreamFrom(matchingResource, dataFilePath, state)
+      zipFile <- Try(resourceLocation.asZipFile)
+      zipEntry <- findMatchingZipEntry(resource, state, resourceLocation, zipFile)
+      inputStream <- Try(zipFile.getInputStream(zipEntry))
       source <- Try(Source.fromInputStream(inputStream, "UTF-8"))
     } yield source
   }
 
-  private def resourceMatching(election: SenateElection): Try[DistributionOfPreferencesResource] =
+  def resourceMatching(election: SenateElection): Try[DistributionOfPreferencesResource] =
     DistributionOfPreferencesResource.of(election)
       .failIfAbsent(new UnsupportedOperationException(s"Could not find a distribution of preferences for $election"))
-
-  private def csvInputStreamFrom(resource: DistributionOfPreferencesResource, zipFilePath: Path, state: State): Try[InputStream] =
-    for {
-      zipFile <- Try(zipFilePath.asZipFile)
-      zipEntry <- findMatchingZipEntry(resource, state, zipFilePath, zipFile)
-      inputStream <- Try(zipFile.getInputStream(zipEntry))
-    } yield inputStream
 
   private def findMatchingZipEntry(resource: DistributionOfPreferencesResource,
                                    state: State,

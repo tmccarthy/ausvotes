@@ -13,15 +13,13 @@ import scala.util.Try
 // has a timestamp
 object LoadingFirstPreferences {
 
-  def csvLinesOf(dataDir: Path, election: SenateElection): Try[Source] = {
+  def csvLinesOf(localRawDataFile: Path): Try[Source] = {
     for {
-      matchingResource <- resourceMatching(election)
-      localRawDataFile <- StorageUtils.findRawDataFor(dataDir, matchingResource)
       source <- Try(Source.fromFile(localRawDataFile.toFile))
     } yield source
   }
 
-  private def resourceMatching(election: SenateElection): Try[FirstPreferencesResource] =
+  def resourceMatching(election: SenateElection): Try[FirstPreferencesResource] =
     FirstPreferencesResource.of(election)
       .failIfAbsent(new UnsupportedOperationException(s"Could not find raw first preferences data for $election"))
 }
