@@ -43,6 +43,7 @@ dependencies {
     testCompile "org.scalatest:scalatest${s}:2.2.1"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
     testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+    testCompile 'org.slf4j:slf4j-simple:1.7.25'
 
     // Needed to produce scalatest report
     testRuntime 'org.pegdown:pegdown:1.4.2'

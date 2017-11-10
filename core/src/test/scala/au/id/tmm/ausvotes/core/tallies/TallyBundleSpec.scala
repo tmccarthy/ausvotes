@@ -48,9 +48,13 @@ class TallyBundleSpec extends ImprovedFlatSpec {
 
   private object StringGrouper extends BallotGrouping[String] {
     override def groupsOf(ballotWithFacts: BallotWithFacts): Set[String] = throw new NotImplementedError()
+
+    override def name: String = "string"
   }
 
   private object IntGrouper extends BallotGrouping[Int] {
     override def groupsOf(ballotWithFacts: BallotWithFacts): Set[Int] = throw new NotImplementedError()
+
+    override def name: String = "int"
   }
 }

@@ -1,9 +1,11 @@
 package au.id.tmm.ausvotes.backend.persistence.population
 
+import au.id.tmm.ausvotes.backend.persistence.ManagePersistence
 import au.id.tmm.ausvotes.backend.persistence.daos.{DivisionDao, StatDao, VoteCollectionPointDao}
 import au.id.tmm.ausvotes.backend.persistence.entities.stats.StatClass
-import au.id.tmm.ausvotes.backend.persistence.population.DbPopulator.{formalBallotsByVcpTallier, requiredStatClasses}
 import au.id.tmm.ausvotes.core.engine.{ParsedDataStore, TallyEngine}
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.VoteCollectionPoint.SpecialVoteCollectionPoint
 import au.id.tmm.ausvotes.core.tallies.{BallotCounter, BallotGrouping, TallierBuilder}
@@ -12,21 +14,24 @@ import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-// TODO logging
 @Singleton
 class DbPopulator @Inject()(divisionDao: DivisionDao,
                             voteCollectionPointDao: VoteCollectionPointDao,
                             statDao: StatDao,
                             parsedDataStore: ParsedDataStore,
                             tallyEngine: TallyEngine,
-                             )(implicit ec: ExecutionContext) {
+                           )(implicit ec: ExecutionContext) {
+
+  import DbPopulator._
 
   def populateAsRequired(election: SenateElection): Future[Unit] = {
     isPopulatedFor(election).flatMap { isPopulated =>
       if (isPopulated) {
+        DbPopulator.logger.info("DB_POPULATION_NOT_NEEDED", "election" -> election)
         Future.successful(Unit)
       } else {
         populateFor(election)
+          .logEvent("DB_POPULATION", "election" -> election)
       }
     }
   }
@@ -85,11 +90,17 @@ class DbPopulator @Inject()(divisionDao: DivisionDao,
   }
 
   private def clearDbFor(election: SenateElection): Future[Unit] = {
-    Future.successful() // TODO
+    Future {
+      ManagePersistence.clearSchema()
+      ManagePersistence.migrateSchema()
+    }
+      .logEvent("CLEAR_DB", "election" -> election)
   }
 }
 
 object DbPopulator {
+  private implicit val logger: Logger = Logger()
+
   private val requiredStatClasses = StatClass.ALL
 
   private val formalBallotsByVcpTallier = TallierBuilder

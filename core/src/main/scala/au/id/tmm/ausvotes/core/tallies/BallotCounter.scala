@@ -10,6 +10,8 @@ trait BallotCounter {
 
   def weigh(ballots: Iterable[BallotWithFacts]): Double
 
+  def name: String
+
 }
 
 object BallotCounter {
@@ -25,23 +27,33 @@ object BallotCounter {
 
   case object FormalBallots extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.normalisedBallot.isFormal
+
+    override val name: String = "formal ballots"
   }
 
   case object VotedAtl extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.normalisedBallot.isNormalisedToAtl
+
+    override val name: String = "votes atl"
   }
 
   case object VotedAtlAndBtl extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean =
       ballot.normalisedBallot.isFormalAtl && ballot.normalisedBallot.isFormalBtl
+
+    override val name: String = "votes atl and btl"
   }
 
   case object VotedBtl extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.normalisedBallot.isNormalisedToBtl
+
+    override val name: String = "votes btl"
   }
 
   case object DonkeyVotes extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.isDonkeyVote
+
+    override val name: String = "donkey votes"
   }
 
   case object ExhaustedBallots extends PredicateBallotCounter {
@@ -49,6 +61,8 @@ object BallotCounter {
       case _: Exhausted | ExhaustedBeforeInitialAllocation => true
       case NotExhausted => false
     }
+
+    override val name: String = "exhausted ballots"
   }
 
   case object ExhaustedVotes extends BallotCounter {
@@ -63,10 +77,15 @@ object BallotCounter {
         }
         .sum
     }
+
+    override val name: String = "exhausted votes"
   }
 
   case object UsedHowToVoteCard extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.matchingHowToVote.isDefined
+
+
+    override val name: String = "votes using htv cards"
   }
 
   case object Voted1Atl extends PredicateBallotCounter {
@@ -80,9 +99,15 @@ object BallotCounter {
 
     private def hasOnly1Atl(atlPreferences: AtlPreferences) =
       atlPreferences.size == 1 && oneAtlPreferences.contains(atlPreferences.head._2)
+
+
+    override val name: String = "votes 1 atl"
   }
 
   case object UsedSavingsProvision extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.savingsProvisionsUsed.nonEmpty
+
+
+    override val name: String = "ballots using savings provisions"
   }
 }

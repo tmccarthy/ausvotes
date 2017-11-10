@@ -7,6 +7,8 @@ import au.id.tmm.utilities.concurrent.FutureUtils.await
 import com.google.inject.{Guice, Injector}
 import net.codingwell.scalaguice.InjectorExtensions._
 
+import scala.concurrent.duration.DurationInt
+
 object DbPopulationApp {
   def main(args: Array[String]): Unit = {
     // TODO specify what to run
@@ -15,6 +17,7 @@ object DbPopulationApp {
 
     try {
       ManagePersistence.start()
+      ManagePersistence.waitForDatabase(15.seconds)
       ManagePersistence.migrateSchema()
 
       doPopulation(injector)

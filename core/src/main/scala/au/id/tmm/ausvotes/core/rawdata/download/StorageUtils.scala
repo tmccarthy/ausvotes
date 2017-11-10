@@ -2,36 +2,46 @@ package au.id.tmm.ausvotes.core.rawdata.download
 
 import java.nio.file.{Files, Path}
 
-import au.id.tmm.ausvotes.core.rawdata.download.DownloadUtils.{downloadUrlToFile, localResourceIntegrityCheck}
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.TryOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.rawdata.resources.{Resource, ResourceWithDigest}
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 object StorageUtils {
-  def findRawDataFor(dataDir: Path, resource: Resource): Try[Path] = {
-    val expectedPath = dataDir.resolve(resource.localFileName)
 
-    if (Files.exists(expectedPath)) {
-      Try(expectedPath)
+  private implicit val logger = Logger()
 
-    } else {
-      downloadUrlToFile(resource.url, expectedPath)
-        .map(_ => expectedPath)
-
-    }
+  def findRawDataFor(resource: Resource, dataDir: Path, performDigestCheck: Boolean = false): Try[Path] = {
+    Try {
+      findRawDataImpl(resource, dataDir, performDigestCheck)
+    }.logEvent(
+      "FIND_RAW_DATA_FOR_RESOURCE",
+      "resource" -> resource.url,
+    )
   }
 
-  def findRawDataWithIntegrityCheckFor(dataDir: Path, resource: ResourceWithDigest): Try[Path] = {
+  @tailrec
+  private def findRawDataImpl(resource: Resource, dataDir: Path, performDigestCheck: Boolean): Path = {
     val expectedPath = dataDir.resolve(resource.localFileName)
 
-    if (Files.exists(expectedPath)) {
-      localResourceIntegrityCheck(expectedPath, resource.digest).map(_ => expectedPath)
+    if (!Files.exists(expectedPath)) {
+      DownloadUtils.downloadUrlToFile(resource.url, expectedPath)
+      findRawDataImpl(resource, dataDir, performDigestCheck)
 
     } else {
-      downloadUrlToFile(resource.url, expectedPath)
-        .flatMap(_ => localResourceIntegrityCheck(expectedPath, resource.digest))
-        .map(_ => expectedPath)
-
+      resource match {
+        case r: ResourceWithDigest => {
+          if (performDigestCheck) {
+            DownloadUtils.throwIfDigestMismatch(expectedPath, r.digest)
+          }
+          expectedPath
+        }
+        case _: Resource => {
+          expectedPath
+        }
+      }
     }
   }
 }

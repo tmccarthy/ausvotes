@@ -1,11 +1,12 @@
 package au.id.tmm.ausvotes.backend.persistence
 
+import java.util.concurrent.ForkJoinPool
+
 import com.google.inject.name.Named
 import com.google.inject.{AbstractModule, Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.forkjoin.ForkJoinPool
 
 class PersistenceModule extends AbstractModule with ScalaModule {
 

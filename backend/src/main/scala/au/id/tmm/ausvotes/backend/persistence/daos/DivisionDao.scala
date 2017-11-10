@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.backend.persistence.daos
 import au.id.tmm.ausvotes.backend.persistence.daos.enumconverters.{ElectionEnumConverter, StateEnumConverter}
 import au.id.tmm.ausvotes.backend.persistence.daos.insertionhelpers.DivisionInsertableHelper
 import au.id.tmm.ausvotes.backend.persistence.daos.rowentities.DivisionRow
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Division
 import au.id.tmm.utilities.geo.australia.State
@@ -29,7 +31,9 @@ trait DivisionDao {
 class ConcreteDivisionDao @Inject() ()
                                     (implicit @Named("dbExecutionContext") ec: ExecutionContext) extends DivisionDao {
 
-  override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future {
+  import ConcreteDivisionDao._
+
+  override def write(divisions: TraversableOnce[Division]): Future[Unit] = Future[Unit] {
     val rowsToInsert = divisions.map(DivisionInsertableHelper.toInsertable).toSeq
 
     DB.localTx { implicit session =>
@@ -38,6 +42,7 @@ class ConcreteDivisionDao @Inject() ()
         .apply()
     }
   }
+    .logEvent("WRITE_DIVISIONS")
 
   override def allAtElection(election: SenateElection): Future[Set[Division]] = Future {
     DB.localTx { implicit session =>
@@ -90,4 +95,8 @@ class ConcreteDivisionDao @Inject() ()
         .map(_.asDivision)
     }
   }
+}
+
+object ConcreteDivisionDao {
+  private implicit val logger: Logger = Logger()
 }

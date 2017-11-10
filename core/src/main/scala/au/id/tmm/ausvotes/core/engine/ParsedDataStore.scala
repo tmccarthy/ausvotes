@@ -1,5 +1,7 @@
 package au.id.tmm.ausvotes.core.engine
 
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.TryOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.flyweights._
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
@@ -30,6 +32,8 @@ object ParsedDataStore {
 }
 
 private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends ParsedDataStore {
+  private implicit val logger = Logger()
+
   private val groupFlyweight = GroupFlyweight()
   private val partyFlyweight = RegisteredPartyFlyweight()
   private val postcodeFlyweight = PostcodeFlyweight()
@@ -39,6 +43,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
     resource.managed(rawDataStore.firstPreferencesFor(election))
       .map(rows => GroupAndCandidateGeneration.fromFirstPreferencesRows(election, rows, groupFlyweight, partyFlyweight))
       .toTry
+      .logEvent("PARSE_GROUPS_AND_CANDIDATES", "election" -> election)
       .get
   }
 
@@ -46,6 +51,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
     resource.managed(rawDataStore.pollingPlacesFor(election))
       .map(rows => DivisionAndPollingPlaceGeneration.fromPollingPlaceRows(election, rows, divisionFlyweight, postcodeFlyweight))
       .toTry
+      .logEvent("PARSE_DIVISIONS_AND_POLLING_PLACES", "election" -> election)
       .get
   }
 
@@ -55,6 +61,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
     resource.managed(rawDataStore.distributionsOfPreferencesFor(election, state))
       .map(rows => CountDataGeneration.fromDistributionOfPreferencesRows(election, state, allGroupsAndCandidates, rows))
       .toTry
+      .logEvent("PARSE_COUNT_DATA", "election" -> election, "state" -> state.abbreviation)
       .get
   }
 

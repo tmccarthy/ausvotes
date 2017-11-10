@@ -25,8 +25,8 @@ private [rawdata] final class LocalAecResourceStore(val location: Path) extends 
   private def resourcePathFor(resource: Resource): Try[Path] = {
     downloadMutexes.getOrElseUpdate(resource, new Object).synchronized {
       resource match {
-        case r: ResourceWithDigest => StorageUtils.findRawDataWithIntegrityCheckFor(location, r)
-        case r: Resource => StorageUtils.findRawDataFor(location, r)
+        case r: ResourceWithDigest => StorageUtils.findRawDataFor(r, location, performDigestCheck = true)
+        case r: Resource => StorageUtils.findRawDataFor(r, location, performDigestCheck = false)
       }
     }
   }

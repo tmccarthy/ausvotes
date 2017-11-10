@@ -12,6 +12,8 @@ sealed trait Tallier {
   def tally(ballots: Iterable[BallotWithFacts]): ProducedTallyType
 
   def isOfProducedTallyType(tally: Tally): Boolean
+
+  def name: String
 }
 
 final case class Tallier0(ballotCounter: BallotCounter) extends Tallier {
@@ -29,6 +31,8 @@ final case class Tallier0(ballotCounter: BallotCounter) extends Tallier {
   }
 
   override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally0]
+
+  override val name: String = ballotCounter.name
 }
 
 final case class Tallier1[T_GROUP_1](ballotGrouper: BallotGrouper1[T_GROUP_1], ballotCounter: BallotCounter) extends Tallier {
@@ -49,6 +53,8 @@ final case class Tallier1[T_GROUP_1](ballotGrouper: BallotGrouper1[T_GROUP_1], b
   }
 
   override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally1[T_GROUP_1]]
+
+  override val name: String = s"${ballotCounter.name.capitalize} grouped by ${ballotGrouper.name}"
 }
 
 final case class Tallier2[T_GROUP_1, T_GROUP_2](ballotGrouper: BallotGrouper2[T_GROUP_1, T_GROUP_2], ballotCounter: BallotCounter) extends Tallier {
@@ -69,6 +75,8 @@ final case class Tallier2[T_GROUP_1, T_GROUP_2](ballotGrouper: BallotGrouper2[T_
   }
 
   override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally2[T_GROUP_1, T_GROUP_2]]
+
+  override val name: String = s"${ballotCounter.name.capitalize} grouped by ${ballotGrouper.name}"
 }
 
 final case class Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3](ballotGrouper: BallotGrouper3[T_GROUP_1, T_GROUP_2, T_GROUP_3], ballotCounter: BallotCounter) extends Tallier {
@@ -89,6 +97,8 @@ final case class Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3](ballotGrouper: Ballot
   }
 
   override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]]
+
+  override val name: String = s"${ballotCounter.name.capitalize} grouped by ${ballotGrouper.name}"
 }
 
 final case class Tallier4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](ballotGrouper: BallotGrouper4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4], ballotCounter: BallotCounter) extends Tallier {
@@ -104,4 +114,6 @@ final case class Tallier4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](ballotGrou
   }
 
   override def isOfProducedTallyType(tally: Tally): Boolean = tally.isInstanceOf[Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4]]
+
+  override val name: String = s"${ballotCounter.name.capitalize} grouped by ${ballotGrouper.name}"
 }

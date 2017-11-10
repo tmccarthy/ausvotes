@@ -5,6 +5,8 @@ import au.id.tmm.ausvotes.backend.persistence.daos.insertionhelpers.InsertableSu
 import au.id.tmm.ausvotes.backend.persistence.daos.insertionhelpers._
 import au.id.tmm.ausvotes.backend.persistence.daos.rowentities._
 import au.id.tmm.ausvotes.backend.persistence.entities.stats.{Stat, StatClass}
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.ausvotes.core.model.parsing.VoteCollectionPoint.SpecialVoteCollectionPoint
@@ -35,6 +37,8 @@ trait StatDao {
 
 class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
                                 )(implicit @Named("dbExecutionContext") ec: ExecutionContext) extends StatDao {
+
+  import ConcreteStatDao._
 
   private val (s, d, p, v, a, r) = (
     StatRow.syntax,
@@ -145,7 +149,7 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
     )
   }
 
-  override def writeStats(election: SenateElection, stats: Iterable[Stat[Any]]): Future[Unit] = Future {
+  override def writeStats(election: SenateElection, stats: Iterable[Stat[Any]]): Future[Unit] = Future[Unit] {
     DB.localTx { implicit session =>
 
       val idPerStat = insertStatsReturningIds(election, stats.toVector)
@@ -153,6 +157,7 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
       insertRanksFor(idPerStat)
     }
   }
+    .logEvent("WRITE_STATS", "election" -> election, "num_stats" -> stats.size)
 
   private def insertStatsReturningIds(election: SenateElection, stats: Vector[Stat[Any]]
                                      )(implicit session: DBSession): Map[Stat[_], Long] = {
@@ -230,4 +235,8 @@ class ConcreteStatDao @Inject() (postcodeFlyweight: PostcodeFlyweight,
     }
   }
 
+}
+
+object ConcreteStatDao {
+  private implicit val logger: Logger = Logger()
 }

@@ -4,6 +4,8 @@ import au.id.tmm.ausvotes.backend.persistence.daos.enumconverters.ElectionEnumCo
 import au.id.tmm.ausvotes.backend.persistence.daos.insertionhelpers.InsertableSupport.Insertable
 import au.id.tmm.ausvotes.backend.persistence.daos.insertionhelpers.{DivisionInsertableHelper, PollingPlaceInsertableHelper, SpecialVcpInsertableHelper}
 import au.id.tmm.ausvotes.backend.persistence.daos.rowentities._
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.flyweights.PostcodeFlyweight
 import au.id.tmm.ausvotes.core.model.parsing.PollingPlace.Location.{Multiple, Premises, PremisesMissingLatLong}
@@ -41,11 +43,15 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
                                                (implicit @Named("dbExecutionContext") ec: ExecutionContext)
   extends VoteCollectionPointDao {
 
-  override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future {
+  import ConcreteVoteCollectionPointDao._
+
+  override def write(voteCollectionPoints: Iterable[VoteCollectionPoint]): Future[Unit] = Future[Unit] {
     DB.localTx { implicit session =>
       writeBatch(voteCollectionPoints.toVector)
     }
   }
+    .logEvent("WRITE_VCPS", "num_vcps" -> voteCollectionPoints.size)
+
 
   private def writeBatch(vcps: Vector[VoteCollectionPoint])(implicit session: DBSession): Unit = {
     val (pollingPlaces, specialVcps) = vcps.partition {
@@ -192,4 +198,8 @@ class ConcreteVoteCollectionPointDao @Inject() (addressDao: AddressDao,
   override def idOf(specialVcp: SpecialVoteCollectionPoint): Long = SpecialVcpInsertableHelper.idOf(specialVcp)
 
   override def idOf(pollingPlace: PollingPlace): Long = PollingPlaceInsertableHelper.idOf(pollingPlace)
+}
+
+object ConcreteVoteCollectionPointDao {
+  private implicit val logger: Logger = Logger()
 }

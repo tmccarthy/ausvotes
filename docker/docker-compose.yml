@@ -2,6 +2,7 @@ version: "3"
 
 volumes:
   backend-db-data:
+  raw-data:
 
 services:
   api:
@@ -40,3 +41,6 @@ services:
       DB_DEFAULT_PASSWORD: ${BACKEND_DB_PASSWORD}
       DB_DEFAULT_URL: jdbc:postgresql://backend_db/ausvotes_backend
       JAVA_OPTS: -Xmx1024m
+
+    volumes:
+      - raw-data:/opt/ausvotes-api/rawData

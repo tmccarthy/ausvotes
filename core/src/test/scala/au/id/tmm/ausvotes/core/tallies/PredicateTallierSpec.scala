@@ -19,6 +19,8 @@ class PredicateTallierSpec extends ImprovedFlatSpec {
 
   private object TestCounter extends BallotCounter.PredicateBallotCounter {
     override def isCounted(ballotWithFacts: BallotWithFacts): Boolean = ballotWithFacts.ballot == countedBallot
+
+    override def name: String = "counted ballots"
   }
 
   private val sut = TallierBuilder.counting(TestCounter)

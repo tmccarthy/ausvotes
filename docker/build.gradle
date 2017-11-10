@@ -9,6 +9,7 @@ evaluationDependsOnChildren()
 dockerCompose {
     startedServices = ['backend_db', 'api']
     removeContainers = true
+    removeVolumes = false
     environment.putAll(
             BACKEND_DB_PASSWORD: project.project('backend_database').file('devenv_password.txt').getText("UTF-8"),
     )

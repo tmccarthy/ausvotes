@@ -30,7 +30,7 @@ class StorageUtilsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
   }
 
   "the storage utils" should "download the resource to the location if it is missing" in {
-    val expectedLocation = StorageUtils.findRawDataFor(cleanDirectory, testResource)
+    val expectedLocation = StorageUtils.findRawDataFor(testResource, cleanDirectory)
 
     val actualContent = expectedLocation.map(Files.readAllBytes).map(new String(_))
 
@@ -45,7 +45,7 @@ class StorageUtilsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
     When("we find the file")
 
-    val expectedLocation = StorageUtils.findRawDataFor(cleanDirectory, testResource)
+    val expectedLocation = StorageUtils.findRawDataFor(testResource, cleanDirectory)
 
     Then("the original file remains")
 
@@ -55,7 +55,7 @@ class StorageUtilsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
   }
 
   it should "download a resource with a digest if it is missing" in {
-    val expectedLocation = StorageUtils.findRawDataWithIntegrityCheckFor(cleanDirectory, testResourceWithDigest)
+    val expectedLocation = StorageUtils.findRawDataFor(testResourceWithDigest, cleanDirectory, performDigestCheck = true)
 
     val actualContent = expectedLocation.map(Files.readAllBytes).map(new String(_))
 
@@ -70,7 +70,7 @@ class StorageUtilsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
     When("we find the file")
 
-    val expectedLocation = StorageUtils.findRawDataWithIntegrityCheckFor(cleanDirectory, testResourceWithDigest)
+    val expectedLocation = StorageUtils.findRawDataFor(testResourceWithDigest, cleanDirectory, performDigestCheck = true)
 
     Then("the original file remains")
 
@@ -87,7 +87,7 @@ class StorageUtilsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
     When("we find the file")
 
-    val expectedLocation = StorageUtils.findRawDataWithIntegrityCheckFor(cleanDirectory, testResourceWithDigest)
+    val expectedLocation = StorageUtils.findRawDataFor(testResourceWithDigest, cleanDirectory, performDigestCheck = true)
 
     Then("the find operation fails")
 

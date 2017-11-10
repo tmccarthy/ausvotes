@@ -4,8 +4,10 @@ import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.ausvotes.core.logging.Logger
+import au.id.tmm.ausvotes.core.model._
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, HowToVoteCard, SenateElection}
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
@@ -32,6 +34,8 @@ trait TallyEngine {
 }
 
 object TallyEngine extends TallyEngine {
+  private implicit val logger: Logger = Logger()
+
   def runFor(parsedDataStore: ParsedDataStore,
              election: SenateElection,
              states: Set[State],
@@ -70,6 +74,11 @@ object TallyEngine extends TallyEngine {
       .map(tallies => tallies.reduce(_ + _))
 
     finalTallies
+      .logEvent("TALLY_ENGINE_EXECUTION",
+        "election" -> election,
+        "states" -> states,
+        "talliers" -> talliers.map(_.getClass.getSimpleName),
+      )
   }
 
   private def talliesForState(parsedDataStore: ParsedDataStore,
@@ -83,7 +92,7 @@ object TallyEngine extends TallyEngine {
 
     Future {
       parsedDataStore.countDataFor(election, groupsAndCandidates, state)
-    } map { countData =>
+    }.map { countData =>
       val computationTools = buildComputationToolsFor(election, state, groupsAndCandidates, howToVoteCards)
       val computationInputData = ComputationInputData(
         ComputationInputData.ElectionLevelData(divisionsAndPollingPlaces, groupsAndCandidates, howToVoteCards),
@@ -97,6 +106,11 @@ object TallyEngine extends TallyEngine {
         .toTry
         .get
     }
+      .logEvent("COMPUTE_TALLIES_FOR_STATE",
+        "election" -> election,
+        "state" -> state.abbreviation,
+        "talliers" -> talliers.map(_.getClass.getSimpleName),
+      )
   }
 
   private def talliesFromBallots(election: SenateElection,

@@ -11,9 +11,9 @@ class DownloadUtilsSpec extends ImprovedFlatSpec {
     val file = Paths.get(getClass.getResource("/au/id/tmm/ausvotes/core/fixtures/firstPreferencesTest.csv").toURI)
     val badDigest = Digest("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
-    val result = DownloadUtils.localResourceIntegrityCheck(file, badDigest)
-
-    assert(result.isFailure)
+    intercept[DataIntegrityException] {
+      DownloadUtils.throwIfDigestMismatch(file, badDigest)
+    }
   }
 
 }
