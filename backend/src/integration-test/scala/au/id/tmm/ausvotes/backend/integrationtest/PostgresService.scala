@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.backend.integrationtest
 import java.nio.file.Paths
 import java.sql.DriverManager
 
+import au.id.tmm.ausvotes.backend.EnvironmentVars
 import au.id.tmm.ausvotes.backend.integrationtest.PostgresService.PostgresReadyChecker
 import au.id.tmm.ausvotes.backend.persistence.ManagePersistence
 import com.spotify.docker.client.exceptions.DockerException
@@ -22,8 +23,8 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   val dbAdvertisedPort = 5432
   val dbExposedPort = 45454
   val dbName = "ausvotes_backend"
-  val dbUsername = "ausvotes_backend"
-  val dbPassword = "test_password"
+  val dbUsername = EnvironmentVars.dbUser
+  val dbPassword = ""
 
   {
     try {
@@ -53,10 +54,11 @@ trait PostgresService extends SpotifyClientDockerTestKit with TestSuite {
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    System.setProperty("DB_DEFAULT_URL", s"jdbc:postgresql://localhost:$dbExposedPort/$dbName")
-    System.setProperty("DB_DEFAULT_PASSWORD", dbPassword)
-
-    ManagePersistence.start()
+    ManagePersistence.start(
+      url = s"jdbc:postgresql://localhost:$dbExposedPort/$dbName",
+      user = dbUsername,
+      password = dbPassword,
+    )
   }
 
   override def afterAll(): Unit = {

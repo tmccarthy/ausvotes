@@ -1,11 +1,12 @@
 package au.id.tmm.ausvotes.backend.persistence
 
+import java.nio.file.{Files, Paths}
 import java.sql.SQLTimeoutException
 import java.time.Instant
 
+import au.id.tmm.ausvotes.backend.EnvironmentVars
 import au.id.tmm.ausvotes.core.logging.{LoggedEvent, Logger}
 import org.flywaydb.core.Flyway
-import scalikejdbc.config.DBs
 import scalikejdbc.{ConnectionPool, DB, _}
 
 import scala.annotation.tailrec
@@ -15,9 +16,36 @@ object ManagePersistence {
 
   private implicit val logger: Logger = Logger()
 
-  def start(): Unit = {
+  def start(url: String = EnvironmentVars.dbUrl,
+            user: String = EnvironmentVars.dbUser,
+            password: String = findPassword(),
+           ): Unit = {
     LoggedEvent("DB_SETUP").logWithTimeOnceFinished {
-      DBs.setup()
+      val connectionPoolSettings = ConnectionPoolSettings(
+        initialSize = 2,
+        maxSize = 10,
+        validationQuery = "SELECT 1;",
+        connectionTimeoutMillis = 10000,
+      )
+
+      Class.forName(classOf[org.postgresql.Driver].getName)
+
+      ConnectionPool.add(
+        name = ConnectionPool.DEFAULT_NAME,
+        url = url,
+        user = user,
+        password = password,
+        settings = connectionPoolSettings,
+      )
+    }
+  }
+
+  def findPassword(): String = {
+    val maybePwdFile = EnvironmentVars.dbPasswordFile.map(Paths.get(_))
+
+    maybePwdFile match {
+      case Some(pwdFile) => new String(Files.readAllBytes(pwdFile), "UTF-8")
+      case None => ""
     }
   }
 
@@ -76,7 +104,7 @@ object ManagePersistence {
 
   def shutdown(): Unit = {
     LoggedEvent("DB_SHUTDOWN").logWithTimeOnceFinished {
-      DBs.close()
+      ConnectionPool.close()
     }
   }
 
