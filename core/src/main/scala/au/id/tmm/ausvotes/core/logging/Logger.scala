@@ -5,7 +5,7 @@ import java.util.Objects
 import org.apache.commons.lang3.StringUtils
 import org.slf4j
 
-final class Logger private (val underlying: slf4j.Logger) {
+class Logger protected (val underlying: slf4j.Logger) {
 
   import Logger._
 

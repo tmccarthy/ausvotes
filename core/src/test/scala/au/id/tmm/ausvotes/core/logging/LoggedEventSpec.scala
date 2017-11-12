@@ -1,10 +1,15 @@
 package au.id.tmm.ausvotes.core.logging
 
+import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
+import au.id.tmm.utilities.concurrent.FutureUtils.await
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalamock.scalatest.MockFactory
 
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-class LoggedEventSpec extends ImprovedFlatSpec {
+class LoggedEventSpec extends ImprovedFlatSpec with MockFactory {
 
   "a logged event" can "be constructed with an id" in {
     val loggedEvent = LoggedEvent("EVENT_ID")
@@ -53,4 +58,42 @@ class LoggedEventSpec extends ImprovedFlatSpec {
     assert(loggedEvent.exception contains exception)
   }
 
+  it should "log after a successful event" in {
+    implicit val logger = stub[Logger]
+
+    val loggedEvent = LoggedEvent("EVENT_ID")
+
+    loggedEvent.logOnceFinished {
+      "asdf"
+    }
+
+    (logger.info(_: LoggedEvent)).verify(loggedEvent).once()
+  }
+
+  it can "log the time taken by an event" in {
+    implicit val logger = stub[Logger]
+
+    val loggedEvent = LoggedEvent("EVENT_ID")
+
+    loggedEvent.logWithTimeOnceFinished {
+      "asdf"
+    }
+
+    (logger.info(_: LoggedEvent)).verify(loggedEvent).once()
+
+    assert(loggedEvent.kvPairs.toMap.isDefinedAt("duration"))
+  }
+
+  it can "log the outcome of a future" in {
+    implicit val logger = stub[Logger]
+
+    val future = Future {
+      "asdf"
+    }
+      .logEvent("EVENT_ID")
+
+    await(future)
+
+    (logger.info(_: LoggedEvent)).verify(*).once()
+  }
 }
