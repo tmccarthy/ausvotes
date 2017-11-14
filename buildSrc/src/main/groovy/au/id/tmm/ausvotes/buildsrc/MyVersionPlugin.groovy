@@ -1,15 +1,15 @@
 package au.id.tmm.ausvotes.buildsrc
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import java.util.regex.Pattern
+import static org.eclipse.jgit.lib.Constants.HEAD
+import static org.eclipse.jgit.lib.Constants.R_TAGS
 
 class MyVersionPlugin implements Plugin<Project> {
-
-    private static final Pattern VERSION_TAG_PATTERN = Pattern.compile(/^v(\d.*)$/)
 
     @Override
     void apply(Project target) {
@@ -20,9 +20,10 @@ class MyVersionPlugin implements Plugin<Project> {
         def repository = new FileRepositoryBuilder().findGitDir(project.rootDir).build()
         def git = new Git(repository)
 
-        def (isTagged, version) = isTaggedAndVersion(git)
-        def workingTreeIsClean = git.status().call().clean
-        def isSnapshot = !(workingTreeIsClean && isTagged)
+        def gitDescription = git.describe().setMatch("v[0-9]*").call()
+        def workingTreeIsClean = !git.status().call().uncommittedChanges
+        def version = dropPrefix("v", gitDescription)
+        def isSnapshot = !(workingTreeIsClean && isHeadTagged(git))
 
         project.ext.isSnapshot = isSnapshot
 
@@ -33,35 +34,37 @@ class MyVersionPlugin implements Plugin<Project> {
         }
     }
 
-    private static Tuple2<Boolean, String> isTaggedAndVersion(Git git) {
-        def versionFromTag = versionFromTag(git)
-        def isTagged = versionFromTag != null
+    private static boolean isHeadTagged(Git git) {
+        tagsForHead(git).any {
+            it.startsWith("v")
+        }
+    }
 
-        if (isTagged) {
-            return new Tuple2(isTagged, versionFromTag)
+    private static Set<String> tagsForHead(Git git) {
+        Set<String> tagsForHead = new HashSet()
+
+        def headObjectId = git.repository.resolve(HEAD).toObjectId()
+
+        def allTags = git.tagList().call()
+
+        for (Ref tag : allTags) {
+            def tagObjectId = tag.objectId
+
+            if (Objects.equals(tagObjectId, headObjectId)) {
+                def tagName = dropPrefix(R_TAGS, tag.name)
+
+                tagsForHead.add(tagName)
+            }
+        }
+
+        tagsForHead
+    }
+
+    private static String dropPrefix(String prefix, String string) {
+        if (string.startsWith(prefix)) {
+            string.substring(prefix.length())
         } else {
-            def versionFromDescribe = git.describe().setMatch("v[0-9]*").call().substring(1)
-
-            return new Tuple2(isTagged, versionFromDescribe)
+            string
         }
     }
-
-    private static String versionFromTag(Git git) {
-        def tags = git.tagList().call()
-
-        tags.findResult {
-            versionFromTag(it.name)
-        }
-    }
-
-    private static String versionFromTag(String tagName) {
-        def groups = VERSION_TAG_PATTERN =~ tagName
-
-        if(groups.hasGroup()) {
-            groups[1]
-        } else {
-            null
-        }
-    }
-
 }
