@@ -42,3 +42,5 @@ gradle-app.setting
 /api/out/
 /docker/build/
 /docker/backend_database/build/
+/docker/api/build/
+/docker/backend_db_migration/build/

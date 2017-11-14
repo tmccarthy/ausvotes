@@ -1,7 +1,12 @@
+rootProject.name = 'ausvotes'
+
 include 'core',
         'backend',
         'api',
         'docker',
         'docker:api',
         'docker:backend_db_migration',
-        'docker:backend_database'
+        'docker:backend_database',
+        'docker:stack',
+        'docker:stack:local_dev',
+        'docker:stack:production'

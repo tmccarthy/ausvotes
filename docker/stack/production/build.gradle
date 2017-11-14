@@ -1,0 +1,44 @@
+plugins {
+    id "com.avast.gradle.docker-compose" version "0.6.1"
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
+
+evaluationDependsOn(':docker:api')
+evaluationDependsOn(':docker:backend_database')
+evaluationDependsOn(':docker:backend_db_migration')
+evaluationDependsOn(':docker:stack')
+
+dockerCompose {
+    useComposeFiles = ['../docker-compose.yml', 'docker-compose.production.yml']
+    startedServices = ['backend_db', 'api', 'backend_db_migration']
+    removeContainers = true
+    removeVolumes = false
+    environment.putAll(
+            DOCKER_TLS_VERIFY: 'yes',
+            DOCKER_HOST: "$System.env.DOCKER_HOST",
+            DOCKER_CERT_PATH: project.file('secrets/docker_certs').absolutePath,
+
+            AUSVOTES_VERSION: project.version,
+
+            BACKEND_DB_PASSWORD_FILE: project.file('secrets/backend_db_password'),
+
+            API_PORT: "$System.env.API_PORT",
+            API_HOST_NAME: "$System.env.API_HOST_NAME",
+    )
+    projectName = project.rootProject.name
+}
+
+tasks.composeUp {
+    doFirst {
+        if (project.isSnapshot) {
+            throw new GradleException("Cannot deploy a non-snapshot version")
+        }
+    }
+}
+
+tasks.composeUp.dependsOn(
+        project.project(':docker:backend_database').tasks.dockerPush,
+        project.project(':docker:api').tasks.dockerPush,
+        project.project(':docker:backend_db_migration').tasks.dockerPush,
+)

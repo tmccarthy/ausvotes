@@ -41,3 +41,15 @@ task clean(type: Delete) {
     dependsOn tasks.dockerClean
     delete buildDir
 }
+
+tasks.withType(Exec.class) {
+    environment = new HashMap()
+}
+
+tasks.dockerPush {
+    doFirst {
+        if (project.isSnapshot) {
+            throw new GradleException("Cannot push a non-snapshot version")
+        }
+    }
+}
