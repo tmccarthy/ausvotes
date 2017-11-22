@@ -7,20 +7,20 @@ import au.id.tmm.utilities.geo.australia.State
 
 class RawPreferenceParser private (election: SenateElection, state: State, groupsAndCandidates: GroupsAndCandidates) {
 
-  private lazy val relevantGroups = groupsAndCandidates.groups
+  private val relevantGroups = groupsAndCandidates.groups
     .filter(g => g.election == election && g.state == state)
 
-  private lazy val relevantCandidates = groupsAndCandidates.candidates
+  private val relevantCandidates = groupsAndCandidates.candidates
     .filter(c => c.election == election && c.state == state)
 
-  private lazy val numGroupsAtl = relevantGroups.size
+  private val numGroupsAtl = relevantGroups.size
 
-  private lazy val groupsInOrder: Vector[Group] = relevantGroups
+  private val groupsInOrder: Vector[Group] = relevantGroups
     .toStream
     .sorted(BallotGroup.ordering)
     .toVector
 
-  private lazy val indexBtlToCandidatePos: Map[Int, CandidatePosition] = {
+  private val indexBtlToCandidatePos: Map[Int, CandidatePosition] = {
     val btlCandidatesInOrder = relevantCandidates
       .toStream
       .sortBy(_.btlPosition)
@@ -34,8 +34,6 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
 
   def preferencesFrom(rawPreferencesString: String): (AtlPreferences, BtlPreferences) = {
     val (groupPreferencesArray, candidatePreferencesArray) = rawPreferencesString.split(",", -1)
-      .map(Preference.fromRawValue)
-      .toVector
       .splitAt(numGroupsAtl)
 
     val atlPreferences = atlPreferencesFrom(groupPreferencesArray)
@@ -45,24 +43,34 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
     (atlPreferences, btlPreferences)
   }
 
-  private def atlPreferencesFrom(groupPreferences: Vector[Option[Preference]]): AtlPreferences = {
-    assert(numGroupsAtl == groupPreferences.size)
+  private def atlPreferencesFrom(rawGroupPreferences: Array[String]): AtlPreferences = {
+    assert(numGroupsAtl == rawGroupPreferences.length)
 
-    (groupsInOrder.toStream zip groupPreferences)
-      .filter { case (_, preference) => preference.isDefined }
-      .map { case (group, preferenceOption) => group -> preferenceOption.get }
-      .toMap
+    val returnedMapBuilder = Map.newBuilder[Group, Preference]
+
+    for (groupIndex <- groupsInOrder.indices) {
+      val groupPreferenceOption = Preference.fromRawValue(rawGroupPreferences(groupIndex))
+
+      if (groupPreferenceOption.isDefined) {
+        returnedMapBuilder += (groupsInOrder(groupIndex) -> groupPreferenceOption.get)
+      }
+    }
+
+    returnedMapBuilder.result()
   }
 
-  private def btlPreferencesFrom(candidatePreferences: Vector[Option[Preference]]): BtlPreferences = {
-    candidatePreferences
-      .toStream
-      .zipWithIndex
-      .filter { case (preference, index) => preference.isDefined }
-      .map {
-        case (preferenceOption, btlIndex) => indexBtlToCandidatePos(btlIndex) -> preferenceOption.get
+  private def btlPreferencesFrom(candidatePreferences: Array[String]): BtlPreferences = {
+    val returnedMapBuilder = Map.newBuilder[CandidatePosition, Preference]
+
+    for (candidateIndex <- candidatePreferences.indices) {
+      val candidatePreferenceOption = Preference.fromRawValue(candidatePreferences(candidateIndex))
+
+      if (candidatePreferenceOption.isDefined) {
+        returnedMapBuilder += (indexBtlToCandidatePos(candidateIndex) -> candidatePreferenceOption.get)
       }
-      .toMap
+    }
+
+    returnedMapBuilder.result()
   }
 }
 

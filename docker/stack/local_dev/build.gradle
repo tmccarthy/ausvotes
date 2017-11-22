@@ -10,15 +10,20 @@ evaluationDependsOn(':docker:backend_db_migration')
 evaluationDependsOn(':docker:stack')
 
 dockerCompose {
+    projectName = "${project.rootProject.name}_${project.name}"
     useComposeFiles = ['../docker-compose.yml', 'docker-compose.local_dev.yml']
     startedServices = ['backend_db', 'api']
     removeContainers = true
     removeVolumes = false
     environment.putAll(
-            BACKEND_DB_PASSWORD_FILE: project.project(':docker:backend_database').file('devenv_password.txt').absolutePath
+            PROJECT_NAME: projectName,
+
+            BACKEND_DB_PASSWORD_FILE: project.project(':docker:backend_database').file('devenv_password.txt').absolutePath,
     )
 
     backendDbMigration {
+        projectName = "${project.rootProject.name}_${project.name}"
+        useComposeFiles = ['../docker-compose.yml', 'docker-compose.local_dev.yml']
         startedServices = ['backend_db', 'backend_db_migration']
         captureContainersOutput = false
     }

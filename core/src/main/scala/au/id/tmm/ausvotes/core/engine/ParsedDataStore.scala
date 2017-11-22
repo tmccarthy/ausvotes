@@ -5,8 +5,8 @@ import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.flyweights._
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.parsing._
 import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
-import au.id.tmm.ausvotes.core.parsing.{BallotGeneration, DivisionAndPollingPlaceGeneration, GroupAndCandidateGeneration, RawPreferenceParser}
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State

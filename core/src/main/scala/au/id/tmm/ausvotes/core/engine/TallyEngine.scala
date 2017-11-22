@@ -11,7 +11,7 @@ import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
-import au.id.tmm.utilities.collection.CloseableIterator
+import au.id.tmm.utilities.collection.{CloseableIterator, OrderedSet}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
@@ -51,6 +51,19 @@ object TallyEngine extends TallyEngine {
     } yield allTallies
   }
 
+  private def orderBySize(states: Set[State]): OrderedSet[State] = {
+    OrderedSet(
+      State.NSW,
+      State.VIC,
+      State.QLD,
+      State.WA,
+      State.SA,
+      State.TAS,
+      State.ACT,
+      State.NT,
+    ).intersect(states)
+  }
+
   def runFor(parsedDataStore: ParsedDataStore,
              election: SenateElection,
              states: Set[State],
@@ -60,7 +73,7 @@ object TallyEngine extends TallyEngine {
             (implicit ec: ExecutionContext): Future[TallyBundle] = {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
-    val tallyFuturesPerState = states
+    val tallyFuturesPerState = orderBySize(states)
       .map(state => talliesForState(parsedDataStore,
         election,
         state,
@@ -77,7 +90,7 @@ object TallyEngine extends TallyEngine {
       .logEvent("TALLY_ENGINE_EXECUTION",
         "election" -> election,
         "states" -> states,
-        "talliers" -> talliers.map(_.getClass.getSimpleName),
+        "talliers" -> talliers.map(_.name),
       )
   }
 
@@ -109,7 +122,7 @@ object TallyEngine extends TallyEngine {
       .logEvent("COMPUTE_TALLIES_FOR_STATE",
         "election" -> election,
         "state" -> state.abbreviation,
-        "talliers" -> talliers.map(_.getClass.getSimpleName),
+        "talliers" -> talliers.map(_.name),
       )
   }
 
