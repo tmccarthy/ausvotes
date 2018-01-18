@@ -11,4 +11,4 @@ The `core/src/test/resources/au/id/tmm/ausvotes/core/fixtures` directory contain
 data. These files are © Commonwealth of Australia 2014, and are [licenced](http://www.aec.gov.au/footer/Copyright.htm) 
 under the [Creative Commons Attribution 3.0 Australia Licence](http://creativecommons.org/licenses/by/3.0/au/).
 
-The rest of the application is licenced under the terms in the [LICENCE](LICENCE) file (GNU GPL version 3).
+The rest of the application is licenced under the terms in the [LICENCE](LICENCE) file (GNU Affero GPL version 3).
