@@ -2,7 +2,6 @@ plugins {
     id 'com.palantir.docker' version '0.13.0'
 }
 
-apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
 apply plugin: 'idea'
 
 def dockerSrcDir = file('src').toPath()

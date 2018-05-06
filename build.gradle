@@ -4,6 +4,8 @@ repositories {
     mavenCentral()
 }
 
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyReleasePlugin
+
 task wrapper(type: Wrapper) {
     gradleVersion = '4.2'
     distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"

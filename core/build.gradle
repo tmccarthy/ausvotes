@@ -3,8 +3,6 @@ plugins {
     id 'scala'
 }
 
-apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
-
 repositories {
     mavenLocal()
     mavenCentral()
