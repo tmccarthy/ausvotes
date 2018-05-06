@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
-import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, ExhaustedBeforeInitialAllocation, NotExhausted}
+import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, NotExhausted}
 import au.id.tmm.ausvotes.core.model.parsing.Ballot.AtlPreferences
 import au.id.tmm.ausvotes.core.model.parsing.Preference
 
@@ -58,7 +58,7 @@ object BallotCounter {
 
   case object ExhaustedBallots extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean = ballot.exhaustion match {
-      case _: Exhausted | ExhaustedBeforeInitialAllocation => true
+      case _: Exhausted => true
       case NotExhausted => false
     }
 
@@ -70,9 +70,8 @@ object BallotCounter {
       ballots
         .map {
           _.exhaustion match {
-            case BallotExhaustion.Exhausted(_, value, _) => value
+            case BallotExhaustion.Exhausted(_, value, _) => value.factor
             case BallotExhaustion.NotExhausted => 0d
-            case ExhaustedBeforeInitialAllocation => 1d
           }
         }
         .sum

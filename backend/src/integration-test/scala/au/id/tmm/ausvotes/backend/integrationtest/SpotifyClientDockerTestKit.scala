@@ -8,7 +8,9 @@ import org.scalatest.Suite
 
 trait SpotifyClientDockerTestKit extends DockerTestKit { this: Suite =>
 
-  val client: DockerClient = DefaultDockerClient.fromEnv().build()
+  val client: DockerClient = DefaultDockerClient.fromEnv()
+    .dockerCertificates(null)
+    .build()
 
   override implicit val dockerFactory: DockerFactory = new SpotifyDockerFactory(client)
 

@@ -1,39 +1,63 @@
 package au.id.tmm.ausvotes.core.computations.exhaustion
 
 import au.id.tmm.ausvotes.core.model.CountData
-import au.id.tmm.ausvotes.core.model.CountStep.DistributionStep
+import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.NotExhausted
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, NormalisedBallot}
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, CandidatePosition}
+import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
+import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 object ExhaustionCalculator {
 
   def exhaustionsOf(countData: CountData, ballots: Vector[(Ballot, NormalisedBallot)]): Map[Ballot, BallotExhaustion] = {
-    val trackedBallots = ballots.map {
-      case (ballot, normalised) =>
-        val trackedBallot = new TrackedBallot(ballot, normalised)
 
-        skipIneligibleFirstPreferences(countData.ineligibleCandidates, trackedBallot)
+    val trackedBallots = ballots.map { case (ballot, normalisedBallot) => new TrackedBallot(ballot, normalisedBallot) }
 
-        trackedBallot
+    for (List(previousCountStep, countStep) <- countData.countSteps.sliding(size = 2)) {
+      assert(previousCountStep.count.increment == countStep.count)
+
+      countStep match {
+        case countStep: InitialAllocation[CandidatePosition] => {}
+        case countStep: AllocationAfterIneligibles[CandidatePosition] => {
+          trackedBallots.foreach { trackedBallot =>
+            if (trackedBallot.currentPreference.exists(countStep.candidateStatuses.ineligibleCandidates)) {
+              allocateToNextPreference(
+                trackedBallot,
+                countStep.count,
+                countStep.candidateStatuses.ineligibleForPreferenceFlows,
+                numElectedCandidates = 0,
+              )
+            }
+          }
+        }
+        case countStep: DistributionCountStep[CandidatePosition] => {
+          for {
+            distributionSource <- countStep.distributionSource
+            trackedBallot <- trackedBallots
+          } {
+            if (
+              trackedBallot.currentPreference.contains(distributionSource.candidate) &&
+                distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)
+            ) {
+              val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates diff
+                previousCountStep.candidateStatuses.electedCandidates
+
+              trackedBallot.transferValue = distributionSource.transferValue
+              allocateToNextPreference(
+                trackedBallot,
+                countStep.count,
+                countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep,
+                numElectedCandidates = countStep.candidateStatuses.electedCandidates.size,
+              )
+            }
+          }
+        }
+      }
     }
 
-    val ballotsPerAllocation = new mutable.HashMap[Allocation, mutable.Set[TrackedBallot]]
-      with mutable.MultiMap[Allocation, TrackedBallot]
-
-    trackedBallots.toStream
-      .filter(_.currentAllocation.isDefined)
-      .foreach(ballot => ballotsPerAllocation.addBinding(ballot.currentAllocation.get, ballot))
-
-    trackBallotsThroughDistributionSteps(
-      countData.ineligibleCandidates,
-      countData.distributionSteps,
-      ballotsPerAllocation,
-    )
-
-    trackedBallots.toStream
+    trackedBallots
       .map { trackedBallot =>
         trackedBallot.ballot -> trackedBallot.exhaustion
       }
@@ -41,86 +65,39 @@ object ExhaustionCalculator {
   }
 
   @tailrec
-  private def skipIneligibleFirstPreferences(ineligibleCandidates: Set[CandidatePosition],
-                                             trackedBallot: TrackedBallot): Unit = {
-    trackedBallot.currentPreference match {
-      case Some(currentPreference) => {
-        if (ineligibleCandidates contains currentPreference) {
-          trackedBallot.currentPreferenceIndex = trackedBallot.currentPreferenceIndex + 1
-
-          skipIneligibleFirstPreferences(ineligibleCandidates, trackedBallot)
-        }
-      }
-      case None => {
-        // We've gone through all this ballot's initial preferences and they're all ineligible
-        trackedBallot.exhaustion = BallotExhaustion.ExhaustedBeforeInitialAllocation
-      }
-    }
-  }
-
-  @tailrec
-  private def trackBallotsThroughDistributionSteps(ineligibleCandidates: Set[CandidatePosition],
-                                                   distributionSteps: Vector[DistributionStep],
-                                                   ballotsPerAllocation: mutable.MultiMap[Allocation, TrackedBallot]): Unit = {
-    if (distributionSteps.isEmpty) {
-      return
-    }
-
-    val step = distributionSteps.head
-
-    val allocationsReallocatedAtThisStep = step.source.sourceCounts.map(count => Allocation(step.source.sourceCandidate, count))
-
-    val ballotsReallocatedAtThisStep = allocationsReallocatedAtThisStep.flatMap(allocation => {
-      ballotsPerAllocation.getOrElse(allocation, mutable.Set())
-    })
-
-    allocationsReallocatedAtThisStep.foreach(ballotsPerAllocation.remove)
-
-    val candidatesIneligibleForPreferenceFlows = ineligibleCandidates ++
-      step.excluded ++
-      (step.elected diff step.electedThisCount)
-
-    ballotsReallocatedAtThisStep.foreach(ballot => {
-      ballot.transferValue = step.source.transferValue
-
-      allocateToNextPreference(ballot, step.count, candidatesIneligibleForPreferenceFlows, step.elected.size)
-    })
-
-    ballotsReallocatedAtThisStep.foreach(ballot => {
-      ballot.currentAllocation.foreach(allocation => ballotsPerAllocation.addBinding(allocation, ballot))
-    })
-
-    trackBallotsThroughDistributionSteps(ineligibleCandidates, distributionSteps.tail, ballotsPerAllocation)
-  }
-
-  @tailrec
   private def allocateToNextPreference(ballot: TrackedBallot,
-                                       count: Int,
+                                       count: Count,
                                        candidatesIneligibleForPreferenceFlows: Set[CandidatePosition],
                                        numElectedCandidates: Int): Unit = {
-    ballot.incrementCurrentPreference(count)
+    ballot.exhaustion match {
+      case NotExhausted => {
+        ballot.incrementCurrentPreference(count)
 
-    ballot.currentPreference match {
-      case Some(c) => {
-        if (candidatesIneligibleForPreferenceFlows contains c) {
-          allocateToNextPreference(ballot, count, candidatesIneligibleForPreferenceFlows, numElectedCandidates)
+        ballot.currentPreference match {
+          case Some(c) => {
+            if (candidatesIneligibleForPreferenceFlows contains c) {
+              allocateToNextPreference(ballot, count, candidatesIneligibleForPreferenceFlows, numElectedCandidates)
+            }
+          }
+          case None => {
+            ballot.exhaustion = BallotExhaustion.Exhausted(count, ballot.transferValue, numElectedCandidates)
+          }
         }
       }
-      case None => {
-        ballot.exhaustion = BallotExhaustion.Exhausted(count, ballot.transferValue, numElectedCandidates)
-      }
+      case _ =>
     }
+
   }
 
-  private final case class Allocation(candidatePosition: CandidatePosition, fromCount: Int)
+  private final case class Allocation(candidatePosition: CandidatePosition, fromCount: Count)
 
   private final class TrackedBallot(val ballot: Ballot,
                                     val normalisedBallot: NormalisedBallot,
 
                                     var currentPreferenceIndex: Int = 0,
-                                    var allocatedAtCount: Int = 1,
+                                    var allocatedAtCount: Count = Count.ofIneligibleCandidateHandling,
 
-                                    var transferValue: Double = 1d,
+                                    var transferValue: TransferValue = TransferValue(1d),
 
                                     var exhaustion: BallotExhaustion = BallotExhaustion.NotExhausted,
                                    ) {
@@ -128,7 +105,7 @@ object ExhaustionCalculator {
 
     def currentPreference: Option[CandidatePosition] = normalisedBallot.canonicalOrder.lift(currentPreferenceIndex)
 
-    def incrementCurrentPreference(currentCount: Int): Unit = {
+    def incrementCurrentPreference(currentCount: Count): Unit = {
       currentPreferenceIndex = currentPreferenceIndex + 1
       allocatedAtCount = currentCount
     }

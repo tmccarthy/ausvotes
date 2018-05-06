@@ -14,7 +14,7 @@ final case class FormalPreferencesResource private(election: SenateElection,
                                                    digest: Digest) extends ResourceWithDigest {
   private val nameSansExtension = s"aec-senate-formalpreferences-${election.aecID}-${state.abbreviation}"
 
-  override val url: URL = new URL(s"http://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
+  override val url: URL = new URL(s"https://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
   override val localFileName: Path = Paths.get(s"$nameSansExtension.zip").getFileName
 

@@ -1,8 +1,5 @@
 repositories {
     mavenCentral()
-    maven {
-        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
-    }
 }
 
 dependencies {

@@ -9,6 +9,7 @@ import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
 import scala.collection.mutable
+import scala.language.postfixOps
 
 class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
@@ -25,7 +26,7 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
 
     val countData = parsedDataStore.countDataFor(election, groupsAndCandidates, state)
 
-    val counts = 1 to countData.steps.last.count inclusive
+    val counts = 1 to countData.countSteps.last.count.asInt inclusive
 
     val actualCumulativeExhaustedVotesPerCount = {
 
@@ -41,9 +42,9 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
 
       ballotsWithExhaustions.foreach {
         case (ballot, Exhausted(count, value, _)) => {
-          val exhaustedSoFar = actualExhaustedVotesPerCount(count)
+          val exhaustedSoFar = actualExhaustedVotesPerCount(count.asInt)
 
-          actualExhaustedVotesPerCount.put(count, exhaustedSoFar + value)
+          actualExhaustedVotesPerCount.put(count.asInt, exhaustedSoFar + value.factor)
         }
         case _ => {}
       }
@@ -57,12 +58,12 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
       }.toMap
     }
 
-    val expectedCumulativeExhaustedVotesPerCount = countData.steps.map { step =>
-      step.count -> step.exhaustedTransfer.votesTotal
+    val expectedCumulativeExhaustedVotesPerCount = countData.countSteps.map { step =>
+      step.count.asInt -> step.candidateVoteCounts.exhausted.numVotes
     }.toMap
 
     counts.foreach(count => {
-      val expected = expectedCumulativeExhaustedVotesPerCount(count)
+      val expected = expectedCumulativeExhaustedVotesPerCount(count).asLong
       val actual = actualCumulativeExhaustedVotesPerCount(count)
 
       val absoluteError = actual - expected

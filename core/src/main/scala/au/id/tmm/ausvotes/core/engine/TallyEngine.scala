@@ -11,7 +11,7 @@ import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
-import au.id.tmm.utilities.collection.{CloseableIterator, OrderedSet}
+import au.id.tmm.utilities.collection.{CloseableIterator, DupelessSeq}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
@@ -51,8 +51,8 @@ object TallyEngine extends TallyEngine {
     } yield allTallies
   }
 
-  private def orderBySize(states: Set[State]): OrderedSet[State] = {
-    OrderedSet(
+  private def orderBySize(states: Set[State]): DupelessSeq[State] = {
+    DupelessSeq(
       State.NSW,
       State.VIC,
       State.QLD,
@@ -61,7 +61,7 @@ object TallyEngine extends TallyEngine {
       State.TAS,
       State.ACT,
       State.NT,
-    ).intersect(states)
+    ).filter(states.contains)
   }
 
   def runFor(parsedDataStore: ParsedDataStore,

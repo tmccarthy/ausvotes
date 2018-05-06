@@ -2,9 +2,6 @@ group = 'au.id.tmm'
 
 repositories {
     mavenCentral()
-    maven {
-        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
-    }
 }
 
 task wrapper(type: Wrapper) {

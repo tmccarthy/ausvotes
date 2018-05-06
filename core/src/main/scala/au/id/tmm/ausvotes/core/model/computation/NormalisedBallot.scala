@@ -7,11 +7,13 @@ final case class NormalisedBallot(atlGroupOrder: Vector[Group],
                                   atlFormalPreferenceCount: Int,
                                   btlCandidateOrder: Vector[CandidatePosition],
                                   btlFormalPreferenceCount: Int,
-                                  canonicalOrder: Vector[CandidatePosition]) {
-  def isInformal = canonicalOrder.isEmpty
-  def isFormal = !isInformal
-  def isNormalisedToAtl = isFormal && canonicalOrder == atlCandidateOrder
-  def isNormalisedToBtl = isFormal && canonicalOrder == btlCandidateOrder
-  def isFormalAtl = atlFormalPreferenceCount > 0
-  def isFormalBtl = btlFormalPreferenceCount > 0
+                                  canonicalOrder: Vector[CandidatePosition]) { // TODO this should be an option
+  def isInformal: Boolean = canonicalOrder.isEmpty
+  def isFormal: Boolean = !isInformal
+
+  def isNormalisedToAtl: Boolean = isFormal && canonicalOrder == atlCandidateOrder
+  def isNormalisedToBtl: Boolean = isFormal && canonicalOrder == btlCandidateOrder
+
+  def isFormalAtl: Boolean = atlFormalPreferenceCount > 0
+  def isFormalBtl: Boolean = btlFormalPreferenceCount > 0
 }

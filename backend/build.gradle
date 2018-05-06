@@ -7,10 +7,8 @@ plugins {
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyVersionPlugin
 
 repositories {
+    mavenLocal()
     mavenCentral()
-    maven {
-        url 'http://artifactory.ambitious.tools/artifactory/sbt-libs-release-local/'
-    }
 }
 
 sourceSets {
@@ -40,11 +38,11 @@ dependencies {
 
     testCompile "org.scalatest:scalatest${s}:2.2.1"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
-    testCompile "au.id.tmm:tmmtestutils${s}:$tmmUtilsVersion"
+    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmUtilsVersion"
     testCompile 'org.slf4j:slf4j-simple:1.7.25'
 
-    integrationTestCompile "com.whisk:docker-testkit-scalatest${s}:0.9.0"
-    integrationTestCompile "com.whisk:docker-testkit-impl-spotify${s}:0.9.0"
+    integrationTestCompile "com.whisk:docker-testkit-scalatest${s}:0.9.6"
+    integrationTestCompile "com.whisk:docker-testkit-impl-spotify${s}:0.9.6"
 
     // Needed to produce scalatest report
     testRuntime 'org.pegdown:pegdown:1.4.2'

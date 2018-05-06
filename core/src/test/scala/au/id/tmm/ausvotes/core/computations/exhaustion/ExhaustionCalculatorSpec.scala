@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.core.computations.exhaustion
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
+import au.id.tmm.countstv.model.values.{Count, TransferValue}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
@@ -25,7 +26,7 @@ class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
   "the exhaustion calculator" should "correctly identify the exhaustion of a ballot" in {
     val exhaustion = exhaustionOfActBallot(BallotFixture.ACT.exhaustingBallot)
 
-    assert(exhaustion === BallotExhaustion.Exhausted(16, 0.113066455002141d, 1))
+    assert(exhaustion === BallotExhaustion.Exhausted(Count(16), TransferValue(0.113066455002141d), 1))
   }
 
   it should "identify when a ballot did not exhaust" in {
@@ -37,19 +38,13 @@ class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
   it should "identify the exhaustion of a ballot that preferenced an inelligible candidate first" in {
     val exhaustion = exhaustionOfWaBallot(BallotFixture.WA.firstPreferenceIneligible)
 
-    assert(exhaustion === BallotExhaustion.Exhausted(321, 1.0d, 8))
+    assert(exhaustion === BallotExhaustion.Exhausted(Count(321), TransferValue(1.0d), 8))
   }
 
   it should "identify the exhaustion of a ballot that preferenced an inelligible candidate second" in {
     val exhaustion = exhaustionOfWaBallot(BallotFixture.WA.secondPreferenceIneligible)
 
-    assert(exhaustion === BallotExhaustion.Exhausted(321, 1.0d, 8))
-  }
-
-  it should "handle a ballot that preferenced only inelligible candidates" in {
-    val exhaustion = exhaustionOfWaBallot(BallotFixture.WA.onlyPreferencesIneligible)
-
-    assert(exhaustion === BallotExhaustion.ExhaustedBeforeInitialAllocation)
+    assert(exhaustion === BallotExhaustion.Exhausted(Count(321), TransferValue(1.0d), 8))
   }
 
 }
