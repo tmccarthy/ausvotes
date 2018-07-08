@@ -15,7 +15,7 @@ object ExhaustionCalculator {
 
     val trackedBallots = ballots.map { case (ballot, normalisedBallot) => new TrackedBallot(ballot, normalisedBallot) }
 
-    for (List(previousCountStep, countStep) <- countData.countSteps.sliding(size = 2)) {
+    for (List(previousCountStep, countStep) <- countData.completedCount.countSteps.sliding(size = 2)) {
       assert(previousCountStep.count.increment == countStep.count)
 
       countStep match {
@@ -34,9 +34,9 @@ object ExhaustionCalculator {
         }
         case countStep: DistributionCountStep[CandidatePosition] => {
           for {
-            distributionSource <- countStep.distributionSource
             trackedBallot <- trackedBallots
           } {
+            val distributionSource = countStep.distributionSource
             if (
               trackedBallot.currentPreference.contains(distributionSource.candidate) &&
                 distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)

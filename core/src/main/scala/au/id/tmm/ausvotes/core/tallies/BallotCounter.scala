@@ -70,7 +70,7 @@ object BallotCounter {
       ballots
         .map {
           _.exhaustion match {
-            case BallotExhaustion.Exhausted(_, value, _) => value.factor
+            case BallotExhaustion.Exhausted(_, value, _) => value.factor.toDouble
             case BallotExhaustion.NotExhausted => 0d
           }
         }

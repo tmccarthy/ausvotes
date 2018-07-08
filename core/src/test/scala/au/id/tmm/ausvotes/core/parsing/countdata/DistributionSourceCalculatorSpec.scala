@@ -19,21 +19,21 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
     val comment = "CRANIUM ,R has 176559 surplus vote(s) to be distributed in count # 5 at a transfer value of " +
       "0.520945945945945. 338920 papers are involved from count number(s) 1,2."
 
-    intercept[IllegalStateException](sut.calculateFor(comment, countData.countSteps.truncateAfter(Count(4))))
+    intercept[IllegalStateException](sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(4))))
   }
 
   it should "fail if the comment says a candidate is excluded when none have been excluded" in {
     val comment = "Preferences with a transfer value of 1 will be distributed in count # 2 after the exclusion " +
       "of 1 candidate(s). Preferences received at count(s) 1."
 
-    intercept[IllegalStateException](sut.calculateFor(comment, countData.countSteps.truncateAfter(Count(1))))
+    intercept[IllegalStateException](sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(1))))
   }
 
   it should "fail if the comment says more than one candidate was excluded" in {
     val comment = "Preferences with a transfer value of 1 will be distributed in count # 2 after the exclusion " +
       "of 2 candidate(s). Preferences received at count(s) 1."
 
-    intercept[UnsupportedOperationException](sut.calculateFor(comment, countData.countSteps.truncateAfter(Count(1))))
+    intercept[UnsupportedOperationException](sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(1))))
   }
 
   it should "pick up the elected candidate if two candidates have the same name as the candidate listed in an election comment" in {
@@ -46,7 +46,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
     val comment = "GALLAGHER ,K has 10826 surplus vote(s) to be distributed in count # 2 at a transfer value of " +
       "0.113066455002141. 95749 papers are involved from count number(s) 1."
 
-    val distributionSource = sut.calculateFor(comment, countData.countSteps.truncateAfter(Count(1)))
+    val distributionSource = sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(1)))
 
     assert(distributionSource.get.candidate ===
       CandidateFixture.ACT.candidateWithName(Name("Katy", "GALLAGHER")).btlPosition)
@@ -55,6 +55,6 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
   it should "not produce a source if the candidate was elected as the last woman standing" in {
     val comment = "SESELJA, Z, have been elected to the remaining positions."
 
-    assert(None === sut.calculateFor(comment, countData.countSteps.truncateAfter(Count(1))))
+    assert(None === sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(1))))
   }
 }

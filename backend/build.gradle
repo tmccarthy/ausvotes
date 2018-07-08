@@ -36,7 +36,7 @@ dependencies {
 
     testCompile "org.scalatest:scalatest${s}:2.2.1"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:3.6.0"
-    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmUtilsVersion"
+    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
     testCompile 'org.slf4j:slf4j-simple:1.7.25'
 
     integrationTestCompile "com.whisk:docker-testkit-scalatest${s}:0.9.6"

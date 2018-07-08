@@ -26,7 +26,7 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
 
     val countData = parsedDataStore.countDataFor(election, groupsAndCandidates, state)
 
-    val counts = 1 to countData.countSteps.last.count.asInt inclusive
+    val counts = 1 to countData.completedCount.countSteps.last.count.asInt inclusive
 
     val actualCumulativeExhaustedVotesPerCount = {
 
@@ -58,7 +58,7 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
       }.toMap
     }
 
-    val expectedCumulativeExhaustedVotesPerCount = countData.countSteps.map { step =>
+    val expectedCumulativeExhaustedVotesPerCount = countData.completedCount.countSteps.map { step =>
       step.count.asInt -> step.candidateVoteCounts.exhausted.numVotes
     }.toMap
 

@@ -54,7 +54,7 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
       )
     )
 
-    assert(actualCountData.countSteps.initialAllocation === expectedInitialAllocation)
+    assert(actualCountData.completedCount.countSteps.initialAllocation === expectedInitialAllocation)
   }
 
   it should "have the correct allocation after ineligibles" in {
@@ -91,15 +91,15 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
       transfersDueToIneligibles = Map.empty,
     )
 
-    assert(actualCountData.countSteps.allocationAfterIneligibles === Some(expectedAllocationAfterIneligibles))
+    assert(actualCountData.completedCount.countSteps(Count.ofIneligibleCandidateHandling) === expectedAllocationAfterIneligibles)
   }
 
   it should "have the correct number of formal ballots" in {
-    assert(actualCountData.totalFormalPapers === NumPapers(254767))
+    assert(actualCountData.completedCount.numFormalPapers === NumPapers(254767))
   }
 
   it should "have the correct quota" in {
-    assert(actualCountData.quota === NumVotes(84923))
+    assert(actualCountData.completedCount.quota === NumVotes(84923))
   }
 
   it should "have the correct 8th distribution step" in {
@@ -141,17 +141,15 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
         exhausted = VoteCount(NumPapers(0), NumVotes(0)),
         roundingError = VoteCount(NumPapers(0), NumVotes(13))
       ),
-      distributionSource = Some(
-        DistributionCountStep.Source(
-          candidate = candidatePosition("I1"),
-          candidateDistributionReason = Exclusion,
-          sourceCounts = Set(Count(2)),
-          transferValue = TransferValue(0.113066455002141d),
-        )
+      distributionSource = DistributionCountStep.Source(
+        candidate = candidatePosition("I1"),
+        candidateDistributionReason = Exclusion,
+        sourceCounts = Set(Count(2)),
+        transferValue = TransferValue(0.113066455002141d),
       )
     )
 
-    assert(actualCountData.countSteps(Count(8)) === expectedDistributionStep)
+    assert(actualCountData.completedCount.countSteps(Count(8)) === expectedDistributionStep)
   }
 
   it should "have the correct last distribution step" in {
@@ -204,17 +202,15 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
         exhausted = VoteCount(NumPapers(109), NumVotes(109)),
         roundingError = VoteCount(NumPapers(0), NumVotes(32)),
       ),
-      distributionSource = Some(
-        DistributionCountStep.Source(
-          candidate = candidatePosition("E0"),
-          candidateDistributionReason = Exclusion,
-          sourceCounts = Set(Count(1), Count(5), Count(7), Count(9), Count(11), Count(13), Count(15), Count(17), Count(19), Count(21), Count(23), Count(25), Count(27)),
-          transferValue = TransferValue(1d),
-        )
+      distributionSource = DistributionCountStep.Source(
+        candidate = candidatePosition("E0"),
+        candidateDistributionReason = Exclusion,
+        sourceCounts = Set(Count(1), Count(5), Count(7), Count(9), Count(11), Count(13), Count(15), Count(17), Count(19), Count(21), Count(23), Count(25), Count(27)),
+        transferValue = TransferValue(1d),
       )
     )
 
-    assert(actualCountData.countSteps(Count(29)) === expectedDistributionStep)
+    assert(actualCountData.completedCount.countSteps(Count(29)) === expectedDistributionStep)
   }
 
   it should "have the correct candidate outcomes" in {
