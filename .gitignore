@@ -27,6 +27,7 @@ gradle-app.setting
 
 /out
 /rawData
+/core/rawData
 /testingRawData
 /reports
 *.db
@@ -36,11 +37,3 @@ gradle-app.setting
 /core/build/
 /core/out/
 /build/
-/backend/build/
-/backend/out/
-/api/build/
-/api/out/
-/docker/build/
-/docker/backend_database/build/
-/docker/api/build/
-/docker/backend_db_migration/build/
