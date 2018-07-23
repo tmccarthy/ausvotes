@@ -1,4 +1,5 @@
 rootProject.name = 'ausvotes'
 
 include 'core',
-        'tasks:uploadPreferenceTree'
+        'tasks:uploadPreferenceTree',
+        'infrastructure'
