@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.tasks.uploadpreferencetree
+package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import java.nio.file.{Files, Path, Paths}
 
@@ -11,9 +11,9 @@ import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
 import au.id.tmm.countstv.model.preferences.{PreferenceTree, PreferenceTreeSerialisation}
 import au.id.tmm.utilities.geo.australia.State
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object Main {
 

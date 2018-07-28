@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.maiflai.scalatest' version '0.19'
+    id 'scala'
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    }
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:$scalaVersion"
+
+    compile project(':core')
+
+    compile 'com.amazonaws:aws-java-sdk-s3'
+
+    testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
+    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
+
+    // Needed to produce scalatest report
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+}
+
+task buildZip(type: Zip) {
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtime
+    }
+}
+
+assemble.dependsOn buildZip

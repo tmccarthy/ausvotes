@@ -1,0 +1,57 @@
+def srcDir = file('src/main/terraform')
+
+task terraformInit(type: Exec, group: 'infrastructure') {
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['init']
+
+    outputs.upToDateWhen { new File(srcDir, '.terraform').exists() }
+}
+
+Zip recountLambdaZipTask = tasks.getByPath(':lambdas:recount:buildZip') as Zip
+
+def standardTerraformArgs = [
+        '-input=false',
+        '-var', "recount_lambda_zip_path=${recountLambdaZipTask.archivePath.absolutePath}",
+]
+
+task terraformApply(type: Exec, group: 'infrastructure') {
+    dependsOn terraformInit, recountLambdaZipTask
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['apply', '-auto-approve'] + standardTerraformArgs
+}
+
+task terraformDestroy(type: Exec, group: 'infrastructure') {
+    dependsOn terraformInit
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['destroy', '-auto-approve'] + standardTerraformArgs
+}
+
+task terraformPlan(type: Exec, group: 'infrastructure') {
+    dependsOn terraformInit, recountLambdaZipTask
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['plan'] + standardTerraformArgs
+}
+
+task terraformShow(type: Exec, group: 'infrastructure') {
+    dependsOn terraformInit, recountLambdaZipTask
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['show']
+}
+
+task terraformRefresh(type: Exec, group: 'infrastructure') {
+    dependsOn terraformInit, recountLambdaZipTask
+    executable = 'terraform'
+    workingDir = srcDir
+
+    args = ['refresh'] + standardTerraformArgs
+}

@@ -1,5 +1,6 @@
 rootProject.name = 'ausvotes'
 
 include 'core',
-        'tasks:uploadPreferenceTree',
+        'tasks:generatePreferenceTrees',
+        'lambdas:recount',
         'infrastructure'
