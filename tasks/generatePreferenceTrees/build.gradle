@@ -6,12 +6,18 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        // Needed for scalaz-zio
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
 
     compile project(':core')
+
+    compile "org.scalaz:scalaz-zio${s}:0.1-SNAPSHOT"
 
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
