@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.core.model.parsing
 import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 
 final case class CandidatePosition(group: BallotGroup, positionInGroup: Int) extends Ordered[CandidatePosition] {
+  def code: String = s"${group.code}$positionInGroup"
+
   override def compare(that: CandidatePosition): Int =
     (this.group, this.positionInGroup) compare (that.group, that.positionInGroup)
 }

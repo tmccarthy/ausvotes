@@ -8,9 +8,13 @@ class CandidatePositionSpec extends ImprovedFlatSpec {
   private val groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
-  "the ballot position to candidate position map" should "be constructed correctly" in {
-    import ballotMaker.candidatePosition
+  import ballotMaker.candidatePosition
 
+  "a candidate position" should "have a code" in {
+    assert(candidatePosition("A0").code === "A0")
+  }
+
+  "the ballot position to candidate position map" should "be constructed correctly" in {
     val actual = CandidatePosition.constructBallotPositionLookup(groupsAndCandidates)
     val expected = Map(
       11 -> candidatePosition("A0"),
