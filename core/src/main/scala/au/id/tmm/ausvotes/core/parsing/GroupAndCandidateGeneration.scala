@@ -79,7 +79,7 @@ object GroupAndCandidateGeneration {
     val state = stateFrom(rawRow)
     val party = partyFrom(partyFlyweight, rawRow)
     val name = candidateNameFrom(rawRow)
-    val position = candidatePositionFrom(groupsByCode, rawRow)
+    val position = candidatePositionFrom(election, groupsByCode, rawRow)
 
     Candidate(election, state, rawRow.candidateId.trim, name, party, position)
   }
@@ -88,20 +88,22 @@ object GroupAndCandidateGeneration {
     Name.parsedFrom(rawRow.candidateDetails)
   }
 
-  private def candidatePositionFrom(groupsByCode: mutable.Map[String, Group],
+  private def candidatePositionFrom(election: SenateElection,
+                                    groupsByCode: mutable.Map[String, Group],
                                     rawRow: FirstPreferencesRow): CandidatePosition = {
-    val group = groupFromCandidateRow(groupsByCode, rawRow)
+    val group = groupFromCandidateRow(election, groupsByCode, rawRow)
     val positionInGroup = rawRow.positionInGroup - 1 // To make it zero indexed
 
     CandidatePosition(group, positionInGroup)
   }
 
-  private def groupFromCandidateRow(groupsByCode: mutable.Map[String, Group],
+  private def groupFromCandidateRow(election: SenateElection,
+                                    groupsByCode: mutable.Map[String, Group],
                                     rawRow: FirstPreferencesRow): BallotGroup = {
     val groupCode = rawRow.ticket.trim
 
     if (Ungrouped.code == groupCode) {
-      Ungrouped(GenerationUtils.stateFrom(rawRow.state, rawRow)) // TODO make the group flyweight a BallotGroupFlyweight and include this?
+      Ungrouped(election, GenerationUtils.stateFrom(rawRow.state, rawRow))
     } else {
       groupsByCode(groupCode)
     }

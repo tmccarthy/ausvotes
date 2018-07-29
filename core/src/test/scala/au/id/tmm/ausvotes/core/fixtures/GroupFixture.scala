@@ -12,7 +12,7 @@ object GroupFixture {
     def state: State
     def groups: Set[Group]
 
-    lazy val groupLookup: Map[String, BallotGroup] = (groups ++ Set(Ungrouped(state))).groupBy(_.code).mapValues(_.head)
+    lazy val groupLookup: Map[String, BallotGroup] = (groups ++ Set(Ungrouped(election, state))).groupBy(_.code).mapValues(_.head)
   }
 
   object NT extends GroupFixture {
@@ -32,10 +32,12 @@ object GroupFixture {
   object ACT extends GroupFixture {
     override val state: State = State.ACT
 
+    val ALP_GROUP = Group(election, state, "C", RegisteredParty("Australian Labor Party"))
+
     override val groups = Set(
       Group(election, state, "A", RegisteredParty("Liberal Democratic Party")),
       Group(election, state, "B", RegisteredParty("Secular Party of Australia")),
-      Group(election, state, "C", RegisteredParty("Australian Labor Party")),
+      ALP_GROUP,
       Group(election, state, "E", RegisteredParty("Sustainable Australia")),
       Group(election, state, "D", RegisteredParty("Rise Up Australia Party")),
       Group(election, state, "F", RegisteredParty("Liberal")),

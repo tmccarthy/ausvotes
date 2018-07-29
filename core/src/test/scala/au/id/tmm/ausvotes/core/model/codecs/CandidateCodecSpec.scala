@@ -16,7 +16,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     Party.RegisteredParty.ALP,
   )
   private implicit val partyCodec: PartyCodec = PartyCodec()
-  private implicit val sut: CandidateCodec = CandidateCodec(Set(testGroup))
+  private implicit val sut: CodecJson[Candidate] = CandidateCodec(Set(testGroup))
 
   "the candidate codec" can "encode a grouped candidate" in {
     val candidate = Candidate(
@@ -54,7 +54,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
       name = Name("Jane", "Doe"),
       party = Party.Independent,
       btlPosition = CandidatePosition(
-        Ungrouped(State.SA),
+        Ungrouped(SenateElection.`2016`, State.SA),
         3,
       )
     )
@@ -122,7 +122,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
       name = Name("Jane", "Doe"),
       party = Party.Independent,
       btlPosition = CandidatePosition(
-        Ungrouped(State.SA),
+        Ungrouped(SenateElection.`2016`, State.SA),
         3,
       )
     )

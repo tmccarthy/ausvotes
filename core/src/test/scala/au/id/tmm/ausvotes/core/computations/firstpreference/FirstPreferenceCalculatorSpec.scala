@@ -42,11 +42,11 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
     val sut = FirstPreferenceCalculator(SenateElection.`2016`, State.NT, ntCandidates)
 
     assert(sut.firstPreferenceOf(ntNormaliser.normalise(BallotFixture.NT.firstPreferenceUngroupedIndy)) ===
-      FirstPreference(Ungrouped(State.NT), Independent))
+      FirstPreference(Ungrouped(SenateElection.`2016`, State.NT), Independent))
   }
 
   it should "correctly get the first preference when an ungrouped candidate that is a member of a party is preferenced btl" in {
     assert(sut.firstPreferenceOf(normalise(btlFirstPrefUngrouped)) ===
-      FirstPreference(Ungrouped(State.ACT), RegisteredParty("Mature Australia")))
+      FirstPreference(Ungrouped(SenateElection.`2016`, State.ACT), RegisteredParty("Mature Australia")))
   }
 }

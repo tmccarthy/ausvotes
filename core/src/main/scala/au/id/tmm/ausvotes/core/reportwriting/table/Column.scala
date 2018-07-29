@@ -36,7 +36,7 @@ object Column {
     override def valueForKey(key: Any): String = key match {
       case s: State => s.abbreviation
       case Group(_, state, _, _) => valueForKey(state)
-      case Ungrouped(state) => valueForKey(state)
+      case Ungrouped(_, state) => valueForKey(state)
       case Division(_, state, _, _) => valueForKey(state)
       case v: VoteCollectionPoint => valueForKey(v.state)
     }
@@ -68,7 +68,7 @@ object Column {
       case RegisteredParty(name) => name
       case Independent => "Independent"
       case Group(_, _, _, party) => valueForKey(party)
-      case Ungrouped(_) => valueForKey(Independent)
+      case Ungrouped(_, _) => valueForKey(Independent)
     }
   }
 
@@ -87,7 +87,7 @@ object Column {
 
     override def valueForKey(key: Any): String = key match {
       case Group(_, _, code, party) => s"$code (${PartyNameColumn.valueForKey(party)})"
-      case Ungrouped(_) => s"${Ungrouped.code} (Ungrouped)"
+      case Ungrouped(_, _) => s"${Ungrouped.code} (Ungrouped)"
     }
   }
 

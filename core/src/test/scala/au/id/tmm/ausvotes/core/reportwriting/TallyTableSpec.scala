@@ -158,12 +158,12 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
     val primaryCountTally = Tally1[BallotGroup](
       group("A") -> 5d,
-      Ungrouped(State.ACT) -> 2d
+      Ungrouped(SenateElection.`2016`, State.ACT) -> 2d
     )
 
     val denominatorTally = Tally1[BallotGroup](
       group("A") -> 10d,
-      Ungrouped(State.ACT) -> 8d
+      Ungrouped(SenateElection.`2016`, State.ACT) -> 8d
     )
 
     val columns = Vector(
