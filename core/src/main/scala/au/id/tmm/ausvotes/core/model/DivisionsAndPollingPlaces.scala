@@ -14,6 +14,17 @@ final case class DivisionsAndPollingPlaces(divisions: Set[Division],
     .groupBy(pollingPlace => (pollingPlace.state, pollingPlace.name))
     .mapValues(_.head)
 
+  def findFor(election: SenateElection, state: State): DivisionsAndPollingPlaces = DivisionsAndPollingPlaces(
+    divisions = divisions.toStream
+      .filter(_.election == election)
+      .filter(_.state == state)
+      .toSet,
+    pollingPlaces = pollingPlaces.toStream
+      .filter(_.election == election)
+      .filter(_.state == state)
+      .toSet
+  )
+
 }
 
 object DivisionsAndPollingPlaces {

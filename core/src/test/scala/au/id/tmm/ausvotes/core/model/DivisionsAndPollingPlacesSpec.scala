@@ -17,4 +17,15 @@ class DivisionsAndPollingPlacesSpec extends ImprovedFlatSpec {
     assert(PollingPlaceFixture.ACT.BARTON === sut.lookupPollingPlaceByName(State.ACT, "Barton"))
   }
 
+  it can "be filtered to a particular election" in {
+    val actualFiltered = DivisionsAndPollingPlaces(
+      divisions = DivisionFixture.ACT.divisions ++ DivisionFixture.NT.divisions,
+      pollingPlaces = PollingPlaceFixture.ACT.pollingPlaces ++ PollingPlaceFixture.NT.pollingPlaces,
+    ).findFor(SenateElection.`2016`, State.NT)
+
+    val expectedFiltered = DivisionsAndPollingPlaces(DivisionFixture.NT.divisions, PollingPlaceFixture.NT.pollingPlaces)
+
+    assert(actualFiltered === expectedFiltered)
+  }
+
 }
