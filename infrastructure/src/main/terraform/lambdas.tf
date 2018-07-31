@@ -10,8 +10,7 @@ resource "aws_lambda_function" "recount" {
 
   environment {
     variables = {
-      PREFERENCES_BUCKET = "${aws_s3_bucket.preference_tree_bucket.id}",
-      CANDIDATES_BUCKET = "${aws_s3_bucket.candidates_bucket.id}"
+      RECOUNT_DATA_BUCKET = "${aws_s3_bucket.recount_data_bucket.id}",
     }
   }
 }

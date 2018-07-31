@@ -42,9 +42,11 @@ object Main extends App {
 
       (groupsAndCandidates, divisionsAndPollingPlaces) = computationInputs
 
-      _ <- IO.parTraverse(election.states)(writeOutputsFor(parsedDataStore, args.outputPath, election, _, groupsAndCandidates, divisionsAndPollingPlaces))
+      outputPath <- IO.syncException(Files.createTempDirectory("recount_data"))
 
-      _ <- console.putStrLn(s"${args.outputPath}")
+      _ <- IO.parTraverse(election.states)(writeOutputsFor(parsedDataStore, outputPath, election, _, groupsAndCandidates, divisionsAndPollingPlaces))
+
+      _ <- console.putStrLn(s"$outputPath")
 
     } yield (groupsAndCandidates, divisionsAndPollingPlaces)
   }

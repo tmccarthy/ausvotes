@@ -6,10 +6,10 @@ data "aws_region" "current" {}
 
 variable recount_lambda_zip_path {}
 
-variable preference_tree_bucket_name {
-  default = "preference-trees.buckets.ausvotes.info"
+variable recount_data_bucket_name {
+  default = "recount-data.buckets.ausvotes.info"
 }
 
-variable candidates_bucket_name {
-  default = "candidates.buckets.ausvotes.info"
+output "recount_data_bucket_name" {
+  value = "${var.recount_data_bucket_name}"
 }

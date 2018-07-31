@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 
 final case class Args(
                        dataStorePath: Path,
-                       outputPath: Path,
+                       s3Bucket: String,
                        election: SenateElection,
                      )
 
@@ -18,12 +18,12 @@ object Args {
     for {
       _ <- if (rawArgs.length == 3) Right(Unit) else Left(new IllegalArgumentException("Incorrect number of arguments"))
       dataStorePath <- parsePath(rawArgs(0))
-      outputPath <- parsePath(rawArgs(1))
+      s3Bucket = rawArgs(1)
       electionId = rawArgs(2)
       election <- SenateElection.forId(electionId).toRight(new IllegalArgumentException(s"Bad election id $electionId"))
     } yield Args(
       dataStorePath,
-      outputPath,
+      s3Bucket,
       election,
     )
   }
