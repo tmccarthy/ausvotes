@@ -48,5 +48,5 @@ task uploadRecountData(type: JavaExec) {
             "${->recountDataBucketNameTask.terraformOutputs.recount_data_bucket_name.value}",
             '2016'
 
-    jvmArgs '-Xmx6G'
+    jvmArgs '-Xmx3G'
 }
