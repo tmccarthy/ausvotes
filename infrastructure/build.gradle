@@ -8,9 +8,7 @@ buildscript {
     }
 }
 
-import com.google.common.base.CaseFormat
 import groovy.json.JsonSlurper
-
 
 def srcDir = file('src/main/terraform')
 

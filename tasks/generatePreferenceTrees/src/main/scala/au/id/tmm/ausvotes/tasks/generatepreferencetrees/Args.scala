@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import java.nio.file.{InvalidPathException, Path, Paths}
 
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.tasks.generatepreferencetrees.Args.S3BucketName
+import au.id.tmm.ausvotes.tasks.generatepreferencetrees.S3Utils.S3BucketName
 
 import scala.reflect.ClassTag
 
@@ -39,7 +39,5 @@ object Args {
       case e: E => Left(e)
     }
   }
-
-  final case class S3BucketName(string: String) extends AnyVal
 
 }

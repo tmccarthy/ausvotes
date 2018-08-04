@@ -1,16 +1,14 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import java.nio.file.{Files, Path}
-
 import argonaut.Argonaut._
 import argonaut.CodecJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group}
-import au.id.tmm.ausvotes.tasks.generatepreferencetrees.Args.S3BucketName
 import au.id.tmm.ausvotes.tasks.generatepreferencetrees.DataBundleConstruction.DataBundleForElection
+import au.id.tmm.ausvotes.tasks.generatepreferencetrees.S3Utils.{S3BucketName, S3ObjectName}
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
 import au.id.tmm.countstv.model.preferences.PreferenceTreeSerialisation
-import org.apache.commons.io.FileUtils
+import com.amazonaws.services.s3.AmazonS3
 import scalaz.zio.IO
 
 object DataBundleWriting {
@@ -25,67 +23,67 @@ object DataBundleWriting {
     implicit val groupCodec: GroupCodec = GroupCodec()
     implicit val candidateCodec: CodecJson[Candidate] = CandidateCodec(dataBundleForElection.groupsAndCandidates.groups)
 
-    // TODO implement this properly
+    val outputDirectoryForThisWrite =
+      S3ObjectName("recountData") / dataBundleForElection.election.id / dataBundleForElection.state.abbreviation
 
     for {
-      outputPath <- IO.syncException(Files.createTempDirectory("recount_data"))
-
-      outputDirectoryForThisWrite = outputPath
-        .resolve(dataBundleForElection.election.id)
-        .resolve(dataBundleForElection.state.abbreviation)
-
-      _ <- IO.syncException(FileUtils.deleteDirectory(outputDirectoryForThisWrite.toFile))
-      _ <- IO.syncException(Files.createDirectories(outputDirectoryForThisWrite))
+      s3Client <- S3Utils.constructClient
 
       _ <- IO.parAll(List(
-        writePreferenceTree(outputDirectoryForThisWrite, dataBundleForElection.preferenceTree),
-        writeGroupsFile(outputDirectoryForThisWrite, dataBundleForElection.groupsAndCandidates.groups),
-        writeCandidatesFile(outputDirectoryForThisWrite, dataBundleForElection.groupsAndCandidates.candidates),
+        writePreferenceTree(s3Client, s3BucketName, outputDirectoryForThisWrite, dataBundleForElection.preferenceTree),
+        writeGroupsFile(s3Client, s3BucketName, outputDirectoryForThisWrite, dataBundleForElection.groupsAndCandidates.groups),
+        writeCandidatesFile(s3Client, s3BucketName, outputDirectoryForThisWrite, dataBundleForElection.groupsAndCandidates.candidates),
       ))
 
     } yield Unit
 
   }
 
-  private def writePreferenceTree(directory: Path, preferenceTree: RootPreferenceTree[CandidatePosition]): IO[Exception, Unit] = {
-    for {
-      file <- IO.syncException(directory.resolve("preferences.tree"))
+  private def writePreferenceTree(
+                                   s3Client: AmazonS3,
+                                   s3BucketName: S3BucketName,
+                                   directory: S3ObjectName,
+                                   preferenceTree: RootPreferenceTree[CandidatePosition],
+                                 ): IO[Exception, Unit] = {
+    val key = directory / "preferences.tree"
 
-      _ <- CloseableIO.bracket(CloseableIO.outputStreamFor(file)) { outputStream =>
-        IO.syncException(PreferenceTreeSerialisation.serialise[CandidatePosition](preferenceTree, outputStream))
+    S3Utils.putFromOutputStream(s3Client, s3BucketName, key) { outputStream =>
+      IO.syncException {
+        PreferenceTreeSerialisation.serialise[CandidatePosition](preferenceTree, outputStream)
       }
-    } yield Unit
+    }
   }
 
-  private def writeGroupsFile(directory: Path, groups: Set[Group])(implicit groupCodec: GroupCodec): IO[Exception, Unit] = {
-    for {
-      file <- IO.syncException(directory.resolve("groups.json"))
+  private def writeGroupsFile(
+                               s3Client: AmazonS3,
+                               s3BucketName: S3BucketName,
+                               directory: S3ObjectName,
+                               groups: Set[Group],
+                             )(implicit groupCodec: GroupCodec): IO[Exception, Unit] = {
+    val key = directory / "groups.json"
+    val content = {
+      val groupsInOrder = groups.toList.sortBy(_.index)
 
-      _ <- CloseableIO.bracket(CloseableIO.outputStreamFor(file)) { outputStream =>
-        IO.syncException {
-          val groupsInOrder = groups.toList.sortBy(_.index)
-          val groupsJson = groupsInOrder.asJson.toString
+      groupsInOrder.asJson.toString
+    }
 
-          Files.write(file, java.util.Collections.singleton(groupsJson))
-        }
-      }
-    } yield Unit
+    S3Utils.putString(s3Client, s3BucketName, key, content)
   }
 
-  private def writeCandidatesFile(directory: Path, candidates: Set[Candidate])(implicit candidateCodec: CodecJson[Candidate]): IO[Exception, Unit] = {
-    for {
-      file <- IO.syncException(directory.resolve("groups.json"))
+  private def writeCandidatesFile(
+                                   s3Client: AmazonS3,
+                                   s3BucketName: S3BucketName,
+                                   directory: S3ObjectName,
+                                   candidates: Set[Candidate],
+                                 )(implicit candidateCodec: CodecJson[Candidate]): IO[Exception, Unit] = {
+    val key = directory / "candidates.json"
+    val content = {
+      val candidatesInOrder = candidates.toList.sortBy(_.btlPosition)
 
-      _ <- CloseableIO.bracket(CloseableIO.outputStreamFor(file)) { outputStream =>
-        IO.syncException {
-          val candidatesInOrder = candidates.toList.sortBy(_.btlPosition)
+      candidatesInOrder.asJson.toString
+    }
 
-          val candidatesJson = candidatesInOrder.asJson.toString
-
-          Files.write(file, java.util.Collections.singleton(candidatesJson))
-        }
-      }
-    } yield Unit
+    S3Utils.putString(s3Client, s3BucketName, key, content)
   }
 
 }
