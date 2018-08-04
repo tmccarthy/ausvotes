@@ -10,25 +10,17 @@ import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCo
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
 import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.tasks.generatepreferencetrees.Logging.IoOps
 import au.id.tmm.countstv.model.preferences.{PreferenceTree, PreferenceTreeSerialisation}
 import au.id.tmm.utilities.geo.australia.State
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{App, IO, console}
 
 object Main extends App {
 
   override def run(args: List[String]): IO[Nothing, Main.ExitStatus] =
     applicationLogic(args)
-      .attempt
-      .timed
-      .flatMap { case (duration, result) =>
-        console.putStrLn(s"Completed in ${duration.toSeconds} seconds").const(result)
-      }
-      .flatMap {
-        case Right(_) => IO.unit
-        case Left(ex) => console.putStrLn(ExceptionUtils.getStackTrace(ex))
-      }
+      .timedLog("APP_RUN")
       .attempt.map(_.fold(_ => 1, _ => 0))
       .map(ExitStatus.ExitNow(_))
 
@@ -62,11 +54,11 @@ object Main extends App {
                              ): IO[Exception, Unit] = {
     IO.syncException(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state))
       .bracket(ballotsIterator => IO.sync(ballotsIterator.close())) { ballots =>
-        val outputsToWrite = outputsFor(election, state, groupsAndCandidates, divisionsAndPollingPlaces, ballots)
-
-        writeOutputs(outputPath, outputsToWrite)
+        outputsFor(election, state, groupsAndCandidates, divisionsAndPollingPlaces, ballots).flatMap { outputsToWrite =>
+          writeOutputs(outputPath, outputsToWrite)
+        }
       }
-      .timed.flatMap { case (duration, _) => console.putStrLn(s"Completed for $state in ${duration.toSeconds} seconds") }
+      .timedLog("WRITE_OUTPUTS", "State" -> state)
   }
 
 
@@ -76,7 +68,7 @@ object Main extends App {
                           groupsAndCandidates: GroupsAndCandidates,
                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                           ballots: Iterator[Ballot],
-                        ): OutputsForElection = {
+                        ): IO[Exception, OutputsForElection] = {
     val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election, state)
     val relevantDivisionsAndPollingPlaces = divisionsAndPollingPlaces.findFor(election, state)
 
@@ -97,9 +89,11 @@ object Main extends App {
 
     val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder).toIterable
 
-    val preferenceTree = PreferenceTree.from(candidates.map(_.btlPosition), numPapersHint)(preparedBallots)
-
-    OutputsForElection(election, state, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, preferenceTree)
+    IO.syncException {
+      PreferenceTree.from(candidates.map(_.btlPosition), numPapersHint)(preparedBallots)
+    }.map { preferenceTree =>
+      OutputsForElection(election, state, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, preferenceTree)
+    }
   }
 
   private def writeOutputs(outputPath: Path, outputsToWrite: OutputsForElection): IO[Exception, Unit] = {
