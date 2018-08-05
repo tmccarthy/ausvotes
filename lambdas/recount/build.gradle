@@ -21,6 +21,7 @@ dependencies {
     compile project(':core')
 
     compile 'com.amazonaws:aws-java-sdk-s3'
+    compile 'com.amazonaws:aws-lambda-java-core:1.2.0'
 
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
@@ -31,6 +32,7 @@ dependencies {
 
 task buildZip(type: Zip) {
     from compileJava
+    from compileScala
     from processResources
     into('lib') {
         from configurations.runtime
