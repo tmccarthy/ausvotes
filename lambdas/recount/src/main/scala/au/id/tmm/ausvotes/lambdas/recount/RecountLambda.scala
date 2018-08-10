@@ -8,7 +8,7 @@ import scalaz.zio.IO
 
 final class RecountLambda extends LambdaHarness[RecountLambda.Error] {
 
-  override def logic(request: Request, context: Context): IO[Error, Response] = {
+  override def logic(request: Request, context: Context): IO[RecountLambda.Error, Response] = {
     val response = jObjectFields(
       "election" -> request.pathParameters("election").asJson,
       "state" -> request.pathParameters("state").asJson,
