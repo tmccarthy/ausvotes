@@ -1,21 +1,11 @@
 resource "aws_api_gateway_rest_api" "recount_api" {
-  name = "recount"
+  name = "ausvotes"
 }
 
 resource "aws_api_gateway_deployment" "recount_api_deployment" {
   depends_on = ["aws_api_gateway_integration.integration"]
   rest_api_id = "${aws_api_gateway_rest_api.recount_api.id}"
   stage_name = "prod"
-}
-
-resource "aws_api_gateway_method_settings" "recount_api_gateway_method_settings" {
-  rest_api_id = "${aws_api_gateway_rest_api.recount_api.id}"
-  stage_name  = "${aws_api_gateway_deployment.recount_api_deployment.stage_name}"
-  method_path = "${aws_api_gateway_resource.recount_resource.path_part}/${aws_api_gateway_method.recount_election_state_resource_method.http_method}"
-
-  settings {
-    metrics_enabled = false
-  }
 }
 
 resource "aws_api_gateway_resource" "recount_resource" {
@@ -41,6 +31,13 @@ resource "aws_api_gateway_method" "recount_election_state_resource_method" {
   resource_id   = "${aws_api_gateway_resource.recount_election_state_resource.id}"
   http_method   = "GET"
   authorization = "NONE"
+
+  request_parameters {
+    method.request.path.election = true
+    method.request.path.state = true
+    method.request.querystring.vacancies = false
+    method.request.querystring.ineligibleCandidates = false
+  }
 }
 
 resource "aws_api_gateway_integration" "integration" {

@@ -22,11 +22,12 @@ dependencyManagement {
 dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
 
-    compile project(':core')
-    compile project(':lambdas:lambdaUtilities')
-
-    compile 'com.amazonaws:aws-java-sdk-s3'
     compile 'com.amazonaws:aws-lambda-java-core:1.2.0'
+
+    compile "commons-io:commons-io:$commonsIoVersion"
+    compile "org.apache.commons:commons-lang3:$commonsLangVersion"
+
+    compile "io.argonaut:argonaut${s}:$argonautVersion"
 
     compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
 
@@ -36,14 +37,3 @@ dependencies {
     // Needed to produce scalatest report
     testRuntime 'org.pegdown:pegdown:1.4.2'
 }
-
-task buildZip(type: Zip) {
-    from compileJava
-    from compileScala
-    from processResources
-    into('lib') {
-        from configurations.runtime
-    }
-}
-
-assemble.dependsOn buildZip
