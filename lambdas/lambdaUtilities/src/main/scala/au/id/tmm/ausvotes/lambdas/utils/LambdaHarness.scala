@@ -22,7 +22,7 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
   }
 
   private def harness(input: InputStream, output: OutputStream, context: Context): IO[ResponseWriteError, Unit] = {
-    val computeResponseLogic: IO[HarnessInputError, Response] = for {
+    val computeResponseLogic: IO[HarnessInputError, LambdaResponse] = for {
       request <- readRequestFrom(input)
 
       responseOrError <- logic(request, context).attempt
@@ -38,28 +38,28 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
     }
   }
 
-  private def readRequestFrom(input: InputStream): IO[HarnessInputError, Request] = {
+  private def readRequestFrom(input: InputStream): IO[HarnessInputError, LambdaRequest] = {
     IO.bracket(IO.sync(input))(is => IO.sync(is.close())) { input =>
       for {
         requestAsString <- IO.syncCatch(IOUtils.toString(input, charset)){
           case e: IOException => RequestReadError(e)
         }
-        request <- IO.fromEither(Parse.decodeEither[Request](requestAsString))
+        request <- IO.fromEither(Parse.decodeEither[LambdaRequest](requestAsString))
           .leftMap(RequestDecodeError)
       } yield request
     }
   }
 
-  protected def logic(request: Request, context: Context): IO[T_ERROR, Response]
+  protected def logic(request: LambdaRequest, context: Context): IO[T_ERROR, LambdaResponse]
 
-  protected def transformError(error: T_ERROR): Response
+  protected def transformError(error: T_ERROR): LambdaResponse
 
-  private def transformHarnessError(harnessInputError: HarnessInputError): Response = harnessInputError match {
-    case RequestReadError(_) => Response(500, Map.empty, jString(""))
-    case RequestDecodeError(message) => Response(400, Map.empty, jString(message))
+  private def transformHarnessError(harnessInputError: HarnessInputError): LambdaResponse = harnessInputError match {
+    case RequestReadError(_) => LambdaResponse(500, Map.empty, jString(""))
+    case RequestDecodeError(message) => LambdaResponse(400, Map.empty, jString(message))
   }
 
-  private def writeResponseTo(response: Response, output: OutputStream): IO[ResponseWriteError, Unit] = {
+  private def writeResponseTo(response: LambdaResponse, output: OutputStream): IO[ResponseWriteError, Unit] = {
     IO.bracket(IO.sync(output))(os => IO.sync(os.close())) { output =>
       val jsonString = response.asJson.toString()
 

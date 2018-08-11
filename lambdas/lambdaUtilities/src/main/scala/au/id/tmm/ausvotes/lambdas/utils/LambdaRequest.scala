@@ -4,24 +4,24 @@ import java.time.OffsetDateTime
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import argonaut.{Argonaut, DecodeJson, DecodeResult}
-import au.id.tmm.ausvotes.lambdas.utils.Request.RequestContext
+import au.id.tmm.ausvotes.lambdas.utils.LambdaRequest.RequestContext
 
-final case class Request(
-                          resource: String,
-                          path: String,
-                          httpMethod: String,
-                          headers: Map[String, String],
-                          queryStringParameters: Map[String, String],
-                          pathParameters: Map[String, String],
-                          stageVariables: Map[String, String],
-                          requestContext: RequestContext,
-                          body: Option[String],
-                          isBase64Encoded: Boolean,
-                        )
+final case class LambdaRequest(
+                                resource: String,
+                                path: String,
+                                httpMethod: String,
+                                headers: Map[String, String],
+                                queryStringParameters: Map[String, String],
+                                pathParameters: Map[String, String],
+                                stageVariables: Map[String, String],
+                                requestContext: RequestContext,
+                                body: Option[String],
+                                isBase64Encoded: Boolean,
+                              )
 
-object Request {
+object LambdaRequest {
 
-  implicit val decoder: DecodeJson[Request] = c => for {
+  implicit val decoder: DecodeJson[LambdaRequest] = c => for {
     resource <- c.downField("resource").as[String]
     path <- c.downField("path").as[String]
     httpMethod <- c.downField("httpMethod").as[String]
@@ -32,7 +32,7 @@ object Request {
     requestContext <- c.downField("requestContext").as[RequestContext]
     body <- c.downField("body").as[Option[String]]
     isBase64Encoded <- c.downField("isBase64Encoded").as[Boolean]
-  } yield Request(
+  } yield LambdaRequest(
     resource, path, httpMethod, headers, queryStringParameters, pathParameters, stageVariables, requestContext, body,
     isBase64Encoded,
   )
