@@ -2,8 +2,9 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.lambdas.recount.Errors.RecountRequestError._
-import au.id.tmm.ausvotes.lambdas.recount.Errors._
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.RecountDataBucketUndefined
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
 import au.id.tmm.ausvotes.lambdas.utils.LambdaResponse
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -57,4 +58,40 @@ class RecountLambdaSpec extends ImprovedFlatSpec {
     error = InvalidNumVacancies("invalid"),
     expectedMessage = """Invalid number of vacancies "invalid"""",
   )
+
+  errorResponseTest(
+    error = InvalidCandidateIds(Set("invalid1", "invalid2")),
+    expectedMessage = """Invalid candidate ids ["invalid1", "invalid2"]"""
+  )
+
+  errorResponseTest(
+    error = RecountDataBucketUndefined,
+    expectedMessage = "Recount data bucket was undefined",
+  )
+
+  errorResponseTest(
+    error = GroupFetchError(new RuntimeException()),
+    expectedMessage = "An error occurred while fetching the groups",
+  )
+
+  errorResponseTest(
+    error = GroupDecodeError("the message"),
+    expectedMessage = """An error occurred while decoding the groups: "the message"""",
+  )
+
+  errorResponseTest(
+    error = CandidateFetchError(new RuntimeException()),
+    expectedMessage = "An error occurred while fetching the candidates",
+  )
+
+  errorResponseTest(
+    error = CandidateDecodeError("the message"),
+    expectedMessage = """An error occurred while decoding the candidates: "the message"""",
+  )
+
+  errorResponseTest(
+    error = PreferenceTreeFetchError(new RuntimeException()),
+    expectedMessage = "An error occurred while fetching or decoding the preference tree",
+  )
+
 }

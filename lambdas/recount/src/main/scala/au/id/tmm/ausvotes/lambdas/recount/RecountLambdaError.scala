@@ -3,9 +3,15 @@ package au.id.tmm.ausvotes.lambdas.recount
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 
-object Errors {
+sealed trait RecountLambdaError
 
-  sealed trait RecountLambdaError
+object RecountLambdaError {
+
+  sealed trait ConfigurationError extends RecountLambdaError
+
+  object ConfigurationError {
+    case object RecountDataBucketUndefined extends ConfigurationError
+  }
 
   sealed trait RecountRequestError extends RecountLambdaError
 
@@ -18,6 +24,8 @@ object Errors {
     final case class NoElectionForState(election: SenateElection, state: State) extends RecountRequestError
 
     final case class InvalidNumVacancies(badNumVacancies: String) extends RecountRequestError
+
+    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[String]) extends RecountRequestError
   }
 
   sealed trait EntityFetchError extends RecountLambdaError
