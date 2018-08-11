@@ -8,5 +8,5 @@ apply plugin: au.id.tmm.ausvotes.buildsrc.MyReleasePlugin
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.9'
-    distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+    distributionUrl = "http://downloads.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

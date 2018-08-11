@@ -9,7 +9,8 @@ import scalaz.zio.IO
 final class RecountLambda extends LambdaHarness[RecountLambdaError] {
 
   override def logic(request: LambdaRequest, context: Context): IO[RecountLambdaError, LambdaResponse] = {
-    IO.fromEither(RecountRequest.fromRequest(request)).map(_ => LambdaResponse(200, Map.empty, jEmptyObject))
+    IO.fromEither(RecountRequest.fromRequest(request))
+      .map(_ => LambdaResponse(200, Map.empty, jEmptyObject))
   }
 
   override def transformError(error: RecountLambdaError): LambdaResponse = error match {
