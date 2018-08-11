@@ -10,6 +10,7 @@ trait SenateElection extends Ordered[SenateElection] {
   def states: Set[State] = State.ALL_STATES
   def aecID: Int
   def name: String = s"${date.getYear} election"
+  def doubleDissolution: Boolean = false
 
   override def compare(that: SenateElection): Int = this.date compareTo that.date
 
@@ -26,6 +27,8 @@ object SenateElection {
     override def aecID: Int = 20499
 
     override val id: String = "2016"
+
+    override def doubleDissolution: Boolean = true
   }
 
   case object `2014 WA` extends SenateElection {
