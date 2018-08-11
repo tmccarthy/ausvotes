@@ -38,6 +38,7 @@ dependencies {
 
     compile 'org.slf4j:slf4j-simple:1.7.25'
 
+    testCompile project(':core:fixtures')
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:$scalaMockVersion"
     testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"

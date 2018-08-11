@@ -1,0 +1,15 @@
+plugins {
+    id 'com.github.maiflai.scalatest'
+    id 'scala'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:$scalaVersion"
+
+    compile project(':core')
+}
