@@ -30,6 +30,7 @@ dependencies {
 
     compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
 
+    testCompile project(':core:fixtures')
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
 
