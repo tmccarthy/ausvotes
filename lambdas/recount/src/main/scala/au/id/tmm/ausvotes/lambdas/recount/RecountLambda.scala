@@ -4,20 +4,12 @@ import argonaut.Argonaut._
 import au.id.tmm.ausvotes.lambdas.recount.Errors.RecountLambdaError
 import au.id.tmm.ausvotes.lambdas.utils.{LambdaHarness, LambdaRequest, LambdaResponse}
 import com.amazonaws.services.lambda.runtime.Context
-import org.apache.http.HttpStatus
 import scalaz.zio.IO
 
 final class RecountLambda extends LambdaHarness[RecountLambdaError] {
 
   override def logic(request: LambdaRequest, context: Context): IO[RecountLambdaError, LambdaResponse] = {
-    val response = jObjectFields(
-      "election" -> request.pathParameters("election").asJson,
-      "state" -> request.pathParameters("state").asJson,
-      "vacancies" -> request.queryStringParameters("vacancies").asJson,
-      "ineligibleCandidates" -> request.queryStringParameters("ineligibleCandidates").asJson,
-    )
-
-    IO.point(LambdaResponse(HttpStatus.SC_OK, Map.empty, response))
+    IO.fromEither(RecountRequest.fromRequest(request)).map(_ => LambdaResponse(200, Map.empty, jEmptyObject))
   }
 
   override def transformError(error: RecountLambdaError): LambdaResponse = error match {
