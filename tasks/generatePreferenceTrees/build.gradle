@@ -23,6 +23,8 @@ dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
 
     compile project(':core')
+    compile project(':shared:aws')
+    compile project(':shared:recountResources')
 
     compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
 

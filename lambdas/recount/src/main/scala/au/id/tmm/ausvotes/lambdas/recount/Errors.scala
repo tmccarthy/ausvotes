@@ -20,4 +20,16 @@ object Errors {
     final case class InvalidNumVacancies(badNumVacancies: String) extends RecountRequestError
   }
 
+  sealed trait EntityFetchError extends RecountLambdaError
+
+  object EntityFetchError {
+    final case class GroupFetchError(exception: Exception) extends EntityFetchError
+    final case class GroupDecodeError(message: String) extends EntityFetchError
+
+    final case class CandidateFetchError(exception: Exception) extends EntityFetchError
+    final case class CandidateDecodeError(message: String) extends EntityFetchError
+
+    final case class PreferenceTreeFetchError(exception: Exception) extends EntityFetchError
+  }
+
 }
