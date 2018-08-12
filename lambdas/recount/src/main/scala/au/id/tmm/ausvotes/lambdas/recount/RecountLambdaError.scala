@@ -40,4 +40,6 @@ object RecountLambdaError {
     final case class PreferenceTreeFetchError(exception: Exception) extends EntityFetchError
   }
 
+  final case class RecountComputationError(exception: Exception) extends RecountLambdaError
+
 }

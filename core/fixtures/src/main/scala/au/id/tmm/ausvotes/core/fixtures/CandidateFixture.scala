@@ -28,25 +28,25 @@ object CandidateFixture {
     override val groupFixture: GroupFixture.NT.type = GroupFixture.NT
 
     override val candidates = Set(
+      Candidate(election, state, "28558", Name("Jan", "PILE"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 0)),
       Candidate(election, state, "28559", Name("Jimmy", "GIMINI"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 1)),
-      Candidate(election, state, "28546", Name("Kathy", "BANNISTER"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 1)),
+      Candidate(election, state, "29601", Name("Andrew", "KAVASILAS"), RegisteredParty("Marijuana (HEMP) Party"), CandidatePosition(groupLookup("B"), 0)),
       Candidate(election, state, "29602", Name("Timothy", "JONES"), RegisteredParty("Australian Sex Party"), CandidatePosition(groupLookup("B"), 1)),
+      Candidate(election, state, "28003", Name("Trudy", "CAMPBELL"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 0)),
+      Candidate(election, state, "28004", Name("Ian", "BARRY"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 1)),
+      Candidate(election, state, "28544", Name("Michael", "CONNARD"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 0)),
+      Candidate(election, state, "28546", Name("Kathy", "BANNISTER"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 1)),
+      Candidate(election, state, "28820", Name("Nigel", "SCULLION"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 0)),
+      Candidate(election, state, "28822", Name("Jenni", "LILLIS"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 1)),
+      Candidate(election, state, "28575", Name("Malarndirri", "MCCARTHY"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 0)),
+      Candidate(election, state, "28576", Name("Pat", "HONAN"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 1)),
+      Candidate(election, state, "28573", Name("Carol", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 0)),
+      Candidate(election, state, "28574", Name("John", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 1)),
+      Candidate(election, state, "28538", Name("TS", "LEE"), Independent, CandidatePosition(groupLookup("UG"), 0)),
+      Candidate(election, state, "29145", Name("Tristan", "MARSHALL"), RegisteredParty("Online Direct Democracy - (Empowering the People!)"), CandidatePosition(groupLookup("UG"), 1)),
       Candidate(election, state, "29597", Name("Maurie Japarta", "RYAN"), Independent, CandidatePosition(groupLookup("UG"), 2)),
       Candidate(election, state, "29140", Name("Marney", "MacDONALD"), RegisteredParty("Antipaedophile Party"), CandidatePosition(groupLookup("UG"), 3)),
-      Candidate(election, state, "28574", Name("John", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 1)),
-      Candidate(election, state, "28575", Name("Malarndirri", "MCCARTHY"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 0)),
-      Candidate(election, state, "28558", Name("Jan", "PILE"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 0)),
-      Candidate(election, state, "28573", Name("Carol", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 0)),
       Candidate(election, state, "29596", Name("Greg", "STRETTLES"), Independent, CandidatePosition(groupLookup("UG"), 4)),
-      Candidate(election, state, "28544", Name("Michael", "CONNARD"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 0)),
-      Candidate(election, state, "28820", Name("Nigel", "SCULLION"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 0)),
-      Candidate(election, state, "28004", Name("Ian", "BARRY"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 1)),
-      Candidate(election, state, "28822", Name("Jenni", "LILLIS"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 1)),
-      Candidate(election, state, "29145", Name("Tristan", "MARSHALL"), RegisteredParty("Online Direct Democracy - (Empowering the People!)"), CandidatePosition(groupLookup("UG"), 1)),
-      Candidate(election, state, "29601", Name("Andrew", "KAVASILAS"), RegisteredParty("Marijuana (HEMP) Party"), CandidatePosition(groupLookup("B"), 0)),
-      Candidate(election, state, "28576", Name("Pat", "HONAN"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 1)),
-      Candidate(election, state, "28538", Name("TS", "LEE"), Independent, CandidatePosition(groupLookup("UG"), 0)),
-      Candidate(election, state, "28003", Name("Trudy", "CAMPBELL"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 0))
     )
   }
 

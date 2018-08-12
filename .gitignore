@@ -37,3 +37,11 @@ gradle-app.setting
 /core/build/
 /core/out/
 /build/
+/core/fixtures/build
+/core/fixtures/out
+/lambdas/*/build
+/lambdas/*/out
+/tasks/*/build
+/tasks/*/out
+/shared/*/build
+/shared/*/out

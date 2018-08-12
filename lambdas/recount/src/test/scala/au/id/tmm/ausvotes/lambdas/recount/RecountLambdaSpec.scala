@@ -5,6 +5,7 @@ import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.RecountDataBucketUndefined
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError._
 import au.id.tmm.ausvotes.lambdas.utils.LambdaResponse
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -92,6 +93,11 @@ class RecountLambdaSpec extends ImprovedFlatSpec {
   errorResponseTest(
     error = PreferenceTreeFetchError(new RuntimeException()),
     expectedMessage = "An error occurred while fetching or decoding the preference tree",
+  )
+
+  errorResponseTest(
+    error = RecountComputationError(new RuntimeException()),
+    expectedMessage = "An error occurred while performing the recount computation",
   )
 
 }

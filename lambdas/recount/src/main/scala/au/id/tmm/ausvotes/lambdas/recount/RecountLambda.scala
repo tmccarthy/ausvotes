@@ -21,14 +21,27 @@ final class RecountLambda extends LambdaHarness[RecountLambdaError] {
       state = recountRequest.state
 
       groups <- EntityFetching.fetchGroups(recountDataBucketName, election, state)
-      candidates <- EntityFetching.fetchCandidates(recountDataBucketName, election, state)(CandidateCodec(groups))
+
+      candidateCodec = CandidateCodec(groups)
+      candidates <- EntityFetching.fetchCandidates(recountDataBucketName, election, state)(candidateCodec)
 
       ineligibleCandidates <- IO.fromEither {
         CandidateActualisation.actualiseIneligibleCandidates(recountRequest.ineligibleCandidateAecIds, candidates)
       }
 
       preferenceTree <- EntityFetching.fetchPreferenceTree(recountDataBucketName, election, state, candidates)
-    } yield LambdaResponse(200, Map.empty, jEmptyObject)
+
+      recountResult <- IO.fromEither {
+        PerformRecount.performRecount(
+          election,
+          state,
+          candidates,
+          preferenceTree,
+          ineligibleCandidates,
+          recountRequest.vacancies,
+        )
+      }
+    } yield LambdaResponse(200, Map.empty, recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)))
   }
 
   override def transformError(error: RecountLambdaError): LambdaResponse = error match {
@@ -71,6 +84,8 @@ final class RecountLambda extends LambdaHarness[RecountLambdaError] {
     case RecountLambdaError.EntityFetchError.PreferenceTreeFetchError(_) =>
       badRequestResponse("An error occurred while fetching or decoding the preference tree")
 
+    case RecountLambdaError.RecountComputationError(_) =>
+      badRequestResponse("An error occurred while performing the recount computation")
   }
 
   private def badRequestResponse(message: String): LambdaResponse = LambdaResponse(
