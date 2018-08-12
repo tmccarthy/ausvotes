@@ -69,7 +69,7 @@ task terraformRefresh(type: Exec, group: 'infrastructure') {
 }
 
 task terraformOutput(type: Exec, group: 'infrastructure') {
-    dependsOn terraformApply
+    dependsOn terraformInit
     executable = 'terraform'
     workingDir = srcDir
 
