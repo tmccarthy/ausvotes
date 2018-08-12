@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 import argonaut.Argonaut._
 import argonaut.Parse
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness._
-import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
+import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger, RequestStreamHandler}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{ExitResult, IO, RTS}
@@ -27,7 +27,7 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
 
       responseOrError <- logic(request, context).attempt
 
-      deliverableResponse = responseOrError.left.map(transformError).fold(identity, identity)
+      deliverableResponse <- responseOrError.fold(handleError(_, context.getLogger), IO.point(_))
     } yield deliverableResponse
 
     computeResponseLogic.attempt.flatMap {
@@ -52,7 +52,18 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
 
   protected def logic(request: LambdaRequest, context: Context): IO[T_ERROR, LambdaResponse]
 
-  protected def transformError(error: T_ERROR): LambdaResponse
+  private def handleError(error: T_ERROR, lambdaLogger: LambdaLogger): IO[Nothing, LambdaResponse] = {
+    val writeLogMessage: IO[Nothing, Unit] = errorLogTransformer.messageFor(error)
+      .map(logMessage => IO.sync(lambdaLogger.log(logMessage)))
+      .getOrElse(IO.unit)
+
+    writeLogMessage
+      .map(_ => errorResponseTransformer.responseFor(error))
+  }
+
+  protected def errorResponseTransformer: ErrorResponseTransformer[T_ERROR]
+
+  protected def errorLogTransformer: ErrorLogTransformer[T_ERROR]
 
   private def transformHarnessError(harnessInputError: HarnessInputError): LambdaResponse = harnessInputError match {
     case RequestReadError(_) => LambdaResponse(500, Map.empty, jString(""))
@@ -80,4 +91,12 @@ object LambdaHarness {
   private final case class RequestDecodeError(message: String) extends HarnessInputError
 
   private final case class ResponseWriteError(exception: IOException)
+
+  trait ErrorResponseTransformer[E] {
+    def responseFor(error: E): LambdaResponse
+  }
+
+  trait ErrorLogTransformer[E] {
+    def messageFor(error: E): Option[String]
+  }
 }

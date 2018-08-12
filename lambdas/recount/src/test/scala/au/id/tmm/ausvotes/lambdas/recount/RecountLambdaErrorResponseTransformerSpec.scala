@@ -1,30 +1,17 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.RecountDataBucketUndefined
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountComputationError
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError._
-import au.id.tmm.ausvotes.lambdas.utils.LambdaResponse
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class RecountLambdaSpec extends ImprovedFlatSpec {
-
-  private val sut = new RecountLambda()
-
-  private def badRequestResponse(message: String): LambdaResponse = LambdaResponse(
-    statusCode = 400,
-    headers = Map.empty,
-    body = jObjectFields(
-      "message" -> jString(message),
-    )
-  )
-
+class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   def errorResponseTest(error: RecountLambdaError, expectedMessage: String): Unit = {
     it should s"translate a ${error.getClass.getName} to a response" in {
-      assert(sut.transformError(error) === badRequestResponse(expectedMessage))
+      assert(RecountLambdaErrorResponseTransformer.responseFor(error) === RecountLambdaErrorResponseTransformer.badRequestResponse(expectedMessage))
     }
   }
 
@@ -99,5 +86,4 @@ class RecountLambdaSpec extends ImprovedFlatSpec {
     error = RecountComputationError(new RuntimeException()),
     expectedMessage = "An error occurred while performing the recount computation",
   )
-
 }

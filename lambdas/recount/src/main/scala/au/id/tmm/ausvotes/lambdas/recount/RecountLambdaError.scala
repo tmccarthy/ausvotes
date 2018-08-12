@@ -7,6 +7,10 @@ sealed trait RecountLambdaError
 
 object RecountLambdaError {
 
+  sealed trait WithException extends RecountLambdaError {
+    def exception: Exception
+  }
+
   sealed trait ConfigurationError extends RecountLambdaError
 
   object ConfigurationError {
@@ -31,15 +35,15 @@ object RecountLambdaError {
   sealed trait EntityFetchError extends RecountLambdaError
 
   object EntityFetchError {
-    final case class GroupFetchError(exception: Exception) extends EntityFetchError
+    final case class GroupFetchError(exception: Exception) extends EntityFetchError with WithException
     final case class GroupDecodeError(message: String) extends EntityFetchError
 
-    final case class CandidateFetchError(exception: Exception) extends EntityFetchError
+    final case class CandidateFetchError(exception: Exception) extends EntityFetchError with WithException
     final case class CandidateDecodeError(message: String) extends EntityFetchError
 
-    final case class PreferenceTreeFetchError(exception: Exception) extends EntityFetchError
+    final case class PreferenceTreeFetchError(exception: Exception) extends EntityFetchError with WithException
   }
 
-  final case class RecountComputationError(exception: Exception) extends RecountLambdaError
+  final case class RecountComputationError(exception: Exception) extends RecountLambdaError with WithException
 
 }
