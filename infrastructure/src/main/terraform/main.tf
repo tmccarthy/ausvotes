@@ -3,6 +3,7 @@ provider "aws" {
 }
 
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 variable recount_lambda_zip_path {}
 

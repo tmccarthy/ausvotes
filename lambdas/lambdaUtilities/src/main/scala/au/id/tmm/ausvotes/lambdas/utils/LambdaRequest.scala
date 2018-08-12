@@ -43,7 +43,7 @@ object LambdaRequest {
                                    stage: String,
                                    requestId: String,
                                    extendedRequestId: Option[String],
-                                   requestTime: OffsetDateTime,
+                                   requestTime: Option[OffsetDateTime],
                                    path: Option[String],
                                    protocol: Option[String],
                                    identity: RequestContext.Identity,
