@@ -30,7 +30,7 @@ object LambdaRequestFixture {
                        resourcePath = "/recount/{election}/{state}",
                        httpMethod = "GET",
                        extendedRequestId = Some("LJNjAEPySwMFtPQ="),
-                       requestTime = OffsetDateTime.of(2018, 8, 5, 9, 26, 56, 0, ZoneOffset.ofHours(0)),
+                       requestTime = Some(OffsetDateTime.of(2018, 8, 5, 9, 26, 56, 0, ZoneOffset.ofHours(0))),
                        path = Some("/prod/recount/2016/VIC"),
                        accountId = "327455522484",
                        protocol = Some("HTTP/1.1"),
