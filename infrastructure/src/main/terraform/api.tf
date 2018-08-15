@@ -18,7 +18,7 @@ resource "aws_api_gateway_usage_plan" "recount_usage_plan" {
 
   quota_settings {
     limit  = 25
-    offset = 2
+    offset = 0
     period = "DAY"
   }
 }

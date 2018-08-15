@@ -9,7 +9,7 @@ resource "aws_lambda_function" "recount" {
   handler          = "au.id.tmm.ausvotes.lambdas.recount.RecountLambda"
   source_code_hash = "${base64sha256(file(var.recount_lambda_zip_path))}"
   runtime          = "java8"
-  timeout          = 300
+  timeout          = 80
   memory_size      = 3008
 
   environment {
