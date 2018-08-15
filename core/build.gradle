@@ -28,7 +28,7 @@ dependencies {
     compile "com.typesafe.scala-logging:scala-logging${s}:3.7.2"
 
     compile "au.id.tmm:tmm-utils${s}:$tmmUtilsVersion"
-    compile "au.id.tmm:countstv${s}:0.1.7"
+    compile "au.id.tmm:countstv${s}:0.1.8"
 
     compile "io.argonaut:argonaut${s}:$argonautVersion"
     compile "com.github.tototoshi:scala-csv${s}:1.3.4"
