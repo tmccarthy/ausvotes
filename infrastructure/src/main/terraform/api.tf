@@ -8,6 +8,21 @@ resource "aws_api_gateway_deployment" "recount_api_deployment" {
   stage_name = "prod"
 }
 
+resource "aws_api_gateway_usage_plan" "recount_usage_plan" {
+  name         = "recount-usage-plan"
+
+  api_stages {
+    api_id = "${aws_api_gateway_rest_api.recount_api.id}"
+    stage  = "${aws_api_gateway_deployment.recount_api_deployment.stage_name}"
+  }
+
+  quota_settings {
+    limit  = 25
+    offset = 2
+    period = "DAY"
+  }
+}
+
 resource "aws_api_gateway_resource" "recount_resource" {
   path_part = "recount"
   parent_id = "${aws_api_gateway_rest_api.recount_api.root_resource_id}"
