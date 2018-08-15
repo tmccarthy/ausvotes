@@ -108,7 +108,7 @@ object PerformRecount {
           case (Remaining, Remaining) => 0
           case (Remaining, _) => -1
           case (_, Remaining) => 1
-          case (Excluded(leftOrdinal, _), Excluded(rightOrdinal, _)) => Ordinal.ordering.compare(leftOrdinal, rightOrdinal)
+          case (Excluded(leftOrdinal, _), Excluded(rightOrdinal, _)) => Ordinal.ordering.reverse.compare(leftOrdinal, rightOrdinal)
           case (_: Excluded, _) => -1
           case (_, _: Excluded) => 1
           case (Ineligible, Ineligible) => 0
