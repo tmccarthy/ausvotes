@@ -1,9 +1,10 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut.{jObjectFields, jString}
-import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaHarness, ApiGatewayLambdaResponse}
+import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaResponse, LambdaHarness}
 
-object RecountLambdaErrorResponseTransformer extends ApiGatewayLambdaHarness.ErrorResponseTransformer[RecountLambdaError] {
+object RecountLambdaErrorResponseTransformer
+  extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {
 
   private[recount] def badRequestResponse(message: String): ApiGatewayLambdaResponse = ApiGatewayLambdaResponse(
     statusCode = 400,
