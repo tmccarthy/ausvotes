@@ -22,3 +22,12 @@ cloudFormation {
 }
 
 tasks.createOrUpdateStack.dependsOn(project(':lambdas:recount').tasks.uploadToDeploymentBucket)
+
+task deployIfMaster(type: GradleBuild) {
+    onlyIf { grgit.open(dir: rootProject.projectDir).branch.current.name == 'master' }
+
+    startParameter.logLevel = LogLevel.INFO
+    startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
+
+    tasks = [':infrastructure:createOrUpdateStack']
+}

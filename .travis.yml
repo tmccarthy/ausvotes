@@ -2,6 +2,13 @@ language: java
 sudo: required
 
 jdk:
-  - oraclejdk8
+- oraclejdk8
 
-script: "./gradlew build --info --stacktrace"
+script: "./gradlew build :infrastructure:deployIfMaster --info --stacktrace"
+
+env:
+  global:
+  - secure: "JZhnbxcvqliN4x6hRQkrrYCVDfB7Ka7JrnKmEQCh0XcBMCgYzN8yPfaBtlcF12HobOJ1/0M2wYKJ/onYgjOK3f3bQdM6+Q1P4vaiMqZ0vmNKuXdjL9tE9LDz8+9SCIDz/4Z70o8hrlWbwXQexHH9zCZTWLOYHYYbnUuvSDfNA4MXIfqNuTPvFfnFXeiym9yTpzvLYZG7uHk6+n6Tu+xcQLEGxEegGdZcUrtR/owIzFoTw5T7WKc2DioMfkjedukuUbft67oThIX++GbVcSQUTjVkZM6iRiLNeA9CUu4xvNHX2WsNo2fpcfawA/79cCyXelOQPQ8Qoq8iLHO1ZF28QXDYV7Sl/RFEOuUVyKO6NwxkyluCEL6dJmHtLBuuFvqRbKv+3UiY6hC9Nuc+wnJAUsGvozXLlcU33o8djDM8xKaDzaaOXcjVm9WIfhHJIptR/7vijugcqeP+ZoF3l6CJr6x2rrSYqzllwkeZQNsOloZfKuyy3UTkoZAuVvSCaa0u60r5hZgx5KZ/xxRyQUugsfyaVdMVyVgcBGyfLxA1cg27Ou5zDyLQKealvXdLs9lcb24uHXSqdpBiYcDRLmVsuwUvm+lJ+q04rqg8TmJ53Z3ix9+e4KXhqOQuifYuBHL4JeIY1t7h5T+CqE8uRsh59VUAAvJt9QBxr3NxZgKK74U="
+  - secure: "VqF8XGlMuAnMTOBg9Y19RpGzxrzJLMSLCLeO/222l2r/pIT6eMoMxH4iyL+9NwvziBvmmXhXkPAvUvDbO+wsepUCx/diBP5JooLHWBuO/WlY8cuQoEJG29DDvXydV6V0Q/fRM32Sn/X4q3KudRh5cbAikiQh4mTd6Mk/WdmXEGW/yc0e98C/UvnqjLng40ezzz2QtR5U//OqYwlTo4jYHFTjvk/dD+ILKJ1AK23/gPVR0TDwbm+D284cnan9xzGQ2cmbLuCtH7+ZlnnwU6lbcXHKs1xy1RGy1tvO8Z2dNiF9AtoeDAFDfX7T6jeVmKFVkElHMCRTLEtc1gsgBF/lme8jeHp5z/SYFWw1+TnWzHbcLxO/puRhje4LBitns1xvVzpxDzdqjQfcixYR/ox5jtE1O/f+KfILVdWOruTST1ucWfCOdcqLEClcBUj244QswNXtU1K94ZxqzQycLqJ89kzPndSINfqQajDyn4WHnePEOPBtErH2Ee/lvHB91oAgj8YEkGSw2y9OvaCf3LO0Z38RecOY3aM+p/4KVzyGccRtcgfj4E7HqWdXcnNOam/qf0CHPg09WGTYoY+I1zGrmDitQl7C3wnQYD/WT7uGpry4p8WlPE6NyA4ZohzPYlbzk0pDkPETyTSoRP6LGp4OhpIR3xXqDpa2PI0rwRY38p0="
+  - AWS_DEFAULT_REGION: ap-southeast-2
+  - AWS_DEFAULT_OUTPUT: json
