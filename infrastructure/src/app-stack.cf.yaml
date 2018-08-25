@@ -150,7 +150,7 @@ Resources:
           RECOUNT_DATA_BUCKET: !Ref RecountDataBucketName
       FunctionName: recount
       Handler: au.id.tmm.ausvotes.lambdas.recount.RecountLambda
-      MemorySize: 256
+      MemorySize: 3008
       Role: !GetAtt RecountLambdaIamRole.Arn
       Runtime: java8
       Timeout: 60
