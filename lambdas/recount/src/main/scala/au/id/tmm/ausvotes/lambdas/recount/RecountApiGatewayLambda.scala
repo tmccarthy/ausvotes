@@ -2,13 +2,13 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
-import au.id.tmm.ausvotes.lambdas.utils.{LambdaHarness, LambdaRequest, LambdaResponse}
+import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
-final class RecountLambda extends LambdaHarness[RecountLambdaError] {
+final class RecountApiGatewayLambda extends ApiGatewayLambdaHarness[RecountLambdaError] {
 
-  override def logic(lambdaRequest: LambdaRequest, context: Context): IO[RecountLambdaError, LambdaResponse] = {
+  override def logic(lambdaRequest: ApiGatewayLambdaRequest, context: Context): IO[RecountLambdaError, ApiGatewayLambdaResponse] = {
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()
 
@@ -41,7 +41,7 @@ final class RecountLambda extends LambdaHarness[RecountLambdaError] {
           recountRequest.vacancies,
         )
       }
-    } yield LambdaResponse(200, Map.empty, recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)))
+    } yield ApiGatewayLambdaResponse(200, Map.empty, recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)))
   }
 
   override protected def errorResponseTransformer: RecountLambdaErrorResponseTransformer.type = RecountLambdaErrorResponseTransformer

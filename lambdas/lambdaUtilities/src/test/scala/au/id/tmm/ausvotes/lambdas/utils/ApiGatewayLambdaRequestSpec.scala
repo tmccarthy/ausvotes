@@ -5,7 +5,7 @@ import java.time.{OffsetDateTime, ZoneOffset}
 import argonaut.Parse
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class LambdaRequestSpec extends ImprovedFlatSpec {
+class ApiGatewayLambdaRequestSpec extends ImprovedFlatSpec {
 
   "a request" can "be decoded" in {
     val requestJson =
@@ -60,7 +60,7 @@ class LambdaRequestSpec extends ImprovedFlatSpec {
         |}
         |""".stripMargin
 
-    val expectedRequest = LambdaRequest(
+    val expectedRequest = ApiGatewayLambdaRequest(
       resource = "/recount/{election}/{state}",
       path = "/recount/2016/VIC",
       httpMethod = "GET",
@@ -79,7 +79,7 @@ class LambdaRequestSpec extends ImprovedFlatSpec {
         "state" -> "VIC",
       ),
       stageVariables = Map.empty,
-      requestContext = LambdaRequest.RequestContext(
+      requestContext = ApiGatewayLambdaRequest.RequestContext(
         resourceId = "b187k5",
         resourcePath = "/recount/{election}/{state}",
         httpMethod = "GET",
@@ -90,7 +90,7 @@ class LambdaRequestSpec extends ImprovedFlatSpec {
         protocol = Some("HTTP/1.1"),
         stage = "prod",
         requestId = "b216f917-9891-11e8-b41f-f7a42232c9f4",
-        identity = LambdaRequest.RequestContext.Identity(
+        identity = ApiGatewayLambdaRequest.RequestContext.Identity(
           cognitoIdentityPoolId = None,
           accountId = None,
           cognitoIdentityId = None,
@@ -110,7 +110,7 @@ class LambdaRequestSpec extends ImprovedFlatSpec {
       isBase64Encoded = false,
     )
 
-    assert(Parse.decodeEither[LambdaRequest](requestJson) === Right(expectedRequest))
+    assert(Parse.decodeEither[ApiGatewayLambdaRequest](requestJson) === Right(expectedRequest))
   }
 
 }

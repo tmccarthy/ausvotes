@@ -2,13 +2,13 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError
-import au.id.tmm.ausvotes.lambdas.utils.LambdaRequest
+import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaRequest
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountRequestSpec extends ImprovedFlatSpec {
 
-  private def actualRecountRequestFrom(lambdaRequest: LambdaRequest): Either[RecountRequestError, RecountRequest] =
+  private def actualRecountRequestFrom(lambdaRequest: ApiGatewayLambdaRequest): Either[RecountRequestError, RecountRequest] =
     RecountRequest.fromRequest(lambdaRequest)
 
   "a recount request" can "be parsed from a lambda request" in {

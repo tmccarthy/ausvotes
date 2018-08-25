@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut.{jObjectFields, jString}
-import au.id.tmm.ausvotes.lambdas.utils.{LambdaHarness, LambdaResponse}
+import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaHarness, ApiGatewayLambdaResponse}
 
-object RecountLambdaErrorResponseTransformer extends LambdaHarness.ErrorResponseTransformer[RecountLambdaError] {
+object RecountLambdaErrorResponseTransformer extends ApiGatewayLambdaHarness.ErrorResponseTransformer[RecountLambdaError] {
 
-  private[recount] def badRequestResponse(message: String): LambdaResponse = LambdaResponse(
+  private[recount] def badRequestResponse(message: String): ApiGatewayLambdaResponse = ApiGatewayLambdaResponse(
     statusCode = 400,
     headers = Map.empty,
     body = jObjectFields(
@@ -13,7 +13,7 @@ object RecountLambdaErrorResponseTransformer extends LambdaHarness.ErrorResponse
     )
   )
 
-  override def responseFor(error: RecountLambdaError): LambdaResponse = error match {
+  override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
     case RecountLambdaError.RecountRequestError.MissingElection =>
       badRequestResponse("Election was not specified")
 

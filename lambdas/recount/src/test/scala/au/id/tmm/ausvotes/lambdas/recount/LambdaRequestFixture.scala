@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import au.id.tmm.ausvotes.lambdas.utils.LambdaRequest
+import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaRequest
 
 object LambdaRequestFixture {
 
@@ -25,7 +25,7 @@ object LambdaRequestFixture {
                        "state" -> "VIC",
                      ),
                      stageVariables: Map[String, String] = Map.empty,
-                     requestContext: LambdaRequest.RequestContext = LambdaRequest.RequestContext(
+                     requestContext: ApiGatewayLambdaRequest.RequestContext = ApiGatewayLambdaRequest.RequestContext(
                        resourceId = "b187k5",
                        resourcePath = "/recount/{election}/{state}",
                        httpMethod = "GET",
@@ -36,7 +36,7 @@ object LambdaRequestFixture {
                        protocol = Some("HTTP/1.1"),
                        stage = "prod",
                        requestId = "b216f917-9891-11e8-b41f-f7a42232c9f4",
-                       identity = LambdaRequest.RequestContext.Identity(
+                       identity = ApiGatewayLambdaRequest.RequestContext.Identity(
                          cognitoIdentityPoolId = None,
                          accountId = None,
                          cognitoIdentityId = None,
@@ -54,7 +54,7 @@ object LambdaRequestFixture {
                      ),
                      body: Option[String] = None,
                      isBase64Encoded: Boolean = false,
-                   ): LambdaRequest = LambdaRequest(
+                   ): ApiGatewayLambdaRequest = ApiGatewayLambdaRequest(
     resource, path, httpMethod, headers, queryStringParameters, pathParameters, stageVariables, requestContext, body,
     isBase64Encoded
   )

@@ -5,13 +5,13 @@ import java.nio.charset.Charset
 
 import argonaut.Argonaut._
 import argonaut.Parse
-import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness._
+import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaHarness._
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger, RequestStreamHandler}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{ExitResult, IO, RTS}
 
-abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
+abstract class ApiGatewayLambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
 
   final override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
     unsafeRunSync(harness(input, output, context)) match {
@@ -22,7 +22,7 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
   }
 
   private def harness(input: InputStream, output: OutputStream, context: Context): IO[ResponseWriteError, Unit] = {
-    val computeResponseLogic: IO[HarnessInputError, LambdaResponse] = for {
+    val computeResponseLogic: IO[HarnessInputError, ApiGatewayLambdaResponse] = for {
       request <- readRequestFrom(input)
 
       responseOrError <- logic(request, context).attempt
@@ -38,21 +38,21 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
     }
   }
 
-  private def readRequestFrom(input: InputStream): IO[HarnessInputError, LambdaRequest] = {
+  private def readRequestFrom(input: InputStream): IO[HarnessInputError, ApiGatewayLambdaRequest] = {
     IO.bracket(IO.sync(input))(is => IO.sync(is.close())) { input =>
       for {
         requestAsString <- IO.syncCatch(IOUtils.toString(input, charset)){
           case e: IOException => RequestReadError(e)
         }
-        request <- IO.fromEither(Parse.decodeEither[LambdaRequest](requestAsString))
+        request <- IO.fromEither(Parse.decodeEither[ApiGatewayLambdaRequest](requestAsString))
           .leftMap(RequestDecodeError)
       } yield request
     }
   }
 
-  protected def logic(request: LambdaRequest, context: Context): IO[T_ERROR, LambdaResponse]
+  protected def logic(request: ApiGatewayLambdaRequest, context: Context): IO[T_ERROR, ApiGatewayLambdaResponse]
 
-  private def handleError(error: T_ERROR, lambdaLogger: LambdaLogger): IO[Nothing, LambdaResponse] = {
+  private def handleError(error: T_ERROR, lambdaLogger: LambdaLogger): IO[Nothing, ApiGatewayLambdaResponse] = {
     val writeLogMessage: IO[Nothing, Unit] = errorLogTransformer.messageFor(error)
       .map(logMessage => IO.sync(lambdaLogger.log(logMessage)))
       .getOrElse(IO.unit)
@@ -65,12 +65,12 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
 
   protected def errorLogTransformer: ErrorLogTransformer[T_ERROR]
 
-  private def transformHarnessError(harnessInputError: HarnessInputError): LambdaResponse = harnessInputError match {
-    case RequestReadError(_) => LambdaResponse(500, Map.empty, jString(""))
-    case RequestDecodeError(message) => LambdaResponse(400, Map.empty, jString(message))
+  private def transformHarnessError(harnessInputError: HarnessInputError): ApiGatewayLambdaResponse = harnessInputError match {
+    case RequestReadError(_) => ApiGatewayLambdaResponse(500, Map.empty, jString(""))
+    case RequestDecodeError(message) => ApiGatewayLambdaResponse(400, Map.empty, jString(message))
   }
 
-  private def writeResponseTo(response: LambdaResponse, output: OutputStream): IO[ResponseWriteError, Unit] = {
+  private def writeResponseTo(response: ApiGatewayLambdaResponse, output: OutputStream): IO[ResponseWriteError, Unit] = {
     IO.bracket(IO.sync(output))(os => IO.sync(os.close())) { output =>
       val jsonString = response.asJson.toString()
 
@@ -82,7 +82,7 @@ abstract class LambdaHarness[T_ERROR] extends RequestStreamHandler with RTS {
 
 }
 
-object LambdaHarness {
+object ApiGatewayLambdaHarness {
   val charset: Charset = Charset.forName("UTF-8")
 
   private sealed trait HarnessInputError
@@ -93,7 +93,7 @@ object LambdaHarness {
   private final case class ResponseWriteError(exception: IOException)
 
   trait ErrorResponseTransformer[E] {
-    def responseFor(error: E): LambdaResponse
+    def responseFor(error: E): ApiGatewayLambdaResponse
   }
 
   trait ErrorLogTransformer[E] {
