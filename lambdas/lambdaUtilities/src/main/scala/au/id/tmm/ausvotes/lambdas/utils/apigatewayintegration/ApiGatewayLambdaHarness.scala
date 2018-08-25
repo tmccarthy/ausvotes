@@ -1,6 +1,7 @@
-package au.id.tmm.ausvotes.lambdas.utils
+package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
 import argonaut.Argonaut._
+import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness._
 
 abstract class ApiGatewayLambdaHarness[T_ERROR]

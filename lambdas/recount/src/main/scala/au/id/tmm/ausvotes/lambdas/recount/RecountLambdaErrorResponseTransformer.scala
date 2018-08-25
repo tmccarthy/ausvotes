@@ -1,7 +1,8 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut.{jObjectFields, jString}
-import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaResponse, LambdaHarness}
+import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
+import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaResponse
 
 object RecountLambdaErrorResponseTransformer
   extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {

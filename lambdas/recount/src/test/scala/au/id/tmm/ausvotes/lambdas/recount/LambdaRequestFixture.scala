@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaRequest
+import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest
 
 object LambdaRequestFixture {
 

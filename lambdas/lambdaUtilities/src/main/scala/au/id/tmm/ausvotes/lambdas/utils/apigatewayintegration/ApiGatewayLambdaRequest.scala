@@ -1,10 +1,10 @@
-package au.id.tmm.ausvotes.lambdas.utils
+package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
 import java.time.OffsetDateTime
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import argonaut.{Argonaut, DecodeJson, DecodeResult}
-import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaRequest.RequestContext
+import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest.RequestContext
 
 final case class ApiGatewayLambdaRequest(
                                           resource: String,

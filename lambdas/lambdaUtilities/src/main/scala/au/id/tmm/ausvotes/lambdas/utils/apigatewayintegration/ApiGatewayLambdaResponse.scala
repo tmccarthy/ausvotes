@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.lambdas.utils
+package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
 import argonaut.Argonaut._
 import argonaut._

@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError
-import au.id.tmm.ausvotes.lambdas.utils.ApiGatewayLambdaRequest
+import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest
 import au.id.tmm.utilities.geo.australia.State
 
 final case class RecountRequest(

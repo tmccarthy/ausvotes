@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
-import au.id.tmm.ausvotes.lambdas.utils.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
+import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
