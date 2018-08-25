@@ -127,6 +127,18 @@ Resources:
       RestApiId: !Ref AusvotesApi
       StageName: !Ref AusvotesApiStageName
 
+  AusvotesApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+      - ApiId: !Ref AusvotesApi
+        Stage: !Ref AusvotesApiStageName
+      Quota:
+        Limit: 25
+        Offset: 0
+        Period: DAY
+      UsagePlanName: ausvotes-usage-plan
+
   RecountLambda:
     Type: AWS::Lambda::Function
     Properties:
