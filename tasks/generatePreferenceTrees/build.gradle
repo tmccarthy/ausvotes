@@ -38,16 +38,12 @@ dependencies {
 }
 
 task uploadRecountData(type: JavaExec) {
-    def recountDataBucketNameTask = project(':infrastructure').tasks.terraformOutput
-
-    dependsOn recountDataBucketNameTask
-
     classpath = sourceSets.main.runtimeClasspath
 
     main = 'au.id.tmm.ausvotes.tasks.generatepreferencetrees.Main'
 
     args rootProject.file('rawData').absolutePath,
-            "${->recountDataBucketNameTask.terraformOutputs.recount_data_bucket_name.value}",
+            project(':infrastructure').recountDataBucketName,
             '2016'
 
     jvmArgs '-Xmx3G'

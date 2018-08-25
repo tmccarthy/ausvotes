@@ -1,83 +1,24 @@
-buildscript {
-    repositories {
-        mavenCentral();
-    }
-
-    dependencies {
-        classpath 'com.google.guava:guava:25.1-jre'
-    }
+plugins {
+    id "seek.aws" version "0.0.26"
+    id "seek.cloudformation" version "0.0.26"
 }
 
-import groovy.json.JsonSlurper
+evaluationDependsOn(':lambdas:recount')
 
-def srcDir = file('src/main/terraform')
-
-task terraformInit(type: Exec, group: 'infrastructure') {
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['init']
-
-    outputs.upToDateWhen { new File(srcDir, '.terraform').exists() }
+aws {
+    region 'ap-southeast-2'
 }
 
-Zip recountLambdaZipTask = tasks.getByPath(':lambdas:recount:buildZip') as Zip
+ext.recountDataBucketName = 'recount-data.buckets.ausvotes.info'
 
-def standardTerraformArgs = [
-        '-input=false',
-        '-var', "recount_lambda_zip_path=${recountLambdaZipTask.archivePath.absolutePath}",
-]
-
-task terraformApply(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit, recountLambdaZipTask
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['apply', '-auto-approve'] + standardTerraformArgs
+cloudFormation {
+    stackName rootProject.name
+    templateFile file('src/app-stack.cf.yaml')
+    parameters ([
+            DeploymentArtefactBucket: deploymentBucket,
+            RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
+            RecountDataBucketName: recountDataBucketName,
+    ])
 }
 
-task terraformDestroy(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['destroy', '-auto-approve'] + standardTerraformArgs
-}
-
-task terraformPlan(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit, recountLambdaZipTask
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['plan'] + standardTerraformArgs
-}
-
-task terraformShow(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit, recountLambdaZipTask
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['show']
-}
-
-task terraformRefresh(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit, recountLambdaZipTask
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['refresh'] + standardTerraformArgs
-}
-
-task terraformOutput(type: Exec, group: 'infrastructure') {
-    dependsOn terraformInit
-    executable = 'terraform'
-    workingDir = srcDir
-
-    args = ['output', '--json']
-
-    standardOutput = new ByteArrayOutputStream()
-
-    doLast {
-        ext.terraformOutputs = new JsonSlurper().parseText(standardOutput.toString('UTF-8'))
-    }
-}
+tasks.createOrUpdateStack.dependsOn(project(':lambdas:recount').tasks.uploadToDeploymentBucket)
