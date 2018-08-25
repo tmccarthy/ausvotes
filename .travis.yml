@@ -4,7 +4,4 @@ sudo: required
 jdk:
   - oraclejdk8
 
-services:
-  - docker
-
 script: "./gradlew build --info --stacktrace"

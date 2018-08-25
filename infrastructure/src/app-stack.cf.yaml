@@ -12,6 +12,18 @@ Parameters:
   RecountDataBucketName:
     Type: String
 
+  AusvotesDomainCertificateId:
+    Type: String
+    Default: 23687a6f-6621-407d-b725-2bd5aa8f7721
+
+  AusvotesApiDomainName:
+    Type: String
+    Default: api.ausvotes.info
+
+  AusvotesApiStageName:
+    Type: String
+    Default: prod
+
 Resources:
 
   RecountDataBucket:
@@ -47,6 +59,22 @@ Resources:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: ausvotes
+
+  AusvotesApiGatewayDomainName:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn: !Sub
+      - "arn:aws:acm:us-east-1:${account_id}:certificate/${cert_id}"
+      - account_id: !Ref AWS::AccountId
+        cert_id: !Ref AusvotesDomainCertificateId
+      DomainName: !Ref AusvotesApiDomainName
+
+  AusvotesBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName: !Ref AusvotesApiGatewayDomainName
+      RestApiId: !Ref AusvotesApi
+      Stage: !Ref AusvotesApiStageName
 
   RecountResource:
     Type: AWS::ApiGateway::Resource
@@ -97,7 +125,7 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref AusvotesApi
-      StageName: prod
+      StageName: !Ref AusvotesApiStageName
 
   RecountLambda:
     Type: AWS::Lambda::Function
