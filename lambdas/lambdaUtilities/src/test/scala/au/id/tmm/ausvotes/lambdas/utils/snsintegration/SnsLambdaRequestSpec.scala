@@ -3,13 +3,17 @@ package au.id.tmm.ausvotes.lambdas.utils.snsintegration
 import java.time.Instant
 import java.util.UUID
 
-import argonaut.Parse
+import argonaut.{DecodeJson, Parse}
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.SnsLambdaRequest.SnsBody.MessageAttributes
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class SnsLambdaRequestSpec extends ImprovedFlatSpec {
 
   "a request" can "be decoded" in {
+    final case class Message(message: String)
+
+    implicit val decodeMessage: DecodeJson[Message] = c => c.downField("message").as[String].map(Message)
+
     val requestJson =
       """
         |{
@@ -24,7 +28,7 @@ class SnsLambdaRequestSpec extends ImprovedFlatSpec {
         |        "Signature": "EXAMPLE",
         |        "SigningCertUrl": "EXAMPLE",
         |        "MessageId": "95df01b4-ee98-5cb9-9903-4c221d41eb5e",
-        |        "Message": "Hello from SNS!",
+        |        "Message": "{ \"message\": \"test message\" }",
         |        "MessageAttributes": {
         |          "Test": {
         |            "Type": "String",
@@ -45,17 +49,17 @@ class SnsLambdaRequestSpec extends ImprovedFlatSpec {
         |}
         |""".stripMargin
 
-    val expectedRequest = SnsLambdaRequest(
+    val expectedRequest = SnsLambdaRequest[Message](
       eventVersion = "1.0",
       eventSubscriptionArn = "eventsubscriptionarn",
       eventSource = "aws:sns",
-      snsBody = SnsLambdaRequest.SnsBody(
+      snsBody = SnsLambdaRequest.SnsBody[Message](
         signatureVersion = "1",
         timestamp = Instant.ofEpochMilli(0),
         signature = "EXAMPLE",
         signingCertUrl = "EXAMPLE",
         messageId = UUID.fromString("95df01b4-ee98-5cb9-9903-4c221d41eb5e"),
-        message = "Hello from SNS!",
+        message = Message("test message"),
         messageAttributes = MessageAttributes(),
         eventType = "Notification",
         unsubscribeUrl = "EXAMPLE",
@@ -64,7 +68,7 @@ class SnsLambdaRequestSpec extends ImprovedFlatSpec {
       ),
     )
 
-    assert(Parse.decodeEither[SnsLambdaRequest](requestJson) === Right(expectedRequest))
+    assert(Parse.decodeEither[SnsLambdaRequest[Message]](requestJson) === Right(expectedRequest))
   }
 
 }
