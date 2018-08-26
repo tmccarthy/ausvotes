@@ -1,9 +1,10 @@
 package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
 import java.time.OffsetDateTime
-import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.format.DateTimeFormatter
 
-import argonaut.{Argonaut, DecodeJson, DecodeResult}
+import argonaut.{Argonaut, DecodeJson}
+import au.id.tmm.ausvotes.lambdas.utils.DateTimeCodecs
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest.RequestContext
 
 final case class ApiGatewayLambdaRequest(
@@ -54,15 +55,8 @@ object ApiGatewayLambdaRequest {
 
   object RequestContext {
 
-    private val requestTimeFormat = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss xxxx")
-
-    private implicit val requestTimeDecoder: DecodeJson[OffsetDateTime] = c => c.as[String].flatMap { timestamp =>
-      try {
-        DecodeResult.ok(OffsetDateTime.parse(timestamp, requestTimeFormat))
-      } catch {
-        case e: DateTimeParseException => DecodeResult.fail(e.getMessage, c.history)
-      }
-    }
+    private implicit val requestTimeDecoder: DecodeJson[OffsetDateTime] =
+      DateTimeCodecs.offsetDateTimeDecoder(DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss xxxx"))
 
     implicit val decoder: DecodeJson[RequestContext] = Argonaut.jdecode12L(RequestContext.apply)(
       "accountId", "resourceId", "stage", "requestId", "extendedRequestId", "requestTime", "path", "protocol",
