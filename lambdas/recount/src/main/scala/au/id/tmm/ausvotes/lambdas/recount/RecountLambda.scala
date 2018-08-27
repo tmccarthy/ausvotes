@@ -1,21 +1,22 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import argonaut.Argonaut._
+import argonaut.DecodeJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
-import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambda.SnsMessage
+import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
-final class RecountApiGatewayLambda extends ApiGatewayLambdaHarness[RecountLambdaError] {
+final class RecountLambda extends SnsLambdaHarness[SnsMessage, RecountLambdaError] {
 
-  override def logic(lambdaRequest: ApiGatewayLambdaRequest, context: Context): IO[RecountLambdaError, ApiGatewayLambdaResponse] = {
+  override def logic(lambdaRequest: SnsLambdaRequest[SnsMessage], context: Context): IO[RecountLambdaError, Unit] = {
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()
 
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
 
-      recountRequest <- IO.fromEither(RecountRequest.fromRequest(lambdaRequest))
+      recountRequest <- IO.fromEither(RecountRequest.fromRequest(lambdaRequest.snsBody.message))
 
       election = recountRequest.election
       state = recountRequest.state
@@ -41,11 +42,29 @@ final class RecountApiGatewayLambda extends ApiGatewayLambdaHarness[RecountLambd
           recountRequest.vacancies,
         )
       }
-    } yield ApiGatewayLambdaResponse(200, Map.empty, recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)))
+    } yield Unit
   }
 
-  override protected def errorResponseTransformer: RecountLambdaErrorResponseTransformer.type = RecountLambdaErrorResponseTransformer
-
   override protected def errorLogTransformer: RecountLambdaErrorLogTransformer.type = RecountLambdaErrorLogTransformer
+
+}
+
+object RecountLambda {
+
+  final case class SnsMessage(
+                               election: Option[String],
+                               state: Option[String],
+                               vacancies: Option[String],
+                               ineligibleCandidates: Option[String],
+                             )
+
+  object SnsMessage {
+    implicit val decode: DecodeJson[SnsMessage] = c => for {
+      election <- c.downField("election").as[Option[String]]
+      state <- c.downField("state").as[Option[String]]
+      vacancies <- c.downField("vacancies").as[Option[String]]
+      ineligibleCandidates <- c.downField("ineligibleCandidates").as[Option[String]]
+    } yield SnsMessage(election, state, vacancies, ineligibleCandidates)
+  }
 
 }

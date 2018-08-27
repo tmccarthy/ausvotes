@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.lambdas.recount
 import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError
-import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest
 import au.id.tmm.utilities.geo.australia.State
 
 final case class RecountRequest(
@@ -15,24 +14,25 @@ final case class RecountRequest(
 
 object RecountRequest {
 
-  def fromRequest(request: ApiGatewayLambdaRequest): Either[RecountRequestError, RecountRequest] = for {
-    election <- electionFrom(request)
-    state <- stateFrom(request)
-    numVacancies <- numVacanciesFrom(request, election, state)
-    ineligibleCandidateAecIds = ineligibleCandidatesFrom(request)
-
-    _ <- ensureElectionForState(election, state)
-  } yield RecountRequest(election, state, numVacancies, ineligibleCandidateAecIds)
-
-  private def electionFrom(request: ApiGatewayLambdaRequest): Either[RecountRequestError, SenateElection] =
+  def fromRequest(request: RecountLambda.SnsMessage): Either[RecountRequestError, RecountRequest] =
     for {
-      electionId <- request.pathParameters.get("election").toRight(RecountRequestError.MissingElection)
+      election <- electionFrom(request)
+      state <- stateFrom(request)
+      numVacancies <- numVacanciesFrom(request, election, state)
+      ineligibleCandidateAecIds = ineligibleCandidatesFrom(request)
+
+      _ <- ensureElectionForState(election, state)
+    } yield RecountRequest(election, state, numVacancies, ineligibleCandidateAecIds)
+
+  private def electionFrom(request: RecountLambda.SnsMessage): Either[RecountRequestError, SenateElection] =
+    for {
+      electionId <- request.election.toRight(RecountRequestError.MissingElection)
       election <- SenateElection.forId(electionId).toRight(RecountRequestError.InvalidElectionId(electionId))
     } yield election
 
-  private def stateFrom(request: ApiGatewayLambdaRequest): Either[RecountRequestError, State] =
+  private def stateFrom(request: RecountLambda.SnsMessage): Either[RecountRequestError, State] =
     for {
-      stateAbbreviation <- request.pathParameters.get("state").toRight(RecountRequestError.MissingState)
+      stateAbbreviation <- request.state.toRight(RecountRequestError.MissingState)
       state <- State.fromAbbreviation(stateAbbreviation).toRight(RecountRequestError.InvalidStateId(stateAbbreviation))
     } yield state
 
@@ -48,11 +48,11 @@ object RecountRequest {
   }
 
   private def numVacanciesFrom(
-                                request: ApiGatewayLambdaRequest,
+                                request: RecountLambda.SnsMessage,
                                 election: SenateElection,
                                 state: State,
                               ): Either[RecountRequestError, Int] = {
-    request.queryStringParameters.get("vacancies").map { rawNumVacancies =>
+    request.vacancies.map { rawNumVacancies =>
       try {
         val numVacancies = rawNumVacancies.toInt
 
@@ -70,8 +70,8 @@ object RecountRequest {
     }
   }
 
-  private def ineligibleCandidatesFrom(request: ApiGatewayLambdaRequest): Set[String] =
-    request.queryStringParameters.get("ineligibleCandidates")
+  private def ineligibleCandidatesFrom(request: RecountLambda.SnsMessage): Set[String] =
+    request.ineligibleCandidates
       .map(_.split(',').filter(_.nonEmpty).toSet)
       .getOrElse(Set.empty)
 
