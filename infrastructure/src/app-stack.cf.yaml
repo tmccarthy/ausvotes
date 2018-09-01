@@ -139,6 +139,35 @@ Resources:
         Period: DAY
       UsagePlanName: ausvotes-usage-plan
 
+  RecountEnqueueLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: !Ref DeploymentArtefactBucket
+        S3Key: TODO # TODO
+      Environment:
+        Variables:
+          RECOUNT_REQUEST_QUEUE: !Ref RecountRequestQueue
+          RECOUNT_DATA_BUCKET: !Ref RecountDataBucketName
+      FunctionName: recount-enqueue
+      Handler: String # TODO
+      MemorySize: 384
+      Role: String
+      Runtime: python3.6
+      Timeout: 3
+
+  RecountRequestQueue:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: recount-request-queue
+
+  RecountRequestQueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt RecountLambda.Arn
+      Protocol: lambda
+      TopicArn: !Ref RecountRequestQueue
+
   RecountLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -171,19 +200,13 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-          {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-              "Service": "lambda.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-          }
-          ]
-        }
+        "Version": "2012-10-17"
+        "Statement":
+        - "Action": "sts:AssumeRole"
+          "Principal":
+            "Service": "lambda.amazonaws.com"
+          "Effect": "Allow"
+          "Sid": ""
       Policies:
       - PolicyName: basic_lambda_permissions
         PolicyDocument:

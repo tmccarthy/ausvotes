@@ -22,7 +22,7 @@ repositories {
 dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
 
-    compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
+    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     compile 'com.amazonaws:aws-java-sdk-s3'
 

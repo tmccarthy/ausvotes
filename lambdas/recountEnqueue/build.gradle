@@ -25,15 +25,14 @@ dependencyManagement {
 dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
 
-    compile project(':core')
     compile project(':lambdas:lambdaUtilities')
-    compile project(':shared:aws')
     compile project(':shared:recountResources')
 
     compile 'com.amazonaws:aws-java-sdk-s3'
+    compile 'com.amazonaws:aws-java-sdk-sns'
     compile 'com.amazonaws:aws-lambda-java-core:1.2.0'
 
-    compile"org.scalaz:scalaz-zio${s}:$scalazZioVersion"
+    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"

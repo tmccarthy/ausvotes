@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 import argonaut.Argonaut.{jObjectFields, jString}
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaResponse
+import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 
 object RecountLambdaErrorResponseTransformer
   extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {
@@ -16,23 +17,8 @@ object RecountLambdaErrorResponseTransformer
   )
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
-    case RecountLambdaError.RecountRequestError.MissingElection =>
-      badRequestResponse("Election was not specified")
-
-    case RecountLambdaError.RecountRequestError.InvalidElectionId(badElectionId) =>
-      badRequestResponse(s"""Unrecognised election id "$badElectionId"""")
-
-    case RecountLambdaError.RecountRequestError.MissingState =>
-      badRequestResponse("State was not specified")
-
-    case RecountLambdaError.RecountRequestError.InvalidStateId(badStateId) =>
-      badRequestResponse(s"""Unrecognised state id "$badStateId"""")
-
-    case RecountLambdaError.RecountRequestError.NoElectionForState(election, state) =>
-      badRequestResponse(s"""The election "${election.id}" did not have an election for state "${state.abbreviation}"""")
-
-    case RecountLambdaError.RecountRequestError.InvalidNumVacancies(badNumVacancies) =>
-      badRequestResponse(s"""Invalid number of vacancies "$badNumVacancies"""")
+    case RecountLambdaError.RecountRequestError.RecountRequestParseError(e) =>
+      badRequestResponse(RecountRequest.Error.humanReadableMessageFor(e))
 
     case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
       badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.mkString("[\"", "\", \"", "\"]")}""")

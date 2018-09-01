@@ -8,4 +8,5 @@ repositories {
 dependencies {
     compile 'org.ajoberstar.reckon:reckon-gradle:0.4.0'
     compile 'org.ajoberstar:grgit:2.2.1'
+    compile 'gradle.plugin.com.linkedin.pygradle:pygradle-plugin:0.7.18'
 }

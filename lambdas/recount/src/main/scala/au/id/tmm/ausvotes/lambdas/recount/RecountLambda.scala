@@ -4,6 +4,7 @@ import argonaut.DecodeJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambda.SnsMessage
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
+import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
@@ -16,7 +17,16 @@ final class RecountLambda extends SnsLambdaHarness[SnsMessage, RecountLambdaErro
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
 
-      recountRequest <- IO.fromEither(RecountRequest.fromRequest(lambdaRequest.snsBody.message))
+      recountRequest <- IO.fromEither {
+        val snsMessage = lambdaRequest.snsBody.message
+
+        RecountRequest.build(
+          rawElection = snsMessage.election,
+          rawState = snsMessage.state,
+          rawNumVacancies = snsMessage.vacancies,
+          rawIneligibleCandidates = snsMessage.ineligibleCandidates,
+        ).left.map(RecountLambdaError.RecountRequestError.RecountRequestParseError)
+      }
 
       election = recountRequest.election
       state = recountRequest.state

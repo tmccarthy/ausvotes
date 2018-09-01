@@ -29,7 +29,7 @@ dependencies {
 
     compile "io.argonaut:argonaut${s}:$argonautVersion"
 
-    compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
+    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"

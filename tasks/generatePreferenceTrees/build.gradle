@@ -26,7 +26,7 @@ dependencies {
     compile project(':shared:aws')
     compile project(':shared:recountResources')
 
-    compile("org.scalaz:scalaz-zio${s}:$scalazZioVersion") { changing = true }
+    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     compile 'com.amazonaws:aws-java-sdk-s3'
 

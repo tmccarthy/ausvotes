@@ -5,12 +5,13 @@ import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountComputationError
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
+import au.id.tmm.ausvotes.shared.recountresources.RecountRequest.Error._
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   def errorResponseTest(error: RecountLambdaError, expectedMessage: String): Unit = {
-    it should s"translate a ${error.getClass.getName} to a response" in {
+    it should s"translate a $error error to a response" in {
       assert(RecountLambdaErrorResponseTransformer.responseFor(error) === RecountLambdaErrorResponseTransformer.badRequestResponse(expectedMessage))
     }
   }
@@ -18,32 +19,32 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   behaviour of "a recount lambda"
 
   errorResponseTest(
-    error = MissingElection,
+    error = RecountRequestParseError(MissingElection),
     expectedMessage = "Election was not specified",
   )
 
   errorResponseTest(
-    error = InvalidElectionId("invalid"),
+    error = RecountRequestParseError(InvalidElectionId("invalid")),
     expectedMessage = """Unrecognised election id "invalid"""",
   )
 
   errorResponseTest(
-    error = MissingState,
+    error = RecountRequestParseError(MissingState),
     expectedMessage = "State was not specified",
   )
 
   errorResponseTest(
-    error = InvalidStateId("invalid"),
+    error = RecountRequestParseError(InvalidStateId("invalid")),
     expectedMessage = """Unrecognised state id "invalid"""",
   )
 
   errorResponseTest(
-    error = NoElectionForState(SenateElection.`2014 WA`, State.SA),
+    error = RecountRequestParseError(NoElectionForState(SenateElection.`2014 WA`, State.SA)),
     expectedMessage = """The election "2014WA" did not have an election for state "SA"""",
   )
 
   errorResponseTest(
-    error = InvalidNumVacancies("invalid"),
+    error = RecountRequestParseError(InvalidNumVacancies("invalid")),
     expectedMessage = """Invalid number of vacancies "invalid"""",
   )
 

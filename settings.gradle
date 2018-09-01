@@ -5,6 +5,7 @@ include 'core',
         'tasks:generatePreferenceTrees',
         'lambdas:lambdaUtilities',
         'lambdas:recount',
+        'lambdas:recountEnqueue',
         'shared:aws',
         'shared:recountResources',
         'infrastructure'
