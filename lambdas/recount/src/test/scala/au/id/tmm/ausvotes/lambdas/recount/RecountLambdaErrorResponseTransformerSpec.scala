@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.RecountDataBucketUndefined
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountComputationError
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.{RecountComputationError, WriteRecountError}
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest.Error._
 import au.id.tmm.utilities.geo.australia.State
@@ -86,5 +86,10 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   errorResponseTest(
     error = RecountComputationError(new RuntimeException()),
     expectedMessage = "An error occurred while performing the recount computation",
+  )
+
+  errorResponseTest(
+    error = WriteRecountError(new RuntimeException()),
+    expectedMessage = "An error occurred while writing the recount result",
   )
 }

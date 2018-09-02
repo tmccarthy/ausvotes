@@ -43,5 +43,8 @@ object RecountLambdaErrorResponseTransformer
 
     case RecountLambdaError.RecountComputationError(_) =>
       badRequestResponse("An error occurred while performing the recount computation")
+
+    case RecountLambdaError.WriteRecountError(_) =>
+      badRequestResponse("An error occurred while writing the recount result")
   }
 }
