@@ -45,7 +45,6 @@ object S3Ops {
     }
   }
 
-
   def putFromOutputStream(
                            bucketName: S3BucketName,
                            objectKey: S3ObjectKey,
@@ -65,6 +64,13 @@ object S3Ops {
 
     (readFromSink par writeToSource).map(_ => Unit)
   }
+
+  def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): IO[Exception, Boolean] =
+    s3Client.flatMap { client =>
+      IO.syncException {
+        client.doesObjectExist(bucketName.asString, objectKey.asString)
+      }
+    }
 
   def objectUrl(region: String, bucketName: S3BucketName, objectKey: S3ObjectKey): URL =
     new URL(s"https://s3-$region.amazonaws.com/${bucketName.asString}/${objectKey.asString}")

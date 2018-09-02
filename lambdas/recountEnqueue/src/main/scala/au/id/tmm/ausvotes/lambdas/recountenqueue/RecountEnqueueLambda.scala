@@ -22,15 +22,18 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
 
       recountRequest <- IO.fromEither(buildRecountRequest(request))
 
-      // TODO don't send message if there's already a recount computation
+      recountComputationKey = RecountLocations.locationOfRecountFor(recountRequest)
 
-      _ <- putSnsMessage(recountQueueArn, recountRequest)
+      recountAlreadyComputed <- S3Ops.checkObjectExists(recountDataBucket, recountComputationKey)
+          .leftMap(RecountEnqueueLambda.Error.CheckRecountComputedError)
+
+      _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else IO.unit
     } yield {
       val response = RecountEnqueueLambda.Response(
         S3Ops.objectUrl(
           region = region,
           bucketName = recountDataBucket,
-          objectKey = RecountLocations.locationOfRecountFor(recountRequest),
+          objectKey = recountComputationKey,
         )
       )
 
@@ -80,7 +83,8 @@ object RecountEnqueueLambda {
 
   object Error {
     final case class BadRequestError(cause: RecountRequest.Error) extends Error
-    final case class MessagePublishError(exception: Exception) extends Error
+    final case class MessagePublishError(cause: Exception) extends Error
+    final case class CheckRecountComputedError(cause: Exception) extends Error
     case object RecountQueueArnMissing extends Error
     case object RecountDataBucketMissing extends Error
     case object RegionMissing extends Error

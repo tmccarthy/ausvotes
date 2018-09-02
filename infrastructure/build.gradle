@@ -3,7 +3,12 @@ plugins {
     id "seek.cloudformation" version "0.0.26"
 }
 
-evaluationDependsOn(':lambdas:recount')
+[
+        ':lambdas:recount',
+        ':lambdas:recountEnqueue',
+].each {
+    evaluationDependsOn(it)
+}
 
 aws {
     region 'ap-southeast-2'
@@ -17,11 +22,17 @@ cloudFormation {
     parameters ([
             DeploymentArtefactBucket: deploymentBucket,
             RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
+            RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
             RecountDataBucketName: recountDataBucketName,
     ])
 }
 
-tasks.createOrUpdateStack.dependsOn(project(':lambdas:recount').tasks.uploadToDeploymentBucket)
+[
+        project(':lambdas:recount').tasks.uploadToDeploymentBucket,
+        project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
+].each {
+    tasks.createOrUpdateStack.dependsOn(it)
+}
 
 task deployIfMaster(type: GradleBuild) {
     onlyIf {

@@ -9,6 +9,9 @@ Parameters:
   RecountLambdaCodeKey:
     Type: String
 
+  RecountEnqueueLambdaCodeKey:
+    Type: String
+
   RecountDataBucketName:
     Type: String
 
@@ -37,23 +40,30 @@ Resources:
       Bucket: !Ref RecountDataBucket
       PolicyDocument:
         Version: 2012-10-17
-        "Statement":
-        - "Action":
+        Statement:
+        - Action:
           - s3:GetObject
           Effect: Allow
+          Principal:
+            AWS:
+            - !GetAtt RecountLambdaIamRole.Arn
           Resource: !Sub
           - "${bucket_name}/*"
           - bucket_name: !GetAtt RecountDataBucket.Arn
-          Principal:
-            AWS:
-            - !GetAtt RecountLambdaIamRole.Arn
-        - "Action":
+        - Action:
           - s3:ListBucket
           Effect: Allow
-          Resource: !GetAtt RecountDataBucket.Arn
           Principal:
             AWS:
             - !GetAtt RecountLambdaIamRole.Arn
+          Resource: !GetAtt RecountDataBucket.Arn
+        - Action:
+          - s3:GetObject
+          Effect: "Allow"
+          Principal: "*"
+          Resource: !Sub
+          - "${bucket_name}/recounts/*"
+          - bucket_name: !GetAtt RecountDataBucket.Arn
 
   AusvotesApi:
     Type: AWS::ApiGateway::RestApi
@@ -144,17 +154,19 @@ Resources:
     Properties:
       Code:
         S3Bucket: !Ref DeploymentArtefactBucket
-        S3Key: TODO # TODO
+        S3Key: !Ref RecountEnqueueLambdaCodeKey
       Environment:
         Variables:
           RECOUNT_REQUEST_QUEUE: !Ref RecountRequestQueue
           RECOUNT_DATA_BUCKET: !Ref RecountDataBucketName
       FunctionName: recount-enqueue
-      Handler: String # TODO
+      Handler: au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda
       MemorySize: 384
-      Role: String
+      Role: String # TODO
       Runtime: python3.6
       Timeout: 3
+
+  # TODO permission and role
 
   RecountRequestQueue:
     Type: AWS::SNS::Topic

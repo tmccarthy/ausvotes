@@ -12,6 +12,7 @@ object RecountEnqueueLambdaErrorResponseTransformer extends LambdaHarness.ErrorR
       errorResponse(isClientError = true, message = Some(RecountRequest.Error.humanReadableMessageFor(cause)))
 
     case RecountEnqueueLambda.Error.MessagePublishError(_) |
+         RecountEnqueueLambda.Error.CheckRecountComputedError(_) |
          RecountEnqueueLambda.Error.RecountQueueArnMissing |
          RecountEnqueueLambda.Error.RecountDataBucketMissing |
          RecountEnqueueLambda.Error.RegionMissing =>

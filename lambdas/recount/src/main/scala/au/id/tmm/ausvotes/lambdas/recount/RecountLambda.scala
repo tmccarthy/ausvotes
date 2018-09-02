@@ -1,10 +1,12 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
+import argonaut.Argonaut._
 import argonaut.DecodeJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambda.SnsMessage
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
-import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
+import au.id.tmm.ausvotes.shared.aws.S3Ops
+import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
@@ -52,6 +54,12 @@ final class RecountLambda extends SnsLambdaHarness[SnsMessage, RecountLambdaErro
           recountRequest.vacancies,
         )
       }
+
+      _ <- S3Ops.putString(
+        bucketName = recountDataBucketName,
+        objectKey = RecountLocations.locationOfRecountFor(recountRequest),
+        content = recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)).toString,
+      ).leftMap(RecountLambdaError.WriteRecountError)
     } yield Unit
   }
 

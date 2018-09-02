@@ -38,4 +38,6 @@ object RecountLambdaError {
 
   final case class RecountComputationError(exception: Exception) extends RecountLambdaError with WithException
 
+  final case class WriteRecountError(cause: Exception) extends RecountLambdaError
+
 }
