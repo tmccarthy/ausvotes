@@ -128,7 +128,7 @@ Resources:
         Uri: !Sub
         - "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_arn}/invocations"
         - region: !Ref AWS::Region
-          lambda_arn: !GetAtt RecountLambda.Arn
+          lambda_arn: !GetAtt RecountEnqueueLambda.Arn
 
   RecountApiProdDeployment:
     DependsOn: RecountElectionStateResourceGetMethod
@@ -162,11 +162,32 @@ Resources:
       FunctionName: recount-enqueue
       Handler: au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda
       MemorySize: 384
-      Role: String # TODO
-      Runtime: python3.6
+      Role: !GetAtt RecountEnqueueLambdaIamRole.Arn
+      Runtime: java8
       Timeout: 3
 
-  # TODO permission and role
+  RecountEnqueueLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt RecountEnqueueLambda.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub
+      - arn:aws:execute-api:${region}:${account_id}:${api_id}/*/*/*
+      - region: !Ref AWS::Region
+        account_id: !Ref AWS::AccountId
+        api_id: !Ref AusvotesApi
+
+  RecountEnqueueLambdaIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Action": "sts:AssumeRole"
+          "Principal":
+            "Service": "lambda.amazonaws.com"
+          "Effect": "Allow"
 
   RecountRequestQueue:
     Type: AWS::SNS::Topic
@@ -201,12 +222,8 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt RecountLambda.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-      - arn:aws:execute-api:${region}:${account_id}:${api_id}/*/*/*
-      - region: !Ref AWS::Region
-        account_id: !Ref AWS::AccountId
-        api_id: !Ref AusvotesApi
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref RecountRequestQueue
 
   RecountLambdaIamRole:
     Type: AWS::IAM::Role
@@ -218,34 +235,77 @@ Resources:
           "Principal":
             "Service": "lambda.amazonaws.com"
           "Effect": "Allow"
-          "Sid": ""
-      Policies:
-      - PolicyName: basic_lambda_permissions
-        PolicyDocument:
-          "Version": "2012-10-17"
-          "Statement":
-          - "Effect": "Allow"
-            "Action":
-            - "logs:CreateLogGroup"
-            - "logs:CreateLogStream"
-            - "logs:PutLogEvents"
-            - "logs:DescribeLogStreams"
-            "Resource":
-            - !Sub
-              - "arn:aws:logs:${region}:${account_id}:log-group:*"
-              - region: !Ref AWS::Region
-                account_id: !Ref AWS::AccountId
-      - PolicyName: read_s3
-        PolicyDocument:
-          "Version": "2012-10-17"
-          "Statement":
-          - "Effect": "Allow"
-            "Action":
-            - "s3:GetObject"
-            "Resource": !Sub
-            - "${bucket_arn}/*"
-            - bucket_arn: !GetAtt RecountDataBucket.Arn
-          - "Effect": "Allow"
-            "Action":
-            - "s3:ListBucket"
-            "Resource": !GetAtt RecountDataBucket.Arn
+
+  BasicLambdaPermissionsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: basic_lambda_permissions
+      Roles:
+      - !Ref RecountLambdaIamRole
+      - !Ref RecountEnqueueLambdaIamRole
+      PolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Effect": "Allow"
+          "Action":
+          - "logs:CreateLogGroup"
+          - "logs:CreateLogStream"
+          - "logs:PutLogEvents"
+          - "logs:DescribeLogStreams"
+          "Resource":
+          - !Sub
+            - "arn:aws:logs:${region}:${account_id}:log-group:*"
+            - region: !Ref AWS::Region
+              account_id: !Ref AWS::AccountId
+
+  ReadS3PermissionsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: read_s3
+      Roles:
+      - !Ref RecountLambdaIamRole
+      - !Ref RecountEnqueueLambdaIamRole
+      PolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Effect": "Allow"
+          "Action":
+          - "s3:GetObject"
+          "Resource": !Sub
+          - "${bucket_arn}/*"
+          - bucket_arn: !GetAtt RecountDataBucket.Arn
+        - "Effect": "Allow"
+          "Action":
+          - "s3:ListBucket"
+          "Resource": !GetAtt RecountDataBucket.Arn
+
+  WriteRecountResultsToS3PermissionsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: write_s3
+      Roles:
+      - !Ref RecountEnqueueLambdaIamRole
+      PolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Effect": "Allow"
+          "Action":
+          - "s3:PutObject"
+          "Resource": !Sub
+          - "${bucket_arn}/recounts/*"
+          - bucket_arn: !GetAtt RecountDataBucket.Arn
+
+  PublishRecountRequestsPermissionsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: publish_recount_requests
+      Roles:
+      - !Ref RecountEnqueueLambdaIamRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: Stmt1535852319907
+          Action:
+          - sns:Publish
+          Effect: Allow
+          Resource: !Ref RecountRequestQueue
