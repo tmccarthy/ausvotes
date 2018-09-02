@@ -64,6 +64,7 @@ object FormalPreferencesResource {
       case WA => WA_2016
       case NT => NT_2016
       case ACT => ACT_2016
+      case _ => ???
     }
   }
 }

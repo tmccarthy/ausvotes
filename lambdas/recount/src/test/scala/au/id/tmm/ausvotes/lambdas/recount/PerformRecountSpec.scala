@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
 import argonaut.CodecJson
-import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture}
+import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, PartyCodec}
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Name}
@@ -17,7 +17,6 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 class PerformRecountSpec extends ImprovedFlatSpec {
 
   private val candidateFixture = CandidateFixture.ACT
-  private val ballotMaker = BallotMaker(candidateFixture)
 
   private val katyGallagher = candidateFixture.candidateWithName(Name("Katy", "GALLAGHER"))
   private val zedSeselja = candidateFixture.candidateWithName(Name("Zed", "SESELJA"))

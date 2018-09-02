@@ -12,8 +12,6 @@ class BallotNormaliser private (election: SenateElection,
                                 minPreferencesAtl: Int = 1,
                                 minPreferencesBtl: Int = 6) {
 
-  private type NormalisedBallotWithNumFormalPreferences = (Option[NormalisedBallot], Int)
-
   private val relevantCandidates = candidates.toStream
     .filter(_.election == election)
     .filter(_.state == state)

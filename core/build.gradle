@@ -1,12 +1,4 @@
-plugins {
-    id 'com.github.maiflai.scalatest' version '0.19'
-    id 'scala'
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 configurations {
     testOutput
@@ -24,10 +16,8 @@ sourceSets {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:$scalaVersion"
     compile "com.typesafe.scala-logging:scala-logging${s}:3.7.2"
 
-    compile "au.id.tmm:tmm-utils${s}:$tmmUtilsVersion"
     compile "au.id.tmm:countstv${s}:0.1.8"
 
     compile "io.argonaut:argonaut${s}:$argonautVersion"
@@ -39,12 +29,7 @@ dependencies {
     compile 'org.slf4j:slf4j-simple:1.7.25'
 
     testCompile project(':core:fixtures')
-    testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
     testCompile "org.scalamock:scalamock-scalatest-support${s}:$scalaMockVersion"
-    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
-
-    // Needed to produce scalatest report
-    testRuntime 'org.pegdown:pegdown:1.4.2'
 
     integrationTestCompile sourceSets.main.output
     integrationTestCompile sourceSets.test.output

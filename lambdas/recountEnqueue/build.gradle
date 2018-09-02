@@ -1,20 +1,11 @@
 import seek.aws.s3.UploadFile
 
 plugins {
-    id 'com.github.maiflai.scalatest' version '0.19'
-    id 'scala'
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
     id "seek.aws" version "0.0.26"
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        // Needed for scalaz-zio
-        url 'https://oss.sonatype.org/content/repositories/snapshots/'
-    }
-}
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencyManagement {
     imports {
@@ -23,8 +14,6 @@ dependencyManagement {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:$scalaVersion"
-
     compile project(':lambdas:lambdaUtilities')
     compile project(':shared:recountResources')
 
@@ -35,11 +24,6 @@ dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
-    testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
-    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
-
-    // Needed to produce scalatest report
-    testRuntime 'org.pegdown:pegdown:1.4.2'
 }
 
 task buildZip(type: Zip) {

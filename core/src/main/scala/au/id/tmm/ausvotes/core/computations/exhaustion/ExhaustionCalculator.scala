@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.core.model.CountData
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.NotExhausted
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, NormalisedBallot}
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, CandidatePosition}
-import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
+import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
 import scala.annotation.tailrec
@@ -54,6 +54,8 @@ object ExhaustionCalculator {
             }
           }
         }
+        case ElectedNoSurplusCountStep(_, _, _, _, _) | ExcludedNoVotesCountStep(_, _, _, _) =>
+          ??? // TODO this needs to be accounted for
       }
     }
 

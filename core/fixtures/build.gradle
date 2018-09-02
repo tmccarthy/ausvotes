@@ -1,15 +1,5 @@
-plugins {
-    id 'com.github.maiflai.scalatest'
-    id 'scala'
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencies {
-    compile "org.scala-lang:scala-library:$scalaVersion"
-
     compile project(':core')
 }

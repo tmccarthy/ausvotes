@@ -1,8 +1,8 @@
 plugins {
-    id 'com.github.maiflai.scalatest' version '0.19'
-    id 'scala'
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencyManagement {
     imports {
@@ -10,18 +10,7 @@ dependencyManagement {
     }
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        // Needed for scalaz-zio
-        url 'https://oss.sonatype.org/content/repositories/snapshots/'
-    }
-}
-
 dependencies {
-    compile "org.scala-lang:scala-library:$scalaVersion"
-
     compile project(':core')
     compile project(':shared:aws')
     compile project(':shared:recountResources')
@@ -29,12 +18,6 @@ dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     compile 'com.amazonaws:aws-java-sdk-s3'
-
-    testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
-    testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
-
-    // Needed to produce scalatest report
-    testRuntime 'org.pegdown:pegdown:1.4.2'
 }
 
 task uploadRecountData(type: JavaExec) {
