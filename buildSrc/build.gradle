@@ -1,3 +1,7 @@
+plugins {
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -5,8 +9,17 @@ repositories {
     }
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    }
+}
+
 dependencies {
     compile 'org.ajoberstar.reckon:reckon-gradle:0.4.0'
     compile 'org.ajoberstar:grgit:2.2.1'
     compile 'gradle.plugin.com.github.maiflai:gradle-scalatest:0.22'
+
+    compile 'com.amazonaws:aws-java-sdk-api-gateway'
+    compile 'com.amazonaws:aws-java-sdk-cloudformation'
 }
