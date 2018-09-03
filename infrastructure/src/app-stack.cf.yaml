@@ -70,6 +70,27 @@ Resources:
     Properties:
       Name: ausvotes
 
+  AusvotesApiAccount:
+    DependsOn: AusvotesApi
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt AusvotesApiCloudWatchRole.Arn
+
+  AusvotesApiCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - "apigateway.amazonaws.com"
+          Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
   AusvotesApiGatewayDomainName:
     Type: AWS::ApiGateway::DomainName
     Properties:
@@ -136,6 +157,16 @@ Resources:
     Properties:
       RestApiId: !Ref AusvotesApi
       StageName: !Ref AusvotesApiStageName
+      StageDescription:
+        LoggingLevel: INFO
+        MetricsEnabled: true
+        DataTraceEnabled: true
+        MethodSettings:
+        - DataTraceEnabled: true
+          HttpMethod: "*"
+          LoggingLevel: INFO
+          MetricsEnabled: true
+          ResourcePath: "/*"
 
   AusvotesApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
@@ -164,7 +195,7 @@ Resources:
       MemorySize: 384
       Role: !GetAtt RecountEnqueueLambdaIamRole.Arn
       Runtime: java8
-      Timeout: 3
+      Timeout: 20
 
   RecountEnqueueLambdaPermission:
     Type: AWS::Lambda::Permission
