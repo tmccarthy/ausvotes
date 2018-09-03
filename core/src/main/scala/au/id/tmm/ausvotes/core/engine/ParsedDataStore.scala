@@ -1,7 +1,5 @@
 package au.id.tmm.ausvotes.core.engine
 
-import au.id.tmm.ausvotes.core.logging.LoggedEvent.TryOps
-import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model.flyweights._
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
@@ -10,6 +8,8 @@ import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.utilities.logging.Logger
+import au.id.tmm.utilities.logging.LoggedEvent.TryOps
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
 trait ParsedDataStore {

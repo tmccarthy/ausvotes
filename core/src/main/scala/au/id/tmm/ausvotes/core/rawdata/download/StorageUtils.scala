@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.core.rawdata.download
 
 import java.nio.file.{Files, Path}
 
-import au.id.tmm.ausvotes.core.logging.LoggedEvent.TryOps
-import au.id.tmm.ausvotes.core.logging.Logger
+import au.id.tmm.utilities.logging.LoggedEvent.TryOps
+import au.id.tmm.utilities.logging.Logger
 import au.id.tmm.ausvotes.core.rawdata.resources.{Resource, ResourceWithDigest}
 
 import scala.annotation.tailrec

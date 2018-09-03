@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.rawdata.download
 import java.net.URL
 import java.nio.file.{Files, Path}
 
-import au.id.tmm.ausvotes.core.logging.{LoggedEvent, Logger}
+import au.id.tmm.utilities.logging.{LoggedEvent, Logger}
 import au.id.tmm.utilities.hashing.Digest
 import au.id.tmm.utilities.io.FileUtils.ImprovedPath
 

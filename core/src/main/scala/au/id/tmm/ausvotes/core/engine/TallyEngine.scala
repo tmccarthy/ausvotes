@@ -4,8 +4,6 @@ import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
-import au.id.tmm.ausvotes.core.logging.LoggedEvent.FutureOps
-import au.id.tmm.ausvotes.core.logging.Logger
 import au.id.tmm.ausvotes.core.model._
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
@@ -13,6 +11,8 @@ import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
 import au.id.tmm.utilities.collection.{CloseableIterator, DupelessSeq}
 import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.utilities.logging.Logger
+import au.id.tmm.utilities.logging.LoggedEvent.FutureOps
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import au.id.tmm.ausvotes.core.logging.{LoggedEvent, Logger}
+import au.id.tmm.utilities.logging.{LoggedEvent, Logger}
 import scalaz.zio.IO
 
 import scala.concurrent.duration.Duration
