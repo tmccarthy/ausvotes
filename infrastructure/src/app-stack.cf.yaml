@@ -64,6 +64,15 @@ Resources:
           Resource: !Sub
           - "${bucket_name}/recounts/*"
           - bucket_name: !GetAtt RecountDataBucket.Arn
+        - Action:
+          - s3:PutObject
+          Effect: "Allow"
+          Principal:
+            AWS:
+            - !GetAtt RecountLambdaIamRole.Arn
+          Resource: !Sub
+          - "${bucket_name}/recounts/*"
+          - bucket_name: !GetAtt RecountDataBucket.Arn
 
   AusvotesApi:
     Type: AWS::ApiGateway::RestApi
