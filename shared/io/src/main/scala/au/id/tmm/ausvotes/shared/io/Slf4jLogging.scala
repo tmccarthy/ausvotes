@@ -28,6 +28,7 @@ object Slf4jLogging {
             case Left(e) => {
               e match {
                 case t: Throwable => loggedEvent.exception = Some(t)
+                case _ => Unit
               }
               loggedEvent.markFailed()
               IO.sync(logger.info(loggedEvent))
