@@ -10,7 +10,7 @@ abstract class ApiGatewayLambdaHarness[T_ERROR]
   protected def transformHarnessError(harnessInputError: HarnessInputError): ApiGatewayLambdaResponse =
     harnessInputError match {
       case RequestReadError(_) => ApiGatewayLambdaResponse(500, Map.empty, jString(""))
-      case RequestDecodeError(message) => ApiGatewayLambdaResponse(400, Map.empty, jString(message))
+      case RequestDecodeError(message, _) => ApiGatewayLambdaResponse(400, Map.empty, jString(message))
     }
 
 }

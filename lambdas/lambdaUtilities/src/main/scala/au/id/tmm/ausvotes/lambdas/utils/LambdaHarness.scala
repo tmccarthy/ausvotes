@@ -6,6 +6,7 @@ import java.nio.charset.Charset
 import argonaut.Argonaut._
 import argonaut._
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness._
+import au.id.tmm.ausvotes.shared.io.Closeables
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger, RequestStreamHandler}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -24,7 +25,11 @@ abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_
 
   private def harness(input: InputStream, output: OutputStream, context: Context): IO[ResponseWriteError, Unit] = {
     val computeResponseLogic: IO[HarnessInputError, T_RESPONSE] = for {
-      request <- readRequestFrom(input)
+      requestAsString <- Closeables.InputStreams.readAsString(IO.point(input), charset)
+          .leftMap(RequestReadError)
+
+      request <- IO.fromEither(Parse.decodeEither[T_REQUEST](requestAsString))
+          .leftMap(RequestDecodeError(_, requestAsString))
 
       responseOrError <- logic(request, context).attempt
 
@@ -34,21 +39,9 @@ abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_
     computeResponseLogic.attempt.flatMap {
       case Left(e @ RequestReadError(exception)) => IO.sync(context.getLogger.log(ExceptionUtils.getStackTrace(exception)))
         .flatMap(_ => writeResponseTo(transformHarnessError(e), output))
-      case Left(e: RequestDecodeError) => IO.sync(context.getLogger.log(e.message))
+      case Left(e: RequestDecodeError) => IO.sync(context.getLogger.log(e.toString))
         .flatMap(_ => writeResponseTo(transformHarnessError(e), output))
       case Right(response) => writeResponseTo(response, output)
-    }
-  }
-
-  private def readRequestFrom(input: InputStream): IO[HarnessInputError, T_REQUEST] = {
-    IO.bracket(IO.sync(input))(is => IO.sync(is.close())) { input =>
-      for {
-        requestAsString <- IO.syncCatch(IOUtils.toString(input, charset)){
-          case e: IOException => RequestReadError(e)
-        }
-        request <- IO.fromEither(Parse.decodeEither[T_REQUEST](requestAsString))
-          .leftMap(RequestDecodeError)
-      } yield request
     }
   }
 
@@ -87,7 +80,7 @@ object LambdaHarness {
   private[utils] sealed trait HarnessInputError
 
   private[utils] final case class RequestReadError(exception: IOException) extends HarnessInputError
-  private[utils] final case class RequestDecodeError(message: String) extends HarnessInputError
+  private[utils] final case class RequestDecodeError(message: String, request: String) extends HarnessInputError
 
   private[utils] final case class ResponseWriteError(exception: IOException)
 

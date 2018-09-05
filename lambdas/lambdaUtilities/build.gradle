@@ -11,6 +11,8 @@ dependencyManagement {
 }
 
 dependencies {
+    compile project(':shared:io')
+
     compile 'com.amazonaws:aws-lambda-java-core:1.2.0'
 
     compile "commons-io:commons-io:$commonsIoVersion"
