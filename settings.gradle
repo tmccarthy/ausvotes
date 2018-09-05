@@ -7,5 +7,6 @@ include 'core',
         'lambdas:recount',
         'lambdas:recountEnqueue',
         'shared:aws',
+        'shared:io',
         'shared:recountResources',
         'infrastructure'

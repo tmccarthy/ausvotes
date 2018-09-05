@@ -19,4 +19,8 @@ dependencies {
     compile "io.argonaut:argonaut${s}:$argonautVersion"
 
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
+
+    compile 'org.slf4j:jcl-over-slf4j:1.7.25'
+    compile 'org.slf4j:slf4j-log4j12:1.7.25'
+    compile 'com.amazonaws:aws-lambda-java-log4j:1.0.0'
 }

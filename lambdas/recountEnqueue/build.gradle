@@ -13,6 +13,10 @@ dependencyManagement {
     }
 }
 
+configurations {
+    runtime.exclude group: "org.slf4j", module: "slf4j-simple"
+}
+
 dependencies {
     compile project(':lambdas:lambdaUtilities')
     compile project(':shared:recountResources')

@@ -34,7 +34,8 @@ abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_
     computeResponseLogic.attempt.flatMap {
       case Left(e @ RequestReadError(exception)) => IO.sync(context.getLogger.log(ExceptionUtils.getStackTrace(exception)))
         .flatMap(_ => writeResponseTo(transformHarnessError(e), output))
-      case Left(e: RequestDecodeError) => writeResponseTo(transformHarnessError(e), output)
+      case Left(e: RequestDecodeError) => IO.sync(context.getLogger.log(e.message))
+        .flatMap(_ => writeResponseTo(transformHarnessError(e), output))
       case Right(response) => writeResponseTo(response, output)
     }
   }
