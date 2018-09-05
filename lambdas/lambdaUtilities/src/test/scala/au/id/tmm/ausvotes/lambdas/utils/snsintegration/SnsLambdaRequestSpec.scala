@@ -64,7 +64,7 @@ class SnsLambdaRequestSpec extends ImprovedFlatSpec {
         eventType = "Notification",
         unsubscribeUrl = "EXAMPLE",
         topicArn = "topicarn",
-        subject = "TestInvoke",
+        subject = Some("TestInvoke"),
       ),
     )
 

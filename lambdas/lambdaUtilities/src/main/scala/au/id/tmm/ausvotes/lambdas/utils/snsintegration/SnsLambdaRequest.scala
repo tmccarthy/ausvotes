@@ -29,7 +29,7 @@ object SnsLambdaRequest {
                                eventType: String,
                                unsubscribeUrl: String,
                                topicArn: String,
-                               subject: String,
+                               subject: Option[String],
                              )
 
   object SnsBody {
@@ -53,7 +53,7 @@ object SnsLambdaRequest {
         eventType <- c.downField("Type").as[String]
         unsubscribeUrl <- c.downField("UnsubscribeUrl").as[String]
         topicArn <- c.downField("TopicArn").as[String]
-        subject <- c.downField("Subject").as[String]
+        subject <- c.downField("Subject").as[Option[String]]
       } yield SnsBody(
         signatureVersion,
         timestamp,
