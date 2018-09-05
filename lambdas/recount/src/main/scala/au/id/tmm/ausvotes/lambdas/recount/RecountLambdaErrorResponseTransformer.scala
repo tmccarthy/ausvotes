@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.lambdas.recount
 import argonaut.Argonaut.{jObjectFields, jString}
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaResponse
-import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 
 object RecountLambdaErrorResponseTransformer
   extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {
@@ -17,9 +16,6 @@ object RecountLambdaErrorResponseTransformer
   )
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
-    case RecountLambdaError.RecountRequestError.RecountRequestParseError(e) =>
-      badRequestResponse(RecountRequest.Error.humanReadableMessageFor(e))
-
     case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
       badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.mkString("[\"", "\", \"", "\"]")}""")
 

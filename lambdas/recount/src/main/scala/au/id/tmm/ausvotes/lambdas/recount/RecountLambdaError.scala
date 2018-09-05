@@ -1,7 +1,5 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
-
 sealed trait RecountLambdaError
 
 object RecountLambdaError {
@@ -19,8 +17,6 @@ object RecountLambdaError {
   sealed trait RecountRequestError extends RecountLambdaError
 
   object RecountRequestError {
-    final case class RecountRequestParseError(cause: RecountRequest.Error) extends RecountRequestError
-
     final case class InvalidCandidateIds(invalidCandidateAecIds: Set[String]) extends RecountRequestError
   }
 

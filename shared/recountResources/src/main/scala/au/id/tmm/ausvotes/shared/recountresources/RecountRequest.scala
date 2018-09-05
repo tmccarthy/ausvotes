@@ -16,7 +16,7 @@ final case class RecountRequest(
 
 object RecountRequest {
 
-  implicit val encodeJson: EncodeJson[RecountRequest] =
+  implicit val codec: CodecJson[RecountRequest] =
     casecodec4(apply, unapply)("election", "state", "vacancies", "ineligibleCandidates")
 
   def build(
