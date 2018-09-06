@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.scala.ScalaCompile
+import org.scoverage.ScoveragePlugin
 
 class MyScalaPlugin implements Plugin<Project> {
     @Override
@@ -13,11 +14,13 @@ class MyScalaPlugin implements Plugin<Project> {
 
         def scalaVersion = target.ext.scalaVersion
         def scalaTestVersion = target.ext.scalaTestVersion
+        def scoverageVersion = target.ext.scoverageVersion
 
         def tmmUtilsVersion = target.ext.tmmUtilsVersion
         def tmmTestUtilsVersion = target.ext.tmmTestUtilsVersion
 
         target.plugins.apply(ScalaPlugin.class)
+        target.plugins.apply(ScoveragePlugin.class)
 
         target.repositories {
             mavenLocal()
@@ -34,6 +37,9 @@ class MyScalaPlugin implements Plugin<Project> {
 
             // Needed to produce scalatest report
             testRuntime 'org.pegdown:pegdown:1.4.2'
+
+            scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
+            scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
         }
 
         target.tasks.withType(ScalaCompile) {
@@ -76,5 +82,13 @@ class MyScalaPlugin implements Plugin<Project> {
                 ]
             }
         }
+
+        target.tasks.compileScoverageScala.shouldRunAfter(target.tasks.test)
+
+        target.scoverage {
+            coverageOutputCobertura = false
+        }
+
+        target.tasks.check.dependsOn(target.tasks.checkScoverage)
     }
 }

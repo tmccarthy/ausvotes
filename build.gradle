@@ -5,8 +5,16 @@ repositories {
 }
 
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyReleasePlugin
+apply plugin: org.scoverage.ScoveragePlugin.class
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.9'
     distributionUrl = "http://downloads.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+}
+
+task aggregateScoverage(type: org.scoverage.ScoverageAggregate)
+
+dependencies {
+    scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
+    scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
 }

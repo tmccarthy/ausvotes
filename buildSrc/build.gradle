@@ -19,6 +19,7 @@ dependencies {
     compile 'org.ajoberstar.reckon:reckon-gradle:0.4.0'
     compile 'org.ajoberstar:grgit:2.2.1'
     compile 'gradle.plugin.com.github.maiflai:gradle-scalatest:0.22'
+    compile 'gradle.plugin.org.scoverage:gradle-scoverage:2.3.0'
 
     compile 'com.amazonaws:aws-java-sdk-api-gateway'
     compile 'com.amazonaws:aws-java-sdk-cloudformation'
