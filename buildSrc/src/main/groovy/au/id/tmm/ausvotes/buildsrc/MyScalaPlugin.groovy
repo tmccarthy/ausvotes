@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.buildsrc
 
+import com.github.maiflai.ScalaTestPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.scala.ScalaPlugin
@@ -20,6 +21,7 @@ class MyScalaPlugin implements Plugin<Project> {
         def tmmTestUtilsVersion = target.ext.tmmTestUtilsVersion
 
         target.plugins.apply(ScalaPlugin.class)
+        target.plugins.apply(ScalaTestPlugin.class)
         target.plugins.apply(ScoveragePlugin.class)
 
         target.repositories {
@@ -87,6 +89,10 @@ class MyScalaPlugin implements Plugin<Project> {
 
         target.scoverage {
             coverageOutputCobertura = false
+        }
+
+        target.tasks.checkScoverage {
+            minimumRate = 0
         }
 
         target.tasks.check.dependsOn(target.tasks.checkScoverage)
