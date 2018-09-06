@@ -1,7 +1,6 @@
 package au.id.tmm.ausvotes.shared.aws
 
 import java.io.{InputStream, OutputStream, PipedInputStream, PipedOutputStream}
-import java.net.URL
 import java.nio.charset.Charset
 
 import com.amazonaws.services.s3.model.{ObjectMetadata, S3Object}
@@ -72,6 +71,4 @@ object S3Ops {
       }
     }
 
-  def objectUrl(region: String, bucketName: S3BucketName, objectKey: S3ObjectKey): URL =
-    new URL(s"https://s3-$region.amazonaws.com/${bucketName.asString}/${objectKey.asString}")
 }

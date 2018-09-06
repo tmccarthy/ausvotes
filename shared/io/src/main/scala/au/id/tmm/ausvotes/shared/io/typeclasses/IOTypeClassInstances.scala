@@ -9,9 +9,11 @@ object IOTypeClassInstances {
 
     override def leftPure[E](e: E): IO[E, Nothing] = IO.fail(e)
 
-    override def flatten[E1, E2 <: E1, A](io: IO[E1, IO[E2, A]]): IO[E1, A] = io.flatMap(identity)
+    override def fromEither[E, A](either: Either[E, A]): IO[E, A] = IO.fromEither(either)
 
-    override def flatMap[E1, E2 <: E1, A, B](io: IO[E1, A])(fafe2b: A => IO[E2, B]): IO[E1, B] = io.flatMap(fafe2b)
+    override def flatten[E1, E2 >: E1, A](io: IO[E1, IO[E2, A]]): IO[E2, A] = io.flatMap(identity)
+
+    override def flatMap[E1, E2 >: E1, A, B](io: IO[E1, A])(fafe2b: A => IO[E2, B]): IO[E2, B] = io.flatMap(fafe2b)
 
     override def map[E, A, B](io: IO[E, A])(fab: A => B): IO[E, B] = io.map(fab)
 
@@ -20,6 +22,18 @@ object IOTypeClassInstances {
 
   implicit val ioAccessesEnvVars: AccessesEnvVars[IO] = new AccessesEnvVars[IO] {
     override def envVars: IO[Nothing, Map[String, String]] = IO.sync(sys.env)
+  }
+
+  implicit val ioHasSyncEffects: SyncEffects[IO] = new SyncEffects[IO] {
+    override def sync[A](effect: => A): IO[Nothing, A] = IO.sync(effect)
+
+    override def syncException[A](effect: => A): IO[Exception, A] = IO.syncException(effect)
+
+    override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): IO[E, A] = IO.syncCatch(effect)(f)
+  }
+
+  implicit val ioCanAttempt: Attempt[IO] = new Attempt[IO] {
+    override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
   }
 
 }

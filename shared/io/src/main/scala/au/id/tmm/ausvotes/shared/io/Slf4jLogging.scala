@@ -2,19 +2,21 @@ package au.id.tmm.ausvotes.shared.io
 
 import java.time.Duration
 
+import au.id.tmm.ausvotes.shared.io.typeclasses.Attempt.AttemptOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad, SyncEffects}
 import au.id.tmm.utilities.logging.{LoggedEvent, Logger}
 import org.slf4j.event.Level
-import scalaz.zio.IO
 
 object Slf4jLogging {
 
-  implicit class IoOps[+E, +A](io: IO[E, A]) {
-
-    def timedLog(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[E, A] = {
+  implicit class LoggingOps[F[+_, +_] : SyncEffects : Monad : Attempt, +E, +A](io: F[E, A]) {
+    def timedLog(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[E, A] = {
       for {
-        startTime <- IO.sync(System.nanoTime())
+        startTime <- SyncEffects.sync(System.nanoTime())
         resultPreLogging <- io.attempt
-        endTime <- IO.sync(System.nanoTime())
+        endTime <- SyncEffects.sync(System.nanoTime())
         _ <- {
           val duration = Duration.ofNanos(endTime - startTime)
 
@@ -23,7 +25,7 @@ object Slf4jLogging {
           resultPreLogging match {
             case Right(_) => {
               loggedEvent.markSuccessful()
-              IO.sync(logger.info(loggedEvent))
+              SyncEffects.sync(logger.info(loggedEvent))
             }
             case Left(e) => {
               e match {
@@ -31,32 +33,32 @@ object Slf4jLogging {
                 case _ => Unit
               }
               loggedEvent.markFailed()
-              IO.sync(logger.info(loggedEvent))
+              SyncEffects.sync(logger.info(loggedEvent))
             }
           }
 
         }
-        result <- IO.fromEither(resultPreLogging)
+        result <- Monad.fromEither(resultPreLogging)
       } yield result
     }
   }
 
-  def logError(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] =
+  def logError[F[+_, +_] : SyncEffects](eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] =
     log(Level.ERROR, eventId, kvPairs: _*)
 
-  def logWarn(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] =
+  def logWarn[F[+_, +_] : SyncEffects](eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] =
     log(Level.WARN, eventId, kvPairs: _*)
 
-  def logInfo(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] =
+  def logInfo[F[+_, +_] : SyncEffects](eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] =
     log(Level.INFO, eventId, kvPairs: _*)
 
-  def logDebug(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] =
+  def logDebug[F[+_, +_] : SyncEffects](eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] =
     log(Level.DEBUG, eventId, kvPairs: _*)
 
-  def logTrace(eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] =
+  def logTrace[F[+_, +_] : SyncEffects](eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] =
     log(Level.TRACE, eventId, kvPairs: _*)
 
-  def log(level: Level, eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): IO[Nothing, Unit] = {
+  def log[F[+_, +_] : SyncEffects](level: Level, eventId: String, kvPairs: (String, Any)*)(implicit logger: Logger): F[Nothing, Unit] = {
     val doLog: LoggedEvent => Unit = level match {
       case Level.ERROR => logger.info
       case Level.WARN => logger.warn
@@ -67,7 +69,7 @@ object Slf4jLogging {
 
     val logEvent = LoggedEvent(eventId, kvPairs: _*)
 
-    IO.sync(doLog(logEvent))
+    SyncEffects.sync(doLog(logEvent))
   }
 
 }

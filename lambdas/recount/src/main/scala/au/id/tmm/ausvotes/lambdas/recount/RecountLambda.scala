@@ -1,10 +1,15 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
+import argonaut.CodecJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
-import au.id.tmm.ausvotes.shared.aws.S3Ops
-import au.id.tmm.ausvotes.shared.io.Slf4jLogging._
+import au.id.tmm.ausvotes.shared.aws.typeclasses.S3TypeClasses.{ReadsS3, WritesToS3}
+import au.id.tmm.ausvotes.shared.io.Slf4jLogging.{LoggingOps, _}
+import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.{AccessesEnvVars, Attempt, Monad, SyncEffects}
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import au.id.tmm.utilities.logging.Logger
 import com.amazonaws.services.lambda.runtime.Context
@@ -15,6 +20,13 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
   implicit val logger: Logger = Logger()
 
   override def logic(lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): IO[RecountLambdaError, Unit] = {
+    import au.id.tmm.ausvotes.shared.aws.typeclasses.IOTypeClassInstances._
+    import au.id.tmm.ausvotes.shared.io.typeclasses.IOTypeClassInstances._
+    recountLogic[IO](lambdaRequest, context)
+  }
+
+  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : AccessesEnvVars : SyncEffects : Attempt : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
+
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()
 
@@ -36,14 +48,18 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
         )
 
       candidateCodec = CandidateCodec(groups)
-      candidates <- EntityFetching.fetchCandidates(recountDataBucketName, election, state)(candidateCodec)
-        .timedLog("FETCH_CANDIDATES",
-          "recount_data_bucket_name" -> recountDataBucketName,
-          "election" -> election,
-          "state" -> state,
-        )
+      candidates <- {
+        implicit val c: CodecJson[Candidate] = candidateCodec
 
-      ineligibleCandidates <- IO.fromEither {
+        EntityFetching.fetchCandidates(recountDataBucketName, election, state)
+          .timedLog("FETCH_CANDIDATES",
+            "recount_data_bucket_name" -> recountDataBucketName,
+            "election" -> election,
+            "state" -> state,
+          )
+      }
+
+      ineligibleCandidates <- Monad.fromEither {
         CandidateActualisation.actualiseIneligibleCandidates(recountRequest.ineligibleCandidateAecIds, candidates)
       }
 
@@ -54,7 +70,8 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
           "state" -> state,
         )
 
-      recountResult <- IO.sync {
+      //noinspection ConvertibleToMethodValue
+      recountResult <- SyncEffects.sync[F, Either[RecountLambdaError.RecountComputationError, PerformRecount.Result]] {
         PerformRecount.performRecount(
           election,
           state,
@@ -70,20 +87,18 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
           "num_ineligible_candidates" -> ineligibleCandidates.size,
           "num_vacancies" -> recountRequest.vacancies,
         )
-        .flatMap(IO.fromEither)
+        .flatMap(Monad.fromEither(_))
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
 
-      _ <- S3Ops.putString(
-        bucketName = recountDataBucketName,
-        objectKey = recountResultKey,
+      _ <- WritesToS3.putString(recountDataBucketName, recountResultKey)(
         content = recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)).toString,
       )
-        .leftMap(RecountLambdaError.WriteRecountError)
         .timedLog("PUT_RECOUNT_RESULT",
           "recount_data_bucket_name" -> recountDataBucketName,
           "recount_result_key" -> recountResultKey,
         )
+        .leftMap(RecountLambdaError.WriteRecountError)
     } yield Unit
   }
 
