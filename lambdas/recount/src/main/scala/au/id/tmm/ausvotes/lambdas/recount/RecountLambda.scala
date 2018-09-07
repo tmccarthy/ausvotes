@@ -6,18 +6,17 @@ import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCo
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
 import au.id.tmm.ausvotes.shared.aws.typeclasses.S3TypeClasses.{ReadsS3, WritesToS3}
-import au.id.tmm.ausvotes.shared.io.Slf4jLogging.{LoggingOps, _}
+import au.id.tmm.ausvotes.shared.io.Logging
+import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.Log._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.{AccessesEnvVars, Attempt, Monad, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses._
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
-import au.id.tmm.utilities.logging.Logger
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
 final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambdaError] {
-
-  implicit val logger: Logger = Logger()
 
   override def logic(lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): IO[RecountLambdaError, Unit] = {
     import au.id.tmm.ausvotes.shared.aws.typeclasses.IOTypeClassInstances._
@@ -25,7 +24,7 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
     recountLogic[IO](lambdaRequest, context)
   }
 
-  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : AccessesEnvVars : SyncEffects : Attempt : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
+  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : AccessesEnvVars : SyncEffects : Attempt : Log : Now : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
 
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()
@@ -71,7 +70,13 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
         )
 
       //noinspection ConvertibleToMethodValue
-      recountResult <- SyncEffects.sync[F, Either[RecountLambdaError.RecountComputationError, PerformRecount.Result]] {
+      recountResult <- Logging.timedLog(
+        "PERFORM_RECOUNT",
+        "election" -> election,
+        "state" -> state,
+        "num_ineligible_candidates" -> ineligibleCandidates.size,
+        "num_vacancies" -> recountRequest.vacancies,
+      ) {
         PerformRecount.performRecount(
           election,
           state,
@@ -81,13 +86,6 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
           recountRequest.vacancies,
         )
       }
-        .timedLog("PERFORM_RECOUNT",
-          "election" -> election,
-          "state" -> state,
-          "num_ineligible_candidates" -> ineligibleCandidates.size,
-          "num_vacancies" -> recountRequest.vacancies,
-        )
-        .flatMap(Monad.fromEither(_))
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
 

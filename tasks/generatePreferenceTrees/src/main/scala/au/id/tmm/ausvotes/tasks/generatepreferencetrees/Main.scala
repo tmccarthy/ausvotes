@@ -1,13 +1,10 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import au.id.tmm.ausvotes.shared.io.Slf4jLogging.LoggingOps
+import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOTypeClassInstances._
-import au.id.tmm.utilities.logging.Logger
 import scalaz.zio.{App, IO}
 
 object Main extends App {
-
-  private implicit val logger: Logger = Logger()
 
   override def run(args: List[String]): IO[Nothing, Main.ExitStatus] =
     applicationLogic(args)

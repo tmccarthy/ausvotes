@@ -19,7 +19,7 @@ object RecountLambdaErrorResponseTransformer
     case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
       badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.mkString("[\"", "\", \"", "\"]")}""")
 
-    case RecountLambdaError.ConfigurationError.RecountDataBucketUndefined =>
+    case RecountLambdaError.RecountDataBucketUndefined =>
       badRequestResponse("Recount data bucket was undefined")
 
     case RecountLambdaError.EntityFetchError.GroupFetchError(_) =>

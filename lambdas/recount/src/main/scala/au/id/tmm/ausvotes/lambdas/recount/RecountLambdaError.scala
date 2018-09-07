@@ -8,11 +8,7 @@ object RecountLambdaError {
     def exception: Exception
   }
 
-  sealed trait ConfigurationError extends RecountLambdaError
-
-  object ConfigurationError {
-    case object RecountDataBucketUndefined extends ConfigurationError
-  }
+  case object RecountDataBucketUndefined extends RecountLambdaError
 
   sealed trait RecountRequestError extends RecountLambdaError
 

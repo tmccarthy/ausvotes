@@ -8,7 +8,7 @@ import au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda.Error.BadR
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.UrlCodec._
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Ops}
+import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Ops, S3Urls}
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
@@ -30,7 +30,7 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
       _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else IO.unit
     } yield {
       val response = RecountEnqueueLambda.Response(
-        S3Ops.objectUrl(
+        S3Urls.objectUrl(
           region = region,
           bucketName = recountDataBucket,
           objectKey = recountComputationKey,

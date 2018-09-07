@@ -1,5 +1,10 @@
 package au.id.tmm.ausvotes.shared.io.typeclasses
 
+import java.time.{Instant, LocalDate, ZonedDateTime}
+
+import au.id.tmm.ausvotes.shared.io.typeclasses.Log.LoggedEvent
+import org.slf4j
+import org.slf4j.{Logger, LoggerFactory}
 import scalaz.zio.IO
 
 object IOTypeClassInstances {
@@ -34,6 +39,38 @@ object IOTypeClassInstances {
 
   implicit val ioCanAttempt: Attempt[IO] = new Attempt[IO] {
     override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
+  }
+
+  implicit val ioCanLog: Log[IO] = new Log[IO] {
+    private val logger: slf4j.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+    override def logError(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
+      IO.sync(logger.error(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
+
+    override def logWarn(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
+      IO.sync(logger.warn(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
+
+    override def logInfo(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
+      IO.sync(logger.info(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
+
+    override def logDebug(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
+      IO.sync(logger.debug(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
+
+    override def logTrace(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
+      IO.sync(logger.trace(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
+
+  }
+
+  implicit val ioCanDetermineNow: Now[IO] = new Now[IO] {
+    override def systemNanoTime: IO[Nothing, Long] = IO.sync(System.nanoTime())
+
+    override def currentTimeMillis: IO[Nothing, Long] = IO.sync(System.currentTimeMillis())
+
+    override def nowInstant: IO[Nothing, Instant] = IO.sync(Instant.now())
+
+    override def nowLocalDate: IO[Nothing, LocalDate] = IO.sync(LocalDate.now())
+
+    override def nowZonedDateTime: IO[Nothing, ZonedDateTime] = IO.sync(ZonedDateTime.now())
   }
 
 }
