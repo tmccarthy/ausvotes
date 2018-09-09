@@ -8,5 +8,6 @@ include 'core',
         'lambdas:recountEnqueue',
         'shared:aws',
         'shared:io',
+        'shared:testIo',
         'shared:recountResources',
         'infrastructure'

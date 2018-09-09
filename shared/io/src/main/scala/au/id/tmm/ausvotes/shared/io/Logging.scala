@@ -24,7 +24,7 @@ object Logging {
       } yield result
   }
 
-  def timedLog[F[+_, +_] : Log : Now : Monad : Attempt, E, A](eventId: String, kvPairs: (String, Any)*)(action: => Either[E, A]): F[E, A] = {
+  def timedLog[F[+_, +_] : Log : Now : Monad, E, A](eventId: String, kvPairs: (String, Any)*)(action: => Either[E, A]): F[E, A] = {
     for {
       startTime <- Now.systemNanoTime
       resultPreLogging = action

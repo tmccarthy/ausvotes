@@ -13,6 +13,14 @@ abstract class Log[F[+_, +_]] {
   def logDebug(loggedEvent: LoggedEvent): F[Nothing, Unit]
   def logTrace(loggedEvent: LoggedEvent): F[Nothing, Unit]
 
+  def log(level: Log.Level, event: LoggedEvent): F[Nothing, Unit] = level match {
+    case Log.Level.Error => logError(event)
+    case Log.Level.Warn => logWarn(event)
+    case Log.Level.Info => logInfo(event)
+    case Log.Level.Debug => logDebug(event)
+    case Log.Level.Trace => logTrace(event)
+  }
+
 }
 
 object Log {
@@ -87,6 +95,16 @@ object Log {
         value
       }
     }
+  }
+
+  sealed trait Level
+
+  object Level {
+    case object Error extends Level
+    case object Warn extends Level
+    case object Info extends Level
+    case object Debug extends Level
+    case object Trace extends Level
   }
 
 }

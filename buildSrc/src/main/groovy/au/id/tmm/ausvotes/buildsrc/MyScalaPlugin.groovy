@@ -29,6 +29,10 @@ class MyScalaPlugin implements Plugin<Project> {
             mavenCentral()
         }
 
+        target.configurations {
+            scalaCompilerPlugin
+        }
+
         target.dependencies {
             compile "org.scala-lang:scala-library:$scalaVersion"
 
@@ -42,6 +46,8 @@ class MyScalaPlugin implements Plugin<Project> {
 
             scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
             scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
+
+            scalaCompilerPlugin "org.spire-math:kind-projector${s}:0.9.7"
         }
 
         target.tasks.withType(ScalaCompile) {
@@ -81,6 +87,8 @@ class MyScalaPlugin implements Plugin<Project> {
                         '-Ywarn-unused:imports',             // Warn if an import selector is not referenced.
                         '-Ywarn-unused:locals',              // Warn if a local definition is unused.
                         '-Ywarn-unused:privates',            // Warn if a private member is unused.
+
+                        "-Xplugin:" + target.configurations.scalaCompilerPlugin.asPath
                 ]
             }
         }
