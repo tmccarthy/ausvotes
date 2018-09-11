@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.ConfigurationError.RecountDataBucketUndefined
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountDataBucketUndefined
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.{RecountComputationError, WriteRecountError}
