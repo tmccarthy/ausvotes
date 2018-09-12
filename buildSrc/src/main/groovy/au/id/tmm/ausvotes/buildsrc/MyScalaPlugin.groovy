@@ -104,5 +104,9 @@ class MyScalaPlugin implements Plugin<Project> {
         }
 
         target.tasks.check.dependsOn(target.tasks.checkScoverage)
+
+        target.tasks.clean {
+            delete file('out')
+        }
     }
 }
