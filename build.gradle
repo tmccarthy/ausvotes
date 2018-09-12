@@ -7,9 +7,9 @@ repositories {
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyReleasePlugin
 apply plugin: org.scoverage.ScoveragePlugin.class
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.9'
-    distributionUrl = "http://downloads.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = '4.10.1'
 }
 
 dependencies {
