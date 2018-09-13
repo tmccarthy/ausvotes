@@ -2,7 +2,8 @@ package au.id.tmm.ausvotes.shared.io.test
 
 import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Log, Monad, Now}
+import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad}
 
 final case class TestIO[+E, +A, D](run: D => (D, Either[E, A])) {
   def map[B](f: A => B): TestIO[E, B, D] = {

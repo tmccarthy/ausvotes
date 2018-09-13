@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.core.model.codecs.GroupCodec
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.aws.S3BucketName
-import au.id.tmm.ausvotes.shared.aws.typeclasses.S3TypeClasses.ReadsS3
+import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, SyncEffects}

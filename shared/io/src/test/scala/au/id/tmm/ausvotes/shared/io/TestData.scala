@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.shared.io
 
 import java.time.{Duration, Instant}
 
+import au.id.tmm.ausvotes.shared.io.actions.Log
+import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test.TestDataUtils
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log.LoggedEvent
 
 final case class TestData(
                            loggedMessages: Map[Log.Level, List[LoggedEvent]] = Map.empty,

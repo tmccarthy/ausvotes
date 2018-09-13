@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.shared.io
 
 import au.id.tmm.ausvotes.shared.io.Logging.{LoggingOps, timedLog}
+import au.id.tmm.ausvotes.shared.io.actions.Log
+import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test.TestIO
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log.LoggedEvent
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.scalatest.Assertion
 

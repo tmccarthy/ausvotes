@@ -1,8 +1,8 @@
-package au.id.tmm.ausvotes.shared.io.typeclasses
+package au.id.tmm.ausvotes.shared.io.actions
 
 import java.util.Objects
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log.LoggedEvent
+import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import org.apache.commons.lang3.StringUtils
 
 abstract class Log[F[+_, +_]] {

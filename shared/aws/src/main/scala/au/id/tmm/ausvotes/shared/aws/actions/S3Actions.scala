@@ -1,10 +1,10 @@
-package au.id.tmm.ausvotes.shared.aws.typeclasses
+package au.id.tmm.ausvotes.shared.aws.actions
 
 import java.io.{InputStream, OutputStream}
 
 import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey}
 
-object S3TypeClasses {
+object S3Actions {
 
   abstract class ReadsS3[F[+_, +_]] {
     def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, String]

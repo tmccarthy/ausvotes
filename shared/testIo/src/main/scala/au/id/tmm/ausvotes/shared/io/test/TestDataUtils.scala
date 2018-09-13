@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.shared.io.test
 
 import java.time.{Duration, Instant}
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log
-import au.id.tmm.ausvotes.shared.io.typeclasses.Log.LoggedEvent
+import au.id.tmm.ausvotes.shared.io.actions.Log
+import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 
 object TestDataUtils {
 

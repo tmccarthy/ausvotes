@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.shared.io.typeclasses
+package au.id.tmm.ausvotes.shared.io.actions
 
 import java.time.{Instant, LocalDate, ZonedDateTime}
 
