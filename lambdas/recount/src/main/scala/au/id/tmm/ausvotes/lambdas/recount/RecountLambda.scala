@@ -8,7 +8,6 @@ import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLam
 import au.id.tmm.ausvotes.shared.aws.typeclasses.S3TypeClasses.{ReadsS3, WritesToS3}
 import au.id.tmm.ausvotes.shared.io.Logging
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, IOActions}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Log._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
@@ -22,16 +21,10 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
   override def logic(lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): IO[RecountLambdaError, Unit] = {
     import au.id.tmm.ausvotes.shared.aws.typeclasses.IOTypeClassInstances._
     import au.id.tmm.ausvotes.shared.io.typeclasses.IOTypeClassInstances._
-
-    implicit val envVars: IOActions.IOEnvVars.type = IOActions.IOEnvVars
-
     recountLogic[IO](lambdaRequest, context)
   }
 
-  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : SyncEffects : Attempt : Log : Now : Monad](
-                                                                                                          lambdaRequest: SnsLambdaRequest[RecountRequest],
-                                                                                                          context: Context,
-                                                                                                        )(implicit envVars: EnvVars[F]): F[RecountLambdaError, Unit] = {
+  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : AccessesEnvVars : SyncEffects : Attempt : Log : Now : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
 
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()

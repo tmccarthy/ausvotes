@@ -25,6 +25,10 @@ object IOTypeClassInstances {
     override def leftMap[E1, E2, A](io: IO[E1, A])(fe1e2: E1 => E2): IO[E2, A] = io.leftMap(fe1e2)
   }
 
+  implicit val ioAccessesEnvVars: AccessesEnvVars[IO] = new AccessesEnvVars[IO] {
+    override def envVars: IO[Nothing, Map[String, String]] = IO.sync(sys.env)
+  }
+
   implicit val ioHasSyncEffects: SyncEffects[IO] = new SyncEffects[IO] {
     override def sync[A](effect: => A): IO[Nothing, A] = IO.sync(effect)
 
