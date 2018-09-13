@@ -26,4 +26,8 @@ object TestDataUtils {
       (initialTime, this.copyWithInitialTime(initialTime.plus(stepEachInvocation)))
   }
 
+  trait EnvVars[D] {
+    def envVars: Map[String, String]
+  }
+
 }

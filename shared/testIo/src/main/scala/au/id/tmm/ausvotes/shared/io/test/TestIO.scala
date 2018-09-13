@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.shared.io.test
 
 import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
+import au.id.tmm.ausvotes.shared.io.actions
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad}
 
@@ -83,6 +84,10 @@ object TestIO {
 
       TestIO(newRun)
     }
+  }
+
+  implicit def testIOHasEnvVars[D <: TestDataUtils.EnvVars[D]]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
+    override def envVars: TestIO[Nothing, Map[String, String], D] = TestIO(data => (data, Right(data.envVars)))
   }
 
 }

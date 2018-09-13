@@ -30,6 +30,7 @@ dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
+    testCompile project(':shared:testIo')
 }
 
 task buildZip(type: Zip) {
