@@ -15,14 +15,15 @@ class MyScalaPlugin implements Plugin<Project> {
 
         def scalaVersion = target.ext.scalaVersion
         def scalaTestVersion = target.ext.scalaTestVersion
-        def scoverageVersion = target.ext.scoverageVersion
 
         def tmmUtilsVersion = target.ext.tmmUtilsVersion
         def tmmTestUtilsVersion = target.ext.tmmTestUtilsVersion
 
         target.plugins.apply(ScalaPlugin.class)
         target.plugins.apply(ScalaTestPlugin.class)
-        target.plugins.apply(ScoveragePlugin.class)
+        if (target.findProperty('noScoverage') != true ) {
+            applyScoverage(target)
+        }
 
         target.repositories {
             mavenLocal()
@@ -43,9 +44,6 @@ class MyScalaPlugin implements Plugin<Project> {
 
             // Needed to produce scalatest report
             testRuntime 'org.pegdown:pegdown:1.4.2'
-
-            scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
-            scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
 
             scalaCompilerPlugin "org.spire-math:kind-projector${s}:0.9.7"
         }
@@ -93,6 +91,22 @@ class MyScalaPlugin implements Plugin<Project> {
             }
         }
 
+        target.tasks.clean {
+            delete target.file('out')
+        }
+    }
+
+    private void applyScoverage(Project target) {
+        def s = target.ext.s
+        def scoverageVersion = target.ext.scoverageVersion
+
+        target.plugins.apply(ScoveragePlugin.class)
+
+        target.dependencies {
+            scoverage "org.scoverage:scalac-scoverage-plugin${s}:$scoverageVersion"
+            scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
+        }
+
         target.tasks.compileScoverageScala.shouldRunAfter(target.tasks.test)
 
         target.scoverage {
@@ -101,10 +115,6 @@ class MyScalaPlugin implements Plugin<Project> {
 
         target.tasks.checkScoverage {
             minimumRate = 0
-        }
-
-        target.tasks.clean {
-            delete target.file('out')
         }
     }
 }

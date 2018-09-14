@@ -4,7 +4,7 @@ sudo: required
 jdk:
 - oraclejdk8
 
-script: "./gradlew build :infrastructure:deployIfMaster --info --stacktrace"
+script: "./gradlew build scoverage :infrastructure:deployIfMaster --info --stacktrace"
 
 env:
   global:
