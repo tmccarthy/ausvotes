@@ -17,10 +17,8 @@ dependencies {
     scoverage "org.scoverage:scalac-scoverage-runtime${s}:$scoverageVersion"
 }
 
-task aggregateScoverage(type: org.scoverage.ScoverageAggregate)
+task scoverage(type: org.scoverage.ScoverageAggregate)
 
 subprojects {
-    tasks.withType(org.scoverage.ScoverageReport) { rootProject.tasks.aggregateScoverage.dependsOn(it) }
+    tasks.withType(org.scoverage.ScoverageReport) { rootProject.tasks.scoverage.dependsOn(it) }
 }
-
-tasks.build.dependsOn(tasks.aggregateScoverage)

@@ -13,7 +13,7 @@ import scala.language.postfixOps
 
 class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
-  "the number of exhausted ballots" should "match up with the AEC data at every count" in {
+  /*"the number of exhausted ballots"*/ ignore should "match up with the AEC data at every count" in {
     val aecRawDataStore = AecResourceStore.at(cleanDirectory)
     val rawDataStore = RawDataStore(aecRawDataStore)
     val parsedDataStore = ParsedDataStore(rawDataStore)

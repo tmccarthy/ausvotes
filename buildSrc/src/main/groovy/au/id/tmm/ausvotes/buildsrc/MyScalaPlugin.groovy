@@ -103,8 +103,6 @@ class MyScalaPlugin implements Plugin<Project> {
             minimumRate = 0
         }
 
-        target.tasks.check.dependsOn(target.tasks.checkScoverage)
-
         target.tasks.clean {
             delete target.file('out')
         }
