@@ -9,7 +9,7 @@ apply plugin: org.scoverage.ScoveragePlugin.class
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = '4.10.1'
+    gradleVersion = '4.10'
 }
 
 dependencies {
