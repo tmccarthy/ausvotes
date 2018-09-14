@@ -10,7 +10,6 @@ import au.id.tmm.ausvotes.shared.io.Logging
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.Log._
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}

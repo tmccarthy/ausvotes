@@ -5,7 +5,6 @@ import java.time.Duration
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Attempt.AttemptOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.Functor.FunctorOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
 

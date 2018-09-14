@@ -1,12 +1,15 @@
 package au.id.tmm.ausvotes.shared.io.typeclasses
 
-abstract class Monad[F[+_, +_]] extends Functor[F] {
+abstract class Monad[F[+_, +_]] {
   def pure[A](a: A): F[Nothing, A]
   def leftPure[E](e: E): F[E, Nothing]
   def fromEither[E, A](either: Either[E, A]): F[E, A] = either match {
     case Right(a) => pure(a)
     case Left(e) => leftPure(e)
   }
+
+  def map[E, A, B](fea: F[E, A])(fab: A => B): F[E, B]
+  def leftMap[E1, E2, A](fea: F[E1, A])(fe1e2: E1 => E2): F[E2, A]
 
   def flatten[E1, E2 >: E1, A](fefa: F[E1, F[E2, A]]): F[E2, A]
 
@@ -21,6 +24,8 @@ object Monad {
   def fromEither[F[+_, +_] : Monad, E, A](either: Either[E, A]): F[E, A] = implicitly[Monad[F]].fromEither(either)
 
   implicit class MonadOps[F[+_, +_] : Monad, E, A](fea: F[E, A]) {
+    def map[B](f: A => B): F[E, B] = implicitly[Monad[F]].map(fea)(f)
+    def leftMap[E2](f: E => E2): F[E2, A] = implicitly[Monad[F]].leftMap(fea)(f)
     def flatMap[E2 >: E, B](fafe2b: A => F[E2, B]): F[E2, B] = implicitly[Monad[F]].flatMap[E, E2, A, B](fea)(fafe2b)
   }
 

@@ -9,10 +9,8 @@ object Configuration {
 
   def recountDataBucketName[F[+_, +_] : EnvVars : Monad]: F[RecountLambdaError.RecountDataBucketUndefined.type, S3BucketName] =
     for {
-      possibleRawBucketName: Option[String] <- EnvVars.envVar("RECOUNT_DATA_BUCKET")
-
+      possibleRawBucketName <- EnvVars.envVar("RECOUNT_DATA_BUCKET")
       bucketName <- fromEither(possibleRawBucketName.toRight(RecountLambdaError.RecountDataBucketUndefined))
-
     } yield S3BucketName(bucketName)
 
 }
