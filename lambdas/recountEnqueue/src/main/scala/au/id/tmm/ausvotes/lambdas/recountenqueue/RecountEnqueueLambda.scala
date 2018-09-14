@@ -8,26 +8,38 @@ import au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda.Error.BadR
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.UrlCodec._
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Ops, S3Urls}
+import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
+import au.id.tmm.ausvotes.shared.aws.actions.SnsActions.PutsSnsMessages
+import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Urls}
+import au.id.tmm.ausvotes.shared.io.actions.EnvVars
+import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
+import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
 class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.Error] {
+
   override protected def logic(request: ApiGatewayLambdaRequest, context: Context): IO[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] = {
+    import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
+    import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+    recountEnqueueLogic[IO](request, context)
+  }
+
+  protected def recountEnqueueLogic[F[+_, +_] : EnvVars : ReadsS3 : PutsSnsMessages : Monad](request: ApiGatewayLambdaRequest, context: Context): F[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] = {
     for {
       recountQueueArn <- readRecountQueueArn
       recountDataBucket <- readRecountDataBucket
       region <- readRegion
 
-      recountRequest <- IO.fromEither(buildRecountRequest(request))
+      recountRequest <- Monad.fromEither(buildRecountRequest(request))
 
       recountComputationKey = RecountLocations.locationOfRecountFor(recountRequest)
 
-      recountAlreadyComputed <- S3Ops.checkObjectExists(recountDataBucket, recountComputationKey)
+      recountAlreadyComputed <- ReadsS3.checkObjectExists(recountDataBucket, recountComputationKey)
           .leftMap(RecountEnqueueLambda.Error.CheckRecountComputedError)
 
-      _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else IO.unit
+      _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else Monad.unit
     } yield {
       val response = RecountEnqueueLambda.Response(
         S3Urls.objectUrl(
@@ -41,20 +53,14 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
     }
   }
 
-  private val readRecountQueueArn: IO[RecountEnqueueLambda.Error.RecountQueueArnMissing.type, String] =
-    readEnvVar("RECOUNT_REQUEST_QUEUE", RecountEnqueueLambda.Error.RecountQueueArnMissing)
+  private def readRecountQueueArn[F[+_, +_] : EnvVars : Monad]: F[RecountEnqueueLambda.Error.RecountQueueArnMissing.type, String] =
+    EnvVars.envVarOr("RECOUNT_REQUEST_QUEUE", RecountEnqueueLambda.Error.RecountQueueArnMissing)
 
-  private val readRecountDataBucket: IO[RecountEnqueueLambda.Error.RecountDataBucketMissing.type, S3BucketName] =
-    readEnvVar("RECOUNT_DATA_BUCKET", RecountEnqueueLambda.Error.RecountDataBucketMissing).map(S3BucketName)
+  private def readRecountDataBucket[F[+_, +_] : EnvVars : Monad]: F[RecountEnqueueLambda.Error.RecountDataBucketMissing.type, S3BucketName] =
+    EnvVars.envVarOr("RECOUNT_DATA_BUCKET", RecountEnqueueLambda.Error.RecountDataBucketMissing).map(S3BucketName)
 
-  private val readRegion: IO[RecountEnqueueLambda.Error.RegionMissing.type, String] =
-    readEnvVar("AWS_DEFAULT_REGION", RecountEnqueueLambda.Error.RegionMissing)
-
-  private def readEnvVar[E <: RecountEnqueueLambda.Error](name: String, errorIfMissing: => E): IO[E, String] =
-    IO.sync(sys.env.get(name)).flatMap {
-      case Some(recountQueueArn) => IO.point(recountQueueArn)
-      case None => IO.fail(errorIfMissing)
-    }
+  private def readRegion[F[+_, +_] : EnvVars : Monad]: F[RecountEnqueueLambda.Error.RegionMissing.type, String] =
+    EnvVars.envVarOr("AWS_DEFAULT_REGION", RecountEnqueueLambda.Error.RegionMissing)
 
   private def buildRecountRequest(request: ApiGatewayLambdaRequest): Either[BadRequestError, RecountRequest] =
     RecountRequest.build(
@@ -64,10 +70,10 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
       rawIneligibleCandidates = request.queryStringParameters.get("ineligibleCandidates"),
     ).left.map(RecountEnqueueLambda.Error.BadRequestError)
 
-  private def putSnsMessage(recountQueueArn: String, recountRequest: RecountRequest): IO[RecountEnqueueLambda.Error.MessagePublishError, Unit] = {
+  private def putSnsMessage[F[+_, +_] : PutsSnsMessages : Monad](recountQueueArn: String, recountRequest: RecountRequest): F[RecountEnqueueLambda.Error.MessagePublishError, Unit] = {
     val messageAsString = recountRequest.asJson.toString()
 
-    SnsOps.putMessage(recountQueueArn, messageAsString)
+    PutsSnsMessages.putSnsMessage(recountQueueArn, messageAsString)
       .leftMap(RecountEnqueueLambda.Error.MessagePublishError)
   }
 

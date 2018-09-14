@@ -1,9 +1,8 @@
-package au.id.tmm.ausvotes.lambdas.recountenqueue
+package au.id.tmm.ausvotes.shared.aws
 
 import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
 import scalaz.zio.IO
 
-// TODO make this shared
 object SnsOps {
 
   private val snsClient: IO[Exception, AmazonSNS] = IO.syncException(AmazonSNSClientBuilder.defaultClient())

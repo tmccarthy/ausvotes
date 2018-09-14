@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.shared.aws.actions
 
 import java.io.{InputStream, OutputStream}
 
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey, S3Ops}
+import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey, S3Ops, SnsOps}
 import scalaz.zio.IO
 
 object IOInstances {
@@ -13,6 +13,9 @@ object IOInstances {
 
     override def useInputStream[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => IO[Exception, A]): IO[Exception, A] =
       S3Ops.useInputStream(bucketName, objectKey)(use)
+
+    override def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): IO[Exception, Boolean] =
+      S3Ops.checkObjectExists(bucketName, objectKey)
   }
 
   implicit val ioWritesToS3: S3Actions.WritesToS3[IO] = new S3Actions.WritesToS3[IO] {
@@ -21,6 +24,11 @@ object IOInstances {
 
     override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => IO[Exception, Unit]): IO[Exception, Unit] =
       S3Ops.putFromOutputStream(bucketName, objectKey)(writeToOutputStream)
+  }
+
+  implicit val ioPutsToSns: SnsActions.PutsSnsMessages[IO] = new SnsActions.PutsSnsMessages[IO] {
+    override def putMessage(topicArn: String, messageBody: String): IO[Exception, Unit] =
+      SnsOps.putMessage(topicArn, messageBody)
   }
 
 }

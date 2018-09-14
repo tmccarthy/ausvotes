@@ -9,6 +9,7 @@ object S3Actions {
   abstract class ReadsS3[F[+_, +_]] {
     def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, String]
     def useInputStream[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => F[Exception, A]): F[Exception, A]
+    def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, Boolean]
   }
 
   object ReadsS3 {
@@ -17,6 +18,9 @@ object S3Actions {
 
     def useInputStream[F[+_, +_] : ReadsS3, A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => F[Exception, A]): F[Exception, A] =
       implicitly[ReadsS3[F]].useInputStream(bucketName, objectKey)(use)
+
+    def checkObjectExists[F[+_, +_] : ReadsS3](bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, Boolean] =
+      implicitly[ReadsS3[F]].checkObjectExists(bucketName, objectKey)
   }
 
   abstract class WritesToS3[F[+_, +_]] {

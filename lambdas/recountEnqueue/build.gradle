@@ -20,9 +20,8 @@ configurations {
 dependencies {
     compile project(':lambdas:lambdaUtilities')
     compile project(':shared:recountResources')
+    compile project(':shared:aws')
 
-    compile 'com.amazonaws:aws-java-sdk-s3'
-    compile 'com.amazonaws:aws-java-sdk-sns'
     compile 'com.amazonaws:aws-lambda-java-core:1.2.0'
 
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"

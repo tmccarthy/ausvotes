@@ -15,4 +15,10 @@ object EnvVars {
 
   def envVar[F[+_, +_] : EnvVars : Monad](key: String): F[Nothing, Option[String]] =
     implicitly[EnvVars[F]].envVar(key)
+
+  def envVarOr[F[+_, +_] : EnvVars : Monad, E](key: String, onMissing: => E): F[E, String] =
+    envVar[F](key).flatMap {
+      case Some(value) => Monad.pure[F, String](value)
+      case None => Monad.leftPure[F, E](onMissing)
+    }
 }
