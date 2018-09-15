@@ -4,7 +4,8 @@ import argonaut.Argonaut._
 import argonaut.CodecJson
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Ops}
+import au.id.tmm.ausvotes.shared.aws.S3Ops
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName}
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.tasks.generatepreferencetrees.DataBundleConstruction.DataBundleForElection
 import au.id.tmm.countstv.model.preferences.PreferenceTreeSerialisation
@@ -57,7 +58,7 @@ object DataBundleWriting {
       groupsInOrder.asJson.toString
     }
 
-    S3Ops.putString(s3BucketName, key, content)
+    S3Ops.putString(s3BucketName, key, content, ContentType.APPLICATION_JSON)
   }
 
   private def writeCandidatesFile(
@@ -72,7 +73,7 @@ object DataBundleWriting {
       candidatesInOrder.asJson.toString
     }
 
-    S3Ops.putString(s3BucketName, key, content)
+    S3Ops.putString(s3BucketName, key, content, ContentType.APPLICATION_JSON)
   }
 
 }

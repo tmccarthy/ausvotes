@@ -89,7 +89,7 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
 
-      _ <- WritesToS3.putString(recountDataBucketName, recountResultKey)(
+      _ <- WritesToS3.putJson(recountDataBucketName, recountResultKey)(
         content = recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)).toString,
       )
         .timedLog("PUT_RECOUNT_RESULT",

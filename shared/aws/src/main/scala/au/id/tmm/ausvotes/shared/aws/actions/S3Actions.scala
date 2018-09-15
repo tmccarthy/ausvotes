@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.shared.aws.actions
 
 import java.io.{InputStream, OutputStream}
 
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 
 object S3Actions {
 
@@ -24,13 +24,27 @@ object S3Actions {
   }
 
   abstract class WritesToS3[F[+_, +_]] {
-    def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit]
+    def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): F[Exception, Unit]
+
+    def putText(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =
+      putString(bucketName, objectKey)(content, contentType = ContentType.TEXT_PLAIN)
+
+    def putJson(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =
+      putString(bucketName, objectKey)(content, contentType = ContentType.APPLICATION_JSON)
+
     def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => F[Exception, Unit]): F[Exception, Unit]
   }
 
   object WritesToS3 {
-    def putString[F[+_, +_] : WritesToS3](bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =
-      implicitly[WritesToS3[F]].putString(bucketName, objectKey)(content)
+    def putString[F[+_, +_] : WritesToS3](bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): F[Exception, Unit] =
+      implicitly[WritesToS3[F]].putString(bucketName, objectKey)(content, contentType)
+
+    def putText[F[+_, +_] : WritesToS3](bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =
+      implicitly[WritesToS3[F]].putText(bucketName, objectKey)(content)
+
+    def putJson[F[+_, +_] : WritesToS3](bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =
+      implicitly[WritesToS3[F]].putJson(bucketName, objectKey)(content)
+
     def putFromOutputStream[F[+_, +_] : WritesToS3](bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => F[Exception, Unit]): F[Exception, Unit] =
       implicitly[WritesToS3[F]].putFromOutputStream(bucketName, objectKey)(writeToOutputStream)
   }

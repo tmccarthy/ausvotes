@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad}
 
 final case class TestIO[+E, +A, D](run: D => (D, Either[E, A])) {
@@ -52,7 +53,7 @@ object TestIO {
     override def leftMap[E1, E2, A](io: TestIO[E1, A, D])(fe1e2: E1 => E2): TestIO[E2, A, D] = io.leftMap(fe1e2)
   }
 
-  implicit def testIOAllowsLogging[D <: TestDataUtils.Logging[D]]: Log[TestIO[+?, +?, D]] = new Log[TestIO[+?, +?, D]] {
+  implicit def testIOAllowsLogging[D <: Logging[D]]: Log[TestIO[+?, +?, D]] = new Log[TestIO[+?, +?, D]] {
     override def logError(loggedEvent: Log.LoggedEvent): TestIO[Nothing, Unit, D] = log(Log.Level.Error, loggedEvent)
     override def logWarn(loggedEvent: Log.LoggedEvent): TestIO[Nothing, Unit, D] = log(Log.Level.Warn, loggedEvent)
     override def logInfo(loggedEvent: Log.LoggedEvent): TestIO[Nothing, Unit, D] = log(Log.Level.Info, loggedEvent)
@@ -63,7 +64,7 @@ object TestIO {
       TestIO(data => (data.log(level, event), Right(Unit)))
   }
 
-  implicit def testIOProducesTheCurrentTime[D <: TestDataUtils.CurrentTime[D]]: Now[TestIO[+?, +?, D]] = new Now[TestIO[+?, +?, D]] {
+  implicit def testIOProducesTheCurrentTime[D <: CurrentTime[D]]: Now[TestIO[+?, +?, D]] = new Now[TestIO[+?, +?, D]] {
     override def systemNanoTime: TestIO[Nothing, Long, D] = testIOWithTime(i => i.getEpochSecond * 1000000000 + i.getNano)
     override def currentTimeMillis: TestIO[Nothing, Long, D] = testIOWithTime(_.toEpochMilli)
     override def nowInstant: TestIO[Nothing, Instant, D] = testIOWithTime(identity)
@@ -86,7 +87,7 @@ object TestIO {
     }
   }
 
-  implicit def testIOHasEnvVars[D <: TestDataUtils.EnvVars[D]]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
+  implicit def testIOHasEnvVars[D <: EnvVars[D]]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
     override def envVars: TestIO[Nothing, Map[String, String], D] = TestIO(data => (data, Right(data.envVars)))
   }
 

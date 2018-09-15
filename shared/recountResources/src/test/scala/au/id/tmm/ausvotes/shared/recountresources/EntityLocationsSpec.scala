@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.shared.aws.S3ObjectKey
+import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

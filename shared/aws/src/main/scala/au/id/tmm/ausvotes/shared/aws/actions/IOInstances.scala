@@ -2,7 +2,8 @@ package au.id.tmm.ausvotes.shared.aws.actions
 
 import java.io.{InputStream, OutputStream}
 
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey, S3Ops, SnsOps}
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.{S3Ops, SnsOps}
 import scalaz.zio.IO
 
 object IOInstances {
@@ -19,8 +20,8 @@ object IOInstances {
   }
 
   implicit val ioWritesToS3: S3Actions.WritesToS3[IO] = new S3Actions.WritesToS3[IO] {
-    override def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): IO[Exception, Unit] =
-      S3Ops.putString(bucketName, objectKey, content)
+    override def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): IO[Exception, Unit] =
+      S3Ops.putString(bucketName, objectKey, content, contentType)
 
     override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => IO[Exception, Unit]): IO[Exception, Unit] =
       S3Ops.putFromOutputStream(bucketName, objectKey)(writeToOutputStream)

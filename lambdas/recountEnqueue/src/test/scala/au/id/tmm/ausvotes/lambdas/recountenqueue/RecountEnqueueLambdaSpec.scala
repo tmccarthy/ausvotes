@@ -3,10 +3,11 @@ package au.id.tmm.ausvotes.lambdas.recountenqueue
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.TestIO
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestIoInstances._
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.testing.datatraits.S3Interaction.InMemoryS3
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -24,9 +25,9 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
       "RECOUNT_DATA_BUCKET" -> recountDataBucket,
       "AWS_DEFAULT_REGION" -> "ap-southeast-2",
     ),
-    s3Content = Map(
-      S3BucketName(recountDataBucket) -> Map.empty,
-    ),
+    s3Content = InMemoryS3(Set(
+      InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set.empty),
+    )),
     snsMessagesPerTopic = Map.empty.withDefaultValue(Nil),
   )
 
@@ -114,13 +115,15 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
     val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA)))
 
     val testData = greenPathTestData.copy(
-      s3Content = Map(
-        S3BucketName(recountDataBucket) -> Map(
-          S3ObjectKey("recounts") / "3f2e4bba22526253e0270e6ed885661852bba1e5d8026a39d3a5c2b62c8a3490.json" -> List(
-            ""
+      s3Content = InMemoryS3(Set(
+        InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set(
+          InMemoryS3.S3Object(
+            S3ObjectKey("recounts") / "3f2e4bba22526253e0270e6ed885661852bba1e5d8026a39d3a5c2b62c8a3490.json",
+            "",
+            ContentType.APPLICATION_JSON,
           )
-        )
-      )
+        )),
+      )),
     )
 
     val (outputData, response) = logic.run(testData)

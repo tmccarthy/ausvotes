@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.shared.aws
 import java.io.{InputStream, OutputStream, PipedInputStream, PipedOutputStream}
 import java.nio.charset.Charset
 
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import com.amazonaws.services.s3.model.{ObjectMetadata, S3Object}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import org.apache.commons.io.IOUtils
@@ -38,6 +39,7 @@ object S3Ops {
                  bucketName: S3BucketName,
                  objectKey: S3ObjectKey,
                  content: String,
+                 contentType: ContentType,
                ): IO[Exception, Unit] = s3Client.flatMap { client =>
     IO.syncException {
       client.putObject(bucketName.asString, objectKey.asString, content)

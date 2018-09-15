@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.shared.aws
 
 import java.net.URL
 
+import au.id.tmm.ausvotes.shared.aws.data.{S3BucketName, S3ObjectKey}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class S3UrlsSpec extends ImprovedFlatSpec {

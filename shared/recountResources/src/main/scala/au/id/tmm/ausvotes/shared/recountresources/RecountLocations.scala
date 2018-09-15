@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.shared.aws.S3ObjectKey
+import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
 
 object RecountLocations {

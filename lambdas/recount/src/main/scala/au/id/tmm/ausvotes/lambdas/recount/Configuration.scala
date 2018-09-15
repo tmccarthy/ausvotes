@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.shared.aws.S3BucketName
+import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.EnvVars
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps

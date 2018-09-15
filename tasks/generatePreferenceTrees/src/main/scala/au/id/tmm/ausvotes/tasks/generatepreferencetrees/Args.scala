@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import java.nio.file.{InvalidPathException, Path, Paths}
 
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.shared.aws.S3BucketName
+import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 
 import scala.reflect.ClassTag
 

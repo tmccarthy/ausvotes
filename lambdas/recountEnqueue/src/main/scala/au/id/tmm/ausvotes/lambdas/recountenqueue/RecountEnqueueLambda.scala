@@ -8,9 +8,10 @@ import au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda.Error.BadR
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.UrlCodec._
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaHarness, ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
+import au.id.tmm.ausvotes.shared.aws.S3Urls
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.aws.actions.SnsActions.PutsSnsMessages
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3Urls}
+import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.EnvVars
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps

@@ -2,12 +2,11 @@ package au.id.tmm.ausvotes.shared.aws.testing
 
 import java.time.{Duration, Instant}
 
-import au.id.tmm.ausvotes.shared.aws.testing.AwsTestDataUtils.{S3Interaction, SnsWrites}
-import au.id.tmm.ausvotes.shared.aws.{S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{S3Interaction, SnsWrites}
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test
-import au.id.tmm.ausvotes.shared.io.test.TestDataUtils._
+import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
 
 final case class AwsTestData(
                               envVars: Map[String, String] = Map.empty,
@@ -16,7 +15,7 @@ final case class AwsTestData(
                               initialTime: Instant = Instant.EPOCH,
                               stepEachInvocation: Duration = Duration.ofSeconds(1),
 
-                              s3Content: Map[S3BucketName, Map[S3ObjectKey, List[String]]] = Map.empty,
+                              s3Content: S3Interaction.InMemoryS3 = S3Interaction.InMemoryS3.empty,
 
                               snsMessagesPerTopic: Map[String, List[String]] = Map.empty,
                             ) extends EnvVars[AwsTestData]
@@ -29,7 +28,7 @@ final case class AwsTestData(
 
   override protected def copyWithLoggedMessages(loggedMessages: Map[Log.Level, List[LoggedEvent]]): AwsTestData = this.copy(loggedMessages = loggedMessages)
 
-  override protected def copyWithS3Content(s3Content: Map[S3BucketName, Map[S3ObjectKey, List[String]]]): AwsTestData = this.copy(s3Content = s3Content)
+  override protected def copyWithS3Content(s3Content: S3Interaction.InMemoryS3): AwsTestData = this.copy(s3Content = s3Content)
 
   override protected def copyWithSnsMessages(snsMessagesPerTopic: Map[String, List[String]]): AwsTestData = this.copy(snsMessagesPerTopic = snsMessagesPerTopic)
 

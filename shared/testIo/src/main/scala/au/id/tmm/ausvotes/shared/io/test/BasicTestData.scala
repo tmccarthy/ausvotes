@@ -5,6 +5,7 @@ import java.time.{Duration, Instant}
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test
+import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
 
 final case class BasicTestData(
                                 envVars: Map[String, String] = Map.empty,
@@ -13,9 +14,9 @@ final case class BasicTestData(
                                 initialTime: Instant = Instant.EPOCH,
                                 stepEachInvocation: Duration = Duration.ofSeconds(1),
                               )
-  extends TestDataUtils.Logging[BasicTestData]
-    with TestDataUtils.CurrentTime[BasicTestData]
-    with TestDataUtils.EnvVars[BasicTestData] {
+  extends Logging[BasicTestData]
+    with CurrentTime[BasicTestData]
+    with EnvVars[BasicTestData] {
 
   override protected def copyWithLoggedMessages(loggedMessages: Map[Log.Level, List[LoggedEvent]]): BasicTestData =
     this.copy(loggedMessages = loggedMessages)
