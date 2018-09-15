@@ -2,6 +2,8 @@ plugins {
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
+ext.noScoverage = true
+
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencyManagement {
