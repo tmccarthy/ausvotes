@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: 23687a6f-6621-407d-b725-2bd5aa8f7721
 
+  AusvotesDomainName:
+    Type: String
+    Default: ausvotes.info
+
   AusvotesApiDomainName:
     Type: String
     Default: api.ausvotes.info
@@ -28,6 +32,21 @@ Parameters:
     Default: prod
 
 Resources:
+
+  AusvotesHostedZone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      Name: !Ref AusvotesDomainName
+
+  AusvotesApiDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref AusvotesHostedZone
+      Name: !Ref AusvotesApiDomainName
+      ResourceRecords:
+      - !GetAtt AusvotesApiGatewayDomainName.DistributionDomainName
+      TTL: 86400
+      Type: CNAME
 
   RecountDataBucket:
     Type: AWS::S3::Bucket
