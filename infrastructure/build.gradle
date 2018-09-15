@@ -1,3 +1,5 @@
+import au.id.tmm.ausvotes.buildsrc.DeleteS3Task
+
 plugins {
     id "seek.aws" version "0.0.26"
     id "seek.cloudformation" version "0.0.26"
@@ -44,4 +46,9 @@ task deployIfMaster(type: GradleBuild) {
     startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
 
     tasks = [':infrastructure:createOrUpdateStack']
+}
+
+task clearRecountsCache(type: DeleteS3Task, group: 'build') {
+    bucket = recountDataBucketName
+    prefix = 'recounts/'
 }
