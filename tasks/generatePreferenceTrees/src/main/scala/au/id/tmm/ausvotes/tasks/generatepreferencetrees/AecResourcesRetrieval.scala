@@ -6,6 +6,7 @@ import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
 import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.shared.io.Closeables
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.IO
 
@@ -53,7 +54,7 @@ object AecResourcesRetrieval {
       dataStore.ballotsFor(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, state)
     }
 
-    CloseableIO.bracket(openBallotsLogic) { ballots =>
+    Closeables.bracketCloseable(openBallotsLogic) { ballots =>
       resourceUse(election, state, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, ballots)
     }
   }

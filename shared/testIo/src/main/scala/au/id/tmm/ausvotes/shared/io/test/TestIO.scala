@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import au.id.tmm.ausvotes.shared.io.actions
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad, Parallel}
 
 final case class TestIO[+E, +A, D](run: D => (D, Either[E, A])) {
   def map[B](f: A => B): TestIO[E, B, D] = {
@@ -89,6 +89,21 @@ object TestIO {
 
   implicit def testIOHasEnvVars[D <: EnvVars[D]]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
     override def envVars: TestIO[Nothing, Map[String, String], D] = TestIO(data => (data, Right(data.envVars)))
+  }
+
+  implicit def ioCanBeParallel[D <: Parallel[D]]: Parallel[TestIO[+?, +?, D]] = new Parallel[TestIO[+?, +?, D]] {
+    override def par[E1, E2 >: E1, A, B](left: TestIO[E1, A, D], right: TestIO[E2, B, D]): TestIO[E2, (A, B), D] =
+      for {
+        leftResult <- left
+        rightResult <- right
+      } yield (leftResult, rightResult)
+
+    override def parAll[E, A](as: Iterable[TestIO[E, A, D]]): TestIO[E, List[A], D] = parTraverse(as)(identity)
+
+    override def parTraverse[E, A, B](as: Iterable[A])(f: A => TestIO[E, B, D]): TestIO[E, List[B], D] =
+      as.foldRight[TestIO[E, List[B], D]](TestIO.pure(Nil)) { (a, io) =>
+        par(f(a), io).map { case (b, bs) => b :: bs }
+      }
   }
 
 }

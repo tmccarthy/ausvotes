@@ -74,4 +74,12 @@ object IOInstances {
     override def nowZonedDateTime: IO[Nothing, ZonedDateTime] = IO.sync(ZonedDateTime.now())
   }
 
+  implicit val ioCanBeParallel: Parallel[IO] = new Parallel[IO] {
+    override def par[E1, E2 >: E1, A, B](left: IO[E1, A], right: IO[E2, B]): IO[E2, (A, B)] = left par right
+
+    override def parAll[E, A](as: Iterable[IO[E, A]]): IO[E, List[A]] = IO.parAll(as)
+
+    override def parTraverse[E, A, B](as: Iterable[A])(f: A => IO[E, B]): IO[E, List[B]] = IO.parTraverse[E, A, B](as)(f)
+  }
+
 }
