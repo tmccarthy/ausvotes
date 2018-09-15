@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 import argonaut.Argonaut._
 import argonaut.EncodeJson
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
@@ -49,13 +50,17 @@ object PerformRecount {
         )
       }
 
-      Right(Result(completedCountPossibilitiesByCandidate))
+      Right(Result(election, state, numVacancies, ineligibleCandidates, completedCountPossibilitiesByCandidate))
     } catch {
       case e: Exception => Left(RecountLambdaError.RecountComputationError(e))
     }
   }
 
   final case class Result(
+                           election: SenateElection,
+                           state: State,
+                           numVacancies: Int,
+                           ineligibleCandidates: Set[Candidate],
                            candidateOutcomeProbabilities: ProbabilityMeasure[CandidateStatuses[Candidate]]
                          )
 
@@ -127,8 +132,14 @@ object PerformRecount {
       )
     }
 
-    implicit def encodeRecountResult(implicit encodeCandidate: EncodeJson[Candidate]): EncodeJson[Result] =
-      result => result.candidateOutcomeProbabilities.asJson
+    implicit def encodeRecountResult(implicit encodeCandidate: EncodeJson[Candidate]): EncodeJson[Result] = result =>
+      jObjectFields(
+        "election" -> result.election.asJson,
+        "state" -> result.state.asJson,
+        "numVacancies" -> result.numVacancies.asJson,
+        "ineligibleCandidates" -> result.ineligibleCandidates.asJson,
+        "outcomePossibilities" -> result.candidateOutcomeProbabilities.asJson,
+      )
   }
 
 }

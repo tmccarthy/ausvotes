@@ -91,7 +91,7 @@ object TestIO {
     override def envVars: TestIO[Nothing, Map[String, String], D] = TestIO(data => (data, Right(data.envVars)))
   }
 
-  implicit def ioCanBeParallel[D <: Parallel[D]]: Parallel[TestIO[+?, +?, D]] = new Parallel[TestIO[+?, +?, D]] {
+  implicit def ioCanBeParallel[D]: Parallel[TestIO[+?, +?, D]] = new Parallel[TestIO[+?, +?, D]] {
     override def par[E1, E2 >: E1, A, B](left: TestIO[E1, A, D], right: TestIO[E2, B, D]): TestIO[E2, (A, B), D] =
       for {
         leftResult <- left

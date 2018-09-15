@@ -60,6 +60,10 @@ class PerformRecountSpec extends ImprovedFlatSpec {
     implicit val candidateCodec: CodecJson[Candidate] = CandidateCodec(candidateFixture.groupFixture.groups)
 
     val recountResult = PerformRecount.Result(
+      election = SenateElection.`2016`,
+      state = State.ACT,
+      numVacancies = 2,
+      ineligibleCandidates = Set(mattDonnelly),
       ProbabilityMeasure.evenly(
         CandidateStatuses[Candidate](
           katyGallagher -> CandidateStatus.Elected(Ordinal.first, Count(1)),
@@ -78,85 +82,91 @@ class PerformRecountSpec extends ImprovedFlatSpec {
       )
     )
 
-    val expectedEncode = jArrayElements(
-      jObjectFields(
-        "probability" -> jString("1/2"),
-        "outcome" -> jArrayElements(
-          jObjectFields(
-            "candidate" -> katyGallagher.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("elected"),
-              "ordinal" -> jNumber(0),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> zedSeselja.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("elected"),
-              "ordinal" -> jNumber(1),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> christinaHobbs.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("remaining"),
+    val expectedEncode = jObjectFields(
+      "election" -> jString("2016"),
+      "state" -> jString("ACT"),
+      "numVacancies" -> jNumber(2),
+      "ineligibleCandidates" -> jArrayElements(mattDonnelly.asJson),
+      "outcomePossibilities" -> jArrayElements(
+        jObjectFields(
+          "probability" -> jString("1/2"),
+          "outcome" -> jArrayElements(
+            jObjectFields(
+              "candidate" -> katyGallagher.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("elected"),
+                "ordinal" -> jNumber(0),
+                "count" -> jNumber(1),
+              )
             ),
-          ),
-          jObjectFields(
-            "candidate" -> anthonyHanson.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("excluded"),
-              "ordinal" -> jNumber(0),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> mattDonnelly.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("ineligible"),
+            jObjectFields(
+              "candidate" -> zedSeselja.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("elected"),
+                "ordinal" -> jNumber(1),
+                "count" -> jNumber(1),
+              )
+            ),
+            jObjectFields(
+              "candidate" -> christinaHobbs.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("remaining"),
+              ),
+            ),
+            jObjectFields(
+              "candidate" -> anthonyHanson.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("excluded"),
+                "ordinal" -> jNumber(0),
+                "count" -> jNumber(1),
+              )
+            ),
+            jObjectFields(
+              "candidate" -> mattDonnelly.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("ineligible"),
+              ),
             ),
           ),
         ),
-      ),
-      jObjectFields(
-        "probability" -> jString("1/2"),
-        "outcome" -> jArrayElements(
-          jObjectFields(
-            "candidate" -> zedSeselja.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("elected"),
-              "ordinal" -> jNumber(0),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> katyGallagher.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("elected"),
-              "ordinal" -> jNumber(1),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> christinaHobbs.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("remaining"),
+        jObjectFields(
+          "probability" -> jString("1/2"),
+          "outcome" -> jArrayElements(
+            jObjectFields(
+              "candidate" -> zedSeselja.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("elected"),
+                "ordinal" -> jNumber(0),
+                "count" -> jNumber(1),
+              )
             ),
-          ),
-          jObjectFields(
-            "candidate" -> anthonyHanson.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("excluded"),
-              "ordinal" -> jNumber(0),
-              "count" -> jNumber(1),
-            )
-          ),
-          jObjectFields(
-            "candidate" -> mattDonnelly.asJson,
-            "outcome" -> jObjectFields(
-              "status" -> jString("ineligible"),
+            jObjectFields(
+              "candidate" -> katyGallagher.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("elected"),
+                "ordinal" -> jNumber(1),
+                "count" -> jNumber(1),
+              )
+            ),
+            jObjectFields(
+              "candidate" -> christinaHobbs.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("remaining"),
+              ),
+            ),
+            jObjectFields(
+              "candidate" -> anthonyHanson.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("excluded"),
+                "ordinal" -> jNumber(0),
+                "count" -> jNumber(1),
+              )
+            ),
+            jObjectFields(
+              "candidate" -> mattDonnelly.asJson,
+              "outcome" -> jObjectFields(
+                "status" -> jString("ineligible"),
+              ),
             ),
           ),
         ),
