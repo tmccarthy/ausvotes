@@ -7,6 +7,7 @@ object SnsOps {
 
   private val snsClient: IO[Exception, AmazonSNS] = IO.syncException(AmazonSNSClientBuilder.defaultClient())
 
+  // TODO topicArn should be a case class
   def putMessage(topicArn: String, messageBody: String): IO[Exception, Unit] = {
     for {
       client <- snsClient

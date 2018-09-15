@@ -23,10 +23,19 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
   override protected def logic(request: ApiGatewayLambdaRequest, context: Context): IO[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] = {
     import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
     import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
-    recountEnqueueLogic[IO](request, context)
+    RecountEnqueueLambda.recountEnqueueLogic[IO](request)
   }
 
-  protected def recountEnqueueLogic[F[+_, +_] : EnvVars : ReadsS3 : PutsSnsMessages : Monad](request: ApiGatewayLambdaRequest, context: Context): F[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] = {
+  override protected def errorResponseTransformer: LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountEnqueueLambda.Error] =
+    RecountEnqueueLambdaErrorResponseTransformer
+
+  override protected def errorLogTransformer: LambdaHarness.ErrorLogTransformer[RecountEnqueueLambda.Error] =
+    RecountEnqueueLambdaErrorLogTransformer
+}
+
+object RecountEnqueueLambda {
+
+  def recountEnqueueLogic[F[+_, +_] : EnvVars : ReadsS3 : PutsSnsMessages : Monad](request: ApiGatewayLambdaRequest): F[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] = {
     for {
       recountQueueArn <- readRecountQueueArn
       recountDataBucket <- readRecountDataBucket
@@ -37,7 +46,7 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
       recountComputationKey = RecountLocations.locationOfRecountFor(recountRequest)
 
       recountAlreadyComputed <- ReadsS3.checkObjectExists(recountDataBucket, recountComputationKey)
-          .leftMap(RecountEnqueueLambda.Error.CheckRecountComputedError)
+        .leftMap(RecountEnqueueLambda.Error.CheckRecountComputedError)
 
       _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else Monad.unit
     } yield {
@@ -77,14 +86,6 @@ class RecountEnqueueLambda extends ApiGatewayLambdaHarness[RecountEnqueueLambda.
       .leftMap(RecountEnqueueLambda.Error.MessagePublishError)
   }
 
-  override protected def errorResponseTransformer: LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountEnqueueLambda.Error] =
-    RecountEnqueueLambdaErrorResponseTransformer
-
-  override protected def errorLogTransformer: LambdaHarness.ErrorLogTransformer[RecountEnqueueLambda.Error] =
-    RecountEnqueueLambdaErrorLogTransformer
-}
-
-object RecountEnqueueLambda {
   sealed trait Error
 
   object Error {

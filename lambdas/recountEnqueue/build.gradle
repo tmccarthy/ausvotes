@@ -27,6 +27,7 @@ dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
+    testCompile project(':shared:testAws')
 }
 
 task buildZip(type: Zip) {
