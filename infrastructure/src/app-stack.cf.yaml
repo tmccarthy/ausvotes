@@ -19,6 +19,14 @@ Parameters:
     Type: String
     Default: 23687a6f-6621-407d-b725-2bd5aa8f7721
 
+  AusvotesDomainCertificateCnameName:
+    Type: String
+    Default: _6a0e3e9f773b7d628e8ae961bf0cc746.ausvotes.info.
+
+  AusvotesDomainCertificateCnameValue:
+    Type: String
+    Default: _8a7310fe67246f051e59241f5f8ebbde.tljzshvwok.acm-validations.aws.
+
   AusvotesDomainName:
     Type: String
     Default: ausvotes.info
@@ -45,6 +53,16 @@ Resources:
       Name: !Ref AusvotesApiDomainName
       ResourceRecords:
       - !GetAtt AusvotesApiGatewayDomainName.DistributionDomainName
+      TTL: 86400
+      Type: CNAME
+
+  AusvotesCertificateValidationDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref AusvotesHostedZone
+      Name: !Ref AusvotesDomainCertificateCnameName
+      ResourceRecords:
+      - !Ref AusvotesDomainCertificateCnameValue
       TTL: 86400
       Type: CNAME
 
