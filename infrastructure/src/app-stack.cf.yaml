@@ -81,9 +81,7 @@ Resources:
         - Action:
           - s3:GetObject
           Effect: Allow
-          Principal:
-            AWS:
-            - !GetAtt RecountLambdaIamRole.Arn
+          Principal: "*"
           Resource: !Sub
           - "${bucket_name}/*"
           - bucket_name: !GetAtt RecountDataBucket.Arn
@@ -94,13 +92,6 @@ Resources:
             AWS:
             - !GetAtt RecountLambdaIamRole.Arn
           Resource: !GetAtt RecountDataBucket.Arn
-        - Action:
-          - s3:GetObject
-          Effect: "Allow"
-          Principal: "*"
-          Resource: !Sub
-          - "${bucket_name}/recounts/*"
-          - bucket_name: !GetAtt RecountDataBucket.Arn
         - Action:
           - s3:PutObject
           Effect: "Allow"

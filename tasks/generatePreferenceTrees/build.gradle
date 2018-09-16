@@ -1,3 +1,5 @@
+import au.id.tmm.ausvotes.buildsrc.DeleteS3Task
+
 plugins {
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
@@ -21,7 +23,14 @@ dependencies {
     compile 'com.amazonaws:aws-java-sdk-s3'
 }
 
+task deleteRecountData(type: DeleteS3Task) {
+    bucket = project(':infrastructure').recountDataBucketName
+    prefix = 'recountData/2016/'
+}
+
 task uploadRecountData(type: JavaExec) {
+    dependsOn tasks.deleteRecountData
+
     classpath = sourceSets.main.runtimeClasspath
 
     main = 'au.id.tmm.ausvotes.tasks.generatepreferencetrees.Main'
