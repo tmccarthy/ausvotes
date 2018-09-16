@@ -29,8 +29,6 @@ task deleteRecountData(type: DeleteS3Task) {
 }
 
 task uploadRecountData(type: JavaExec) {
-    dependsOn tasks.deleteRecountData
-
     classpath = sourceSets.main.runtimeClasspath
 
     main = 'au.id.tmm.ausvotes.tasks.generatepreferencetrees.Main'
