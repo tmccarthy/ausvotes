@@ -96,7 +96,7 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
   }
 
   it should "respond successfully to a valid request" in {
-    val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA)))
+    val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA), ineligibleCandidates = Some("123,456")))
 
     val (outputData, response) = logic.run(greenPathTestData)
 
@@ -104,7 +104,16 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
       statusCode = 202,
       headers = Map.empty,
       body = jObjectFields(
-        "recountLocation" -> jString(s"https://s3-ap-southeast-2.amazonaws.com/$recountDataBucket/recounts/2016/SA/12-vacancies/none-ineligible/result.json")
+        "recountRequest" -> jObjectFields(
+          "election" -> jString("2016"),
+          "state" -> jString("SA"),
+          "vacancies" -> jNumber(12),
+          "ineligibleCandidates" -> jArray(List(
+            jString("123"),
+            jString("456"),
+          )),
+        ),
+        "recountLocation" -> jString(s"https://s3-ap-southeast-2.amazonaws.com/$recountDataBucket/recounts/2016/SA/12-vacancies/123-456-ineligible/result.json"),
       )
     )
 

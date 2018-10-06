@@ -52,11 +52,12 @@ object RecountEnqueueLambda {
       _ <- if (!recountAlreadyComputed) putSnsMessage(recountQueueArn, recountRequest) else Monad.unit
     } yield {
       val response = RecountEnqueueLambda.Response(
-        S3Urls.objectUrl(
+        request = recountRequest,
+        recountLocation = S3Urls.objectUrl(
           region = region,
           bucketName = recountDataBucket,
           objectKey = recountComputationKey,
-        )
+        ),
       )
 
       ApiGatewayLambdaResponse(202, Map.empty, response.asJson)
@@ -98,9 +99,9 @@ object RecountEnqueueLambda {
     case object RegionMissing extends Error
   }
 
-  final case class Response(recountLocation: URL)
+  final case class Response(request: RecountRequest, recountLocation: URL)
 
   object Response {
-    implicit val encode: EncodeJson[Response] = casecodec1(apply, unapply)("recountLocation")
+    implicit val encode: EncodeJson[Response] = casecodec2(apply, unapply)("recountRequest", "recountLocation")
   }
 }
