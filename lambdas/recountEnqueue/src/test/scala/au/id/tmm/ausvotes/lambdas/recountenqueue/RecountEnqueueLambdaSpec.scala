@@ -104,7 +104,7 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
       statusCode = 202,
       headers = Map.empty,
       body = jObjectFields(
-        "recountLocation" -> jString(s"https://s3-ap-southeast-2.amazonaws.com/$recountDataBucket/recounts/3f2e4bba22526253e0270e6ed885661852bba1e5d8026a39d3a5c2b62c8a3490.json")
+        "recountLocation" -> jString(s"https://s3-ap-southeast-2.amazonaws.com/$recountDataBucket/recounts/2016/SA/12-vacancies/none-ineligible/result.json")
       )
     )
 
@@ -118,7 +118,7 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
       s3Content = InMemoryS3(Set(
         InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set(
           InMemoryS3.S3Object(
-            S3ObjectKey("recounts") / "3f2e4bba22526253e0270e6ed885661852bba1e5d8026a39d3a5c2b62c8a3490.json",
+            S3ObjectKey("recounts") / "2016" / "SA" / "12-vacancies" / "none-ineligible" / "result.json",
             "",
             ContentType.APPLICATION_JSON,
           )
