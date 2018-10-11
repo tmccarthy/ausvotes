@@ -16,7 +16,7 @@ class ReportWriterSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
     Given("a report with two tables")
 
     val table1 = {
-      val primaryCountTally = Tally1(
+      val primaryCountTally = Tally1[State](
         NSW -> 4492197d,
         VIC -> 3500237d,
         QLD -> 2723166d,

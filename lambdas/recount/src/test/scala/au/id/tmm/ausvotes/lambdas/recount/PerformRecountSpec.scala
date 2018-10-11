@@ -49,7 +49,7 @@ class PerformRecountSpec extends ImprovedFlatSpec {
       numVacancies = 2,
     )
 
-    assert(actualResult.map(_.candidateOutcomeProbabilities.onlyOutcome.electedCandidates) === Right(DupelessSeq(
+    assert(actualResult.map(_.candidateOutcomeProbabilities.onlyOutcomeUnsafe.electedCandidates) === Right(DupelessSeq(
       katyGallagher,
       zedSeselja,
     )))
