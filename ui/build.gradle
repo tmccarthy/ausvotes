@@ -1,4 +1,11 @@
+task install(type: Exec, group: 'build') {
+    executable 'npm'
+    args = ['install']
+}
+
 task check(type: Exec, group: 'build') {
+    dependsOn tasks.install
+
     executable 'npm'
     args = ['run', 'check']
 }
