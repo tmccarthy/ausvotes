@@ -1,0 +1,4 @@
+task check(type: Exec, group: 'build') {
+    executable 'npm'
+    args = ['run', 'check']
+}
