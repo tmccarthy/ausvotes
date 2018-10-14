@@ -11,4 +11,5 @@ include 'core',
         'shared:testAws',
         'shared:testIo',
         'shared:recountResources',
-        'infrastructure'
+        'infrastructure',
+        'ui'
