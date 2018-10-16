@@ -1,6 +1,7 @@
 task install(type: Exec, group: 'build') {
     executable 'npm'
     args = ['install']
+    workingDir 'project'
 }
 
 task check(type: Exec, group: 'build') {
@@ -8,4 +9,5 @@ task check(type: Exec, group: 'build') {
 
     executable 'npm'
     args = ['run', 'check']
+    workingDir 'project'
 }
