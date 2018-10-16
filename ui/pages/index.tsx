@@ -1,3 +1,3 @@
 export default () => (
-    <h1>Hello world!</h1>
+    <h1>Site under construction</h1>
 )
