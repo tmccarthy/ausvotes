@@ -1,13 +1,8 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath 'com.bmuschko:gradle-docker-plugin:4.0.0'
-    }
-}
-
 apply plugin: 'com.bmuschko.docker-remote-api'
+
+repositories {
+    jcenter()
+}
 
 task install(type: Exec, group: 'build') {
     executable 'npm'
@@ -27,5 +22,5 @@ task dockerBuild(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildImage) 
     def tagVersion = version.toString().replace("+", "-")
 
     inputDir = file('project')
-    tag = "tmccarthy/$rootProject.name-ui:$tagVersion".toString()
+    tag = "au.id.tmm.ausvotes.ui:$tagVersion".toString()
 }

@@ -20,8 +20,11 @@ dependencies {
     compile 'org.ajoberstar:grgit:2.2.1'
     compile 'gradle.plugin.com.github.maiflai:gradle-scalatest:0.22'
     compile 'gradle.plugin.org.scoverage:gradle-scoverage:2.3.0'
+    compile 'com.bmuschko:gradle-docker-plugin:3.2.5'
+    compile 'gradle.plugin.com.patdouble:gradle-aws-ecr-plugin:0.4.0'
 
     compile 'com.amazonaws:aws-java-sdk-api-gateway'
     compile 'com.amazonaws:aws-java-sdk-cloudformation'
     compile 'com.amazonaws:aws-java-sdk-s3'
+    compile 'com.amazonaws:aws-java-sdk-ecr'
 }

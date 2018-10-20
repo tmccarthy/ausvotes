@@ -1,4 +1,5 @@
 import au.id.tmm.ausvotes.buildsrc.DeleteS3Task
+import au.id.tmm.ausvotes.buildsrc.EcrConfig
 
 plugins {
     id "seek.aws" version "0.0.26"
@@ -6,46 +7,53 @@ plugins {
 }
 
 [
-        ':lambdas:recount',
-        ':lambdas:recountEnqueue',
+    ':lambdas:recount',
+    ':lambdas:recountEnqueue',
 ].each {
     evaluationDependsOn(it)
 }
 
-aws {
-    region 'ap-southeast-2'
-}
-
+ext.awsRegion = 'ap-southeast-2'
 ext.recountDataBucketName = 'recount-data.buckets.ausvotes.info'
+ext.ecrRepoId = 'au.id.tmm.ecr-repository'
+ext.awsAccountId = '327455522484'
+
+aws {
+    region awsRegion
+}
 
 cloudFormation {
     stackName rootProject.name
     templateFile file('src/app-stack.cf.yaml')
     parameters ([
-            DeploymentArtefactBucket: deploymentBucket,
-            RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
-            RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
-            RecountDataBucketName: recountDataBucketName,
+        DeploymentArtefactBucket: deploymentBucket,
+        RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
+        RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
+        RecountDataBucketName: recountDataBucketName,
     ])
 }
 
 [
-        project(':lambdas:recount').tasks.uploadToDeploymentBucket,
-        project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
+    project(':lambdas:recount').tasks.uploadToDeploymentBucket,
+    project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
 ].each {
     tasks.createOrUpdateStack.dependsOn(it)
 }
 
+EcrConfig.addEcrTasks(project, awsAccountId, awsRegion, [
+    project(':ui').getTasksByName('dockerBuild', false).first()
+])
+
 task deployIfMaster(type: GradleBuild) {
     onlyIf {
         grgit.open(dir: rootProject.projectDir).branch.current.name == 'master' ||
-                System.env.TRAVIS_BRANCH == 'master'
+            System.env.TRAVIS_BRANCH == 'master'
     }
 
     startParameter.logLevel = LogLevel.INFO
     startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
 
-    tasks = [':infrastructure:createOrUpdateStack']
+    tasks = [':infrastructure:pushAllImagesToEcr', ':infrastructure:createOrUpdateStack']
 }
 
 task clearRecountsCache(type: DeleteS3Task, group: 'build') {
