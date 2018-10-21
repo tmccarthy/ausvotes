@@ -61,7 +61,7 @@ task uploadTemplatesToS3(type: UploadFiles) {
 task deployIfMaster(type: GradleBuild) {
     onlyIf {
         grgit.open(dir: rootProject.projectDir).branch.current.name == 'master' ||
-            System.env.TRAVIS_BRANCH == 'master'
+            (System.env.TRAVIS_BRANCH == 'master' && (System.env.TRAVIS_PULL_REQUEST == null || System.env.TRAVIS_PULL_REQUEST == 'false'))
     }
 
     startParameter.logLevel = LogLevel.INFO

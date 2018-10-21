@@ -1,21 +1,31 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
+import java.net.URLEncoder
+
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
-import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
 
 object RecountLocations {
 
   def locationOfRecountFor(recountRequest: RecountRequest): S3ObjectKey = {
-    val identifier = List(
+
+    val sanitisedCandidateIds = recountRequest.ineligibleCandidateAecIds.toList.sorted.map(sanitiseCandidateId)
+
+    val ineligiblesPathSegment = sanitisedCandidateIds match {
+      case ids @ _ :: _ => ids.mkString("-")
+      case Nil => "none"
+    }
+
+    S3ObjectKey(
+      "recounts",
       recountRequest.election.id,
       recountRequest.state.abbreviation,
-      recountRequest.vacancies.toString,
-      recountRequest.ineligibleCandidateAecIds.mkString(","),
-    ).mkString("|")
-
-    val hash = identifier.sha256checksum
-
-    S3ObjectKey("recounts") / s"${hash.asHexString}.json"
+      s"${recountRequest.vacancies.toString}-vacancies",
+      s"$ineligiblesPathSegment-ineligible",
+      "result.json",
+    )
   }
+
+  private def sanitiseCandidateId(candidateId: String): String =
+    URLEncoder.encode(candidateId, "UTF-8").replace("-", "%2D")
 
 }

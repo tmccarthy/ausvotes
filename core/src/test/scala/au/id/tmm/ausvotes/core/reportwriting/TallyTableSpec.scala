@@ -14,7 +14,7 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 class TallyTableSpec extends ImprovedFlatSpec {
 
   "the total formal ballots per state table" should "look as expected" in {
-    val primaryCountTally = Tally1(
+    val primaryCountTally = Tally1[State](
       NSW -> 4492197d,
       VIC -> 3500237d,
       QLD -> 2723166d,
