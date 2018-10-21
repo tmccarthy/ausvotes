@@ -1,5 +1,6 @@
 import au.id.tmm.ausvotes.buildsrc.DeleteS3Task
 import au.id.tmm.ausvotes.buildsrc.EcrConfig
+import seek.aws.s3.UploadFiles
 
 plugins {
     id "seek.aws" version "0.0.26"
@@ -18,6 +19,10 @@ ext.recountDataBucketName = 'recount-data.buckets.ausvotes.info'
 ext.ecrRepoId = 'au.id.tmm.ecr-repository'
 ext.awsAccountId = '327455522484'
 
+EcrConfig.addEcrTasks(project, awsAccountId, awsRegion, [
+    project(':ui').getTasksByName('dockerBuild', false).first()
+])
+
 aws {
     region awsRegion
 }
@@ -30,19 +35,25 @@ cloudFormation {
         RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
         RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
         RecountDataBucketName: recountDataBucketName,
+        AusvotesUiDockerImage: tasks.pushUiImageToEcr.imageName
     ])
+}
+
+task uploadTemplatesToS3(type: UploadFiles) {
+    files fileTree('src/templates').include('**/*.yaml')
+    bucket deploymentBucket
+    prefix 'au.id.tmm/ausvotes/cf/templates'
+    cleanPrefixBeforeUpload true
+    interpolate false
 }
 
 [
     project(':lambdas:recount').tasks.uploadToDeploymentBucket,
     project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
+    tasks.uploadTemplatesToS3
 ].each {
     tasks.createOrUpdateStack.dependsOn(it)
 }
-
-EcrConfig.addEcrTasks(project, awsAccountId, awsRegion, [
-    project(':ui').getTasksByName('dockerBuild', false).first()
-])
 
 task deployIfMaster(type: GradleBuild) {
     onlyIf {

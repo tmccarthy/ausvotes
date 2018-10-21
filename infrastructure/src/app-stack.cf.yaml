@@ -39,6 +39,9 @@ Parameters:
     Type: String
     Default: prod
 
+  AusvotesUiDockerImage:
+    Type: String
+
 Resources:
 
   AusvotesHostedZone:
@@ -377,3 +380,63 @@ Resources:
           - sns:Publish
           Effect: Allow
           Resource: !Ref RecountRequestQueue
+
+  EcsVpc:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/vpc.yaml'
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+
+  EcsSecurityGroups:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/security-groups.yaml'
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+
+  AusvotesUiAlb:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/load-balancers.yaml'
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
+        SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
+
+  Ecs:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/ecs-cluster.yaml'
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        InstanceType: t3.small
+        ClusterSize: 1
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.ECSHostSecurityGroup
+        Subnets: !GetAtt EcsVpc.Outputs.PrivateSubnets
+
+  AusvotesUiService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/service.yaml'
+      Parameters:
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Cluster: !GetAtt Ecs.Outputs.Cluster
+        Environment: []
+        Image: !Ref AusvotesUiDockerImage
+        ServiceName: ausvotes-ui
+        DesiredCount: 1
+        Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
+        Path: /
+        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
+
+  LifecycleHook:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/lifecyclehook.yaml'
+      Parameters:
+        Cluster: !GetAtt Ecs.Outputs.Cluster
+        ECSAutoScalingGroupName: !GetAtt Ecs.Outputs.ECSAutoScalingGroupName
