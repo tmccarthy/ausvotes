@@ -35,6 +35,10 @@ Parameters:
     Type: String
     Default: api.ausvotes.info
 
+  AusvotesUiDomainName:
+    Type: String
+    Default: ausvotes.info
+
   AusvotesApiStageName:
     Type: String
     Default: prod
@@ -58,6 +62,16 @@ Resources:
       - !GetAtt AusvotesApiGatewayDomainName.DistributionDomainName
       TTL: 86400
       Type: CNAME
+
+  AusvotesUiDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref AusvotesHostedZone
+      Name: !Ref AusvotesUiDomainName
+      AliasTarget:
+        DNSName: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerUrl
+        HostedZoneId: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerHostedZoneId
+      Type: A
 
   AusvotesCertificateValidationDnsRecord:
     Type: AWS::Route53::RecordSet
