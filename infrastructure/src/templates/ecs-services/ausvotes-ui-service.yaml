@@ -1,6 +1,5 @@
 Description: >
-  This is an example of a long running ECS service that needs to connect to another ECS service (product-service)
-  via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
+  Ausvotes UI service
 
 Parameters:
 
@@ -31,11 +30,6 @@ Parameters:
     Type: String
     Default: /
 
-  Environment:
-    Description: The environment variables for the application
-    Type: List<AWS::ECS::KeyValuePair>
-    Default: {}
-
   Image:
     Description: The location of the Docker image used for the task
     Type: String
@@ -43,6 +37,7 @@ Parameters:
   ServiceName:
     Description: The name of the service
     Type: String
+    Default: ausvotes-ui
 
   ECSServiceAutoScalingRoleARN:
     Description: The ECS service auto scaling role ARN
@@ -60,7 +55,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
       - ContainerName: !Sub '${ServiceName}-service'
-        ContainerPort: 8000
+        ContainerPort: 3000
         TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
@@ -72,9 +67,8 @@ Resources:
         Essential: true
         Image: !Ref Image
         Memory: 128
-        Environment: !Ref Environment
         PortMappings:
-        - ContainerPort: 8000
+        - ContainerPort: 3000
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -85,7 +79,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Ref AWS::StackName
-      RetentionInDays: 365
+      RetentionInDays: 7
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

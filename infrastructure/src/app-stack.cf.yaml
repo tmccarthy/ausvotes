@@ -384,14 +384,14 @@ Resources:
   EcsVpc:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/vpc.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/vpc.yaml'
       Parameters:
         EnvironmentName: !Ref AWS::StackName
 
   EcsSecurityGroups:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/security-groups.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/security-groups.yaml'
       Parameters:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt EcsVpc.Outputs.VPC
@@ -399,7 +399,7 @@ Resources:
   AusvotesUiAlb:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/load-balancers.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/load-balancers.yaml'
       Parameters:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt EcsVpc.Outputs.VPC
@@ -409,7 +409,7 @@ Resources:
   Ecs:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/ecs-cluster.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/ecs-cluster.yaml'
       Parameters:
         EnvironmentName: !Ref AWS::StackName
         InstanceType: t3.small
@@ -421,13 +421,11 @@ Resources:
   AusvotesUiService:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/service.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-ui-service.yaml'
       Parameters:
         VPC: !GetAtt EcsVpc.Outputs.VPC
         Cluster: !GetAtt Ecs.Outputs.Cluster
-        Environment: []
         Image: !Ref AusvotesUiDockerImage
-        ServiceName: ausvotes-ui
         DesiredCount: 1
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
         Path: /
@@ -436,7 +434,7 @@ Resources:
   LifecycleHook:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub '${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/lifecyclehook.yaml'
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/lifecyclehook.yaml'
       Parameters:
         Cluster: !GetAtt Ecs.Outputs.Cluster
         ECSAutoScalingGroupName: !GetAtt Ecs.Outputs.ECSAutoScalingGroupName

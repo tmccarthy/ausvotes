@@ -35,7 +35,7 @@ cloudFormation {
         RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
         RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
         RecountDataBucketName: recountDataBucketName,
-        AusvotesUiDockerImage: tasks.pushUiImageToEcr.imageName
+        AusvotesUiDockerImage: "$tasks.pushUiImageToEcr.imageName:$tasks.pushUiImageToEcr.tag"
     ])
 }
 
@@ -44,13 +44,16 @@ task uploadTemplatesToS3(type: UploadFiles) {
     bucket deploymentBucket
     prefix 'au.id.tmm/ausvotes/cf/templates'
     cleanPrefixBeforeUpload true
+    failIfPrefixExists false
+    failIfObjectExists false
     interpolate false
 }
 
 [
     project(':lambdas:recount').tasks.uploadToDeploymentBucket,
     project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
-    tasks.uploadTemplatesToS3
+    tasks.uploadTemplatesToS3,
+    tasks.pushAllImagesToEcr,
 ].each {
     tasks.createOrUpdateStack.dependsOn(it)
 }
@@ -64,7 +67,7 @@ task deployIfMaster(type: GradleBuild) {
     startParameter.logLevel = LogLevel.INFO
     startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
 
-    tasks = [':infrastructure:pushAllImagesToEcr', ':infrastructure:createOrUpdateStack']
+    tasks = [':infrastructure:createOrUpdateStack']
 }
 
 task clearRecountsCache(type: DeleteS3Task, group: 'build') {
