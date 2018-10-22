@@ -430,7 +430,7 @@ Resources:
         ClusterSize: 1
         VPC: !GetAtt EcsVpc.Outputs.VPC
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.ECSHostSecurityGroup
-        Subnets: !GetAtt EcsVpc.Outputs.PrivateSubnets
+        Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
 
   AusvotesUiService:
     Type: AWS::CloudFormation::Stack
