@@ -45,3 +45,5 @@ gradle-app.setting
 /tasks/*/out
 /shared/*/build
 /shared/*/out
+.gitignore
+version.txt

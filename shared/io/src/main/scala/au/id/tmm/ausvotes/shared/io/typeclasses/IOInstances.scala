@@ -3,7 +3,8 @@ package au.id.tmm.ausvotes.shared.io.typeclasses
 import java.time.{Instant, LocalDate, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
+import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
+import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.{Logger, LoggerFactory}
 import scalaz.zio.IO
@@ -28,6 +29,12 @@ object IOInstances {
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {
     override def envVars: IO[Nothing, Map[String, String]] = IO.sync(sys.env)
+  }
+
+  implicit val ioAccessesResources: Resources[IO] = new Resources[IO] {
+    override def resource(name: String): IO[Nothing, Option[String]] = IO.sync {
+      Option(IOUtils.toString(getClass.getResource(name), "UTF-8"))
+    }
   }
 
   implicit val ioHasSyncEffects: SyncEffects[IO] = new SyncEffects[IO] {

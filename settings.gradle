@@ -12,4 +12,5 @@ include 'core',
         'shared:testIo',
         'shared:recountResources',
         'infrastructure',
-        'ui'
+        'ui',
+        'api'

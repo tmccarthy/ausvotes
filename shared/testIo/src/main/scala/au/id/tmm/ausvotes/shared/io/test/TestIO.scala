@@ -4,7 +4,7 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
-import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
+import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging, Resources}
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad, Parallel}
 
 final case class TestIO[+E, +A, D](run: D => (D, Either[E, A])) {
@@ -87,8 +87,12 @@ object TestIO {
     }
   }
 
-  implicit def testIOHasEnvVars[D <: EnvVars[D]]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
+  implicit def testIOHasEnvVars[D <: EnvVars]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {
     override def envVars: TestIO[Nothing, Map[String, String], D] = TestIO(data => (data, Right(data.envVars)))
+  }
+
+  implicit def testIOHasResources[D <: Resources]: actions.Resources[TestIO[+?, +?, D]] = new actions.Resources[TestIO[+?, +?, D]] {
+    override def resource(name: String): TestIO[Nothing, Option[String], D] = TestIO(data => (data, Right(data.resources.get(name))))
   }
 
   implicit def ioCanBeParallel[D]: Parallel[TestIO[+?, +?, D]] = new Parallel[TestIO[+?, +?, D]] {

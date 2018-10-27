@@ -1,0 +1,37 @@
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
+apply plugin: 'idea'
+
+def unfilteredVersion = '0.10.0-M2'
+
+sourceSets {
+    generated {}
+}
+
+dependencies {
+    compile sourceSets.generated.output
+
+    compile project(':shared:io')
+
+    compile "ws.unfiltered:unfiltered-filter-async${s}:$unfilteredVersion"
+    compile "ws.unfiltered:unfiltered-netty-server${s}:$unfilteredVersion"
+
+    compile "au.id.tmm:http-constants-core${s}:1.0.0"
+
+    testCompile project(':shared:testIo')
+}
+
+idea {
+    module {
+        excludeDirs += new File(file('src'), sourceSets.generated.name)
+    }
+}
+
+task writeVersionResource {
+    doLast {
+        def resourcesDir = sourceSets.generated.resources.srcDirs.first()
+        def versionFile = new File(resourcesDir, 'version.txt')
+        versionFile.write(version.toString(), 'UTF-8')
+    }
+}
+
+tasks.processGeneratedResources.dependsOn(writeVersionResource)

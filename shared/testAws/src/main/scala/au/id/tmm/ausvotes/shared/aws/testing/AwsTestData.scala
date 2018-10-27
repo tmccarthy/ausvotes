@@ -18,7 +18,7 @@ final case class AwsTestData(
                               s3Content: S3Interaction.InMemoryS3 = S3Interaction.InMemoryS3.empty,
 
                               snsMessagesPerTopic: Map[String, List[String]] = Map.empty,
-                            ) extends EnvVars[AwsTestData]
+                            ) extends EnvVars
   with CurrentTime[AwsTestData]
   with Logging[AwsTestData]
   with S3Interaction[AwsTestData]
