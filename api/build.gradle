@@ -13,6 +13,7 @@ sourceSets {
 dependencies {
     compile sourceSets.generated.output
 
+    compile project(':core')
     compile project(':shared:io')
 
     compile "ws.unfiltered:unfiltered-filter-async${s}:$unfilteredVersion"
