@@ -1,19 +1,17 @@
-package au.id.tmm.ausvotes.api.diagnostics
+package au.id.tmm.ausvotes.api.routes
 
 import au.id.tmm.ausvotes.api.Routes
+import au.id.tmm.ausvotes.api.controllers.DiagnosticController
+import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
 import au.id.tmm.ausvotes.shared.io.actions.Resources
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import unfiltered.request.{GET, Path, Seg}
-import unfiltered.response.{InternalServerError, ResponseString}
 
 object DiagnosticRoutes {
 
   def apply[F[+_, +_] : Monad : Resources]: Routes[F] = {
-    case GET(Path(Seg("version" :: Nil))) => Resources.asString("/version.txt").map {
-      case Some(version) => ResponseString(version)
-      case None => InternalServerError andThen ResponseString("version undefined")
-    }
+    case GET(Path(Seg("diagnostics" :: "version" :: Nil))) => DiagnosticController.version[F].map(ResponseJson(_))
   }
 
 }
