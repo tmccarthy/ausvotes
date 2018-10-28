@@ -1,6 +1,9 @@
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 apply plugin: 'idea'
 
+apply plugin: 'com.bmuschko.docker-remote-api'
+repositories { jcenter() }
+
 def unfilteredVersion = '0.10.0-M2'
 
 sourceSets {
@@ -35,3 +38,48 @@ task writeVersionResource {
 }
 
 tasks.processGeneratedResources.dependsOn(writeVersionResource)
+
+tasks.jar {
+    from sourceSets.generated.output
+    manifest {
+        attributes(
+            'Class-Path': configurations.compile.collect { "lib/$it.name" }.join(' '),
+            'Main-Class': 'au.id.tmm.ausvotes.api.Api'
+        )
+    }
+}
+
+task createDockerContext(type: Copy, group: 'build') {
+    dependsOn tasks.assemble
+
+    from(configurations.runtime) {
+        into 'opt/app/lib'
+        include '**/*.jar'
+    }
+
+    from(sourceSets.generated.output) {
+        include 'version.txt'
+        into 'opt/app'
+    }
+
+    from(tasks.jar) {
+        into 'opt/app'
+
+        rename {
+            "${project.name}.jar"
+        }
+    }
+
+    from file('docker')
+
+    destinationDir = new File(buildDir, 'docker-context')
+}
+
+task dockerBuild(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildImage) {
+    dependsOn tasks.createDockerContext
+
+    def tagVersion = version.toString().replace("+", "-")
+
+    inputDir = tasks.createDockerContext.destinationDir
+    tag = "au.id.tmm.ausvotes.$project.name:$tagVersion".toString()
+}
