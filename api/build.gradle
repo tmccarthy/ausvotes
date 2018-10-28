@@ -25,7 +25,7 @@ dependencies {
 
 idea {
     module {
-        excludeDirs += new File(file('src'), sourceSets.generated.name)
+        generatedSourceDirs.addAll(sourceSets.generated.resources.srcDirs)
     }
 }
 
