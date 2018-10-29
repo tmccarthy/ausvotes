@@ -46,6 +46,9 @@ Parameters:
   AusvotesUiDockerImage:
     Type: String
 
+  AusvotesApiDockerImage:
+    Type: String
+
 Resources:
 
   AusvotesHostedZone:
@@ -420,6 +423,16 @@ Resources:
         Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
 
+  AusvotesApiAlb:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/load-balancers.yaml'
+      Parameters:
+        EnvironmentName: !Sub '${AWS::StackName}-api'
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
+        SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
+
   Ecs:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -442,6 +455,19 @@ Resources:
         Image: !Ref AusvotesUiDockerImage
         DesiredCount: 1
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
+        Path: /
+        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
+
+  AusvotesApiService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-api-service.yaml'
+      Parameters:
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Cluster: !GetAtt Ecs.Outputs.Cluster
+        Image: !Ref AusvotesApiDockerImage
+        DesiredCount: 1
+        Listener: !GetAtt AusvotesApiAlb.Outputs.Listener
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
 
