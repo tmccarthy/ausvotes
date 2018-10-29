@@ -455,7 +455,7 @@ Resources:
         Image: !Ref AusvotesUiDockerImage
         DesiredCount: 1
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
-        Path: /
+        Path: /*
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
 
   AusvotesApiService:
@@ -468,7 +468,7 @@ Resources:
         Image: !Ref AusvotesApiDockerImage
         DesiredCount: 1
         Listener: !GetAtt AusvotesApiAlb.Outputs.Listener
-        Path: /
+        Path: /*
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
 
   LifecycleHook:
