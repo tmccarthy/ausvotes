@@ -19,7 +19,7 @@ dependencies {
     compile "ws.unfiltered:unfiltered-filter-async${s}:$unfilteredVersion"
     compile "ws.unfiltered:unfiltered-netty-server${s}:$unfilteredVersion"
 
-    compile "au.id.tmm:http-constants-core${s}:1.0.0"
+    compile "au.id.tmm:http-constants-core${s}:$httpConstantsVersion"
 
     testCompile project(':shared:testIo')
 }

@@ -2,7 +2,8 @@ package au.id.tmm.ausvotes.shared.aws.testing
 
 import java.time.{Duration, Instant}
 
-import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{S3Interaction, SnsWrites}
+import au.id.tmm.ausvotes.shared.aws.data.LambdaFunctionName
+import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{LambdaInvocation, S3Interaction, SnsWrites}
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test
@@ -18,11 +19,14 @@ final case class AwsTestData(
                               s3Content: S3Interaction.InMemoryS3 = S3Interaction.InMemoryS3.empty,
 
                               snsMessagesPerTopic: Map[String, List[String]] = Map.empty,
+
+                              lambdaCallHandler: (LambdaFunctionName, Option[String]) => Either[Exception, String] = LambdaInvocation.alwaysFailHandler
                             ) extends EnvVars
   with CurrentTime[AwsTestData]
   with Logging[AwsTestData]
   with S3Interaction[AwsTestData]
-  with SnsWrites[AwsTestData] {
+  with SnsWrites[AwsTestData]
+  with LambdaInvocation[AwsTestData] {
 
   override protected def copyWithInitialTime(initialTime: Instant): AwsTestData = this.copy(initialTime = initialTime)
 

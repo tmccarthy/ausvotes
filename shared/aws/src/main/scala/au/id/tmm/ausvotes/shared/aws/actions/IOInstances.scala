@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.shared.aws.actions
 
 import java.io.{InputStream, OutputStream}
 
-import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
-import au.id.tmm.ausvotes.shared.aws.{S3Ops, SnsOps}
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.{LambdaOps, S3Ops, SnsOps}
 import scalaz.zio.IO
 
 object IOInstances {
@@ -30,6 +30,11 @@ object IOInstances {
   implicit val ioPutsToSns: SnsActions.PutsSnsMessages[IO] = new SnsActions.PutsSnsMessages[IO] {
     override def putMessage(topicArn: String, messageBody: String): IO[Exception, Unit] =
       SnsOps.putMessage(topicArn, messageBody)
+  }
+
+  implicit val ioInvokesLambda: LambdaActions.InvokesLambda[IO] = new LambdaActions.InvokesLambda[IO] {
+    override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): IO[Exception, String] =
+      LambdaOps.invokeLambda(name, payload)
   }
 
 }

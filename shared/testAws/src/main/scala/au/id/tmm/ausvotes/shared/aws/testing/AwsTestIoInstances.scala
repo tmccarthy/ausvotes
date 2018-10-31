@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.shared.aws.testing
 import java.io.{InputStream, OutputStream}
 
 import au.id.tmm.ausvotes.shared.aws.actions._
-import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
-import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{S3Interaction, SnsWrites}
+import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName, S3ObjectKey}
+import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{LambdaInvocation, S3Interaction, SnsWrites}
 import au.id.tmm.ausvotes.shared.io.test.TestIO
 import com.amazonaws.SdkClientException
 
@@ -45,6 +45,12 @@ object AwsTestIoInstances {
   implicit def testIoWritesToSns[D <: SnsWrites[D]]: SnsActions.PutsSnsMessages[TestIO[+?, +?, D]] = new SnsActions.PutsSnsMessages[TestIO[+?, +?, D]] {
     override def putMessage(topicArn: String, messageBody: String): TestIO[Exception, Unit, D] = TestIO { data =>
       data.writeMessage(topicArn, messageBody) -> Right(Unit)
+    }
+  }
+
+  implicit def testIOInvokesLambda[D <: LambdaInvocation[D]]: LambdaActions.InvokesLambda[TestIO[+?, +?, D]] = new LambdaActions.InvokesLambda[TestIO[+?, +?, D]] {
+    override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): TestIO[Exception, String, D] = TestIO { data =>
+      data -> data.lambdaCallHandler(name, payload)
     }
   }
 

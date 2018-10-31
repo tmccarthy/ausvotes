@@ -15,6 +15,9 @@ dependencies {
 
     compile 'com.amazonaws:aws-java-sdk-s3'
     compile 'com.amazonaws:aws-java-sdk-sns'
+    compile 'com.amazonaws:aws-java-sdk-lambda'
+
+    compile "au.id.tmm:http-constants-core${s}:$httpConstantsVersion"
 
     compile "commons-io:commons-io:$commonsIoVersion"
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
