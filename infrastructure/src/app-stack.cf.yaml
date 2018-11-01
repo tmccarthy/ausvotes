@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: 23687a6f-6621-407d-b725-2bd5aa8f7721
 
+  AusvotesRegionalDomainCertificateId:
+    Type: String
+    Default: d27ecc7d-23f2-4920-b960-d7a6b169a40f
+
   AusvotesDomainCertificateCnameName:
     Type: String
     Default: _6a0e3e9f773b7d628e8ae961bf0cc746.ausvotes.info.
@@ -61,10 +65,10 @@ Resources:
     Properties:
       HostedZoneId: !Ref AusvotesHostedZone
       Name: !Ref AusvotesApiDomainName
-      ResourceRecords:
-      - !GetAtt AusvotesApiGatewayDomainName.DistributionDomainName
-      TTL: 86400
-      Type: CNAME
+      AliasTarget:
+        DNSName: !GetAtt AusvotesApiAlb.Outputs.LoadBalancerUrl
+        HostedZoneId: !GetAtt AusvotesApiAlb.Outputs.LoadBalancerHostedZoneId
+      Type: A
 
   AusvotesUiDnsRecord:
     Type: AWS::Route53::RecordSet
@@ -422,6 +426,7 @@ Resources:
         VPC: !GetAtt EcsVpc.Outputs.VPC
         Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
+        CertificateId: !Ref AusvotesRegionalDomainCertificateId
 
   AusvotesApiAlb:
     Type: AWS::CloudFormation::Stack
@@ -432,6 +437,7 @@ Resources:
         VPC: !GetAtt EcsVpc.Outputs.VPC
         Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
+        CertificateId: !Ref AusvotesRegionalDomainCertificateId
 
   Ecs:
     Type: AWS::CloudFormation::Stack
