@@ -17,6 +17,10 @@ abstract class Monad[F[+_, +_]] {
   def flatten[E1, E2 >: E1, A](fefa: F[E1, F[E2, A]]): F[E2, A]
 
   def flatMap[E1, E2 >: E1, A, B](fe1a: F[E1, A])(fafe2b: A => F[E2, B]): F[E2, B]
+
+  def attempt[E, A](fea: F[E, A]): F[Nothing, Either[E, A]]
+
+
 }
 
 object Monad {
@@ -32,6 +36,7 @@ object Monad {
     def map[B](f: A => B): F[E, B] = implicitly[Monad[F]].map(fea)(f)
     def leftMap[E2](f: E => E2): F[E2, A] = implicitly[Monad[F]].leftMap(fea)(f)
     def flatMap[E2 >: E, B](fafe2b: A => F[E2, B]): F[E2, B] = implicitly[Monad[F]].flatMap[E, E2, A, B](fea)(fafe2b)
+    def attempt: F[Nothing, Either[E, A]] = implicitly[Monad[F]].attempt(fea)
   }
 
   implicit class MonadFlattenOps[F[+_, +_] : Monad, E1, E2 >: E1, A](fe1fe2a: F[E1, F[E2, A]]) {

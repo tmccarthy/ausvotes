@@ -24,7 +24,7 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
     recountLogic[IO](lambdaRequest, context)
   }
 
-  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : EnvVars : SyncEffects : Attempt : Log : Now : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
+  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : EnvVars : SyncEffects : Log : Now : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
 
     implicit val partyCodec: PartyCodec = PartyCodec()
     implicit val groupCodec: GroupCodec = GroupCodec()

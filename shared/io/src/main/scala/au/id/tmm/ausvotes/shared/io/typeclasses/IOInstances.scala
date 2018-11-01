@@ -25,6 +25,8 @@ object IOInstances {
     override def map[E, A, B](io: IO[E, A])(fab: A => B): IO[E, B] = io.map(fab)
 
     override def leftMap[E1, E2, A](io: IO[E1, A])(fe1e2: E1 => E2): IO[E2, A] = io.leftMap(fe1e2)
+
+    override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {
@@ -43,10 +45,6 @@ object IOInstances {
     override def syncException[A](effect: => A): IO[Exception, A] = IO.syncException(effect)
 
     override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): IO[E, A] = IO.syncCatch(effect)(f)
-  }
-
-  implicit val ioCanAttempt: Attempt[IO] = new Attempt[IO] {
-    override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
   }
 
   implicit val ioCanLog: Log[IO] = new Log[IO] {

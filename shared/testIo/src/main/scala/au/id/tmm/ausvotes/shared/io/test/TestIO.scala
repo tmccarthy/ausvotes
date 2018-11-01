@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import au.id.tmm.ausvotes.shared.io.actions
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging, Resources}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Attempt, Monad, Parallel}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel}
 
 final case class TestIO[+E, +A, D](run: D => (D, Either[E, A])) {
   def map[B](f: A => B): TestIO[E, B, D] = {
@@ -51,6 +51,14 @@ object TestIO {
     override def flatMap[E1, E2 >: E1, A, B](io: TestIO[E1, A, D])(fafe2b: A => TestIO[E2, B, D]): TestIO[E2, B, D] = io.flatMap(fafe2b)
     override def map[E, A, B](io: TestIO[E, A, D])(fab: A => B): TestIO[E, B, D] = io.map(fab)
     override def leftMap[E1, E2, A](io: TestIO[E1, A, D])(fe1e2: E1 => E2): TestIO[E2, A, D] = io.leftMap(fe1e2)
+
+    override def attempt[E, A](io: TestIO[E, A, D]): TestIO[Nothing, Either[E, A], D] = {
+      val newRun = io.run andThen {
+        case (data, result: Either[E, A]) => (data, Right(result))
+      }
+
+      TestIO(newRun)
+    }
   }
 
   implicit def testIOAllowsLogging[D <: Logging[D]]: Log[TestIO[+?, +?, D]] = new Log[TestIO[+?, +?, D]] {
@@ -75,16 +83,6 @@ object TestIO {
       TestIO(data => data.increment match {
         case (instant, newData) => (newData, Right(fromInstant(instant)))
       })
-  }
-
-  implicit def testIOAllowsAttempts[D]: Attempt[TestIO[+?, +?, D]] = new Attempt[TestIO[+?, +?, D]] {
-    override def attempt[E, A](io: TestIO[E, A, D]): TestIO[Nothing, Either[E, A], D] = {
-      val newRun = io.run andThen {
-        case (data, result: Either[E, A]) => (data, Right(result))
-      }
-
-      TestIO(newRun)
-    }
   }
 
   implicit def testIOHasEnvVars[D <: EnvVars]: actions.EnvVars[TestIO[+?, +?, D]] = new actions.EnvVars[TestIO[+?, +?, D]] {

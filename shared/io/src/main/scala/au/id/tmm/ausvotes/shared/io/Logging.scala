@@ -4,7 +4,6 @@ import java.time.Duration
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Attempt.AttemptOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
 
@@ -12,7 +11,7 @@ object Logging {
 
   // TODO figure out how to get rid of this duplication
 
-  implicit class LoggingOps[F[+_, +_] : Log : Now : Monad : Attempt, +E, +A](fea: F[E, A]) {
+  implicit class LoggingOps[F[+_, +_] : Log : Now : Monad, +E, +A](fea: F[E, A]) {
     def timedLog(eventId: String, kvPairs: (String, Any)*): F[E, A] =
       for {
         startTime <- Now.systemNanoTime
