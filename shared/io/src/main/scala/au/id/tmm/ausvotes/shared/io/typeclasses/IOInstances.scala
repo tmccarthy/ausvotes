@@ -27,6 +27,11 @@ object IOInstances {
     override def leftMap[E1, E2, A](io: IO[E1, A])(fe1e2: E1 => E2): IO[E2, A] = io.leftMap(fe1e2)
 
     override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
+
+    override def absolve[E, A](io: IO[E, Either[E, A]]): IO[E, A] = IO.absolve(io)
+
+    override def catchLeft[E, A, E1 >: E, A1 >: A](io: IO[E, A], pf: PartialFunction[E, IO[E1, A1]]): IO[E1, A1] =
+      io.catchSome(pf)
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {

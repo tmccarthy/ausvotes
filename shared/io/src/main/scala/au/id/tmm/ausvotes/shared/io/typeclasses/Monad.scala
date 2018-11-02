@@ -20,6 +20,9 @@ abstract class Monad[F[+_, +_]] {
 
   def attempt[E, A](fea: F[E, A]): F[Nothing, Either[E, A]]
 
+  def absolve[E, A](feea: F[E, Either[E, A]]): F[E, A]
+
+  def catchLeft[E, A, E1 >: E, A1 >: A](fea: F[E, A], pf: PartialFunction[E, F[E1, A1]]): F[E1, A1]
 
 }
 
@@ -36,11 +39,18 @@ object Monad {
     def map[B](f: A => B): F[E, B] = implicitly[Monad[F]].map(fea)(f)
     def leftMap[E2](f: E => E2): F[E2, A] = implicitly[Monad[F]].leftMap(fea)(f)
     def flatMap[E2 >: E, B](fafe2b: A => F[E2, B]): F[E2, B] = implicitly[Monad[F]].flatMap[E, E2, A, B](fea)(fafe2b)
+
     def attempt: F[Nothing, Either[E, A]] = implicitly[Monad[F]].attempt(fea)
+    def catchLeft[E1 >:E, A1>: A](pf: PartialFunction[E, F[E1, A1]]): F[E1, A1] =
+      implicitly[Monad[F]].catchLeft(fea, pf)
   }
 
   implicit class MonadFlattenOps[F[+_, +_] : Monad, E1, E2 >: E1, A](fe1fe2a: F[E1, F[E2, A]]) {
     def flatten: F[E2, A] = implicitly[Monad[F]].flatten(fe1fe2a)
+  }
+
+  implicit class MonadEitherOps[F[+_, +_] : Monad, E, A](feea: F[E, Either[E, A]]) {
+    def absolve: F[E, A] = implicitly[Monad[F]].absolve(feea)
   }
 
 }

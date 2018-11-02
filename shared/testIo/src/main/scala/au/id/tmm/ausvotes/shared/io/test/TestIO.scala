@@ -59,6 +59,24 @@ object TestIO {
 
       TestIO(newRun)
     }
+
+    override def absolve[E, A](io: TestIO[E, Either[E, A], D]): TestIO[E, A, D] = io.flatMap {
+      case Right(success) => TestIO.pure(success)
+      case Left(error) => TestIO.leftPure(error)
+    }
+
+    override def catchLeft[E, A, E1 >: E, A1 >: A](fea: TestIO[E, A, D], pf: PartialFunction[E, TestIO[E1, A1, D]]): TestIO[E1, A1, D] = {
+      val newRun: D => (D, Either[E1, A1]) = fea.run andThen {
+        case (data, result) => {
+          result match {
+            case Left(failure) => pf.applyOrElse[E, TestIO[E1, A1, D]](failure, TestIO.leftPure).run(data)
+            case Right(_) => data -> result
+          }
+        }
+      }
+
+      TestIO(newRun)
+    }
   }
 
   implicit def testIOAllowsLogging[D <: Logging[D]]: Log[TestIO[+?, +?, D]] = new Log[TestIO[+?, +?, D]] {
