@@ -5,7 +5,6 @@ import argonaut.{Json, Parse}
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.InvalidJsonException
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
-import au.id.tmm.ausvotes.api.errors.recount.RecountException.BadRequestError
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
@@ -15,33 +14,16 @@ import com.amazonaws.AmazonServiceException
 
 class RecountController(config: Config) {
 
-  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](
-                                                            rawElection: String,
-                                                            rawState: String,
-                                                            queryParams: Map[String, List[String]],
-                                                          ): F[RecountException, Json] = {
+  // TODO should really return the decoded RecountResult
+  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](recountRequest: RecountRequest): F[RecountException, Json] = {
     //noinspection ConvertibleToMethodValue
     for {
-      recountRequest <- Monad.fromEither(buildRecountRequest(rawElection, rawState, queryParams)): F[RecountException, RecountRequest]
-
       cachedRecount <- readCachedRecount(recountRequest).leftMap(RecountException.CheckRecountComputedError)
 
       response <- cachedRecount.map(Monad.pure(_))
         .getOrElse(requestRecount(recountRequest)).leftMap(RecountException.RequestRecountError)
     } yield response
   }
-
-  private def buildRecountRequest(
-                                   rawElection: String,
-                                   rawState: String,
-                                   queryParams: Map[String, List[String]],
-                                 ): Either[BadRequestError, RecountRequest] =
-    RecountRequest.build(
-      Some(rawElection),
-      Some(rawState),
-      rawNumVacancies = queryParams.get("vacancies").flatMap(_.headOption),
-      rawIneligibleCandidates = queryParams.get("ineligibleCandidates").flatMap(_.headOption),
-    ).left.map(RecountException.BadRequestError)
 
   private def readCachedRecount[F[+_, +_] : ReadsS3 : Monad](recountRequest: RecountRequest): F[Exception, Option[Json]] = {
     val locationOfCachedRecount = RecountLocations.locationOfRecountFor(recountRequest)

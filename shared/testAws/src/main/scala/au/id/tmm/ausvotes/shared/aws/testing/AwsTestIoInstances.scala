@@ -4,9 +4,9 @@ import java.io.{InputStream, OutputStream}
 
 import au.id.tmm.ausvotes.shared.aws.actions._
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName, S3ObjectKey}
-import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{LambdaInvocation, S3Interaction, SnsWrites}
+import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{LambdaInteraction, S3Interaction, SnsWrites}
 import au.id.tmm.ausvotes.shared.io.test.TestIO
-import com.amazonaws.SdkClientException
+import com.amazonaws.{AmazonServiceException, SdkClientException}
 
 object AwsTestIoInstances {
 
@@ -22,8 +22,18 @@ object AwsTestIoInstances {
   implicit def testIoReadsS3[D <: S3Interaction[D]]: S3Actions.ReadsS3[TestIO[+?, +?, D]] = new S3Actions.ReadsS3[TestIO[+?, +?, D]] {
     override def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): TestIO[Exception, String, D] = TestIO { data =>
       val content = for {
-        contentForBucket <- data.s3Content(bucketName).toRight(new SdkClientException("No such bucket"))
-        s3Object <- contentForBucket(objectKey).toRight[Exception](new SdkClientException("Object not found"))
+        contentForBucket <- data.s3Content(bucketName).toRight {
+          val exception = new AmazonServiceException("No such bucket")
+          exception.setStatusCode(404)
+          exception.setErrorCode("NoSuchBucket")
+          exception
+        }
+        s3Object <- contentForBucket(objectKey).toRight[Exception] {
+          val exception = new AmazonServiceException("Object not found")
+          exception.setStatusCode(404)
+          exception.setErrorCode("NoSuchKey")
+          exception
+        }
       } yield s3Object.content
 
       data -> content
@@ -48,9 +58,9 @@ object AwsTestIoInstances {
     }
   }
 
-  implicit def testIOInvokesLambda[D <: LambdaInvocation[D]]: LambdaActions.InvokesLambda[TestIO[+?, +?, D]] = new LambdaActions.InvokesLambda[TestIO[+?, +?, D]] {
+  implicit def testIOInvokesLambda[D <: LambdaInteraction[D]]: LambdaActions.InvokesLambda[TestIO[+?, +?, D]] = new LambdaActions.InvokesLambda[TestIO[+?, +?, D]] {
     override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): TestIO[Exception, String, D] = TestIO { data =>
-      data -> data.lambdaCallHandler(name, payload)
+      data.invoke(name, payload)
     }
   }
 

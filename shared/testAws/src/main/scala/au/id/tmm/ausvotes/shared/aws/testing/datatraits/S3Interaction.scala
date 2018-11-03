@@ -30,7 +30,24 @@ object S3Interaction {
   }
 
   object InMemoryS3 {
-    val empty = InMemoryS3(Set.empty)
+    val empty = InMemoryS3(Set.empty[InMemoryS3.Bucket])
+
+    def apply(contents: ((S3BucketName, S3ObjectKey), (String, ContentType))*): InMemoryS3 = {
+      val objectsPerBucket: Map[S3BucketName, Set[InMemoryS3.S3Object]] = contents.groupBy {
+        case ((bucketName, _), _) => bucketName
+      }.map {
+        case (bucketName, recordsForBucket) =>
+          bucketName -> recordsForBucket.map {
+            case ((_, objectKey), (content, contentType)) => InMemoryS3.S3Object(objectKey, content, contentType)
+          }.toSet
+      }
+
+      InMemoryS3(
+        objectsPerBucket.map {
+          case (bucketName, objects) => InMemoryS3.Bucket(bucketName, objects)
+        }.toSet
+      )
+    }
 
     final case class Bucket(name: S3BucketName, objects: Set[S3Object]) {
       def apply(key: S3ObjectKey): Option[S3Object] = objects.find(_.key == key)

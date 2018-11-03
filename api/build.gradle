@@ -26,6 +26,7 @@ dependencies {
     compile project(':core')
     compile project(':shared:io')
     compile project(':shared:recountResources')
+    compile project(':shared:testAws')
 
     compile "ws.unfiltered:unfiltered-filter-async${s}:$unfilteredVersion"
     compile "ws.unfiltered:unfiltered-netty-server${s}:$unfilteredVersion"

@@ -3,11 +3,13 @@ package au.id.tmm.ausvotes.api.routes
 import au.id.tmm.ausvotes.api.Routes
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.controllers.RecountController
+import au.id.tmm.ausvotes.api.errors.recount.RecountException
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import unfiltered.request._
 
 object RecountRoutes {
@@ -17,9 +19,26 @@ object RecountRoutes {
 
     {
       case req @ GET(Path(Seg("recount" :: electionString :: stateString :: Nil))) =>
-        controller.recount[F](electionString, stateString, QueryParams.unapply(req).get.mapValues(_.toList))
-          .map(ResponseJson(_))
+        val queryParams = QueryParams.unapply(req).get.mapValues(_.toList)
+
+        for {
+          recountRequest <- Monad.fromEither(buildRecountRequest(electionString, stateString, queryParams))
+            .leftMap(RecountException.BadRequestError)
+
+          recountResult <- controller.recount[F](recountRequest)
+        } yield ResponseJson(recountResult)
     }
   }
+
+  private[routes] def buildRecountRequest(
+                                           rawElection: String,
+                                           rawState: String,
+                                           queryParams: Map[String, List[String]],
+                                         ): Either[RecountRequest.Error, RecountRequest] = RecountRequest.build(
+    Some(rawElection),
+    Some(rawState),
+    rawNumVacancies = queryParams.get("vacancies").flatMap(_.headOption),
+    rawIneligibleCandidates = queryParams.get("ineligibleCandidates").flatMap(_.headOption),
+  )
 
 }

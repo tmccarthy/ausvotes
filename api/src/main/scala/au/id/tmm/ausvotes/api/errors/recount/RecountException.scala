@@ -7,6 +7,6 @@ sealed abstract class RecountException extends ApiException
 
 object RecountException {
   final case class BadRequestError(cause: RecountRequest.Error) extends RecountException
-  final case class CheckRecountComputedError(cause: Exception) extends RecountException
-  final case class RequestRecountError(cause: Exception) extends RecountException
+  final case class CheckRecountComputedError(cause: Exception) extends RecountException with ApiException.WithCause
+  final case class RequestRecountError(cause: Exception) extends RecountException with ApiException.WithCause
 }
