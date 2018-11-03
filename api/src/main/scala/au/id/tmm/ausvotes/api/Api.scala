@@ -1,9 +1,11 @@
 package au.id.tmm.ausvotes.api
 
+import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.NotFoundException
 import au.id.tmm.ausvotes.api.model.GenericErrorResponse
 import au.id.tmm.ausvotes.api.routes.AppRoutes
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
+import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import io.netty.handler.codec.http.HttpResponse
 import org.slf4j.{Logger, LoggerFactory}
@@ -18,11 +20,13 @@ object Api {
 
   def main(args: Array[String]): Unit = {
 
-    val rts = new RTS {}
+    val ioRuntime = new RTS {}
 
-    val routes = AppRoutes[IO]
+    val config = ioRuntime.unsafeRun(Config.fromEnvironment[IO])
 
-    val intent: Plan.Intent = buildIntent(rts, routes)
+    val routes = AppRoutes[IO](config)
+
+    val intent: Plan.Intent = buildIntent(ioRuntime, routes)
 
     val plan: Plan = Planify(intent)
 
@@ -32,11 +36,11 @@ object Api {
       .start()
   }
 
-  private def buildIntent(rts: RTS, routes: Routes[IO]): Plan.Intent = {
+  private def buildIntent(ioRuntime: RTS, routes: Routes[IO]): Plan.Intent = {
     case req => {
       val io = routes(req)
 
-      rts.unsafeRunAsync(io) { exitResult: ExitResult[Exception, ResponseFunction[HttpResponse]] =>
+      ioRuntime.unsafeRunAsync(io) { exitResult: ExitResult[Exception, ResponseFunction[HttpResponse]] =>
         req.respond(exitResult.fold(
           completed = identity[ResponseFunction[HttpResponse]],
           failed = {
