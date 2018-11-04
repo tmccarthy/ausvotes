@@ -476,6 +476,7 @@ Resources:
         Listener: !GetAtt AusvotesApiAlb.Outputs.Listener
         Path: /*
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
+        RecountDataBucketName: !Ref RecountDataBucketName
 
   LifecycleHook:
     Type: AWS::CloudFormation::Stack

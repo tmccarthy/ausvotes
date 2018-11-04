@@ -43,6 +43,10 @@ Parameters:
     Description: The ECS service auto scaling role ARN
     Type: String
 
+  RecountDataBucketName:
+    Description: The bucket containing recount data
+    Type: String
+
 Resources:
 
   Service:
@@ -64,6 +68,9 @@ Resources:
       Family: !Sub '${ServiceName}-service'
       ContainerDefinitions:
       - Name: !Sub '${ServiceName}-service'
+        Environment:
+        - Name: RECOUNT_DATA_BUCKET
+          Value: !Ref RecountDataBucketName
         Essential: true
         Image: !Ref Image
         Memory: 128
