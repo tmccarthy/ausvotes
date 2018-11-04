@@ -22,7 +22,7 @@ class ConfigSpec extends ImprovedFlatSpec {
       "recountFunction",
       _.recountFunction,
       "RECOUNT_LAMBDA_FUNCTION_NAME",
-      None,
+      Some(LambdaFunctionName("recount")),
       "recount" -> Right(LambdaFunctionName("recount")),
       "" -> Left(ConfigException.InvalidConfig("RECOUNT_LAMBDA_FUNCTION_NAME", ""))
     ),

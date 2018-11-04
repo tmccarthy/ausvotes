@@ -20,7 +20,7 @@ object Config {
           .getOrElse(Left(ConfigException.EnvVarMissing("RECOUNT_DATA_BUCKET")))
 
         recountFunction <- readLambdaFunctionName(envVars, "RECOUNT_LAMBDA_FUNCTION_NAME")
-            .getOrElse(Left(ConfigException.EnvVarMissing("RECOUNT_LAMBDA_FUNCTION_NAME")))
+            .getOrElse(Right(LambdaFunctionName("recount")))
       } yield Config(recountDataBucket, recountFunction)
     }.absolve
 
