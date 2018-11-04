@@ -28,8 +28,8 @@ object S3Ops {
     }
 
   def useObject[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: S3Object => IO[Exception, A]): IO[Exception, A] = {
-    val acquireS3Object = s3Client.map { client =>
-      client.getObject(bucketName.asString, objectKey.asString)
+    val acquireS3Object = s3Client.flatMap { client =>
+      IO.syncException(client.getObject(bucketName.asString, objectKey.asString))
     }
 
     val closeS3Object: S3Object => IO[Nothing, Unit] = s3Object => IO.sync(s3Object.close())
