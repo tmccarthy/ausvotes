@@ -49,6 +49,32 @@ Parameters:
 
 Resources:
 
+  ApiServiceIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Action": "sts:AssumeRole"
+          "Principal":
+            "Service": "ecs-tasks.amazonaws.com"
+          "Effect": "Allow"
+
+  ApiServiceInvokeRecountLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: api_service_invoke_recount_lambda_permission
+      Roles:
+      - !Ref ApiServiceIamRole
+      PolicyDocument:
+        "Version": "2012-10-17"
+        "Statement":
+        - "Sid": "InvokePermission"
+          "Effect": "Allow"
+          "Action":
+          - "lambda:InvokeFunction"
+          "Resource": "*"
+
   Service:
     Type: AWS::ECS::Service
     DependsOn: ListenerRule
@@ -81,6 +107,7 @@ Resources:
           Options:
             awslogs-group: !Ref AWS::StackName
             awslogs-region: !Ref AWS::Region
+        TaskRoleArn: !Ref ApiServiceIamRole
 
   CloudWatchLogsGroup:
     Type: AWS::Logs::LogGroup
