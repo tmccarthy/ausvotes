@@ -92,6 +92,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: !Sub '${ServiceName}-service'
+      TaskRoleArn: !Ref ApiServiceIamRole
       ContainerDefinitions:
       - Name: !Sub '${ServiceName}-service'
         Environment:
@@ -107,7 +108,6 @@ Resources:
           Options:
             awslogs-group: !Ref AWS::StackName
             awslogs-region: !Ref AWS::Region
-        TaskRoleArn: !Ref ApiServiceIamRole
 
   CloudWatchLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -261,3 +261,9 @@ Resources:
       ComparisonOperator: LessThanThreshold
       AlarmActions:
       - !Ref ServiceScaleInPolicy
+
+Outputs:
+
+  TaskRoleArn:
+    Description: The ARN of the API service task role
+    Value: !GetAtt ApiServiceIamRole.Arn

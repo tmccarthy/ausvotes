@@ -117,6 +117,13 @@ Resources:
             - !GetAtt RecountLambdaIamRole.Arn
           Resource: !GetAtt RecountDataBucket.Arn
         - Action:
+          - s3:ListBucket
+          Effect: Allow
+          Principal:
+            AWS:
+            - !GetAtt AusvotesApiService.Outputs.TaskRoleArn
+          Resource: !GetAtt RecountDataBucket.Arn
+        - Action:
           - s3:PutObject
           Effect: "Allow"
           Principal:
@@ -314,8 +321,7 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt RecountLambda.Arn
-      Principal: sns.amazonaws.com
-      SourceArn: !Ref RecountRequestQueue
+      Principal: !GetAtt AusvotesApiService.Outputs.TaskRoleArn
 
   RecountLambdaIamRole:
     Type: AWS::IAM::Role
