@@ -20,6 +20,12 @@ sourceSets {
     generated {}
 }
 
+configurations {
+    compile {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
+}
+
 dependencies {
     compile sourceSets.generated.output
 
@@ -32,6 +38,8 @@ dependencies {
     compile "ws.unfiltered:unfiltered-netty-server${s}:$unfilteredVersion"
 
     compile "au.id.tmm:http-constants-core${s}:$httpConstantsVersion"
+
+    compile 'ch.qos.logback:logback-classic:1.0.13'
 
     testCompile project(':shared:testIo')
 }

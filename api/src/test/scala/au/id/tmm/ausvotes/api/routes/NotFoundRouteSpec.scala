@@ -15,7 +15,7 @@ class NotFoundRouteSpec extends ImprovedFlatSpec {
 
     val (_, resultFunction) = testLogic.run(BasicTestData())
 
-    assert(resultFunction === Left(NotFoundException()))
+    assert(resultFunction === Left(NotFoundException("/resource")))
   }
 
 }

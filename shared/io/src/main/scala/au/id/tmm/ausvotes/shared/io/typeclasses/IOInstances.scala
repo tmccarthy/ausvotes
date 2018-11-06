@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
 import org.apache.commons.io.IOUtils
 import org.slf4j
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 import scalaz.zio.IO
 
 object IOInstances {
@@ -53,7 +53,7 @@ object IOInstances {
   }
 
   implicit val ioCanLog: Log[IO] = new Log[IO] {
-    private val logger: slf4j.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+    private val logger: slf4j.Logger = LoggerFactory.getLogger("au.id.tmm.ausvotes")
 
     override def logError(loggedEvent: LoggedEvent): IO[Nothing, Unit] =
       IO.sync(logger.error(LoggedEvent.formatMessage(loggedEvent), loggedEvent.exception.orNull))
