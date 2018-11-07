@@ -7,7 +7,7 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PartyCodecSpec extends ImprovedFlatSpec {
 
-  private implicit val sut: PartyCodec = PartyCodec()
+  import PartyCodec._
 
   "the party codec" should "encode a registered party" in {
     val party: Party = Party.RegisteredParty.ALP

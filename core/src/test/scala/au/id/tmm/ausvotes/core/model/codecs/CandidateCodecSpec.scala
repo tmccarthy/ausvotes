@@ -15,8 +15,11 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     "AA",
     Party.RegisteredParty.ALP,
   )
-  private implicit val partyCodec: PartyCodec = PartyCodec()
-  private implicit val sut: CodecJson[Candidate] = CandidateCodec(Set(testGroup))
+
+  import CandidateCodec._
+  import PartyCodec._
+
+  private implicit val candidateDecoder: DecodeJson[Candidate] = CandidateCodec.decodeCandidate(Set(testGroup))
 
   "the candidate codec" can "encode a grouped candidate" in {
     val candidate = Candidate(

@@ -1,10 +1,13 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
-import argonaut.CodecJson
+import argonaut.DecodeJson
+import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec.encodeCandidate
+import au.id.tmm.ausvotes.core.model.codecs.PartyCodec.encodeParty
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
-import au.id.tmm.ausvotes.lambdas.utils.snsintegration.{SnsLambdaHarness, SnsLambdaRequest}
+import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group, Party}
+import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
+import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness.{ErrorResponseTransformer, RequestDecodeError, RequestReadError}
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.{ReadsS3, WritesToS3}
 import au.id.tmm.ausvotes.shared.io.Logging
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
@@ -12,27 +15,28 @@ import au.id.tmm.ausvotes.shared.io.actions.Log._
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
-import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
+import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResponse}
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.IO
 
-final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambdaError] {
+final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse, RecountLambdaError] {
 
-  override def logic(lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): IO[RecountLambdaError, Unit] = {
+  override def logic(lambdaRequest: RecountRequest, context: Context): IO[RecountLambdaError, RecountResponse] = {
     import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
     import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
     recountLogic[IO](lambdaRequest, context)
   }
 
-  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : EnvVars : SyncEffects : Log : Now : Monad](lambdaRequest: SnsLambdaRequest[RecountRequest], context: Context): F[RecountLambdaError, Unit] = {
+  private def recountLogic[F[+_, +_] : ReadsS3 : WritesToS3 : EnvVars : SyncEffects : Log : Now : Monad](
+                                                                                                          recountRequest: RecountRequest,
+                                                                                                          context: Context,
+                                                                                                        ): F[RecountLambdaError, RecountResponse] = {
 
-    implicit val partyCodec: PartyCodec = PartyCodec()
-    implicit val groupCodec: GroupCodec = GroupCodec()
+    implicit val decodeParty: DecodeJson[Party] = PartyCodec.decodeParty
+    implicit val decodeGroup: DecodeJson[Group] = GroupCodec.decodeGroup
 
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
-
-      recountRequest = lambdaRequest.snsBody.message
 
       _ <- logInfo("RECEIVE_RECOUNT_REQUEST", "recount_request" -> recountRequest)
 
@@ -46,9 +50,9 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
           "state" -> state,
         )
 
-      candidateCodec = CandidateCodec(groups)
+      candidateCodec = CandidateCodec.decodeCandidate(groups)
       candidates <- {
-        implicit val c: CodecJson[Candidate] = candidateCodec
+        implicit val c: DecodeJson[Candidate] = candidateCodec
 
         EntityFetching.fetchCandidates(recountDataBucketName, election, state)
           .timedLog("FETCH_CANDIDATES",
@@ -90,16 +94,28 @@ final class RecountLambda extends SnsLambdaHarness[RecountRequest, RecountLambda
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
 
       _ <- WritesToS3.putJson(recountDataBucketName, recountResultKey)(
-        content = recountResult.asJson(PerformRecount.Result.encodeRecountResult(candidateCodec)).toString,
+        content = recountResult.asJson.toString,
       )
         .timedLog("PUT_RECOUNT_RESULT",
           "recount_data_bucket_name" -> recountDataBucketName,
           "recount_result_key" -> recountResultKey,
         )
         .leftMap(RecountLambdaError.WriteRecountError)
-    } yield Unit
+    } yield RecountResponse.Success(recountResult)
   }
 
   override protected def errorLogTransformer: RecountLambdaErrorLogTransformer.type = RecountLambdaErrorLogTransformer
+
+  protected def errorResponseTransformer: ErrorResponseTransformer[RecountResponse, RecountLambdaError] = {
+    case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
+      RecountResponse.Failure.InvalidCandidateIds(invalidCandidateAecIds)
+    case _ => RecountResponse.Failure.InternalError
+  }
+
+  protected def transformHarnessError(harnessInputError: LambdaHarness.HarnessInputError): RecountResponse =
+    harnessInputError match {
+      case RequestReadError(_) => RecountResponse.Failure.InternalError
+      case RequestDecodeError(message, request) => RecountResponse.Failure.RequestDecodeError(message, request)
+    }
 
 }

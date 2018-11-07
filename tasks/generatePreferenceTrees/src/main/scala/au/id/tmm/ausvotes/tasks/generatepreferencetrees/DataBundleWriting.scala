@@ -1,9 +1,10 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import argonaut.Argonaut._
-import argonaut.CodecJson
-import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
+import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
+import au.id.tmm.ausvotes.core.model.codecs.GroupCodec._
+import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
+import au.id.tmm.ausvotes.core.model.parsing.CandidatePosition
 import au.id.tmm.ausvotes.shared.aws.S3Ops
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName}
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
@@ -18,10 +19,6 @@ object DataBundleWriting {
 
                        dataBundleForElection: DataBundleForElection,
                      ): IO[Exception, Unit] = {
-
-    implicit val partyCodec: PartyCodec = PartyCodec()
-    implicit val groupCodec: GroupCodec = GroupCodec()
-    implicit val candidateCodec: CodecJson[Candidate] = CandidateCodec(dataBundleForElection.groupsAndCandidates.groups)
 
     for {
       _ <- IO.parAll(List(
@@ -49,7 +46,7 @@ object DataBundleWriting {
   private def writeGroupsFile(
                                s3BucketName: S3BucketName,
                                dataBundleForElection: DataBundleForElection,
-                             )(implicit groupCodec: GroupCodec): IO[Exception, Unit] = {
+                             ): IO[Exception, Unit] = {
     val key = EntityLocations.locationOfGroupsObject(dataBundleForElection.election, dataBundleForElection.state)
 
     val content = {
@@ -64,7 +61,7 @@ object DataBundleWriting {
   private def writeCandidatesFile(
                                    s3BucketName: S3BucketName,
                                    dataBundleForElection: DataBundleForElection,
-                                 )(implicit candidateCodec: CodecJson[Candidate]): IO[Exception, Unit] = {
+                                 ): IO[Exception, Unit] = {
     val key = EntityLocations.locationOfCandidatesObject(dataBundleForElection.election, dataBundleForElection.state)
 
     val content = {

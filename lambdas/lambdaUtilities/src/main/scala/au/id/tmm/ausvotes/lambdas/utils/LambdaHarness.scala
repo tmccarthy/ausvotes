@@ -77,12 +77,12 @@ abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_
 object LambdaHarness {
   val charset: Charset = Charset.forName("UTF-8")
 
-  private[utils] sealed trait HarnessInputError
+  sealed trait HarnessInputError
 
-  private[utils] final case class RequestReadError(exception: IOException) extends HarnessInputError
-  private[utils] final case class RequestDecodeError(message: String, request: String) extends HarnessInputError
+  final case class RequestReadError(exception: IOException) extends HarnessInputError
+  final case class RequestDecodeError(message: String, request: String) extends HarnessInputError
 
-  private[utils] final case class ResponseWriteError(exception: IOException)
+  final case class ResponseWriteError(exception: IOException)
 
   trait ErrorResponseTransformer[T_RESPONSE, E] {
     def responseFor(error: E): T_RESPONSE

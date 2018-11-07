@@ -8,8 +8,8 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class GroupCodecSpec extends ImprovedFlatSpec {
 
-  private implicit val partyCodec: PartyCodec = PartyCodec()
-  private implicit val sut: GroupCodec = GroupCodec()
+  import GroupCodec._
+  import PartyCodec._
 
   private val groupFixture = GroupFixture.ACT
 

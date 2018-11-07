@@ -1,8 +1,7 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import argonaut.Argonaut._
-import argonaut.{CodecJson, Parse}
-import au.id.tmm.ausvotes.core.model.codecs.GroupCodec
+import argonaut.{DecodeJson, Parse}
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
@@ -21,7 +20,7 @@ object EntityFetching {
                                                 election: SenateElection,
                                                 state: State,
                                               )(
-                                                implicit groupCodec: GroupCodec,
+                                                implicit decodeGroup: DecodeJson[Group],
                                               ): F[RecountLambdaError.EntityFetchError, Set[Group]] = {
     val objectKey = EntityLocations.locationOfGroupsObject(election, state)
 
@@ -40,7 +39,7 @@ object EntityFetching {
                        election: SenateElection,
                        state: State,
                      )(
-                       implicit candidateCodec: CodecJson[Candidate],
+                       implicit candidateCodec: DecodeJson[Candidate],
                      ): F[RecountLambdaError.EntityFetchError, Set[Candidate]] = {
     val objectKey = EntityLocations.locationOfCandidatesObject(election, state)
 
