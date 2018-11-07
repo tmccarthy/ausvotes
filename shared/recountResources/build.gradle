@@ -13,4 +13,6 @@ dependencyManagement {
 dependencies {
     compile project(':core')
     compile project(':shared:aws')
+
+    testCompile project(':core:fixtures')
 }
