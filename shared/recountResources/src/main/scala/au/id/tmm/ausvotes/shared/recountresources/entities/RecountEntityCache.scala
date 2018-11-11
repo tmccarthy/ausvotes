@@ -11,10 +11,11 @@ import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.Logging
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
+import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
-import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.{GroupsCandidatesAndPreferences, StateAtElection}
-import au.id.tmm.ausvotes.shared.recountresources.exceptions.{CandidateDecodeException, GroupDecodeException, InvalidJsonException}
+import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.{GroupsCandidatesAndPreferences, RecountEntityCacheException, StateAtElection}
+import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
 import au.id.tmm.countstv.model.preferences.{PreferenceTree, PreferenceTreeSerialisation}
 import au.id.tmm.utilities.geo.australia.State
 import org.apache.commons.io.IOUtils
@@ -32,44 +33,48 @@ class RecountEntityCache private (
     implicit val decodeGroup: DecodeJson[Group] = GroupCodec.decodeGroup
   }
 
-  private val candidateJsons: mutable.Map[StateAtElection, Promise[Exception, Json]] = mutable.Map()
-  private val preferenceTreeBytes: mutable.Map[StateAtElection, Promise[Exception, Array[Byte]]] = mutable.Map()
+  private val candidateJsons: mutable.Map[StateAtElection, Promise[RecountEntityCacheException, Json]] = mutable.Map()
+  private val preferenceTreeBytes: mutable.Map[StateAtElection, Promise[RecountEntityCacheException, Array[Byte]]] = mutable.Map()
 
-  private val groups: mutable.Map[StateAtElection, Promise[Exception, Set[Group]]] = mutable.Map()
+  private val groups: mutable.Map[StateAtElection, Promise[RecountEntityCacheException, Set[Group]]] = mutable.Map()
 
-  private val groupsAndCandidates: mutable.Map[StateAtElection, Promise[Exception, GroupsAndCandidates]] = mutable.Map()
+  private val groupsAndCandidates: mutable.Map[StateAtElection, Promise[RecountEntityCacheException, GroupsAndCandidates]] = mutable.Map()
 
-  private val groupsCandidatesAndPreferences: mutable.Map[StateAtElection, Promise[Exception, GroupsCandidatesAndPreferences]] = mutable.Map()
+  private val groupsCandidatesAndPreferences: mutable.Map[StateAtElection, Promise[RecountEntityCacheException, GroupsCandidatesAndPreferences]] = mutable.Map()
 
 }
 
 object RecountEntityCache {
 
-  type GroupsCandidatesAndPreferences = (Set[Group], Set[Candidate], PreferenceTree[CandidatePosition])
+  type GroupsCandidatesAndPreferences = (Set[Group], Set[Candidate], PreferenceTree.RootPreferenceTree[CandidatePosition])
   private type StateAtElection = (SenateElection, State)
 
   def apply(baseBucket: S3BucketName): IO[Nothing, RecountEntityCache] =
     Semaphore(permits = 1).map(new RecountEntityCache(baseBucket, _))
 
-  def withGroupsCandidatesAndPreferencesWhilePopulatingCache[A](
-                                                                 election: SenateElection,
-                                                                 state: State,
-                                                               )(
-                                                                 action: GroupsCandidatesAndPreferences => IO[Exception, A],
-                                                               )(implicit
-                                                                 cache: RecountEntityCache,
-                                                               ): IO[Exception, A] = {
+  def withGroupsCandidatesAndPreferencesWhilePopulatingCache[E, A](
+                                                                    election: SenateElection,
+                                                                    state: State,
+                                                                  )(
+                                                                    action: GroupsCandidatesAndPreferences => IO[E, A],
+                                                                    mapEntityFetchError: RecountEntityCacheException => E,
+                                                                    mapCachePopulateError: RecountEntityCacheException => E,
+                                                                  )(implicit
+                                                                    cache: RecountEntityCache,
+                                                                  ): IO[E, A] = {
     for {
       recountEntityCache <- RecountEntityCache(S3BucketName("recount-data.buckets.ausvotes.info"))
 
       result = for {
         entitiesPromise <- RecountEntityCache.groupsCandidatesAndPreferencesFor(election, state)(recountEntityCache)
         entities <- entitiesPromise.get
+            .leftMap(mapEntityFetchError)
         result <- action(entities)
       } yield result
 
       populateCache = for {
         _ <- RecountEntityCache.populateCacheFor(election)(recountEntityCache)
+            .leftMap(mapCachePopulateError)
       } yield ()
 
       resultForkIO = result.fork
@@ -82,7 +87,7 @@ object RecountEntityCache {
     } yield resultAndUnit._1
   }
 
-  def populateCacheFor(election: SenateElection)(implicit cache: RecountEntityCache): IO[Exception, Unit] = {
+  def populateCacheFor(election: SenateElection)(implicit cache: RecountEntityCache): IO[RecountEntityCacheException, Unit] = {
     IO.parAll {
       State.ALL_STATES.map { state =>
         for {
@@ -98,7 +103,7 @@ object RecountEntityCache {
                                          state: State,
                                        )(implicit
                                          cache: RecountEntityCache,
-                                       ): IO[Nothing, Promise[Exception, GroupsCandidatesAndPreferences]] = {
+                                       ): IO[Nothing, Promise[RecountEntityCacheException, GroupsCandidatesAndPreferences]] = {
     cache.mutex.withPermit(getGroupsCandidatesAndPreferencesPromise(election, state))
   }
 
@@ -107,7 +112,7 @@ object RecountEntityCache {
                                                         state: State,
                                                       )(implicit
                                                         cache: RecountEntityCache,
-                                                      ): IO[Nothing, Promise[Exception, GroupsCandidatesAndPreferences]] =
+                                                      ): IO[Nothing, Promise[RecountEntityCacheException, GroupsCandidatesAndPreferences]] =
     getPromiseFor(_.groupsCandidatesAndPreferences, election, state) {
       for {
         groupsAndCandidatesPromise <- getGroupsAndCandidatesPromise(election, state)
@@ -127,7 +132,7 @@ object RecountEntityCache {
           "entity_name" -> "preference_tree",
           "election" -> election,
           "state" -> state,
-        )
+        ).leftMap(RecountEntityCacheException.PreferenceTreeDeserialisationException)
       } yield (groupsAndCandidates.groups, groupsAndCandidates.candidates, preferenceTree)
     }
 
@@ -136,7 +141,7 @@ object RecountEntityCache {
                                              state: State,
                                            )(implicit
                                              cache: RecountEntityCache,
-                                           ): IO[Nothing, Promise[Exception, Array[Byte]]] =
+                                           ): IO[Nothing, Promise[RecountEntityCacheException, Array[Byte]]] =
     getPromiseFor(_.preferenceTreeBytes, election, state) {
       val objectKey = EntityLocations.locationOfPreferenceTree(election, state)
 
@@ -147,7 +152,7 @@ object RecountEntityCache {
         "entity_name" -> "preference_tree_bytes",
         "election" -> election,
         "state" -> state,
-      )
+      ).leftMap(RecountEntityCacheException.PreferenceTreeFetchException)
     }
 
   private def getGroupsAndCandidatesPromise(
@@ -155,7 +160,7 @@ object RecountEntityCache {
                                              state: State,
                                            )(implicit
                                              cache: RecountEntityCache,
-                                           ): IO[Nothing, Promise[Exception, GroupsAndCandidates]] =
+                                           ): IO[Nothing, Promise[RecountEntityCacheException, GroupsAndCandidates]] =
     getPromiseFor(_.groupsAndCandidates, election, state) {
       for {
         groupsPromise <- getGroupsPromise(election, state)
@@ -176,7 +181,7 @@ object RecountEntityCache {
 
           candidatesJson.as[Set[Candidate]].toMessageOrResult.map { candidates =>
             GroupsAndCandidates(groups, candidates)
-          }.left.map(CandidateDecodeException)
+          }.left.map(RecountEntityCacheException.CandidateDecodeException)
         }
       } yield groupsAndCandidates
     }
@@ -186,16 +191,19 @@ object RecountEntityCache {
                                         state: State,
                                       )(implicit
                                         cache: RecountEntityCache,
-                                      ): IO[Nothing, Promise[Exception, Json]] =
+                                      ): IO[Nothing, Promise[RecountEntityCacheException, Json]] =
     getPromiseFor(_.candidateJsons, election, state) {
       val objectKey = EntityLocations.locationOfCandidatesObject(election, state)
 
       (for {
         jsonString <- ReadsS3.readAsString(cache.baseBucket, objectKey)
+          .leftMap(RecountEntityCacheException.CandidateFetchException)
         json <- IO.fromEither {
           val jsonOrErrorString = Parse.parse(jsonString)
 
-          jsonOrErrorString.left.map(InvalidJsonException)
+          jsonOrErrorString
+            .left.map(InvalidJsonException)
+            .left.map(RecountEntityCacheException.CandidateJsonException)
         }
       } yield json).timedLog(
         "COMPLETE_ENTITY_CACHE_PROMISE",
@@ -210,7 +218,7 @@ object RecountEntityCache {
                                 state: State,
                               )(implicit
                                 cache: RecountEntityCache,
-                              ): IO[Nothing, Promise[Exception, Set[Group]]] =
+                              ): IO[Nothing, Promise[RecountEntityCacheException, Set[Group]]] =
     getPromiseFor(_.groups, election, state) {
       import cache.codecs._
 
@@ -218,10 +226,11 @@ object RecountEntityCache {
 
       (for {
         jsonString <- ReadsS3.readAsString(cache.baseBucket, objectKey)
+          .leftMap(RecountEntityCacheException.GroupFetchException)
         groups <- IO.fromEither {
           val decodeResult = Parse.decodeEither[Set[Group]](jsonString)
 
-          decodeResult.left.map(GroupDecodeException)
+          decodeResult.left.map(RecountEntityCacheException.GroupDecodeException)
         }
       } yield groups).timedLog(
         "COMPLETE_ENTITY_CACHE_PROMISE",
@@ -232,18 +241,18 @@ object RecountEntityCache {
     }
 
   private def getPromiseFor[A](
-                                promiseMapInCache: RecountEntityCache => mutable.Map[StateAtElection, Promise[Exception, A]],
+                                promiseMapInCache: RecountEntityCache => mutable.Map[StateAtElection, Promise[RecountEntityCacheException, A]],
                                 election: SenateElection,
                                 state: State,
                               )(
-                                fetch: IO[Exception, A]
+                                fetch: IO[RecountEntityCacheException, A]
                               )(implicit
                                 cache: RecountEntityCache,
-                              ): IO[Nothing, Promise[Exception, A]] = {
+                              ): IO[Nothing, Promise[RecountEntityCacheException, A]] = {
     promiseMapInCache(cache).get((election, state)).foreach(promise => return IO.point(promise))
 
     for {
-      promise <- Promise.make[Exception, A]
+      promise <- Promise.make[RecountEntityCacheException, A]
 
       fetchAndCompletePromise = fetch.attempt.flatMap {
         case Right(entity) => promise.complete(entity)
@@ -267,5 +276,17 @@ object RecountEntityCache {
     def toMessageOrResult: Either[String, A] = decodeResult.toEither.left.map {
       case (message, cursorHistory) => message + ": " + cursorHistory.toString
     }
+  }
+
+  sealed abstract class RecountEntityCacheException extends ExceptionCaseClass
+
+  object RecountEntityCacheException {
+    final case class GroupFetchException(cause: Exception) extends RecountEntityCacheException with ExceptionCaseClass.WithCause
+    final case class GroupDecodeException(message: String) extends RecountEntityCacheException
+    final case class CandidateFetchException(cause: Exception) extends RecountEntityCacheException with ExceptionCaseClass.WithCause
+    final case class CandidateJsonException(cause: InvalidJsonException) extends RecountEntityCacheException with ExceptionCaseClass.WithCause
+    final case class CandidateDecodeException(message: String) extends RecountEntityCacheException
+    final case class PreferenceTreeFetchException(cause: Exception) extends RecountEntityCacheException with ExceptionCaseClass.WithCause
+    final case class PreferenceTreeDeserialisationException(cause: Exception) extends RecountEntityCacheException with ExceptionCaseClass.WithCause
   }
 }

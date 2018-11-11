@@ -22,20 +22,8 @@ object RecountLambdaErrorResponseTransformer
     case RecountLambdaError.RecountDataBucketUndefined =>
       badRequestResponse("Recount data bucket was undefined")
 
-    case RecountLambdaError.EntityFetchError.GroupFetchError(_) =>
-      badRequestResponse("An error occurred while fetching the groups")
-
-    case RecountLambdaError.EntityFetchError.GroupDecodeError(message) =>
-      badRequestResponse(s"""An error occurred while decoding the groups: "$message"""")
-
-    case RecountLambdaError.EntityFetchError.CandidateFetchError(_) =>
-      badRequestResponse("An error occurred while fetching the candidates")
-
-    case RecountLambdaError.EntityFetchError.CandidateDecodeError(message) =>
-      badRequestResponse(s"""An error occurred while decoding the candidates: "$message"""")
-
-    case RecountLambdaError.EntityFetchError.PreferenceTreeFetchError(_) =>
-      badRequestResponse("An error occurred while fetching or decoding the preference tree")
+    case RecountLambdaError.EntityFetchError(_) | RecountLambdaError.EntityCachePopulationError(_) =>
+      badRequestResponse("An error occurred while fetching the entities")
 
     case RecountLambdaError.RecountComputationError(_) =>
       badRequestResponse("An error occurred while performing the recount computation")

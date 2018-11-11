@@ -12,13 +12,11 @@ import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{ExitResult, IO, RTS}
 
-// TODO should the runtime system be static?
-
-abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_ERROR] extends RequestStreamHandler
-  with RTS {
+abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_ERROR](protected val rts: RTS = new RTS {})
+  extends RequestStreamHandler {
 
   final override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
-    unsafeRunSync(harness(input, output, context)) match {
+    rts.unsafeRunSync(harness(input, output, context)) match {
       case ExitResult.Completed(_)  => Unit
       case ExitResult.Terminated(t) => throw t.head
       case ExitResult.Failed(e, _)  => throw e.exception

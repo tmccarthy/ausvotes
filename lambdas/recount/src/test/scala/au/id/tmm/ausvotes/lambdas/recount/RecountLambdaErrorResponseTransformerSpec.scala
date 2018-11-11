@@ -1,9 +1,8 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountDataBucketUndefined
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.EntityFetchError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
-import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.{RecountComputationError, WriteRecountError}
+import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError._
+import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.RecountEntityCacheException
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
@@ -26,28 +25,13 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   )
 
   errorResponseTest(
-    error = GroupFetchError(new RuntimeException()),
-    expectedMessage = "An error occurred while fetching the groups",
+    error = EntityFetchError(RecountEntityCacheException.GroupFetchException(new RuntimeException())),
+    expectedMessage = "An error occurred while fetching the entities",
   )
 
   errorResponseTest(
-    error = GroupDecodeError("the message"),
-    expectedMessage = """An error occurred while decoding the groups: "the message"""",
-  )
-
-  errorResponseTest(
-    error = CandidateFetchError(new RuntimeException()),
-    expectedMessage = "An error occurred while fetching the candidates",
-  )
-
-  errorResponseTest(
-    error = CandidateDecodeError("the message"),
-    expectedMessage = """An error occurred while decoding the candidates: "the message"""",
-  )
-
-  errorResponseTest(
-    error = PreferenceTreeFetchError(new RuntimeException()),
-    expectedMessage = "An error occurred while fetching or decoding the preference tree",
+    error = EntityCachePopulationError(RecountEntityCacheException.GroupFetchException(new RuntimeException())),
+    expectedMessage = "An error occurred while fetching the entities",
   )
 
   errorResponseTest(

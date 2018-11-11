@@ -1,5 +1,7 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
+import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.RecountEntityCacheException
+
 sealed trait RecountLambdaError
 
 object RecountLambdaError {
@@ -16,17 +18,8 @@ object RecountLambdaError {
     final case class InvalidCandidateIds(invalidCandidateAecIds: Set[String]) extends RecountRequestError
   }
 
-  sealed trait EntityFetchError extends RecountLambdaError
-
-  object EntityFetchError {
-    final case class GroupFetchError(exception: Exception) extends EntityFetchError with WithException
-    final case class GroupDecodeError(message: String) extends EntityFetchError
-
-    final case class CandidateFetchError(exception: Exception) extends EntityFetchError with WithException
-    final case class CandidateDecodeError(message: String) extends EntityFetchError
-
-    final case class PreferenceTreeFetchError(exception: Exception) extends EntityFetchError with WithException
-  }
+  final case class EntityFetchError(exception: RecountEntityCacheException) extends RecountLambdaError with WithException
+  final case class EntityCachePopulationError(exception: RecountEntityCacheException) extends RecountLambdaError with WithException
 
   final case class RecountComputationError(exception: Exception) extends RecountLambdaError with WithException
 
