@@ -1,3 +1,5 @@
 package au.id.tmm.ausvotes.api.errors
 
-final case class NotFoundException(path: String) extends ApiException
+import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
+
+final case class NotFoundException(path: String) extends ExceptionCaseClass

@@ -3,12 +3,12 @@ package au.id.tmm.ausvotes.api.controllers
 import argonaut.Argonaut._
 import argonaut.{Json, Parse}
 import au.id.tmm.ausvotes.api.config.Config
-import au.id.tmm.ausvotes.api.errors.InvalidJsonException
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import com.amazonaws.AmazonServiceException
 

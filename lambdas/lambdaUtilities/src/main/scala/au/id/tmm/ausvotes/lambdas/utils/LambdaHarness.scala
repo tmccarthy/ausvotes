@@ -12,6 +12,8 @@ import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{ExitResult, IO, RTS}
 
+// TODO should the runtime system be static?
+
 abstract class LambdaHarness[T_REQUEST : DecodeJson, T_RESPONSE : EncodeJson, T_ERROR] extends RequestStreamHandler
   with RTS {
 
