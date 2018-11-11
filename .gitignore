@@ -33,6 +33,8 @@ gradle-app.setting
 *.db
 *.db-journal
 
+/api/build/
+/api/out/
 /buildSrc/build/
 /core/build/
 /core/out/
@@ -45,5 +47,4 @@ gradle-app.setting
 /tasks/*/out
 /shared/*/build
 /shared/*/out
-.gitignore
-version.txt
+
