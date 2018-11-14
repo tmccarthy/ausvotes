@@ -62,24 +62,23 @@ object RecountEntityCache {
                                                                   )(implicit
                                                                     cache: RecountEntityCache,
                                                                   ): IO[E, A] = {
-    for {
-      recountEntityCache <- RecountEntityCache(S3BucketName("recount-data.buckets.ausvotes.info"))
-
-      result = for {
-        entitiesPromise <- RecountEntityCache.groupsCandidatesAndPreferencesFor(election, state)(recountEntityCache)
+    val resultForkIO = (
+      for {
+        entitiesPromise <- RecountEntityCache.groupsCandidatesAndPreferencesFor(election, state)
         entities <- entitiesPromise.get
-            .leftMap(mapEntityFetchError)
+          .leftMap(mapEntityFetchError)
         result <- action(entities)
       } yield result
+      ).fork
 
-      populateCache = for {
-        _ <- RecountEntityCache.populateCacheFor(election)(recountEntityCache)
-            .leftMap(mapCachePopulateError)
+    val populateCacheForkIO = (
+      for {
+        _ <- RecountEntityCache.populateCacheFor(election)
+          .leftMap(mapCachePopulateError)
       } yield ()
+      ).fork
 
-      resultForkIO = result.fork
-      populateCacheForkIO = populateCache.fork
-
+    for {
       resultFork <- resultForkIO
       populateCacheFork <- populateCacheForkIO
 
