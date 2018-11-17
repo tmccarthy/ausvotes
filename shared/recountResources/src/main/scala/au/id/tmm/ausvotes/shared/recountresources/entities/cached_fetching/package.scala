@@ -1,13 +1,14 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities
 
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.{IO, Promise, Semaphore}
 
 import scala.collection.mutable
 
 package object cached_fetching {
-  private[cached_fetching] type StateAtElection = (SenateElection, State)
+
   private[cached_fetching] type CacheMap[E, A] = mutable.Map[StateAtElection, Promise[E, A]]
 
   private[cached_fetching] def getPromiseFor[E, A](

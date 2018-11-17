@@ -58,4 +58,6 @@ object SenateElection {
     case _ => None
   }
 
+  type StateAtElection = (SenateElection, State)
+
 }

@@ -15,6 +15,8 @@ dependencies {
     compile project(':shared:io')
     compile project(':shared:aws')
     compile project(':shared:recountResources')
+    compile project(':shared:testIo')
+    compile project(':shared:testAws')
 
     testCompile project(':core:fixtures')
 }
