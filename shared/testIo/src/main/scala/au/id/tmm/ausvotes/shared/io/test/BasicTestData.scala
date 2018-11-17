@@ -1,33 +1,30 @@
 package au.id.tmm.ausvotes.shared.io.test
 
-import java.time.{Duration, Instant}
-
-import au.id.tmm.ausvotes.shared.io.actions.Log
-import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.test
-import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging, Resources}
+import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
+import au.id.tmm.ausvotes.shared.io.test.testdata.{CurrentTimeTestData, EnvVarTestData, LoggingTestData, ResourcesTestData}
 
 final case class BasicTestData(
-                                envVars: Map[String, String] = Map.empty,
-
-                                loggedMessages: Map[Log.Level, List[LoggedEvent]] = Map.empty,
-                                initialTime: Instant = Instant.EPOCH,
-                                stepEachInvocation: Duration = Duration.ofSeconds(1),
-                                resources: Map[String, String] = Map.empty,
+                                currentTimeTestData: CurrentTimeTestData = CurrentTimeTestData.default,
+                                envVarTestData: EnvVarTestData = EnvVarTestData.empty,
+                                loggingTestData: LoggingTestData = LoggingTestData.empty,
+                                resourcesTestData: ResourcesTestData = ResourcesTestData.empty,
                               )
-  extends Logging[BasicTestData]
-    with CurrentTime[BasicTestData]
-    with EnvVars
-    with Resources {
-
-  override protected def copyWithLoggedMessages(loggedMessages: Map[Log.Level, List[LoggedEvent]]): BasicTestData =
-    this.copy(loggedMessages = loggedMessages)
-
-  override protected def copyWithInitialTime(initialTime: Instant): BasicTestData =
-    this.copy(initialTime = initialTime)
-
-}
 
 object BasicTestData {
-  type TestIO[+E, +A] = test.TestIO[E, A, BasicTestData]
+
+  type BasicTestIO[+E, +A] = TestIO[BasicTestData, E, A]
+
+  implicit val nowInstance: Now[BasicTestIO] = CurrentTimeTestData.testIOInstance[BasicTestData](
+    currentTimeField = _.currentTimeTestData,
+    setCurrentTimeField = (data, newCurrentTimeTestData) => data.copy(currentTimeTestData = newCurrentTimeTestData),
+  )
+
+  implicit val loggingInstance: Log[BasicTestIO] = LoggingTestData.testIOInstance[BasicTestData](
+    loggingTestDataField = _.loggingTestData,
+    setLoggingTestData = (data, newLoggingData) => data.copy(loggingTestData = newLoggingData),
+  )
+
+  implicit val envVarInstance: EnvVars[BasicTestIO] = EnvVarTestData.testIOInstance[BasicTestData](_.envVarTestData)
+  implicit val resourcesInstance: Resources[BasicTestIO] = ResourcesTestData.testIOInstance[BasicTestData](_.resourcesTestData)
+
 }

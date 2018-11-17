@@ -1,46 +1,40 @@
 package au.id.tmm.ausvotes.shared.aws.testing
 
-import java.time.{Duration, Instant}
-
-import au.id.tmm.ausvotes.shared.aws.data.LambdaFunctionName
-import au.id.tmm.ausvotes.shared.aws.testing.datatraits.{LambdaInteraction, S3Interaction, SnsWrites}
-import au.id.tmm.ausvotes.shared.io.actions.Log
-import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
+import au.id.tmm.ausvotes.shared.aws.actions.{LambdaActions, S3Actions, SnsActions}
+import au.id.tmm.ausvotes.shared.aws.testing.testdata.{LambdaTestData, S3TestData, SnsTestData}
+import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
 import au.id.tmm.ausvotes.shared.io.test
-import au.id.tmm.ausvotes.shared.io.test.datatraits.{CurrentTime, EnvVars, Logging}
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData
+import au.id.tmm.ausvotes.shared.io.test.testdata.{CurrentTimeTestData, EnvVarTestData, LoggingTestData, ResourcesTestData}
 
 final case class AwsTestData(
-                              envVars: Map[String, String] = Map.empty,
+                              basicTestData: BasicTestData = BasicTestData(),
 
-                              loggedMessages: Map[Log.Level, List[LoggedEvent]] = Map.empty.withDefaultValue(Nil),
-                              initialTime: Instant = Instant.EPOCH,
-                              stepEachInvocation: Duration = Duration.ofSeconds(1),
-
-                              s3Content: S3Interaction.InMemoryS3 = S3Interaction.InMemoryS3.empty,
-
-                              snsMessagesPerTopic: Map[String, List[String]] = Map.empty,
-
-                              lambdaCallHandler: LambdaInteraction.Responder = LambdaInteraction.alwaysFailHandler,
-                              lambdaInvocations: List[LambdaInteraction.Invocation] = Nil,
-                            ) extends EnvVars
-  with CurrentTime[AwsTestData]
-  with Logging[AwsTestData]
-  with S3Interaction[AwsTestData]
-  with SnsWrites[AwsTestData]
-  with LambdaInteraction[AwsTestData] {
-
-  override protected def copyWithInitialTime(initialTime: Instant): AwsTestData = this.copy(initialTime = initialTime)
-
-  override protected def copyWithLoggedMessages(loggedMessages: Map[Log.Level, List[LoggedEvent]]): AwsTestData = this.copy(loggedMessages = loggedMessages)
-
-  override protected def copyWithS3Content(s3Content: S3Interaction.InMemoryS3): AwsTestData = this.copy(s3Content = s3Content)
-
-  override protected def copyWithSnsMessages(snsMessagesPerTopic: Map[String, List[String]]): AwsTestData = this.copy(snsMessagesPerTopic = snsMessagesPerTopic)
-
-  override protected def copyWithLambdaInvocations(invocations: List[(LambdaFunctionName, Option[String])]): AwsTestData = this.copy(lambdaInvocations = invocations)
-
-}
+                              s3TestData: S3TestData = S3TestData.empty,
+                              snsTestData: SnsTestData = SnsTestData.empty,
+                              lambdaTestData: LambdaTestData = LambdaTestData.default,
+                            )
 
 object AwsTestData {
-  type TestIO[+E, +A] = test.TestIO[E, A, AwsTestData]
+
+  type AwsTestIO[+E, +A] = test.TestIO[AwsTestData, E, A]
+
+  implicit val writesS3Instance: S3Actions.WritesToS3[AwsTestIO] = S3TestData.testIoWriteS3Instance[AwsTestData](_.s3TestData, (data, s3Data) => data.copy(s3TestData = s3Data))
+  implicit val readsS3Instance: S3Actions.ReadsS3[AwsTestIO] = S3TestData.testIoReadS3Instance[AwsTestData](_.s3TestData)
+  implicit val lambdaTestingInstance: LambdaActions.InvokesLambda[AwsTestIO] = LambdaTestData.testIOInstance[AwsTestData](_.lambdaTestData, (data, lambdaData) => data.copy(lambdaTestData = lambdaData))
+  implicit val snsTestData: SnsActions.PutsSnsMessages[AwsTestIO] = SnsTestData.testIOInstance[AwsTestData](_.snsTestData, (data, snsData) => data.copy(snsTestData = snsData))
+
+  implicit val nowInstance: Now[AwsTestIO] = CurrentTimeTestData.testIOInstance[AwsTestData](
+    currentTimeField = _.basicTestData.currentTimeTestData,
+    setCurrentTimeField = (data, newCurrentTimeTestData) => data.copy(basicTestData = data.basicTestData.copy(currentTimeTestData = newCurrentTimeTestData)),
+  )
+
+  implicit val loggingInstance: Log[AwsTestIO] = LoggingTestData.testIOInstance[AwsTestData](
+    loggingTestDataField = _.basicTestData.loggingTestData,
+    setLoggingTestData = (data, newLoggingData) => data.copy(basicTestData = data.basicTestData.copy(loggingTestData = newLoggingData)),
+  )
+
+  implicit val envVarInstance: EnvVars[AwsTestIO] = EnvVarTestData.testIOInstance[AwsTestData](_.basicTestData.envVarTestData)
+  implicit val resourcesInstance: Resources[AwsTestIO] = ResourcesTestData.testIOInstance[AwsTestData](_.basicTestData.resourcesTestData)
+
 }

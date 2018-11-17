@@ -4,7 +4,9 @@ import au.id.tmm.ausvotes.api.config.ConfigSpec.ConfigFieldSpec
 import au.id.tmm.ausvotes.api.errors.ConfigException
 import au.id.tmm.ausvotes.shared.aws.data.{LambdaFunctionName, S3BucketName}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO._
+import au.id.tmm.ausvotes.shared.io.test.testdata.EnvVarTestData
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class ConfigSpec extends ImprovedFlatSpec {
@@ -29,7 +31,7 @@ class ConfigSpec extends ImprovedFlatSpec {
   )
 
   private def retrieve[A](configField: Config => A, environment: Map[String, String]): Either[ConfigException, A] =
-    Config.fromEnvironment[BasicTestData.TestIO].map(configField).run(BasicTestData(envVars = environment))._2
+    Config.fromEnvironment[BasicTestIO].map(configField).run(BasicTestData(envVarTestData = EnvVarTestData(envVars = environment))).result
 
   private val greenPathEnvironment: Map[String, String] = configFieldSpecs.map { spec =>
     val aValidValueForThisField = spec.parsingTests.collect {

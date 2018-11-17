@@ -5,30 +5,40 @@ import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.{ApiGatewayLambdaRequest, ApiGatewayLambdaResponse}
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
-import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.TestIO
-import au.id.tmm.ausvotes.shared.aws.testing.AwsTestIoInstances._
-import au.id.tmm.ausvotes.shared.aws.testing.datatraits.S3Interaction.InMemoryS3
+import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
+import au.id.tmm.ausvotes.shared.aws.testing.testdata.S3TestData.InMemoryS3
+import au.id.tmm.ausvotes.shared.aws.testing.testdata.{S3TestData, SnsTestData}
+import au.id.tmm.ausvotes.shared.io.test.testdata.EnvVarTestData
+import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
 
-  private val logicUnderTest: ApiGatewayLambdaRequest => TestIO[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] =
-    RecountEnqueueLambda.recountEnqueueLogic[AwsTestData.TestIO]
+  private val logicUnderTest: ApiGatewayLambdaRequest => AwsTestIO[RecountEnqueueLambda.Error, ApiGatewayLambdaResponse] =
+    RecountEnqueueLambda.recountEnqueueLogic[AwsTestIO]
 
   private val recountRequestQueueTopicArn = "recountRequestArn"
   private val recountDataBucket = "recountDataBucket"
 
   private val greenPathTestData: AwsTestData = AwsTestData(
-    envVars = Map(
-      "RECOUNT_REQUEST_QUEUE" -> recountRequestQueueTopicArn,
-      "RECOUNT_DATA_BUCKET" -> recountDataBucket,
-      "AWS_DEFAULT_REGION" -> "ap-southeast-2",
+    basicTestData = BasicTestData(
+      envVarTestData = EnvVarTestData(
+        envVars = Map(
+          "RECOUNT_REQUEST_QUEUE" -> recountRequestQueueTopicArn,
+          "RECOUNT_DATA_BUCKET" -> recountDataBucket,
+          "AWS_DEFAULT_REGION" -> "ap-southeast-2",
+        ),
+      ),
     ),
-    s3Content = InMemoryS3(Set(
-      InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set.empty),
-    )),
-    snsMessagesPerTopic = Map.empty.withDefaultValue(Nil),
+    s3TestData = S3TestData(
+      s3Content = InMemoryS3(Set(
+        InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set.empty),
+      )),
+    ),
+    snsTestData = SnsTestData(
+      snsMessagesPerTopic = Map.empty.withDefaultValue(Nil),
+    ),
   )
 
   private def lambdaRequestFor(
@@ -90,15 +100,15 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
   "the recount lambda" should "send an recount request when none has previously been calculated" in {
     val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA)))
 
-    val (outputData, response) = logic.run(greenPathTestData)
+    val TestIO.Output(outputData, response) = logic.run(greenPathTestData)
 
-    assert(outputData.snsMessagesPerTopic(recountRequestQueueTopicArn) === List("""{"election":"2016","state":"SA","vacancies":12,"ineligibleCandidates":[]}"""))
+    assert(outputData.snsTestData.snsMessagesPerTopic(recountRequestQueueTopicArn) === List("""{"election":"2016","state":"SA","vacancies":12,"ineligibleCandidates":[]}"""))
   }
 
   it should "respond successfully to a valid request" in {
     val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA), ineligibleCandidates = Some("123,456")))
 
-    val (outputData, response) = logic.run(greenPathTestData)
+    val TestIO.Output(outputData, response) = logic.run(greenPathTestData)
 
     val expectedResponse = ApiGatewayLambdaResponse(
       statusCode = 202,
@@ -124,21 +134,23 @@ class RecountEnqueueLambdaSpec extends ImprovedFlatSpec {
     val logic = logicUnderTest(lambdaRequestFor(Some(SenateElection.`2016`), Some(State.SA)))
 
     val testData = greenPathTestData.copy(
-      s3Content = InMemoryS3(Set(
-        InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set(
-          InMemoryS3.S3Object(
-            S3ObjectKey("recounts") / "2016" / "SA" / "12-vacancies" / "none-ineligible" / "result.json",
-            "",
-            ContentType.APPLICATION_JSON,
-          )
+      s3TestData = greenPathTestData.s3TestData.copy(
+        s3Content = InMemoryS3(Set(
+          InMemoryS3.Bucket(S3BucketName(recountDataBucket), Set(
+            InMemoryS3.S3Object(
+              S3ObjectKey("recounts") / "2016" / "SA" / "12-vacancies" / "none-ineligible" / "result.json",
+              "",
+              ContentType.APPLICATION_JSON,
+            )
+          )),
         )),
-      )),
+      ),
     )
 
-    val (outputData, response) = logic.run(testData)
+    val TestIO.Output(outputData, response) = logic.run(testData)
 
     assert(response.map(_.statusCode) === Right(202))
-    assert(outputData.snsMessagesPerTopic(recountRequestQueueTopicArn) === Nil)
+    assert(outputData.snsTestData.snsMessagesPerTopic(recountRequestQueueTopicArn) === Nil)
   }
 
 }

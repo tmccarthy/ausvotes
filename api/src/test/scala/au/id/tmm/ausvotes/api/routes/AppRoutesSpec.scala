@@ -4,21 +4,22 @@ import au.id.tmm.ausvotes.api.MockResponse
 import au.id.tmm.ausvotes.api.errors.NotFoundException
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
+import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.http_constants.HttpResponseCode
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class AppRoutesSpec extends ImprovedFlatSpec {
 
   private def responseAndLoggedMessagesWhenHandling(exception: Exception): (Map[Log.Level, List[LoggedEvent]], MockResponse) = {
-    val logicUnderTest = AppRoutes.handleException[BasicTestData.TestIO](exception)
+    val logicUnderTest = AppRoutes.handleException[BasicTestIO](exception)
 
-    val (testData, responseFunction) = logicUnderTest.run(BasicTestData())
+    val TestIO.Output(testData, responseFunction) = logicUnderTest.run(BasicTestData())
 
     //noinspection NotImplementedCode
     val response = MockResponse.from(responseFunction.getOrElse(???))
 
-    (testData.loggedMessages, response)
+    (testData.loggingTestData.loggedMessages, response)
   }
 
   "exception handling" should "handle a NotFoundException" in {
