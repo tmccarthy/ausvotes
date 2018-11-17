@@ -4,8 +4,8 @@ import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.{IO, Promise, Semaphore}
 
-object IRecountEntityCache {
-  private[entities] def getPromiseFor[E, A](
+private[entities] object RecountEntityCacheUtils {
+  def getPromiseFor[E, A](
                                              election: SenateElection,
                                              state: State,
                                              cacheMap: CacheMap[E, A],

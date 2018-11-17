@@ -15,7 +15,8 @@ import au.id.tmm.ausvotes.shared.io.actions.Log._
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
-import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache
+import au.id.tmm.ausvotes.shared.recountresources.entities.PreferenceTreeCache.GroupsCandidatesAndPreferences
+import au.id.tmm.ausvotes.shared.recountresources.entities.{GroupsAndCandidatesCache, GroupsCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResponse}
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.collection.Flyweight
@@ -40,21 +41,21 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
 
-      recountEntityCache = RecountLambda.entityCacheFlyweight(recountDataBucketName)
+      preferenceTreeCache = RecountLambda.preferenceTreeCache(recountDataBucketName)
 
       _ <- logInfo("RECEIVE_RECOUNT_REQUEST", "recount_request" -> recountRequest)
 
       election = recountRequest.election
       state = recountRequest.state
 
-      recountResponse <- RecountEntityCache.withGroupsCandidatesAndPreferencesWhilePopulatingCache(election, state)(
+      recountResponse <- preferenceTreeCache.withGroupsCandidatesAndPreferencesWhilePopulatingCache(election, state)(
         action = {
-          case (groups, candidates, preferenceTree) =>
-            computeRecount(recountDataBucketName, recountRequest, groups, candidates, preferenceTree)
+          case GroupsCandidatesAndPreferences(groupsAndCandidates, preferenceTree) =>
+            computeRecount(recountDataBucketName, recountRequest, groupsAndCandidates.groups, groupsAndCandidates.candidates, preferenceTree)
         },
         mapEntityFetchError = RecountLambdaError.EntityFetchError,
         mapCachePopulateError = RecountLambdaError.EntityCachePopulationError,
-      )(recountEntityCache)
+      )
     } yield recountResponse
   }
 
@@ -120,7 +121,13 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
 object RecountLambda {
   private lazy val rts: RTS = new RTS {}
 
-  private val entityCacheFlyweight: Flyweight[S3BucketName, RecountEntityCache] = Flyweight { s3BucketName =>
-    rts.unsafeRun(RecountEntityCache(s3BucketName))
+  private val preferenceTreeCache: Flyweight[S3BucketName, PreferenceTreeCache] = Flyweight { s3BucketName =>
+    rts.unsafeRun {
+      for {
+        groupsCache <- GroupsCache(s3BucketName)
+        groupsAndCandidatesCache <- GroupsAndCandidatesCache(groupsCache)
+        preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
+      } yield preferenceTreeCache
+    }
   }
 }

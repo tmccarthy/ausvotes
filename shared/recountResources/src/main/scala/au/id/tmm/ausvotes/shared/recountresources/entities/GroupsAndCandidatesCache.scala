@@ -12,7 +12,7 @@ import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.shared.recountresources.entities.GroupsAndCandidatesCache.GroupsAndCandidatesCacheException
-import au.id.tmm.ausvotes.shared.recountresources.entities.IRecountEntityCache.getPromiseFor
+import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCacheUtils.getPromiseFor
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.{IO, Promise, Semaphore}
