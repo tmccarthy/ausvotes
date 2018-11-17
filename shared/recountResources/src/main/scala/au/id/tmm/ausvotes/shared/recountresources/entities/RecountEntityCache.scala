@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.shared.recountresources.entities
 
 import java.io.ByteArrayInputStream
 
-import argonaut.{DecodeJson, DecodeResult, Json, Parse}
+import argonaut.{DecodeJson, Json, Parse}
 import au.id.tmm.ausvotes.core.model.codecs.{CandidateCodec, GroupCodec, PartyCodec}
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group, Party}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
@@ -14,7 +14,7 @@ import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
-import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.{GroupsCandidatesAndPreferences, RecountEntityCacheException, StateAtElection}
+import au.id.tmm.ausvotes.shared.recountresources.entities.RecountEntityCache.{GroupsCandidatesAndPreferences, RecountEntityCacheException}
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
 import au.id.tmm.countstv.model.preferences.{PreferenceTree, PreferenceTreeSerialisation}
 import au.id.tmm.utilities.geo.australia.State
@@ -267,13 +267,6 @@ object RecountEntityCache {
       promiseMapInCache(cache).update((election, state), promise)
 
       promise
-    }
-  }
-
-  // TODO make this shared
-  implicit class DecodeResultOps[A](decodeResult: DecodeResult[A]) {
-    def toMessageOrResult: Either[String, A] = decodeResult.toEither.left.map {
-      case (message, cursorHistory) => message + ": " + cursorHistory.toString
     }
   }
 
