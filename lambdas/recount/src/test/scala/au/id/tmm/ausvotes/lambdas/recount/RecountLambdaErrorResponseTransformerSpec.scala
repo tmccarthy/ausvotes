@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError._
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError._
-import au.id.tmm.ausvotes.shared.recountresources.entities.PreferenceTreeCache.PreferenceTreeCacheException
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
@@ -25,12 +25,12 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   )
 
   errorResponseTest(
-    error = EntityFetchError(PreferenceTreeCacheException.PreferenceTreeFetchException(new RuntimeException())),
+    error = EntityFetchError(FetchPreferenceTreeException.LoadBytesExceptionFetch(new RuntimeException())),
     expectedMessage = "An error occurred while fetching the entities",
   )
 
   errorResponseTest(
-    error = EntityCachePopulationError(PreferenceTreeCacheException.PreferenceTreeFetchException(new RuntimeException())),
+    error = EntityCachePopulationError(FetchPreferenceTreeException.LoadBytesExceptionFetch(new RuntimeException())),
     expectedMessage = "An error occurred while fetching the entities",
   )
 
