@@ -12,4 +12,3 @@ trait Logging[D] {
       this.loggedMessages.updated(level, this.loggedMessages.getOrElse(level, Nil) :+ event)
     )
 }
-
