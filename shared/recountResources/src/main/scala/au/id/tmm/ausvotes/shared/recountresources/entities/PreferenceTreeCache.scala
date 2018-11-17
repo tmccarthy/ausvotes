@@ -10,7 +10,6 @@ import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
-import au.id.tmm.ausvotes.shared.recountresources.entities.GroupsAndCandidatesCache.groupsAndCandidatesFor
 import au.id.tmm.ausvotes.shared.recountresources.entities.IRecountEntityCache.getPromiseFor
 import au.id.tmm.ausvotes.shared.recountresources.entities.PreferenceTreeCache.{GroupsCandidatesAndPreferences, PreferenceTreeCacheException}
 import au.id.tmm.countstv.model.preferences.{PreferenceTree, PreferenceTreeSerialisation}
@@ -29,54 +28,88 @@ final class PreferenceTreeCache(
 
   private val preferenceTreeBytes: CacheMap[PreferenceTreeCacheException.PreferenceTreeFetchException, Array[Byte]] = mutable.Map()
   private val groupsCandidatesAndPreferences: CacheMap[PreferenceTreeCacheException, GroupsCandidatesAndPreferences] = mutable.Map()
-}
 
-object PreferenceTreeCache {
+  def withGroupsCandidatesAndPreferencesWhilePopulatingCache[E, A](
+                                                                    election: SenateElection,
+                                                                    state: State,
+                                                                  )(
+                                                                    action: GroupsCandidatesAndPreferences => IO[E, A],
+                                                                    mapEntityFetchError: PreferenceTreeCacheException => E,
+                                                                    mapCachePopulateError: PreferenceTreeCacheException => E,
+                                                                  ): IO[E, A] = {
+    val resultForkIO = (
+      for {
+        entitiesPromise <- groupsCandidatesAndPreferencesFor(election, state)
+        entities <- entitiesPromise.get
+          .leftMap(mapEntityFetchError)
+        result <- action(entities)
+      } yield result
+      ).fork
 
-  def apply(groupsAndCandidatesCache: GroupsAndCandidatesCache): IO[Nothing, PreferenceTreeCache] =
-    Semaphore(permits = 1).map(new PreferenceTreeCache(groupsAndCandidatesCache, _))
+    val populateCacheForkIO = (
+      for {
+        _ <- populateFor(election)
+          .leftMap(mapCachePopulateError)
+      } yield ()
+      ).fork
+
+    for {
+      resultFork <- resultForkIO
+      populateCacheFork <- populateCacheForkIO
+
+      resultAndUnit <- (resultFork zip populateCacheFork).join
+    } yield resultAndUnit._1
+  }
+
+  def populateFor(election: SenateElection): IO[PreferenceTreeCacheException, Unit] = {
+    IO.parAll {
+      State.ALL_STATES.map { state =>
+        for {
+          promise <- groupsCandidatesAndPreferencesFor(election, state)
+          entities <- promise.get
+        } yield entities
+      }
+    }.map(_ => ())
+  }
 
   def groupsCandidatesAndPreferencesFor(
                                          election: SenateElection,
                                          state: State,
-                                       )(implicit
-                                         cache: PreferenceTreeCache,
-                                       ): IO[Nothing, Promise[PreferenceTreeCacheException, GroupsCandidatesAndPreferences]] = cache.mutex.withPermit {
-    getPromiseFor(election, state, cache.groupsCandidatesAndPreferences, cache.mutex) {
-      for {
-        groupsAndCandidatesPromise <- groupsAndCandidatesFor(election, state)(cache.groupsAndCandidatesCache)
-        preferenceTreeBytesPromise <- getPreferenceTreeBytesPromise(election, state)
+                                       ): IO[Nothing, Promise[PreferenceTreeCacheException, GroupsCandidatesAndPreferences]] =
+    mutex.withPermit {
+      getPromiseFor(election, state, groupsCandidatesAndPreferences, mutex) {
+        for {
+          groupsAndCandidatesPromise <- groupsAndCandidatesCache.groupsAndCandidatesFor(election, state)
+          preferenceTreeBytesPromise <- getPreferenceTreeBytesPromise(election, state)
 
-        groupsAndCandidates <- groupsAndCandidatesPromise.get
-          .leftMap(PreferenceTreeCacheException.GroupsAndCandidatesFetchException)
-        preferenceTreeBytes <- preferenceTreeBytesPromise.get
+          groupsAndCandidates <- groupsAndCandidatesPromise.get
+            .leftMap(PreferenceTreeCacheException.GroupsAndCandidatesFetchException)
+          preferenceTreeBytes <- preferenceTreeBytesPromise.get
 
-        allCandidatePositions = groupsAndCandidates.candidates.map(_.btlPosition)
+          allCandidatePositions = groupsAndCandidates.candidates.map(_.btlPosition)
 
-        preferenceTree <- IO.syncException {
-          val inputStream = new ByteArrayInputStream(preferenceTreeBytes)
+          preferenceTree <- IO.syncException {
+            val inputStream = new ByteArrayInputStream(preferenceTreeBytes)
 
-          PreferenceTreeSerialisation.deserialise(allCandidatePositions, inputStream)
-        }.timedLog(
-          "COMPLETE_ENTITY_CACHE_PROMISE",
-          "entity_name" -> "preference_tree",
-          "election" -> election,
-          "state" -> state,
-        ).leftMap(PreferenceTreeCacheException.PreferenceTreeDeserialisationException)
-      } yield GroupsCandidatesAndPreferences(groupsAndCandidates, preferenceTree)
+            PreferenceTreeSerialisation.deserialise(allCandidatePositions, inputStream)
+          }.timedLog(
+            "COMPLETE_ENTITY_CACHE_PROMISE",
+            "entity_name" -> "preference_tree",
+            "election" -> election,
+            "state" -> state,
+          ).leftMap(PreferenceTreeCacheException.PreferenceTreeDeserialisationException)
+        } yield GroupsCandidatesAndPreferences(groupsAndCandidates, preferenceTree)
+      }
     }
-  }
 
   private def getPreferenceTreeBytesPromise(
                                              election: SenateElection,
                                              state: State,
-                                           )(implicit
-                                             cache: PreferenceTreeCache,
                                            ): IO[Nothing, Promise[PreferenceTreeCacheException.PreferenceTreeFetchException, Array[Byte]]] =
-    getPromiseFor(election, state, cache.preferenceTreeBytes, cache.mutex) {
+    getPromiseFor(election, state, preferenceTreeBytes, mutex) {
       val objectKey = EntityLocations.locationOfPreferenceTree(election, state)
 
-      ReadsS3.useInputStream[IO, Array[Byte]](cache.baseBucket, objectKey) { inputStream =>
+      ReadsS3.useInputStream[IO, Array[Byte]](baseBucket, objectKey) { inputStream =>
         IO.syncException(IOUtils.toByteArray(inputStream))
       }.timedLog(
         "COMPLETE_ENTITY_CACHE_PROMISE",
@@ -85,6 +118,13 @@ object PreferenceTreeCache {
         "state" -> state,
       ).leftMap(PreferenceTreeCacheException.PreferenceTreeFetchException)
     }
+
+}
+
+object PreferenceTreeCache {
+
+  def apply(groupsAndCandidatesCache: GroupsAndCandidatesCache): IO[Nothing, PreferenceTreeCache] =
+    Semaphore(permits = 1).map(new PreferenceTreeCache(groupsAndCandidatesCache, _))
 
   final case class GroupsCandidatesAndPreferences(
                                                    groupsAndCandidates: GroupsAndCandidates,

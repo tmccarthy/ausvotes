@@ -30,38 +30,38 @@ final class GroupsCache(
 
   private val groups: CacheMap[GroupsCacheException, Set[Group]] = mutable.Map()
 
+  def groupsFor(
+                 election: SenateElection,
+                 state: State,
+               ): IO[Nothing, Promise[GroupsCacheException, Set[Group]]] =
+    mutex.withPermit {
+      getPromiseFor(election, state, groups, mutex) {
+        import codecs._
+
+        val objectKey = EntityLocations.locationOfGroupsObject(election, state)
+
+        (for {
+          jsonString <- ReadsS3.readAsString(baseBucket, objectKey)
+            .leftMap(GroupsCacheException.GroupsFetchException)
+          groups <- IO.fromEither {
+            val decodeResult = Parse.decodeEither[Set[Group]](jsonString)
+
+            decodeResult.left.map(GroupsCacheException.GroupsDecodeException)
+          }
+        } yield groups).timedLog(
+          "COMPLETE_ENTITY_CACHE_PROMISE",
+          "entity_name" -> "groups",
+          "election" -> election,
+          "state" -> state,
+        )
+      }
+    }
 }
 
 object GroupsCache {
 
   def apply(baseBucket: S3BucketName): IO[Nothing, GroupsCache] =
     Semaphore(permits = 1).map(new GroupsCache(baseBucket, _))
-
-  def groupsFor(
-                 election: SenateElection,
-                 state: State,
-               )(implicit cache: GroupsCache): IO[Nothing, Promise[GroupsCacheException, Set[Group]]] = cache.mutex.withPermit {
-    getPromiseFor(election, state, cache.groups, cache.mutex) {
-      import cache.codecs._
-
-      val objectKey = EntityLocations.locationOfGroupsObject(election, state)
-
-      (for {
-        jsonString <- ReadsS3.readAsString(cache.baseBucket, objectKey)
-          .leftMap(GroupsCacheException.GroupsFetchException)
-        groups <- IO.fromEither {
-          val decodeResult = Parse.decodeEither[Set[Group]](jsonString)
-
-          decodeResult.left.map(GroupsCacheException.GroupsDecodeException)
-        }
-      } yield groups).timedLog(
-        "COMPLETE_ENTITY_CACHE_PROMISE",
-        "entity_name" -> "groups",
-        "election" -> election,
-        "state" -> state,
-      )
-    }
-  }
 
   sealed abstract class GroupsCacheException extends ExceptionCaseClass
 

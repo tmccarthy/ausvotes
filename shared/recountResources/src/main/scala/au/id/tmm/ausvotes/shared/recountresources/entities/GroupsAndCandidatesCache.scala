@@ -30,57 +30,47 @@ final class GroupsAndCandidatesCache(
 
   private val groupsAndCandidates: CacheMap[GroupsAndCandidatesCacheException, GroupsAndCandidates] = mutable.Map()
 
-}
-
-object GroupsAndCandidatesCache {
-
-  def apply(groupsCache: GroupsCache): IO[Nothing, GroupsAndCandidatesCache] =
-    Semaphore(permits = 1).map(new GroupsAndCandidatesCache(groupsCache, _))
-
   def groupsAndCandidatesFor(
                               election: SenateElection,
                               state: State,
-                            )(implicit
-                              cache: GroupsAndCandidatesCache,
-                            ): IO[Nothing, Promise[GroupsAndCandidatesCacheException, GroupsAndCandidates]] = cache.mutex.withPermit {
-    getPromiseFor(election, state, cache.groupsAndCandidates, cache.mutex) {
-      for {
-        groupsPromise <- GroupsCache.groupsFor(election, state)(cache.groupsCache)
-        candidateJsonPromise <- getCandidatesJsonPromise(election, state)
+                            ): IO[Nothing, Promise[GroupsAndCandidatesCacheException, GroupsAndCandidates]] =
+    mutex.withPermit {
+      getPromiseFor(election, state, groupsAndCandidates, mutex) {
+        for {
+          groupsPromise <- groupsCache.groupsFor(election, state)
+          candidateJsonPromise <- getCandidatesJsonPromise(election, state)
 
-        groups <- groupsPromise.get
-          .leftMap(GroupsAndCandidatesCacheException.GroupsFetchException)
-        candidatesJson <- candidateJsonPromise.get
+          groups <- groupsPromise.get
+            .leftMap(GroupsAndCandidatesCacheException.GroupsFetchException)
+          candidatesJson <- candidateJsonPromise.get
 
-        groupsAndCandidates <- Logging.timedLog(
-          "COMPLETE_ENTITY_CACHE_PROMISE",
-          "entity_name" -> "candidates",
-          "election" -> election,
-          "state" -> state,
-        ) {
-          import cache.groupsCache.codecs._
+          groupsAndCandidates <- Logging.timedLog(
+            "COMPLETE_ENTITY_CACHE_PROMISE",
+            "entity_name" -> "candidates",
+            "election" -> election,
+            "state" -> state,
+          ) {
+            import groupsCache.codecs._
 
-          implicit val decodeCandidates: DecodeJson[Candidate] = CandidateCodec.decodeCandidate(groups)
+            implicit val decodeCandidates: DecodeJson[Candidate] = CandidateCodec.decodeCandidate(groups)
 
-          candidatesJson.as[Set[Candidate]].toMessageOrResult.map { candidates =>
-            GroupsAndCandidates(groups, candidates)
-          }.left.map(GroupsAndCandidatesCacheException.CandidateDecodeException)
-        }
-      } yield groupsAndCandidates
+            candidatesJson.as[Set[Candidate]].toMessageOrResult.map { candidates =>
+              GroupsAndCandidates(groups, candidates)
+            }.left.map(GroupsAndCandidatesCacheException.CandidateDecodeException)
+          }
+        } yield groupsAndCandidates
+      }
     }
-  }
 
   private def getCandidatesJsonPromise(
                                         election: SenateElection,
                                         state: State,
-                                      )(implicit
-                                        cache: GroupsAndCandidatesCache,
                                       ): IO[Nothing, Promise[GroupsAndCandidatesCacheException, Json]] =
-    getPromiseFor(election, state, cache.candidateJsons, cache.mutex) {
+    getPromiseFor(election, state, candidateJsons, mutex) {
       val objectKey = EntityLocations.locationOfCandidatesObject(election, state)
 
       (for {
-        jsonString <- ReadsS3.readAsString(cache.baseBucket, objectKey)
+        jsonString <- ReadsS3.readAsString(baseBucket, objectKey)
           .leftMap(GroupsAndCandidatesCacheException.CandidateFetchException)
         json <- IO.fromEither {
           val jsonOrErrorString = Parse.parse(jsonString)
@@ -96,6 +86,13 @@ object GroupsAndCandidatesCache {
         "state" -> state,
       )
     }
+
+}
+
+object GroupsAndCandidatesCache {
+
+  def apply(groupsCache: GroupsCache): IO[Nothing, GroupsAndCandidatesCache] =
+    Semaphore(permits = 1).map(new GroupsAndCandidatesCache(groupsCache, _))
 
   sealed abstract class GroupsAndCandidatesCacheException extends ExceptionCaseClass
 
