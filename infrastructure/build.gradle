@@ -9,7 +9,6 @@ plugins {
 
 [
     ':lambdas:recount',
-    ':lambdas:recountEnqueue',
 ].each {
     evaluationDependsOn(it)
 }
@@ -34,7 +33,6 @@ cloudFormation {
     parameters ([
         DeploymentArtefactBucket: deploymentBucket,
         RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
-        RecountEnqueueLambdaCodeKey: project(':lambdas:recountEnqueue').ext.deploymentBucketKey,
         RecountDataBucketName: recountDataBucketName,
         AusvotesUiDockerImage: "$tasks.pushUiImageToEcr.imageName:$tasks.pushUiImageToEcr.tag",
         AusvotesApiDockerImage: "$tasks.pushApiImageToEcr.imageName:$tasks.pushApiImageToEcr.tag",
@@ -53,7 +51,6 @@ task uploadTemplatesToS3(type: UploadFiles) {
 
 [
     project(':lambdas:recount').tasks.uploadToDeploymentBucket,
-    project(':lambdas:recountEnqueue').tasks.uploadToDeploymentBucket,
     tasks.uploadTemplatesToS3,
     tasks.pushAllImagesToEcr,
 ].each {

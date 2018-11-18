@@ -9,9 +9,6 @@ Parameters:
   RecountLambdaCodeKey:
     Type: String
 
-  RecountEnqueueLambdaCodeKey:
-    Type: String
-
   RecountDataBucketName:
     Type: String
 
@@ -42,10 +39,6 @@ Parameters:
   AusvotesUiDomainName:
     Type: String
     Default: ausvotes.info
-
-  AusvotesApiStageName:
-    Type: String
-    Default: prod
 
   AusvotesUiDockerImage:
     Type: String
@@ -133,173 +126,6 @@ Resources:
           - "${bucket_name}/recounts/*"
           - bucket_name: !GetAtt RecountDataBucket.Arn
 
-  AusvotesApi:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: ausvotes
-
-  AusvotesApiAccount:
-    DependsOn: AusvotesApi
-    Type: AWS::ApiGateway::Account
-    Properties:
-      CloudWatchRoleArn: !GetAtt AusvotesApiCloudWatchRole.Arn
-
-  AusvotesApiCloudWatchRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - "apigateway.amazonaws.com"
-          Action: "sts:AssumeRole"
-      Path: "/"
-      ManagedPolicyArns:
-      - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-
-  AusvotesApiGatewayDomainName:
-    Type: AWS::ApiGateway::DomainName
-    Properties:
-      CertificateArn: !Sub
-      - "arn:aws:acm:us-east-1:${account_id}:certificate/${cert_id}"
-      - account_id: !Ref AWS::AccountId
-        cert_id: !Ref AusvotesDomainCertificateId
-      DomainName: !Ref AusvotesApiDomainName
-
-  AusvotesBasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      DomainName: !Ref AusvotesApiGatewayDomainName
-      RestApiId: !Ref AusvotesApi
-      Stage: !Ref AusvotesApiStageName
-
-  RecountResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt AusvotesApi.RootResourceId
-      PathPart: recount
-      RestApiId: !Ref AusvotesApi
-
-  RecountElectionResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref RecountResource
-      PathPart: "{election}"
-      RestApiId: !Ref AusvotesApi
-
-  RecountElectionStateResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref RecountElectionResource
-      PathPart: "{state}"
-      RestApiId: !Ref AusvotesApi
-
-  RecountElectionStateResourceGetMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      ApiKeyRequired: False
-      AuthorizationType: NONE
-      HttpMethod: GET
-      RestApiId: !Ref AusvotesApi
-      ResourceId: !Ref RecountElectionStateResource
-      RequestParameters:
-        method.request.path.election: true
-        method.request.path.state: true
-        method.request.querystring.vacancies: false
-        method.request.querystring.ineligibleCandidates: false
-      Integration:
-        IntegrationHttpMethod: POST
-        RequestTemplates:
-          application/json: "{ \"body\" : $input.json('$') }"
-        Type: AWS_PROXY
-        Uri: !Sub
-        - "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_arn}/invocations"
-        - region: !Ref AWS::Region
-          lambda_arn: !GetAtt RecountEnqueueLambda.Arn
-
-  RecountApiProdDeployment:
-    DependsOn: RecountElectionStateResourceGetMethod
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId: !Ref AusvotesApi
-      StageName: !Ref AusvotesApiStageName
-      StageDescription:
-        LoggingLevel: INFO
-        MetricsEnabled: true
-        DataTraceEnabled: true
-        MethodSettings:
-        - DataTraceEnabled: true
-          HttpMethod: "*"
-          LoggingLevel: INFO
-          MetricsEnabled: true
-          ResourcePath: "/*"
-
-  AusvotesApiUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    Properties:
-      ApiStages:
-      - ApiId: !Ref AusvotesApi
-        Stage: !Ref AusvotesApiStageName
-      Quota:
-        Limit: 25
-        Offset: 0
-        Period: DAY
-      UsagePlanName: ausvotes-usage-plan
-
-  RecountEnqueueLambda:
-    Type: "AWS::Lambda::Function"
-    Properties:
-      Code:
-        S3Bucket: !Ref DeploymentArtefactBucket
-        S3Key: !Ref RecountEnqueueLambdaCodeKey
-      Environment:
-        Variables:
-          RECOUNT_REQUEST_QUEUE: !Ref RecountRequestQueue
-          RECOUNT_DATA_BUCKET: !Ref RecountDataBucketName
-      FunctionName: recount-enqueue
-      Handler: au.id.tmm.ausvotes.lambdas.recountenqueue.RecountEnqueueLambda
-      MemorySize: 384
-      Role: !GetAtt RecountEnqueueLambdaIamRole.Arn
-      Runtime: java8
-      Timeout: 20
-
-  RecountEnqueueLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt RecountEnqueueLambda.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-      - arn:aws:execute-api:${region}:${account_id}:${api_id}/*/*/*
-      - region: !Ref AWS::Region
-        account_id: !Ref AWS::AccountId
-        api_id: !Ref AusvotesApi
-
-  RecountEnqueueLambdaIamRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        "Version": "2012-10-17"
-        "Statement":
-        - "Action": "sts:AssumeRole"
-          "Principal":
-            "Service": "lambda.amazonaws.com"
-          "Effect": "Allow"
-
-  RecountRequestQueue:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: recount-request-queue
-
-  RecountRequestQueueSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Endpoint: !GetAtt RecountLambda.Arn
-      Protocol: lambda
-      TopicArn: !Ref RecountRequestQueue
-
   RecountLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -340,7 +166,6 @@ Resources:
       PolicyName: basic_lambda_permissions
       Roles:
       - !Ref RecountLambdaIamRole
-      - !Ref RecountEnqueueLambdaIamRole
       PolicyDocument:
         "Version": "2012-10-17"
         "Statement":
@@ -362,7 +187,6 @@ Resources:
       PolicyName: read_s3
       Roles:
       - !Ref RecountLambdaIamRole
-      - !Ref RecountEnqueueLambdaIamRole
       PolicyDocument:
         "Version": "2012-10-17"
         "Statement":
@@ -376,37 +200,6 @@ Resources:
           "Action":
           - "s3:ListBucket"
           "Resource": !GetAtt RecountDataBucket.Arn
-
-  WriteRecountResultsToS3PermissionsPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: write_s3
-      Roles:
-      - !Ref RecountEnqueueLambdaIamRole
-      PolicyDocument:
-        "Version": "2012-10-17"
-        "Statement":
-        - "Effect": "Allow"
-          "Action":
-          - "s3:PutObject"
-          "Resource": !Sub
-          - "${bucket_arn}/recounts/*"
-          - bucket_arn: !GetAtt RecountDataBucket.Arn
-
-  PublishRecountRequestsPermissionsPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: publish_recount_requests
-      Roles:
-      - !Ref RecountEnqueueLambdaIamRole
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-        - Sid: Stmt1535852319907
-          Action:
-          - sns:Publish
-          Effect: Allow
-          Resource: !Ref RecountRequestQueue
 
   EcsVpc:
     Type: AWS::CloudFormation::Stack
