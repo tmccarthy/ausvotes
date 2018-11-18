@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.io.test
 
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
 
 final case class TestIO[D, +E, +A](run: D => Output[D, E, A]) {
   def map[B](f: A => B): TestIO[D, E, B] = {
@@ -94,5 +94,25 @@ object TestIO {
       as.foldRight[TestIO[D, E, List[B]]](TestIO.pure(Nil)) { (a, io) =>
         par(f(a), io).map { case (b, bs) => b :: bs }
       }
+  }
+
+  implicit def testIOHasSyncEffects[D]: SyncEffects[TestIO[D, +?, +?]] = new SyncEffects[TestIO[D, +?, +?]] {
+    override def sync[A](effect: => A): TestIO[D, Nothing, A] = TestIO { data =>
+      TestIO.Output(data, Right(effect))
+    }
+
+    override def syncException[A](effect: => A): TestIO[D, Exception, A] = TestIO { data =>
+      val result = try Right(effect) catch {
+        case e: Exception => Left(e)
+      }
+
+      TestIO.Output(data, result)
+    }
+
+    override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): TestIO[D, E, A] = TestIO { data =>
+      val result: Either[E, A] = try Right(effect) catch f andThen (e => Left(e))
+
+      TestIO.Output(data, result)
+    }
   }
 }
