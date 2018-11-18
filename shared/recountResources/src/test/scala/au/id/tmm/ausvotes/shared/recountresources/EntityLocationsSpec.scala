@@ -28,4 +28,11 @@ class EntityLocationsSpec extends ImprovedFlatSpec {
     )
   }
 
+  "the canonical recount object" should "have a location" in {
+    assert(
+      EntityLocations.locationOfCanonicalRecount(SenateElection.`2016`, State.SA) ===
+        S3ObjectKey("recountData", "2016", "SA", "canonicalRecountResult.json")
+    )
+  }
+
 }

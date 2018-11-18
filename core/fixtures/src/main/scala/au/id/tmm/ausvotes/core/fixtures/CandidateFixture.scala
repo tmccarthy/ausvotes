@@ -79,6 +79,13 @@ object CandidateFixture {
       Candidate(election, state, "29520",   Name("Michael Gerard", "HAY"),  RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"), CandidatePosition(groupLookup("UG"), 0)),
       Candidate(election, state, "28150",   Name("Anthony", "HANSON"),      RegisteredParty("Mature Australia"), CandidatePosition(groupLookup("UG"), 1))
     )
+
+    val katyGallagher: Candidate = candidateWithName(Name("Katy", "GALLAGHER"))
+    val zedSeselja: Candidate = candidateWithName(Name("Zed", "SESELJA"))
+    val janeHiatt: Candidate = candidateWithName(Name("Jane", "HIATT"))
+    val christinaHobbs: Candidate = candidateWithName(Name("Christina", "HOBBS"))
+    val mattDonnelly: Candidate = candidateWithName(Name("Matt", "DONNELLY"))
+    val anthonyHanson: Candidate = candidateWithName(Name("Anthony", "HANSON"))
   }
 
   object TAS extends CandidateFixture {

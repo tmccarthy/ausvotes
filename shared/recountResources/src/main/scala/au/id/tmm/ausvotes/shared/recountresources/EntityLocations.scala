@@ -18,4 +18,7 @@ object EntityLocations {
   def locationOfPreferenceTree(election: SenateElection, state: State): S3ObjectKey =
     locationOfDirectoryFor(election, state) / "preferences.tree"
 
+  def locationOfCanonicalRecount(election: SenateElection, state: State): S3ObjectKey =
+    locationOfDirectoryFor(election, state) / "canonicalRecountResult.json"
+
 }

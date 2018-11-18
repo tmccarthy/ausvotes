@@ -21,6 +21,10 @@ dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     compile 'com.amazonaws:aws-java-sdk-s3'
+
+    testCompile project(':core:fixtures')
+    testCompile project(':shared:testAws')
+    testCompile project(':shared:testRecountResources')
 }
 
 task deleteRecountData(type: DeleteS3Task) {

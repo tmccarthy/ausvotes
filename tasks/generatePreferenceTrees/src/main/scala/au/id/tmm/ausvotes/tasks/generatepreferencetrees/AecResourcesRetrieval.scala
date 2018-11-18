@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.model.parsing.Ballot
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
 import au.id.tmm.ausvotes.shared.io.Closeables
 import au.id.tmm.utilities.geo.australia.State
@@ -12,7 +12,7 @@ import scalaz.zio.IO
 
 object AecResourcesRetrieval {
 
-  type AecResourcesUse[A] = (SenateElection, State, GroupsAndCandidates, DivisionsAndPollingPlaces, Iterator[Ballot]) => IO[Exception, A]
+  type AecResourcesUse[A] = (SenateElection, State, GroupsAndCandidates, DivisionsAndPollingPlaces, CountData, Iterator[Ballot]) => IO[Exception, A]
 
   def withElectionResources[A](dataStorePath: Path, election: SenateElection)(resourcesUse: AecResourcesUse[A]): IO[Exception, Map[State, A]] = {
     val statesInSizeOrder = election.states.toList.sortBy(StateUtils.numBallots)
@@ -54,8 +54,14 @@ object AecResourcesRetrieval {
       dataStore.ballotsFor(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, state)
     }
 
-    Closeables.bracketCloseable(openBallotsLogic) { ballots =>
-      resourceUse(election, state, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, ballots)
+    val computeCountDataLogic = IO.syncException {
+      dataStore.countDataFor(election, valueResources.groupsAndCandidates, state)
+    }
+
+    computeCountDataLogic.flatMap { countData =>
+      Closeables.bracketCloseable(openBallotsLogic) { ballots =>
+        resourceUse(election, state, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, countData, ballots)
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
+import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import scalaz.zio.{App, IO}
@@ -16,13 +17,13 @@ object Main extends App {
     for {
       args <- IO.fromEither(Args.from(rawArgs))
 
-      _ <- AecResourcesRetrieval.withElectionResources[Unit](args.dataStorePath, args.election) { case (election, state, groupsAndCandidates, divisionsAndPollingPlaces, ballots) =>
+      _ <- AecResourcesRetrieval.withElectionResources[Unit](args.dataStorePath, args.election) { case (election, state, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots) =>
         for {
           dataBundle <- DataBundleConstruction
-            .constructDataBundle(election, state, groupsAndCandidates, divisionsAndPollingPlaces, ballots)
+            .constructDataBundle(election, state, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots)
             .timedLog("CONSTRUCT_DATA_BUNDLE", "election" -> election, "state" -> state)
           _ <- DataBundleWriting
-            .writeToS3Bucket(args.s3Bucket, dataBundle)
+            .writeToS3Bucket[IO](args.s3Bucket, dataBundle)
             .timedLog("WRITE_DATA_BUNDLE", "election" -> election, "state" -> state)
         } yield Unit
       }

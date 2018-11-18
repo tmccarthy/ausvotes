@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Name}
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.recountresources.RecountResultSpec._
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses}
@@ -14,6 +14,8 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountResultSpec extends ImprovedFlatSpec {
+
+  import RecountResultSpec.candidateFixture._
 
   "a recount result" can "be encoded to json" in {
 
@@ -117,11 +119,7 @@ class RecountResultSpec extends ImprovedFlatSpec {
 object RecountResultSpec {
   val candidateFixture: CandidateFixture.ACT.type = CandidateFixture.ACT
 
-  val katyGallagher: Candidate = candidateFixture.candidateWithName(Name("Katy", "GALLAGHER"))
-  val zedSeselja: Candidate = candidateFixture.candidateWithName(Name("Zed", "SESELJA"))
-  val christinaHobbs: Candidate = candidateFixture.candidateWithName(Name("Christina", "HOBBS"))
-  val mattDonnelly: Candidate = candidateFixture.candidateWithName(Name("Matt", "DONNELLY"))
-  val anthonyHanson: Candidate = candidateFixture.candidateWithName(Name("Anthony", "HANSON"))
+  import candidateFixture._
 
   val recountResultFixture = RecountResult(
     election = SenateElection.`2016`,

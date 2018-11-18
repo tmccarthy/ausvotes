@@ -79,8 +79,9 @@ object S3TestData {
         Output(newTestData, Right(Unit))
       }
 
-    //noinspection NotImplementedCode
-    override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => TestIO[D, Exception, Unit]): TestIO[D, Exception, Unit] = ???
+    // TODO implement this
+    override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => TestIO[D, Exception, Unit]): TestIO[D, Exception, Unit] =
+      TestIO { oldTestData => Output(oldTestData, Right(Unit)) }
   }
 
 
