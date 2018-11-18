@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.api.routes
 
+import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
-import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -18,11 +18,11 @@ class RecountRoutesSpec extends ImprovedFlatSpec {
       ),
     )
 
-    val expectedRecountRequest = RecountRequest(
+    val expectedRecountRequest = RecountApiRequest(
       SenateElection.`2016`,
       State.VIC,
-      vacancies = 6,
-      ineligibleCandidateAecIds = Set(AecCandidateId("1234")),
+      numVacancies = Some(6),
+      ineligibleCandidates = Some(Set(AecCandidateId("1234"))),
     )
 
     assert(actualRecountRequest === Right(expectedRecountRequest))

@@ -4,6 +4,7 @@ import argonaut.Argonaut._
 import argonaut.Json
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
+import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
@@ -24,7 +25,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   )
 
   private def resultGiven(
-                           recountRequest: RecountRequest,
+                           recountRequest: RecountApiRequest,
                            testData: AwsTestData,
                          ): TestIO.Output[AwsTestData, RecountException, Json] = {
     new RecountController(config)
@@ -35,9 +36,16 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   behaviour of "requesting a recount"
 
   it should "return a cached recount if one is present in s3" in {
-    val request = RecountRequest(SenateElection.`2016`, State.SA, vacancies = 6, ineligibleCandidateAecIds = Set.empty)
+    val request = RecountApiRequest(SenateElection.`2016`, State.SA, numVacancies = Some(6), ineligibleCandidates = None)
 
-    val cachedContentKey = RecountLocations.locationOfRecountFor(request)
+    val cachedContentKey = RecountLocations.locationOfRecountFor(
+      RecountRequest(
+        request.election,
+        request.state,
+        request.numVacancies.get,
+        request.ineligibleCandidates.getOrElse(Set.empty),
+      )
+    )
 
     val testData = AwsTestData(
       s3TestData = S3TestData(
@@ -54,7 +62,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   }
 
   it should "return a performed recount if one is not present in s3" in {
-    val request = RecountRequest(SenateElection.`2016`, State.SA, vacancies = 6, ineligibleCandidateAecIds = Set.empty)
+    val request = RecountApiRequest(SenateElection.`2016`, State.SA, numVacancies = Some(6), ineligibleCandidates = None)
 
     val testData = AwsTestData(
       lambdaTestData = LambdaTestData(

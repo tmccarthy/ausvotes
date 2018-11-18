@@ -4,6 +4,8 @@ import argonaut.Argonaut._
 import argonaut.{Json, Parse}
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
+import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
+import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
@@ -15,15 +17,27 @@ import com.amazonaws.AmazonServiceException
 class RecountController(config: Config) {
 
   // TODO should really return the decoded RecountResult
-  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](recountRequest: RecountRequest): F[RecountException, Json] = {
+  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](apiRequest: RecountApiRequest): F[RecountException, Json] = {
     //noinspection ConvertibleToMethodValue
     for {
+      recountRequest <- Monad.fromEither(buildFullRecountRequest(apiRequest))
+
       cachedRecount <- readCachedRecount(recountRequest).leftMap(RecountException.CheckRecountComputedError)
 
       response <- cachedRecount.map(Monad.pure(_))
         .getOrElse(requestRecount(recountRequest)).leftMap(RecountException.RequestRecountError)
     } yield response
   }
+
+  private def buildFullRecountRequest(apiRequest: RecountApiRequest): Either[RecountException, RecountRequest] =
+    NumVacanciesComputation.numVacanciesForStateAtElection(apiRequest.election, apiRequest.state).map { defaultNumVacancies =>
+      RecountRequest(
+        apiRequest.election,
+        apiRequest.state,
+        apiRequest.numVacancies getOrElse defaultNumVacancies,
+        apiRequest.ineligibleCandidates getOrElse Set.empty,
+      )
+    }.left.map(_ => RecountException.BadRequestError(RecountApiRequest.ConstructionException.NoElectionForState(apiRequest.election, apiRequest.state)))
 
   private def readCachedRecount[F[+_, +_] : ReadsS3 : Monad](recountRequest: RecountRequest): F[Exception, Option[Json]] = {
     val locationOfCachedRecount = RecountLocations.locationOfRecountFor(recountRequest)
