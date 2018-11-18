@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
 import au.id.tmm.ausvotes.core.model.SenateElection.`2016`
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing.Party.{Independent, RegisteredParty}
 import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.ausvotes.core.rawdata.model.FirstPreferencesRow
@@ -82,7 +83,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
     val expectedCandidate = Candidate(
       election = `2016`,
       state = State.VIC,
-      aecId = "29589",
+      aecId = AecCandidateId("29589"),
       name = Name("David", "COLLYER"),
       party = Independent,
       btlPosition = CandidatePosition(Group(`2016`, State.VIC, "B", Independent), 0))

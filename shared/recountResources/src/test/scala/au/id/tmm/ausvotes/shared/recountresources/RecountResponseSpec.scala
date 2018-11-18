@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.shared.recountresources
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec.encodeCandidate
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec.encodeParty
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountResponseSpec extends ImprovedFlatSpec {
@@ -21,7 +22,7 @@ class RecountResponseSpec extends ImprovedFlatSpec {
   }
 
   it can "encode a failure due to invalid candidate ids" in {
-    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set("123", "456"))
+    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set(AecCandidateId("123"), AecCandidateId("456")))
 
     val expectedJson = jObjectFields(
       "success" -> false.asJson,

@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -21,7 +22,7 @@ class RecountRequestSpec extends ImprovedFlatSpec {
       SenateElection.`2016`,
       State.VIC,
       vacancies = 12,
-      ineligibleCandidateAecIds = Set("123", "456", "789"),
+      ineligibleCandidateAecIds = Set(AecCandidateId("123"), AecCandidateId("456"), AecCandidateId("789")),
     )
 
     assert(request === Right(expectedRecountRequest))
@@ -90,7 +91,7 @@ class RecountRequestSpec extends ImprovedFlatSpec {
   it should "suppress empty ineligible candidate ids" in {
     val request = actualRecountRequestGiven(ineligibleCandidateAecIds = Some("123,,456"))
 
-    assert(request.map(_.ineligibleCandidateAecIds) === Right(Set("123", "456")))
+    assert(request.map(_.ineligibleCandidateAecIds) === Right(Set(AecCandidateId("123"), AecCandidateId("456"))))
   }
 
   "a MissingElection error" should "have a human readable representation" in {

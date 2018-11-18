@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.model.flyweights.{GroupFlyweight, RegisteredPartyFlyweight}
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing.Party.Independent
 import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
@@ -81,7 +82,7 @@ object GroupAndCandidateGeneration {
     val name = candidateNameFrom(rawRow)
     val position = candidatePositionFrom(election, groupsByCode, rawRow)
 
-    Candidate(election, state, rawRow.candidateId.trim, name, party, position)
+    Candidate(election, state, AecCandidateId(rawRow.candidateId.trim), name, party, position)
   }
 
   private def candidateNameFrom(rawRow: FirstPreferencesRow): Name = {

@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -32,7 +33,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       SenateElection.`2014 WA`,
       State.WA,
       6,
-      Set("123", "456"),
+      Set(AecCandidateId("123"), AecCandidateId("456")),
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -52,7 +53,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       SenateElection.`2014 WA`,
       State.WA,
       6,
-      Set("$&%?/ "),
+      Set(AecCandidateId("$&%?/ ")),
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -72,7 +73,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       SenateElection.`2014 WA`,
       State.WA,
       6,
-      Set("123-456"),
+      Set(AecCandidateId("123-456")),
     ))
 
     val expectedLocation = S3ObjectKey(

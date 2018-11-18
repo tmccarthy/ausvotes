@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing.Name
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError.InvalidCandidateIds
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -11,7 +12,7 @@ class CandidateActualisationSpec extends ImprovedFlatSpec {
 
   "the actualisation of ineligible candidates" should "lookup candidates by aec id" in {
     assert(
-      CandidateActualisation.actualiseIneligibleCandidates(Set("28820", "28575"), candidateFixture.candidates) ===
+      CandidateActualisation.actualiseIneligibleCandidates(Set(AecCandidateId("28820"), AecCandidateId("28575")), candidateFixture.candidates) ===
       Right(Set(
         candidateFixture.candidateWithName(Name("Malarndirri", "MCCARTHY")),
         candidateFixture.candidateWithName(Name("Nigel", "SCULLION")),
@@ -21,8 +22,8 @@ class CandidateActualisationSpec extends ImprovedFlatSpec {
 
   it should "fail if any ids are unrecognised" in {
     assert(
-      CandidateActualisation.actualiseIneligibleCandidates(Set("28820", "invalid1", "invalid2"), candidateFixture.candidates) ===
-        Left(InvalidCandidateIds(Set("invalid1", "invalid2")))
+      CandidateActualisation.actualiseIneligibleCandidates(Set(AecCandidateId("28820"), AecCandidateId("invalid1"), AecCandidateId("invalid2")), candidateFixture.candidates) ===
+        Left(InvalidCandidateIds(Set(AecCandidateId("invalid1"), AecCandidateId("invalid2"))))
     )
   }
 

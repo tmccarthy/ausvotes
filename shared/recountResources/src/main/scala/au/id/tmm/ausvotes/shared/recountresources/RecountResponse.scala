@@ -2,8 +2,9 @@ package au.id.tmm.ausvotes.shared.recountresources
 
 import argonaut.Argonaut._
 import argonaut.EncodeJson
-import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec.encodeCandidate
+import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec.encodeParty
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 
 sealed trait RecountResponse
 
@@ -13,7 +14,7 @@ object RecountResponse {
 
   object Failure {
     final case class RequestDecodeError(message: String, request: String) extends Failure
-    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[String]) extends Failure
+    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[AecCandidateId]) extends Failure
     case object InternalError extends Failure
   }
 

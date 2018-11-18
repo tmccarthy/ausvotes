@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.core.model.codecs
 import argonaut.Argonaut._
 import argonaut._
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -25,7 +26,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     val candidate = Candidate(
       election = SenateElection.`2016`,
       state = State.SA,
-      aecId = "1234",
+      aecId = AecCandidateId("1234"),
       name = Name("Jane", "Doe"),
       party = Party.RegisteredParty.ALP,
       btlPosition = CandidatePosition(
@@ -53,7 +54,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     val candidate = Candidate(
       election = SenateElection.`2016`,
       state = State.SA,
-      aecId = "1234",
+      aecId = AecCandidateId("1234"),
       name = Name("Jane", "Doe"),
       party = Party.Independent,
       btlPosition = CandidatePosition(
@@ -93,7 +94,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     val expectedCandidate = Candidate(
       election = SenateElection.`2016`,
       state = State.SA,
-      aecId = "1234",
+      aecId = AecCandidateId("1234"),
       name = Name("Jane", "Doe"),
       party = Party.RegisteredParty.ALP,
       btlPosition = CandidatePosition(
@@ -121,7 +122,7 @@ class CandidateCodecSpec extends ImprovedFlatSpec {
     val expectedCandidate = Candidate(
       election = SenateElection.`2016`,
       state = State.SA,
-      aecId = "1234",
+      aecId = AecCandidateId("1234"),
       name = Name("Jane", "Doe"),
       party = Party.Independent,
       btlPosition = CandidatePosition(

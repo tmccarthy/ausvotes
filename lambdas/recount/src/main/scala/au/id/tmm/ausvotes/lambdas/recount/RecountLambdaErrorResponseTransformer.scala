@@ -17,7 +17,7 @@ object RecountLambdaErrorResponseTransformer
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
     case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
-      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.mkString("[\"", "\", \"", "\"]")}""")
+      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asString).mkString("[\"", "\", \"", "\"]")}""")
 
     case RecountLambdaError.RecountDataBucketUndefined =>
       badRequestResponse("Recount data bucket was undefined")

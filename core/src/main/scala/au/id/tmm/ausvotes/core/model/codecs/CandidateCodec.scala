@@ -4,11 +4,17 @@ import argonaut.Argonaut._
 import argonaut._
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.utilities.geo.australia.State
 
 object CandidateCodec {
   private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
+
+  implicit val aecCandidateIdCodec: CodecJson[AecCandidateId] = CodecJson[AecCandidateId](
+    encoder = id => id.asString.asJson,
+    decoder = cursor => cursor.as[String].map(AecCandidateId(_)),
+  )
 
   implicit def encodeCandidate(implicit encodeParty: EncodeJson[Party]): EncodeJson[Candidate] = candidate =>
     jObjectFields(
@@ -42,7 +48,7 @@ object CandidateCodec {
       for {
         election <- cursor.downField("election").as[SenateElection]
         state <- cursor.downField("state").as[State]
-        aecId <- cursor.downField("aecId").as[String]
+        aecId <- cursor.downField("aecId").as[AecCandidateId]
         name <- cursor.downField("name").as[Name]
         party <- cursor.downField("party").as[Party]
         btlPosition <- decodeBtlPositionCode(cursor)

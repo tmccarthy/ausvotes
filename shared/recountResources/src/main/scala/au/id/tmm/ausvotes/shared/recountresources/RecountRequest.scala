@@ -4,14 +4,16 @@ import argonaut.Argonaut._
 import argonaut._
 import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec.aecCandidateIdCodec
 import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.utilities.geo.australia.State
 
 final case class RecountRequest(
                                  election: SenateElection,
                                  state: State,
                                  vacancies: Int,
-                                 ineligibleCandidateAecIds: Set[String],
+                                 ineligibleCandidateAecIds: Set[AecCandidateId],
                                )
 
 object RecountRequest {
@@ -81,9 +83,9 @@ object RecountRequest {
     }
   }
 
-  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Set[String] =
+  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Set[AecCandidateId] =
     rawIneligibleCandidates
-      .map(_.split(',').filter(_.nonEmpty).toSet)
+      .map(_.split(',').filter(_.nonEmpty).toSet.map(AecCandidateId(_)))
       .getOrElse(Set.empty)
 
   sealed trait Error

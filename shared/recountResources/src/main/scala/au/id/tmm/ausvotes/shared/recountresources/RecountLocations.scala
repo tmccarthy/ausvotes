@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.shared.recountresources
 
 import java.net.URLEncoder
 
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 
 object RecountLocations {
@@ -25,7 +26,7 @@ object RecountLocations {
     )
   }
 
-  private def sanitiseCandidateId(candidateId: String): String =
-    URLEncoder.encode(candidateId, "UTF-8").replace("-", "%2D")
+  private def sanitiseCandidateId(candidateId: AecCandidateId): String =
+    URLEncoder.encode(candidateId.asString, "UTF-8").replace("-", "%2D")
 
 }

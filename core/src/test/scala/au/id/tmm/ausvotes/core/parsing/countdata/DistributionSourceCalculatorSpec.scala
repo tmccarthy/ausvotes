@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.core.parsing.countdata
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture, CountDataTestUtils}
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.core.model.parsing.Party.Independent
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Name}
 import au.id.tmm.countstv.model.values.Count
@@ -39,7 +40,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
   it should "pick up the elected candidate if two candidates have the same name as the candidate listed in an election comment" in {
     // There's already a Katy GALLAGHER
     val candidates = CandidateFixture.ACT.candidates +
-      Candidate(SenateElection.`2016`, State.ACT, "42", Name("Keith", "GALLAGHER"), Independent, candidatePosition("UG2"))
+      Candidate(SenateElection.`2016`, State.ACT, AecCandidateId("42"), Name("Keith", "GALLAGHER"), Independent, candidatePosition("UG2"))
 
     val sut = new DistributionSourceCalculator(candidates)
 

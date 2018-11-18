@@ -1,12 +1,13 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError.RecountRequestError.InvalidCandidateIds
 
 object CandidateActualisation {
 
   def actualiseIneligibleCandidates(
-                                     ineligibleCandidateAecIds: Set[String],
+                                     ineligibleCandidateAecIds: Set[AecCandidateId],
                                      candidates: Set[Candidate],
                                    ): Either[InvalidCandidateIds, Set[Candidate]] = {
     val aecIdToCandidateLookup = candidates.groupBy(_.aecId).mapValues(_.head)
