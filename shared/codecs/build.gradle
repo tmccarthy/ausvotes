@@ -1,5 +1,0 @@
-apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
-
-dependencies {
-    compile "io.argonaut:argonaut${s}:$argonautVersion"
-}

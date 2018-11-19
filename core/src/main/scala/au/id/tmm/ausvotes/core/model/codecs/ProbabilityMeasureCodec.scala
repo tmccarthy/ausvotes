@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.shared.codecs
+package au.id.tmm.ausvotes.core.model.codecs
 
 import argonaut.Argonaut._
 import argonaut.{DecodeJson, DecodeResult, EncodeJson}
