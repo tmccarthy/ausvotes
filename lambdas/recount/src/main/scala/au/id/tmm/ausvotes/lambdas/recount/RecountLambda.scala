@@ -13,7 +13,6 @@ import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses._
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.GroupsCandidatesAndPreferences
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResponse}
 import au.id.tmm.countstv.model.preferences.PreferenceTree
@@ -54,13 +53,16 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
       election = recountRequest.election
       state = recountRequest.state
 
-      recountResponse <- FetchPreferenceTree.useGroupsCandidatesAndPreferencesWhileCaching[F, RecountLambdaError, RecountResponse](election, state)(
-        handleEntityFetchError = e => Monad.leftPure(RecountLambdaError.EntityFetchError(e)),
-        handleCachePopulationError = e => Monad.leftPure(RecountLambdaError.EntityCachePopulationError(e)),
-      ) {
-        case GroupsCandidatesAndPreferences(groupsAndCandidates, preferenceTree) =>
-          computeRecount(recountDataBucketName, recountRequest, groupsAndCandidates.groups, groupsAndCandidates.candidates, preferenceTree)
-      }
+      groupsCandidatesAndPreferences <- FetchPreferenceTree.fetchGroupsCandidatesAndPreferencesFor(election, state)
+        .leftMap(RecountLambdaError.EntityFetchError)
+
+      recountResponse <- computeRecount(
+        recountDataBucketName,
+        recountRequest,
+        groupsCandidatesAndPreferences.groups,
+        groupsCandidatesAndPreferences.candidates,
+        groupsCandidatesAndPreferences.preferenceTree,
+      )
     } yield recountResponse
   }
 
