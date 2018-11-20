@@ -2,11 +2,9 @@
 <configuration>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <layout class="ch.qos.logback.classic.PatternLayout">
-      <pattern>
-        %d{yyyy-MM-dd HH:mm:ss} level=%-5level %replace(%msg){'\n','\r'} \r%replace(%ex){'\n','\r'}%nopex%n
-      </pattern>
-    </layout>
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="au.id.tmm.ausvotes.api.logback.ApiLogbackLayout" />
+    </encoder>
   </appender>
 
   <logger name="au.id.tmm" level="trace">

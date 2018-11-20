@@ -39,7 +39,7 @@ dependencies {
 
     compile "au.id.tmm:http-constants-core${s}:$httpConstantsVersion"
 
-    compile 'ch.qos.logback:logback-classic:1.0.13'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
 
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')

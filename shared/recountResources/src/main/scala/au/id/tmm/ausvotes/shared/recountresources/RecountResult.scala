@@ -32,7 +32,8 @@ object RecountResult {
       "outcomePossibilities" -> result.candidateOutcomeProbabilities.asJson,
     )
 
+  // TODO test this
   implicit def decodeRecountResult(implicit decodeCandidates: DecodeJson[Candidate]): DecodeJson[RecountResult] =
-    jdecode5(RecountResult.apply)
+    jdecode5L(RecountResult.apply)("election", "state", "numVacancies", "ineligibleCandidates", "outcomePossibilities")
 
 }
