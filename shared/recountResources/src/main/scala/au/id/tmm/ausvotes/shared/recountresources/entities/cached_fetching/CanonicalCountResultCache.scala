@@ -59,3 +59,8 @@ final class CanonicalCountResultCache(
       }
     }
 }
+
+object CanonicalCountResultCache {
+  def apply(groupsAndCandidatesCache: GroupsAndCandidatesCache): IO[Nothing, CanonicalCountResultCache] =
+    Semaphore(permits = 1).map(new CanonicalCountResultCache(groupsAndCandidatesCache, _))
+}

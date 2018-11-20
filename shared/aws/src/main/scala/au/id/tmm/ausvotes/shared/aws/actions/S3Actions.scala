@@ -6,7 +6,8 @@ import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKe
 
 object S3Actions {
 
-  abstract class ReadsS3[F[+_, +_]] {
+  // TODO change the method signatures here to be more clear about the exception types
+  trait ReadsS3[F[+_, +_]] {
     def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, String]
     def useInputStream[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => F[Exception, A]): F[Exception, A]
     def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): F[Exception, Boolean]
@@ -23,7 +24,7 @@ object S3Actions {
       implicitly[ReadsS3[F]].checkObjectExists(bucketName, objectKey)
   }
 
-  abstract class WritesToS3[F[+_, +_]] {
+  trait WritesToS3[F[+_, +_]] {
     def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): F[Exception, Unit]
 
     def putText(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String): F[Exception, Unit] =

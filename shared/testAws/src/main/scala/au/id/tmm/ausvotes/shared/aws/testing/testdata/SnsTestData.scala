@@ -20,10 +20,10 @@ object SnsTestData {
 
   val empty = SnsTestData(Map.empty)
 
-  def testIOInstance[D](
-                         snsTestDataField: D => SnsTestData,
-                         setSnsTestData: (D, SnsTestData) => D,
-                       ): PutsSnsMessages[TestIO[D, +?, +?]] = new PutsSnsMessages[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends PutsSnsMessages[TestIO[D, +?, +?]] {
+    protected def snsTestDataField(data: D): SnsTestData
+    protected def setSnsTestData(oldData: D, newTestData: SnsTestData): D
+
     override def putMessage(topicArn: String, messageBody: String): TestIO[D, Exception, Unit] =
       TestIO { oldTestData =>
         val oldSnsTestData = snsTestDataField(oldTestData)

@@ -12,7 +12,9 @@ object ResourcesTestData {
 
   val empty = ResourcesTestData(Map.empty)
 
-  def testIOInstance[D](resourcesField: D => ResourcesTestData): Resources[TestIO[D, +?, +?]] = new Resources[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends Resources[TestIO[D, +?, +?]] {
+    protected def resourcesField(data: D): ResourcesTestData
+
     override def resource(name: String): TestIO[D, Nothing, Option[String]] =
       TestIO(data => Output(data, Right(resourcesField(data).resources.get(name))))
   }

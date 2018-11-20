@@ -20,10 +20,9 @@ object CurrentTimeTestData {
     stepEachInvocation = Duration.ofSeconds(1),
   )
 
-  def testIOInstance[D](
-                         currentTimeField: D => CurrentTimeTestData,
-                         setCurrentTimeField: (D, CurrentTimeTestData) => D,
-                       ): Now[TestIO[D, +?, +?]] = new Now[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends Now[TestIO[D, +?, +?]] {
+    protected def currentTimeField(data: D): CurrentTimeTestData
+    protected def setCurrentTimeField(oldData: D, newCurrentTestTimeData: CurrentTimeTestData): D
 
     override def systemNanoTime: TestIO[D, Nothing, Long] = testIOWithTime(i => i.getEpochSecond * 1000000000 + i.getNano)
     override def currentTimeMillis: TestIO[D, Nothing, Long] = testIOWithTime(_.toEpochMilli)
@@ -39,7 +38,6 @@ object CurrentTimeTestData {
 
         Output(setCurrentTimeField(data, newCurrentTimeTestData), Right(fromInstant(instantToReturn)))
       })
-
   }
 
 }

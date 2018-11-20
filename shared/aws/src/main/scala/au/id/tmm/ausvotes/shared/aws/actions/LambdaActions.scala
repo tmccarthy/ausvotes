@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.shared.aws.data.LambdaFunctionName
 
 object LambdaActions {
 
-  abstract class InvokesLambda[F[+_, +_]] {
+  trait InvokesLambda[F[+_, +_]] {
     def invokeFunction(name: LambdaFunctionName, payload: Option[String]): F[Exception, String]
   }
 

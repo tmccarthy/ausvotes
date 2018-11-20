@@ -41,7 +41,9 @@ dependencies {
 
     compile 'ch.qos.logback:logback-classic:1.0.13'
 
+    testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')
+    testCompile project(':shared:testRecountResources')
 }
 
 idea {

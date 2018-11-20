@@ -5,7 +5,7 @@ import java.util.Objects
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import org.apache.commons.lang3.StringUtils
 
-abstract class Log[F[+_, +_]] {
+trait Log[F[+_, +_]] {
 
   def logError(loggedEvent: LoggedEvent): F[Nothing, Unit]
   def logWarn(loggedEvent: LoggedEvent): F[Nothing, Unit]

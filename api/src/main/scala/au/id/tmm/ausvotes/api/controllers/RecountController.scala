@@ -10,17 +10,21 @@ import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
-import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
+import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResult}
 import com.amazonaws.AmazonServiceException
 
 class RecountController(config: Config) {
 
   // TODO should really return the decoded RecountResult
-  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](apiRequest: RecountApiRequest): F[RecountException, Json] = {
+  def recount[F[+_, +_] : Monad : ReadsS3 : FetchCanonicalCountResult : InvokesLambda](apiRequest: RecountApiRequest): F[RecountException, Json] = {
     //noinspection ConvertibleToMethodValue
     for {
-      recountRequest <- Monad.fromEither(buildFullRecountRequest(apiRequest))
+      canonicalRecount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(apiRequest.election, apiRequest.state)
+          .leftMap(RecountException.FetchCanonicalCountError)
+
+      recountRequest <- Monad.fromEither(buildFullRecountRequest(apiRequest, canonicalRecount))
 
       cachedRecount <- readCachedRecount(recountRequest).leftMap(RecountException.CheckRecountComputedError)
 
@@ -29,13 +33,13 @@ class RecountController(config: Config) {
     } yield response
   }
 
-  private def buildFullRecountRequest(apiRequest: RecountApiRequest): Either[RecountException, RecountRequest] =
+  private def buildFullRecountRequest(apiRequest: RecountApiRequest, canonicalCountResult: RecountResult): Either[RecountException, RecountRequest] =
     NumVacanciesComputation.numVacanciesForStateAtElection(apiRequest.election, apiRequest.state).map { defaultNumVacancies =>
       RecountRequest(
         apiRequest.election,
         apiRequest.state,
         apiRequest.numVacancies getOrElse defaultNumVacancies,
-        apiRequest.ineligibleCandidates getOrElse Set.empty,
+        apiRequest.ineligibleCandidates getOrElse canonicalCountResult.ineligibleCandidates.map(_.aecId),
       )
     }.left.map(_ => RecountException.BadRequestError(RecountApiRequest.ConstructionException.NoElectionForState(apiRequest.election, apiRequest.state)))
 

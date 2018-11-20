@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.io.typeclasses
 
-abstract class Parallel[F[+_, +_]] {
+trait Parallel[F[+_, +_]] {
 
   def par[E1, E2 >: E1, A, B](left: F[E1, A], right: F[E2, B]): F[E2, (A, B)]
 

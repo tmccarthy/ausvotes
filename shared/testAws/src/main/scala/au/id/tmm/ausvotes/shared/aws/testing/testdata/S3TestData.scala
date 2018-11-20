@@ -23,9 +23,10 @@ object S3TestData {
 
   val empty = S3TestData(InMemoryS3.empty)
 
-  def testIoReadS3Instance[D](
-                               s3TestDataField: D => S3TestData,
-                             ): S3Actions.ReadsS3[TestIO[D, +?, +?]] = new S3Actions.ReadsS3[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends S3Actions.ReadsS3[TestIO[D, +?, +?]] with S3Actions.WritesToS3[TestIO[D, +?, +?]] {
+    protected def s3TestDataField(data: D): S3TestData
+    protected def setS3TestData(oldData: D, newS3TestData: S3TestData): D
+
     override def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): TestIO[D, Exception, String] =
       TestIO { data =>
         val s3TestData = s3TestDataField(data)
@@ -61,12 +62,7 @@ object S3TestData {
 
       Output(data, hasObject)
     }
-  }
 
-  def testIoWriteS3Instance[D](
-                                s3TestDataField: D => S3TestData,
-                                setS3TestData: (D, S3TestData) => D,
-                              ): S3Actions.WritesToS3[TestIO[D, +?, +?]] = new S3Actions.WritesToS3[TestIO[D, +?, +?]] {
     override def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): TestIO[D, Exception, Unit] =
       TestIO { oldTestData =>
 
@@ -83,7 +79,6 @@ object S3TestData {
     override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => TestIO[D, Exception, Unit]): TestIO[D, Exception, Unit] =
       TestIO { oldTestData => Output(oldTestData, Right(Unit)) }
   }
-
 
   final case class InMemoryS3(buckets: Set[InMemoryS3.Bucket]) {
     def apply(name: S3BucketName): Option[Bucket] = buckets.find(_.name == name)

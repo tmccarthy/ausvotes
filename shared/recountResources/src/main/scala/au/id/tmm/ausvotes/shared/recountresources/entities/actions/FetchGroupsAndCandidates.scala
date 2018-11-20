@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAn
 import au.id.tmm.ausvotes.shared.recountresources.exceptions
 import au.id.tmm.utilities.geo.australia.State
 
-abstract class FetchGroupsAndCandidates[F[+_, +_]] {
+trait FetchGroupsAndCandidates[F[+_, +_]] {
 
   def fetchGroupsAndCandidatesFor(election: SenateElection, state: State): F[FetchGroupsAndCandidatesException, GroupsAndCandidates]
 

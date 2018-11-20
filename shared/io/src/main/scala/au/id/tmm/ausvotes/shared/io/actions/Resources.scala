@@ -1,8 +1,6 @@
 package au.id.tmm.ausvotes.shared.io.actions
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
-
-abstract class Resources[F[+_, +_] : Monad] {
+trait Resources[F[+_, +_]] {
   def resource(name: String): F[Nothing, Option[String]]
 }
 

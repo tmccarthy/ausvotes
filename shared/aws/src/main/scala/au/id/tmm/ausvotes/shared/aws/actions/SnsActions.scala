@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.shared.aws.actions
 
 object SnsActions {
 
-  abstract class PutsSnsMessages[F[+_, +_]] {
+  trait PutsSnsMessages[F[+_, +_]] {
     def putMessage(topicArn: String, messageBody: String): F[Exception, Unit]
   }
 

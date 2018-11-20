@@ -4,6 +4,8 @@ import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.routes.AppRoutes
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
+import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{CanonicalCountResultCache, GroupsAndCandidatesCache}
 import io.netty.handler.codec.http.HttpResponse
 import scalaz.zio.{ExitResult, IO, RTS}
 import unfiltered.netty.Server
@@ -16,9 +18,11 @@ object Api {
 
     val ioRuntime = new RTS {}
 
-    val config = ioRuntime.unsafeRun(Config.fromEnvironment[IO])
+    val startupResources = ioRuntime.unsafeRun(buildStartupResources)
 
-    val routes = AppRoutes[IO](config)
+    implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = startupResources.canonicalCountResultCache
+
+    val routes = AppRoutes[IO](startupResources.config)
 
     val intent: Plan.Intent = buildIntent(ioRuntime, routes)
 
@@ -44,5 +48,18 @@ object Api {
       }
     }
   }
+
+  private val buildStartupResources: IO[Exception, StartupResources] =
+    for {
+      config <- Config.fromEnvironment[IO]
+      groupsAndCandidatesCache <- GroupsAndCandidatesCache(config.recountDataBucket)
+      canonicalCountResultCache <- CanonicalCountResultCache(groupsAndCandidatesCache)
+    } yield StartupResources(config, groupsAndCandidatesCache, canonicalCountResultCache)
+
+  final case class StartupResources(
+                                     config: Config,
+                                     groupsAndCandidatesCache: GroupsAndCandidatesCache,
+                                     canonicalCountResultCache: CanonicalCountResultCache,
+                                   )
 
 }

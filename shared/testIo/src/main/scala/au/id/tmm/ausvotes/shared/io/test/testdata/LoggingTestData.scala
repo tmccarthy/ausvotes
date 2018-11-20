@@ -18,10 +18,9 @@ object LoggingTestData {
 
   val empty = LoggingTestData(Map.empty)
 
-  def testIOInstance[D](
-                         loggingTestDataField: D => LoggingTestData,
-                         setLoggingTestData: (D, LoggingTestData) => D,
-                       ): Log[TestIO[D, +?, +?]] = new Log[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends Log[TestIO[D, +?, +?]] {
+    protected def loggingTestDataField(data: D): LoggingTestData
+    protected def setLoggingTestData(oldData: D, newLoggingTestData: LoggingTestData): D
 
     override def logError(loggedEvent: LoggedEvent): TestIO[D, Nothing, Unit] = log(Log.Level.Error, loggedEvent)
     override def logWarn(loggedEvent: LoggedEvent): TestIO[D, Nothing, Unit] = log(Log.Level.Warn, loggedEvent)

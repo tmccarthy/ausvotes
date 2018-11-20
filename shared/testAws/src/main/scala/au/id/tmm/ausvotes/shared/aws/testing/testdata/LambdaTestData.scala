@@ -27,10 +27,10 @@ object LambdaTestData {
 
   val default = LambdaTestData(handler = alwaysFailHandler)
 
-  def testIOInstance[D](
-                         lambdaTestDataField: D => LambdaTestData,
-                         setLambdaTestData: (D, LambdaTestData) => D,
-                       ): InvokesLambda[TestIO[D, +?, +?]] = new InvokesLambda[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends InvokesLambda[TestIO[D, +?, +?]] {
+    protected def lambdaTestDataField(data: D): LambdaTestData
+    protected def setLambdaTestData(oldData: D, newLambdaTestData: LambdaTestData): D
+
     override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): TestIO[D, Exception, String] =
       TestIO { oldTestData =>
         val oldLambdaTestData = lambdaTestDataField(oldTestData)

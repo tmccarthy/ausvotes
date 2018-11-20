@@ -12,7 +12,9 @@ object EnvVarTestData {
 
   val empty = EnvVarTestData(Map.empty)
 
-  def testIOInstance[D](envVarsField: D => EnvVarTestData): EnvVars[TestIO[D, +?, +?]] = new EnvVars[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends EnvVars[TestIO[D, +?, +?]] {
+    protected def envVarsField(data: D): EnvVarTestData
+
     override def envVars: TestIO[D, Nothing, Map[String, String]] =
       TestIO(data => Output(data, Right(envVarsField(data).envVars)))
   }

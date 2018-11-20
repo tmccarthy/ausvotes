@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.io.typeclasses
 
-abstract class Monad[F[+_, +_]] {
+trait Monad[F[+_, +_]] {
   def pure[A](a: A): F[Nothing, A]
   def leftPure[E](e: E): F[E, Nothing]
 

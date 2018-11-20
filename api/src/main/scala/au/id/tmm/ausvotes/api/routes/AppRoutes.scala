@@ -11,11 +11,12 @@ import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Resources}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}
 
 object AppRoutes {
 
-  def apply[F[+_, +_] : Monad : Resources : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] =
+  def apply[F[+_, +_] : Monad : Resources : FetchCanonicalCountResult : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] =
     DiagnosticRoutes[F] orElse
       RecountRoutes[F](config) orElse
       NotFoundRoute[F] andThen

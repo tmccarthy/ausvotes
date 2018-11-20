@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferen
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
 import au.id.tmm.utilities.geo.australia.State
 
-abstract class FetchPreferenceTree[F[+_, +_]] {
+trait FetchPreferenceTree[F[+_, +_]] {
 
   def fetchGroupsCandidatesAndPreferencesFor(
                                               election: SenateElection,
