@@ -23,7 +23,7 @@ object ProbabilityMeasureCodec {
 
   implicit def decodeProbabilityMeasure[A : DecodeJson]: DecodeJson[ProbabilityMeasure[A]] = DecodeJson { c =>
     for {
-      elements <- c.as[List[(A, Rational)]] (ListDecodeJson(decodeProbabilityMeasureElement))
+      elements <- c.as[List[(A, Rational)]](ListDecodeJson(decodeProbabilityMeasureElement))
       asMap = elements.toMap
       probabilityMeasure <- ProbabilityMeasure(asMap) match {
         case Right(probabilityMeasure) => DecodeResult.ok(probabilityMeasure)

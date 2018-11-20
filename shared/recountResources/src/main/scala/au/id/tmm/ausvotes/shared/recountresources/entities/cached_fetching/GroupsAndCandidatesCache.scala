@@ -24,13 +24,14 @@ final class GroupsAndCandidatesCache(
                                       private[cached_fetching] val baseBucket: S3BucketName,
                                       private val mutex: Semaphore,
                                     ) extends FetchGroupsAndCandidates[IO] {
-  private object codecs {
+  private[cached_fetching] object codecs {
     implicit val decodeParty: DecodeJson[Party] = PartyCodec.decodeParty
     implicit val decodeGroup: DecodeJson[Group] = GroupCodec.decodeGroup
   }
 
   private val groups: CacheMap[FetchGroupsAndCandidatesException, Set[Group]] = mutable.Map()
 
+  // TODO why bother storing the json?
   private val candidateJsons: CacheMap[FetchGroupsAndCandidatesException, Json] = mutable.Map()
 
   private val groupsAndCandidates: CacheMap[FetchGroupsAndCandidatesException, GroupsAndCandidates] = mutable.Map()

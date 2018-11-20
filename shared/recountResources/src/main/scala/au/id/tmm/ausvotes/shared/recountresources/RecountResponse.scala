@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.shared.recountresources
 import argonaut.Argonaut._
 import argonaut.EncodeJson
 import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
-import au.id.tmm.ausvotes.core.model.codecs.PartyCodec.encodeParty
 import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 
 sealed trait RecountResponse

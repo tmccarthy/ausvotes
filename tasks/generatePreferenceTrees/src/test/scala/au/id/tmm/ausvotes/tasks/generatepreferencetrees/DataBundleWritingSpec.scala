@@ -3,8 +3,6 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.fixtures.{CandidateFixture, DivisionAndPollingPlaceFixture, GroupAndCandidateFixture}
 import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
-import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
