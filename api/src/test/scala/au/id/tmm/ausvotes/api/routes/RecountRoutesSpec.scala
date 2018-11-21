@@ -15,6 +15,7 @@ class RecountRoutesSpec extends ImprovedFlatSpec {
       Map(
         "vacancies" -> List("6", "12"),
         "ineligibleCandidates" -> List("1234"),
+        "doRounding" -> List("true", "false")
       ),
     )
 
@@ -23,6 +24,7 @@ class RecountRoutesSpec extends ImprovedFlatSpec {
       State.VIC,
       numVacancies = Some(6),
       ineligibleCandidates = Some(Set(AecCandidateId("1234"))),
+      doRounding = Some(true),
     )
 
     assert(actualRecountRequest === Right(expectedRecountRequest))

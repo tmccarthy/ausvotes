@@ -14,6 +14,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       State.VIC,
       12,
       Set.empty,
+      doRounding = true,
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -22,6 +23,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       "VIC",
       "12-vacancies",
       "none-ineligible",
+      "with-rounding",
       "result.json",
     )
 
@@ -34,6 +36,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       State.WA,
       6,
       Set(AecCandidateId("123"), AecCandidateId("456")),
+      doRounding = false,
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -42,6 +45,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       "WA",
       "6-vacancies",
       "123-456-ineligible",
+      "no-rounding",
       "result.json",
     )
 
@@ -54,6 +58,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       State.WA,
       6,
       Set(AecCandidateId("$&%?/ ")),
+      doRounding = true,
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -62,6 +67,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       "WA",
       "6-vacancies",
       "%24%26%25%3F%2F+-ineligible",
+      "with-rounding",
       "result.json",
     )
 
@@ -74,6 +80,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       State.WA,
       6,
       Set(AecCandidateId("123-456")),
+      doRounding = false,
     ))
 
     val expectedLocation = S3ObjectKey(
@@ -82,6 +89,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
       "WA",
       "6-vacancies",
       "123%2D456-ineligible",
+      "no-rounding",
       "result.json",
     )
 

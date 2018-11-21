@@ -40,6 +40,7 @@ class RecountController(config: Config) {
         state,
         apiRequest.numVacancies getOrElse defaultNumVacancies,
         apiRequest.ineligibleCandidates getOrElse IneligibleCandidates.ineligibleCandidatesFor(election, state),
+        doRounding = true,
       )
     }.left.map(_ => RecountException.BadRequestError(RecountApiRequest.ConstructionException.NoElectionForState(election, state)))
   }

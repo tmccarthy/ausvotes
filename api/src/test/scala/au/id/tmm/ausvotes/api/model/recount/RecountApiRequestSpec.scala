@@ -12,8 +12,9 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
                                          state: String = "VIC",
                                          vacancies: Option[String] = Some("12"),
                                          ineligibleCandidateAecIds: Option[String] = Some("123,456,789"),
+                                         roundingFlag: Option[String] = Some("true")
                                        ): Either[RecountApiRequest.ConstructionException, RecountApiRequest] =
-    RecountApiRequest.buildFrom(election, state, vacancies, ineligibleCandidateAecIds)
+    RecountApiRequest.buildFrom(election, state, vacancies, ineligibleCandidateAecIds, roundingFlag)
 
   "a recount request" can "be parsed from a lambda request" in {
     val request = actualRecountRequestGiven()
@@ -23,6 +24,7 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
       State.VIC,
       numVacancies = Some(12),
       ineligibleCandidates = Some(Set(AecCandidateId("123"), AecCandidateId("456"), AecCandidateId("789"))),
+      doRounding = Some(true),
     )
 
     assert(request === Right(expectedRecountRequest))
@@ -64,47 +66,16 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
     assert(request === Left(RecountApiRequest.ConstructionException.InvalidNumVacancies("invalid")))
   }
 
+  it must "not have an invalid rounding flag" in {
+    val request = actualRecountRequestGiven(roundingFlag = Some("invalid"))
+
+    assert(request === Left(RecountApiRequest.ConstructionException.InvalidRoundingFlag("invalid")))
+  }
+
   it should "suppress empty ineligible candidate ids" in {
     val request = actualRecountRequestGiven(ineligibleCandidateAecIds = Some("123,,456"))
 
     assert(request.map(_.ineligibleCandidates) === Right(Some(Set(AecCandidateId("123"), AecCandidateId("456")))))
-  }
-
-  "a InvalidElectionId error" should "have a human readable representation" in {
-    val badElectionId = "invalid"
-
-    assert(
-      RecountApiRequest.ConstructionException.humanReadableMessageFor(RecountApiRequest.ConstructionException.InvalidElectionId(badElectionId)) ===
-        s"""Unrecognised election id "$badElectionId""""
-    )
-  }
-
-  "a InvalidStateId(badStateId) error" should "have a human readable representation" in {
-    val badStateId = "invalid"
-
-    assert(
-      RecountApiRequest.ConstructionException.humanReadableMessageFor(RecountApiRequest.ConstructionException.InvalidStateId(badStateId)) ===
-        s"""Unrecognised state id "$badStateId""""
-    )
-  }
-
-  "a NoElectionForState(election, state) error" should "have a human readable representation" in {
-    val election = SenateElection.`2014 WA`
-    val state = State.SA
-
-    assert(
-      RecountApiRequest.ConstructionException.humanReadableMessageFor(RecountApiRequest.ConstructionException.NoElectionForState(election, state)) ===
-        s"""The election "${election.id}" did not have an election for state "${state.abbreviation}""""
-    )
-  }
-
-  "a InvalidNumVacancies(badNumVacancies) error" should "have a human readable representation" in {
-    val badNumVacancies = "-1"
-
-    assert(
-      RecountApiRequest.ConstructionException.humanReadableMessageFor(RecountApiRequest.ConstructionException.InvalidNumVacancies(badNumVacancies)) ===
-        s"""Invalid number of vacancies "$badNumVacancies""""
-    )
   }
 
 }

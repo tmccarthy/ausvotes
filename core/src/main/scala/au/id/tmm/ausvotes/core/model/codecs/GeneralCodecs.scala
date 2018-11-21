@@ -46,7 +46,7 @@ object GeneralCodecs {
   )
 
   implicit val numVotesCodec: CodecJson[NumVotes] = CodecJson(
-    encoder = _.asLong.asJson,
+    encoder = _.asDouble.asJson,
     decoder = c => c.as[Long].map(NumVotes(_)),
   )
 

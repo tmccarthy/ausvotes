@@ -22,6 +22,7 @@ object RecountLocations {
       recountRequest.state.abbreviation,
       s"${recountRequest.vacancies.toString}-vacancies",
       s"$ineligiblesPathSegment-ineligible",
+      if (recountRequest.doRounding) "with-rounding" else "no-rounding",
       "result.json",
     )
   }

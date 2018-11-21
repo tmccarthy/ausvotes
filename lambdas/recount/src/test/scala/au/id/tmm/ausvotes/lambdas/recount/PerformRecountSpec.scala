@@ -38,6 +38,7 @@ class PerformRecountSpec extends ImprovedFlatSpec {
       preferenceTree = preferenceTree,
       ineligibleCandidates = Set.empty,
       numVacancies = 2,
+      doRounding = true,
     )
 
     assert(actualResult.map(_.candidateOutcomeProbabilities.onlyOutcomeUnsafe.electedCandidates) === Right(DupelessSeq(

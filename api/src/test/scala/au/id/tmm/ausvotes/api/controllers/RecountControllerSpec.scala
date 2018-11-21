@@ -40,7 +40,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   private val state = State.ACT
 
   it should "return a cached recount if one is present in s3" in {
-    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None)
+    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
 
     val cachedContentKey = RecountLocations.locationOfRecountFor(
       RecountRequest(
@@ -48,6 +48,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
         request.state,
         request.numVacancies.get,
         Set(CandidateFixture.ACT.katyGallagher.aecId),
+        request.doRounding.getOrElse(true),
       )
     )
 
@@ -66,7 +67,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   }
 
   it should "return a performed recount if one is not present in s3" in {
-    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None)
+    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
 
     val testData = AwsTestData(
       lambdaTestData = LambdaTestData(
@@ -83,7 +84,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     assert(output.result === Right(jEmptyObject))
     assert(output.testData.lambdaTestData.invocations === List(
-      LambdaInvocation(config.recountFunction, Some("""{"election":"2016","state":"ACT","vacancies":2,"ineligibleCandidates":["28147"]}"""))
+      LambdaInvocation(config.recountFunction, Some("""{"election":"2016","state":"ACT","vacancies":2,"ineligibleCandidates":["28147"],"doRounding":true}"""))
     ))
   }
 

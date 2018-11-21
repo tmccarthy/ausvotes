@@ -13,11 +13,12 @@ final case class RecountRequest(
                                  state: State,
                                  vacancies: Int,
                                  ineligibleCandidateAecIds: Set[AecCandidateId],
+                                 doRounding: Boolean,
                                )
 
 object RecountRequest {
 
   implicit val codec: CodecJson[RecountRequest] =
-    casecodec4(apply, unapply)("election", "state", "vacancies", "ineligibleCandidates")
+    casecodec5(apply, unapply)("election", "state", "vacancies", "ineligibleCandidates", "doRounding")
 
 }

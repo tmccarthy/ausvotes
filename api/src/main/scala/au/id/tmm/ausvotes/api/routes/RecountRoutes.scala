@@ -34,12 +34,16 @@ object RecountRoutes {
                                            rawElection: String,
                                            rawState: String,
                                            queryParams: Map[String, List[String]],
-                                         ): Either[RecountApiRequest.ConstructionException, RecountApiRequest] =
+                                         ): Either[RecountApiRequest.ConstructionException, RecountApiRequest] = {
+    def queryParam(name: String) = queryParams.get(name).flatMap(_.headOption)
+
     RecountApiRequest.buildFrom(
       rawElection,
       rawState,
-      rawNumVacancies = queryParams.get("vacancies").flatMap(_.headOption),
-      rawIneligibleCandidates = queryParams.get("ineligibleCandidates").flatMap(_.headOption),
+      rawNumVacancies = queryParam("vacancies"),
+      rawIneligibleCandidates = queryParam("ineligibleCandidates"),
+      rawDoRounding = queryParam("doRounding"),
     )
+  }
 
 }

@@ -63,7 +63,7 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
     }.toMap
 
     counts.foreach(count => {
-      val expected = expectedCumulativeExhaustedVotesPerCount(count).asLong
+      val expected = expectedCumulativeExhaustedVotesPerCount(count).asDouble
       val actual = actualCumulativeExhaustedVotesPerCount(count)
 
       val absoluteError = actual - expected

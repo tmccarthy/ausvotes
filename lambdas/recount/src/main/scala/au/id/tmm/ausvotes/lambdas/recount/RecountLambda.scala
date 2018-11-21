@@ -94,6 +94,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
           preferenceTree,
           ineligibleCandidates,
           recountRequest.vacancies,
+          recountRequest.doRounding,
         )
       }
 

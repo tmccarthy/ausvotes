@@ -6,6 +6,7 @@ import au.id.tmm.ausvotes.shared.recountresources.RecountResult
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
+import au.id.tmm.countstv.rules.RoundingRules
 import au.id.tmm.utilities.geo.australia.State
 
 object PerformRecount {
@@ -19,6 +20,7 @@ object PerformRecount {
                       preferenceTree: RootPreferenceTree[CandidatePosition],
                       ineligibleCandidates: Set[Candidate],
                       numVacancies: Int,
+                      doRounding: Boolean,
                     ): Either[RecountLambdaError.RecountComputationError, RecountResult] = {
     try {
       val allCandidatePositions = allCandidates.map(_.btlPosition)
@@ -29,7 +31,7 @@ object PerformRecount {
         ineligibleCandidatePositions,
         numVacancies,
         preferenceTree,
-      )
+      )(if (doRounding) RoundingRules.AEC else RoundingRules.NO_ROUNDING)
 
       val lookupCandidateByPosition = allCandidates.map { candidate =>
         candidate.btlPosition -> candidate
