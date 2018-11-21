@@ -130,7 +130,6 @@ object HowToVoteCardGeneration {
     }.toMap
   }
 
-
   def from(election: SenateElection, groups: Set[Group]): Set[HowToVoteCard] = {
     require(election == SenateElection.`2016`, s"$election is unsupported")
 

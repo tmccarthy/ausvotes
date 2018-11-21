@@ -10,12 +10,11 @@ import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
 import unfiltered.request._
 
 object RecountRoutes {
 
-  def apply[F[+_, +_] : Monad : ReadsS3 : FetchCanonicalCountResult : InvokesLambda](config: Config): Routes[F] = {
+  def apply[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](config: Config): Routes[F] = {
     val controller = new RecountController(config)
 
     {

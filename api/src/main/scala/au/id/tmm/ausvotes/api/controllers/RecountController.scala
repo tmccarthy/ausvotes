@@ -6,25 +6,22 @@ import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
 import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
 import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
+import au.id.tmm.ausvotes.core.model.IneligibleCandidates
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
-import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResult}
+import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import com.amazonaws.AmazonServiceException
 
 class RecountController(config: Config) {
 
   // TODO should really return the decoded RecountResult
-  def recount[F[+_, +_] : Monad : ReadsS3 : FetchCanonicalCountResult : InvokesLambda](apiRequest: RecountApiRequest): F[RecountException, Json] = {
+  def recount[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](apiRequest: RecountApiRequest): F[RecountException, Json] = {
     //noinspection ConvertibleToMethodValue
     for {
-      canonicalRecount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(apiRequest.election, apiRequest.state)
-          .leftMap(RecountException.FetchCanonicalCountError)
-
-      recountRequest <- Monad.fromEither(buildFullRecountRequest(apiRequest, canonicalRecount))
+      recountRequest <- Monad.fromEither(buildFullRecountRequest(apiRequest))
 
       cachedRecount <- readCachedRecount(recountRequest).leftMap(RecountException.CheckRecountComputedError)
 
@@ -33,15 +30,19 @@ class RecountController(config: Config) {
     } yield response
   }
 
-  private def buildFullRecountRequest(apiRequest: RecountApiRequest, canonicalCountResult: RecountResult): Either[RecountException, RecountRequest] =
-    NumVacanciesComputation.numVacanciesForStateAtElection(apiRequest.election, apiRequest.state).map { defaultNumVacancies =>
+  private def buildFullRecountRequest(apiRequest: RecountApiRequest): Either[RecountException, RecountRequest] = {
+    val election = apiRequest.election
+    val state = apiRequest.state
+
+    NumVacanciesComputation.numVacanciesForStateAtElection(election, state).map { defaultNumVacancies =>
       RecountRequest(
-        apiRequest.election,
-        apiRequest.state,
+        election,
+        state,
         apiRequest.numVacancies getOrElse defaultNumVacancies,
-        apiRequest.ineligibleCandidates getOrElse canonicalCountResult.ineligibleCandidates.map(_.aecId),
+        apiRequest.ineligibleCandidates getOrElse IneligibleCandidates.ineligibleCandidatesFor(election, state),
       )
-    }.left.map(_ => RecountException.BadRequestError(RecountApiRequest.ConstructionException.NoElectionForState(apiRequest.election, apiRequest.state)))
+    }.left.map(_ => RecountException.BadRequestError(RecountApiRequest.ConstructionException.NoElectionForState(election, state)))
+  }
 
   private def readCachedRecount[F[+_, +_] : ReadsS3 : Monad](recountRequest: RecountRequest): F[Exception, Option[Json]] = {
     val locationOfCachedRecount = RecountLocations.locationOfRecountFor(recountRequest)
