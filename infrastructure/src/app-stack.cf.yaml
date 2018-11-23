@@ -53,16 +53,6 @@ Resources:
     Properties:
       Name: !Ref AusvotesDomainName
 
-  AusvotesApiDnsRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref AusvotesHostedZone
-      Name: !Ref AusvotesApiDomainName
-      AliasTarget:
-        DNSName: !GetAtt AusvotesApiAlb.Outputs.LoadBalancerUrl
-        HostedZoneId: !GetAtt AusvotesApiAlb.Outputs.LoadBalancerHostedZoneId
-      Type: A
-
   AusvotesUiDnsRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -227,17 +217,6 @@ Resources:
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
         CertificateId: !Ref AusvotesRegionalDomainCertificateId
 
-  AusvotesApiAlb:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-base/load-balancers.yaml'
-      Parameters:
-        EnvironmentName: !Sub '${AWS::StackName}-api'
-        VPC: !GetAtt EcsVpc.Outputs.VPC
-        Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
-        SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.LoadBalancerSecurityGroup
-        CertificateId: !Ref AusvotesRegionalDomainCertificateId
-
   Ecs:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -249,6 +228,20 @@ Resources:
         VPC: !GetAtt EcsVpc.Outputs.VPC
         SecurityGroup: !GetAtt EcsSecurityGroups.Outputs.ECSHostSecurityGroup
         Subnets: !GetAtt EcsVpc.Outputs.PublicSubnets
+
+  AusvotesApiService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-api-service.yaml'
+      Parameters:
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Cluster: !GetAtt Ecs.Outputs.Cluster
+        Image: !Ref AusvotesApiDockerImage
+        DesiredCount: 1
+        Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
+        Path: /api/*
+        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
+        RecountDataBucketName: !Ref RecountDataBucketName
 
   AusvotesUiService:
     Type: AWS::CloudFormation::Stack
@@ -262,20 +255,6 @@ Resources:
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
         Path: /*
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
-
-  AusvotesApiService:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-api-service.yaml'
-      Parameters:
-        VPC: !GetAtt EcsVpc.Outputs.VPC
-        Cluster: !GetAtt Ecs.Outputs.Cluster
-        Image: !Ref AusvotesApiDockerImage
-        DesiredCount: 1
-        Listener: !GetAtt AusvotesApiAlb.Outputs.Listener
-        Path: /*
-        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
-        RecountDataBucketName: !Ref RecountDataBucketName
 
   LifecycleHook:
     Type: AWS::CloudFormation::Stack
