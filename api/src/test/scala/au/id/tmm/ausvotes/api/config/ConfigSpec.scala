@@ -12,14 +12,16 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 class ConfigSpec extends ImprovedFlatSpec {
 
   private val configFieldSpecs = List[ConfigFieldSpec[Any]](
+
     ConfigFieldSpec(
       "recountDataBucket",
       _.recountDataBucket,
       "RECOUNT_DATA_BUCKET",
-      None,
+      Some(S3BucketName("recount-data.buckets.ausvotes.info")),
       "bucketName" -> Right(S3BucketName("bucketName")),
       "" -> Left(ConfigException.InvalidConfig("RECOUNT_DATA_BUCKET", "")),
     ),
+
     ConfigFieldSpec(
       "recountFunction",
       _.recountFunction,
@@ -28,6 +30,21 @@ class ConfigSpec extends ImprovedFlatSpec {
       "recount" -> Right(LambdaFunctionName("recount")),
       "" -> Left(ConfigException.InvalidConfig("RECOUNT_LAMBDA_FUNCTION_NAME", ""))
     ),
+
+    ConfigFieldSpec(
+      "basePath",
+      _.basePath,
+      "BASE_PATH",
+      Some(List("api")),
+      "/" -> Right(List.empty),
+      "" -> Right(List.empty),
+      "/api" -> Right(List("api")),
+      "/api/" -> Right(List("api")),
+      "api" -> Right(List("api")),
+      "/path/api" -> Right(List("path", "api")),
+      "path/api" -> Right(List("path", "api")),
+      "path/api/" -> Right(List("path", "api")),
+    )
   )
 
   private def retrieve[A](configField: Config => A, environment: Map[String, String]): Either[ConfigException, A] =

@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.api.routes
 
-import au.id.tmm.ausvotes.api.InfallibleRoutes
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.NotFoundException
 import au.id.tmm.ausvotes.api.model.GenericErrorResponse
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
+import au.id.tmm.ausvotes.api.{CompleteRoutes, InfallibleRoutes, PartialRoutes}
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
@@ -12,15 +12,35 @@ import au.id.tmm.ausvotes.shared.io.actions.{Log, Resources}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
+import unfiltered.netty.ReceivedMessage
+import unfiltered.request.{DelegatingRequest, HttpRequest}
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}
 
 object AppRoutes {
 
-  def apply[F[+_, +_] : Monad : Resources : FetchCanonicalCountResult : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] =
-    DiagnosticRoutes[F] orElse
-      RecountRoutes[F](config) orElse
-      NotFoundRoute[F] andThen
-      recoverError[F]
+  def apply[F[+_, +_] : Monad : Resources : FetchCanonicalCountResult : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] = {
+
+    val allRoutes: List[PartialRoutes[F]] = List(
+      DiagnosticRoutes[F],
+      RecountRoutes[F](config),
+    )
+
+    val partialRoutes: PartialRoutes[F] = allRoutes.reduce(_ orElse _)
+
+    val stripBasePath = stripBasePathUsing(config)
+
+    val completeRoutes: CompleteRoutes[F] = req => partialRoutes.applyOrElse(stripBasePath(req), NotFoundRoute[F])
+
+    completeRoutes andThen recoverError[F]
+  }
+
+  private def stripBasePathUsing(config: Config): HttpRequest[ReceivedMessage] => HttpRequest[ReceivedMessage] = {
+    val prefixToStrip = config.basePath.mkString(start = "/", sep = "/", end = "")
+
+    request => new DelegatingRequest[ReceivedMessage](request) {
+      override def uri: String = super.uri.stripPrefix(prefixToStrip)
+    }
+  }
 
   /*_*/
   private def recoverError[F[+_, +_] : Monad : Log](

@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.api.routes
 
-import au.id.tmm.ausvotes.api.Routes
+import au.id.tmm.ausvotes.api.PartialRoutes
 import au.id.tmm.ausvotes.api.controllers.DiagnosticController
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
 import au.id.tmm.ausvotes.shared.io.actions.Resources
@@ -10,7 +10,7 @@ import unfiltered.request.{GET, Path, Seg}
 
 object DiagnosticRoutes {
 
-  def apply[F[+_, +_] : Monad : Resources]: Routes[F] = {
+  def apply[F[+_, +_] : Monad : Resources]: PartialRoutes[F] = {
     case GET(Path(Seg("diagnostics" :: "version" :: Nil))) => DiagnosticController.version[F].map(ResponseJson(_))
   }
 

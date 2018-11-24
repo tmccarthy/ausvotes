@@ -9,6 +9,7 @@ import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.{MonadEitherOps, MonadOps}
 final case class Config(
                          recountDataBucket: S3BucketName,
                          recountFunction: LambdaFunctionName,
+                         basePath: List[String],
                        )
 
 object Config {
@@ -17,11 +18,15 @@ object Config {
     (EnvVars.envVars: F[ConfigException, Map[String, String]]).map { envVars =>
       for {
         recountDataBucket <- readS3BucketName(envVars, "RECOUNT_DATA_BUCKET")
-          .getOrElse(Left(ConfigException.EnvVarMissing("RECOUNT_DATA_BUCKET")))
+          .getOrElse(Right(S3BucketName("recount-data.buckets.ausvotes.info")))
 
         recountFunction <- readLambdaFunctionName(envVars, "RECOUNT_LAMBDA_FUNCTION_NAME")
-            .getOrElse(Right(LambdaFunctionName("recount")))
-      } yield Config(recountDataBucket, recountFunction)
+          .getOrElse(Right(LambdaFunctionName("recount")))
+
+        basePath = readPath(envVars, "BASE_PATH")
+          .getOrElse(List("api"))
+
+      } yield Config(recountDataBucket, recountFunction, basePath)
     }.absolve
 
   private def readS3BucketName(environment: Map[String, String], envVar: String): Option[Either[ConfigException, S3BucketName]] =
@@ -29,6 +34,9 @@ object Config {
 
   private def readLambdaFunctionName(environment: Map[String, String], envVar: String): Option[Either[ConfigException, LambdaFunctionName]] =
     readSimpleStringType(environment, envVar, LambdaFunctionName)
+
+  private def readPath(environment: Map[String, String], envVar: String): Option[List[String]] =
+    environment.get(envVar).map(_.split('/').toList.filter(_.nonEmpty))
 
   private def readSimpleStringType[A](
                                        environment: Map[String, String],

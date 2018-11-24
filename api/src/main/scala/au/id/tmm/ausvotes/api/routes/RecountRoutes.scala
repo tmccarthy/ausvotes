@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.api.routes
 
-import au.id.tmm.ausvotes.api.Routes
+import au.id.tmm.ausvotes.api.PartialRoutes
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.controllers.RecountController
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
@@ -14,7 +14,7 @@ import unfiltered.request._
 
 object RecountRoutes {
 
-  def apply[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](config: Config): Routes[F] = {
+  def apply[F[+_, +_] : Monad : ReadsS3 : InvokesLambda](config: Config): PartialRoutes[F] = {
     val controller = new RecountController(config)
 
     {

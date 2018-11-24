@@ -23,6 +23,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   private val config: Config = Config(
     recountDataBucket = S3BucketName("recount"),
     recountFunction = LambdaFunctionName("recount"),
+    basePath = List.empty,
   )
 
   private def resultGiven(
