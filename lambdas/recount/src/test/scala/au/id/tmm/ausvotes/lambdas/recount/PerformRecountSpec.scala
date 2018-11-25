@@ -41,7 +41,7 @@ class PerformRecountSpec extends ImprovedFlatSpec {
       doRounding = true,
     )
 
-    assert(actualResult.map(_.candidateOutcomeProbabilities.onlyOutcomeUnsafe.electedCandidates) === Right(DupelessSeq(
+    assert(actualResult.map(_.outcomePossibilities.onlyOutcomeUnsafe.elected) === Right(DupelessSeq(
       katyGallagher,
       zedSeselja,
     )))

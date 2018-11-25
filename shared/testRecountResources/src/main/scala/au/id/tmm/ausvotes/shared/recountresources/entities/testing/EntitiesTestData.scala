@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.io.test.TestIO
-import au.id.tmm.ausvotes.shared.recountresources.RecountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountResult
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchGroupsAndCandidates}
 import au.id.tmm.utilities.geo.australia.State
@@ -12,7 +12,7 @@ import au.id.tmm.utilities.geo.australia.State
 final case class EntitiesTestData(
                                    groups: Map[StateAtElection, Set[Group]] = Map.empty,
                                    candidates: Map[StateAtElection, Set[Candidate]] = Map.empty,
-                                   canonicalCountResults: Map[StateAtElection, RecountResult] = Map.empty,
+                                   canonicalCountResults: Map[StateAtElection, CountResult] = Map.empty,
                                  )
 
 object EntitiesTestData {
@@ -43,7 +43,7 @@ object EntitiesTestData {
     override def fetchCanonicalCountResultFor(
                                                election: SenateElection,
                                                state: State,
-                                             ): TestIO[D, FetchCanonicalCountResult.FetchCanonicalCountResultException, RecountResult] =
+                                             ): TestIO[D, FetchCanonicalCountResult.FetchCanonicalCountResultException, CountResult] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
         val stateAtElection = (election, state)

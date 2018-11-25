@@ -7,11 +7,12 @@ import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKe
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.S3TestData
-import au.id.tmm.ausvotes.shared.recountresources.RecountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountResult
 import au.id.tmm.ausvotes.tasks.generatepreferencetrees.DataBundleConstruction.DataBundleForElection
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
-import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses}
+import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
+import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -23,23 +24,31 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
 
     val s3BucketName = S3BucketName("bucketName")
 
-    val recountResult = RecountResult(
-      SenateElection.`2016`,
-      State.ACT,
-      2,
-      ineligibleCandidates = Set(
-        zedSeselja,
-      ),
-      candidateOutcomeProbabilities = ProbabilityMeasure.Always(
-        CandidateStatuses(
-          CandidateFixture.ACT.candidates.map {
-            case c if c == katyGallagher => c -> CandidateStatus.Elected(Ordinal.first, Count(2))
-            case c if c == janeHiatt => c -> CandidateStatus.Elected(Ordinal.second, Count(3))
-            case c if c == zedSeselja => c -> CandidateStatus.Ineligible
-            case c => c -> CandidateStatus.Remaining
-          }.toMap
+    val recountResult = CountResult(
+      CountResult.Request(
+        SenateElection.`2016`,
+        State.ACT,
+        2,
+        ineligibleCandidates = Set(
+          zedSeselja,
         ),
+        doRounding = true,
       ),
+      outcomePossibilities = ProbabilityMeasure.Always(
+        CountResult.Outcome(
+          elected = DupelessSeq(katyGallagher),
+          exhaustedVotes = VoteCount.zero,
+          roundingError = VoteCount.zero,
+          candidateOutcomes =  CandidateStatuses(
+            CandidateFixture.ACT.candidates.map {
+              case c if c == katyGallagher => c -> CandidateStatus.Elected(Ordinal.first, Count(2))
+              case c if c == janeHiatt => c -> CandidateStatus.Elected(Ordinal.second, Count(3))
+              case c if c == zedSeselja => c -> CandidateStatus.Ineligible
+              case c => c -> CandidateStatus.Remaining
+            }.toMap
+          ),
+        ),
+      )
     )
 
     val dataBundleToWrite = DataBundleForElection(

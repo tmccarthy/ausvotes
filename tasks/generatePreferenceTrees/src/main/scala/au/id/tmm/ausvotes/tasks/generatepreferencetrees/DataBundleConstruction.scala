@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
-import au.id.tmm.ausvotes.shared.recountresources.RecountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountResult
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.geo.australia.State
@@ -31,16 +31,26 @@ object DataBundleConstruction {
 
     val ineligibleCandidates = countData.ineligibleCandidates.flatMap(lookupCandidateByPosition.get)
 
-    val canonicalRecountResult = RecountResult(
-      election,
-      state,
-      numVacancies = countData.completedCount.numVacancies,
-      ineligibleCandidates = ineligibleCandidates,
-      candidateOutcomeProbabilities = ProbabilityMeasure.Always(
-        CandidateStatuses(
-          countData.completedCount.outcomes.asMap.map { case (candidatePosition, candidateOutcome) =>
-            lookupCandidateByPosition(candidatePosition) -> candidateOutcome
-          }
+    val candidateStatuses = CandidateStatuses(
+      countData.completedCount.outcomes.asMap.map { case (candidatePosition, candidateOutcome) =>
+        lookupCandidateByPosition(candidatePosition) -> candidateOutcome
+      }
+    )
+
+    val canonicalRecountResult = CountResult(
+      request = CountResult.Request(
+        election,
+        state,
+        numVacancies = countData.completedCount.numVacancies,
+        ineligibleCandidates = ineligibleCandidates,
+        doRounding = true,
+      ),
+      outcomePossibilities = ProbabilityMeasure.Always(
+        CountResult.Outcome(
+          elected = candidateStatuses.electedCandidates,
+          exhaustedVotes = countData.completedCount.countSteps.last.candidateVoteCounts.exhausted,
+          roundingError = countData.completedCount.countSteps.last.candidateVoteCounts.roundingError,
+          candidateOutcomes = candidateStatuses,
         )
       )
     )
@@ -69,7 +79,7 @@ object DataBundleConstruction {
                                           state: State,
                                           groupsAndCandidates: GroupsAndCandidates,
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                          canonicalCountResult: RecountResult,
+                                          canonicalCountResult: CountResult,
                                           preferenceTree: PreferenceTree.RootPreferenceTree[CandidatePosition],
                                         )
 

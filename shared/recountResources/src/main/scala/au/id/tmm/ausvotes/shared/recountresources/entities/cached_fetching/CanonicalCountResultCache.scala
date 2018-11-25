@@ -10,7 +10,7 @@ import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadEitherOps
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult.FetchCanonicalCountResultException
-import au.id.tmm.ausvotes.shared.recountresources.{EntityLocations, RecountResult}
+import au.id.tmm.ausvotes.shared.recountresources.{CountResult, EntityLocations}
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.{IO, Promise, Semaphore}
 
@@ -23,12 +23,12 @@ final class CanonicalCountResultCache(
 
   private def baseBucket = groupsAndCandidatesCache.baseBucket
 
-  private val canonicalCountResults: CacheMap[FetchCanonicalCountResultException, RecountResult] = mutable.Map()
+  private val canonicalCountResults: CacheMap[FetchCanonicalCountResultException, CountResult] = mutable.Map()
 
   override def fetchCanonicalCountResultFor(
                                              election: SenateElection,
                                              state: State,
-                                           ): IO[FetchCanonicalCountResultException, RecountResult] =
+                                           ): IO[FetchCanonicalCountResultException, CountResult] =
     for {
       promise <- canonicalCountPromiseFor(election, state)
       canonicalCount <- promise.get
@@ -37,7 +37,7 @@ final class CanonicalCountResultCache(
   private def canonicalCountPromiseFor(
                                         election: SenateElection,
                                         state: State,
-                                      ): IO[Nothing, Promise[FetchCanonicalCountResultException, RecountResult]] =
+                                      ): IO[Nothing, Promise[FetchCanonicalCountResultException, CountResult]] =
     mutex.withPermit {
       getPromiseFor(election, state, canonicalCountResults, mutex) {
         val objectKey = EntityLocations.locationOfCanonicalRecount(election, state)
@@ -53,7 +53,7 @@ final class CanonicalCountResultCache(
 
           implicit val decodeCandidates: DecodeJson[Candidate] = CandidateCodec.decodeCandidate(groups)
 
-          Parse.decodeEither[RecountResult](canonicalResultJson)
+          Parse.decodeEither[CountResult](canonicalResultJson)
             .left.map(FetchCanonicalCountResultException.DecodeCanonicalRecountJsonException)
         }.absolve
       }

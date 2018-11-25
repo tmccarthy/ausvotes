@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
-import au.id.tmm.ausvotes.shared.recountresources.RecountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountResult
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
@@ -21,7 +21,7 @@ object PerformRecount {
                       ineligibleCandidates: Set[Candidate],
                       numVacancies: Int,
                       doRounding: Boolean,
-                    ): Either[RecountLambdaError.RecountComputationError, RecountResult] = {
+                    ): Either[RecountLambdaError.RecountComputationError, CountResult] = {
     try {
       val allCandidatePositions = allCandidates.map(_.btlPosition)
       val ineligibleCandidatePositions = ineligibleCandidates.map(_.btlPosition)
@@ -37,17 +37,29 @@ object PerformRecount {
         candidate.btlPosition -> candidate
       }.toMap
 
-      val completedCountPossibilitiesByCandidate = completedCountPossibilities.map { completedCount =>
-        val outcomesByCandidatePosition = completedCount.outcomes
+      Right(
+        CountResult(
+          CountResult.Request(
+            election, state, numVacancies, ineligibleCandidates, doRounding,
+          ),
+          completedCountPossibilities.map { completedCount =>
+            val outcomesByCandidatePosition = completedCount.outcomes
 
-        CandidateStatuses(
-          outcomesByCandidatePosition.asMap.map { case (candidatePosition, candidateOutcome) =>
-            lookupCandidateByPosition(candidatePosition) -> candidateOutcome
+            val candidateStatuses = CandidateStatuses(
+              outcomesByCandidatePosition.asMap.map { case (candidatePosition, candidateOutcome) =>
+                lookupCandidateByPosition(candidatePosition) -> candidateOutcome
+              }
+            )
+
+            CountResult.Outcome(
+              candidateStatuses.electedCandidates,
+              completedCount.countSteps.last.candidateVoteCounts.exhausted,
+              completedCount.countSteps.last.candidateVoteCounts.roundingError,
+              candidateStatuses,
+            )
           }
         )
-      }
-
-      Right(RecountResult(election, state, numVacancies, ineligibleCandidates, completedCountPossibilitiesByCandidate))
+      )
     } catch {
       case e: Exception => Left(RecountLambdaError.RecountComputationError(e))
     }

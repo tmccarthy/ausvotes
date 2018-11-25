@@ -2,19 +2,19 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.recountresources.RecountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountResult
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult.FetchCanonicalCountResultException
 import au.id.tmm.utilities.geo.australia.State
 
 trait FetchCanonicalCountResult[F[+_, +_]] {
 
-  def fetchCanonicalCountResultFor(election: SenateElection, state: State): F[FetchCanonicalCountResultException, RecountResult]
+  def fetchCanonicalCountResultFor(election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountResult]
 
 }
 
 object FetchCanonicalCountResult {
 
-  def fetchCanonicalCountResultFor[F[+_, +_] : FetchCanonicalCountResult](election: SenateElection, state: State): F[FetchCanonicalCountResultException, RecountResult] =
+  def fetchCanonicalCountResultFor[F[+_, +_] : FetchCanonicalCountResult](election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountResult] =
     implicitly[FetchCanonicalCountResult[F]].fetchCanonicalCountResultFor(election, state)
 
   sealed abstract class FetchCanonicalCountResultException extends ExceptionCaseClass

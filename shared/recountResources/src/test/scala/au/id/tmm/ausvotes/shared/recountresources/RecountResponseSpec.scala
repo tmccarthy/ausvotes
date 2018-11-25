@@ -47,12 +47,12 @@ class RecountResponseSpec extends ImprovedFlatSpec {
 
   it can "encode a success" in {
     val recountResponse: RecountResponse = RecountResponse.Success(
-      RecountResultSpec.recountResultFixture
+      CountResultSpec.recountResultFixture
     )
 
     val expectedJson = jObjectFields(
       "success" -> true.asJson,
-      "recountResult" -> RecountResultSpec.recountResultFixture.asJson,
+      "recountResult" -> CountResultSpec.recountResultFixture.asJson,
     )
 
     assert(recountResponse.asJson === expectedJson)
