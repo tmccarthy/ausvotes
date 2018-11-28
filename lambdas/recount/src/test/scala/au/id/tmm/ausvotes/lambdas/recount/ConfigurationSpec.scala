@@ -10,7 +10,7 @@ class ConfigurationSpec extends ImprovedFlatSpec {
 
   private val logicUnderTest = Configuration.recountDataBucketName[BasicTestIO]
 
-  "the recount lambda configurartion" should "read the 'RECOUNT_DATA_BUCKET' env var" in {
+  "the recount lambda configuration" should "read the 'RECOUNT_DATA_BUCKET' env var" in {
     val testData = BasicTestData(envVarTestData = EnvVarTestData(envVars = Map("RECOUNT_DATA_BUCKET" -> "test")))
 
     val TestIO.Output(_, errorOrBucketName) = logicUnderTest.run(testData)
@@ -23,7 +23,7 @@ class ConfigurationSpec extends ImprovedFlatSpec {
 
     val TestIO.Output(_, errorOrBucketName) = logicUnderTest.run(testData)
 
-    assert(errorOrBucketName === Left(RecountLambdaError.RecountDataBucketUndefined))
+    assert(errorOrBucketName === Left(RecountLambdaError.RecountDataBucketUndefined()))
   }
 
 }

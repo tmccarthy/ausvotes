@@ -1,29 +1,14 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
+import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
+import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 
-sealed trait RecountLambdaError
+abstract class RecountLambdaError extends ExceptionCaseClass
 
 object RecountLambdaError {
 
-  sealed trait WithException extends RecountLambdaError {
-    def exception: Exception
-  }
-
-  case object RecountDataBucketUndefined extends RecountLambdaError
-
-  sealed trait RecountRequestError extends RecountLambdaError
-
-  object RecountRequestError {
-    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[AecCandidateId]) extends RecountRequestError
-  }
-
-  final case class EntityFetchError(exception: FetchPreferenceTree.FetchPreferenceTreeException) extends RecountLambdaError with WithException
-  final case class EntityCachePopulationError(exception: FetchPreferenceTree.FetchPreferenceTreeException) extends RecountLambdaError with WithException
-
-  final case class RecountComputationError(exception: Exception) extends RecountLambdaError with WithException
-
-  final case class WriteRecountError(cause: Exception) extends RecountLambdaError
+  final case class RecountDataBucketUndefined() extends RecountLambdaError
+  final case class RecountComputationError(cause: RunRecount.Error) extends RecountLambdaError with ExceptionCaseClass.WithCause
+  final case class WriteRecountError(cause: Exception) extends RecountLambdaError with ExceptionCaseClass.WithCause
 
 }

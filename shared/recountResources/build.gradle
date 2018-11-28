@@ -16,4 +16,6 @@ dependencies {
     compile project(':shared:io')
 
     testCompile project(':core:fixtures')
+    testCompile project(':shared:testIo')
+    testCompile project(':shared:testRecountResources')
 }

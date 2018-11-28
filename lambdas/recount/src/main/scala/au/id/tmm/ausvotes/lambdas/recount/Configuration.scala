@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 
 object Configuration {
 
-  def recountDataBucketName[F[+_, +_] : EnvVars : Monad]: F[RecountLambdaError.RecountDataBucketUndefined.type, S3BucketName] =
-    EnvVars.envVarOr("RECOUNT_DATA_BUCKET", RecountLambdaError.RecountDataBucketUndefined).map(S3BucketName)
+  def recountDataBucketName[F[+_, +_] : EnvVars : Monad]: F[RecountLambdaError.RecountDataBucketUndefined, S3BucketName] =
+    EnvVars.envVarOr("RECOUNT_DATA_BUCKET", RecountLambdaError.RecountDataBucketUndefined()).map(S3BucketName)
 
 }

@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.lambdas.recount
 import argonaut.Argonaut.{jObjectFields, jString}
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaResponse
+import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 
 object RecountLambdaErrorResponseTransformer
   extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {
@@ -16,17 +17,14 @@ object RecountLambdaErrorResponseTransformer
   )
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
-    case RecountLambdaError.RecountRequestError.InvalidCandidateIds(invalidCandidateAecIds) =>
+    case RecountLambdaError.RecountComputationError(RunRecount.Error.InvalidCandidateIds(invalidCandidateAecIds)) =>
       badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asString).mkString("[\"", "\", \"", "\"]")}""")
 
-    case RecountLambdaError.RecountDataBucketUndefined =>
-      badRequestResponse("Recount data bucket was undefined")
-
-    case RecountLambdaError.EntityFetchError(_) | RecountLambdaError.EntityCachePopulationError(_) =>
-      badRequestResponse("An error occurred while fetching the entities")
-
     case RecountLambdaError.RecountComputationError(_) =>
-      badRequestResponse("An error occurred while performing the recount computation")
+    badRequestResponse("An error occurred while performing the recount computation")
+
+    case RecountLambdaError.RecountDataBucketUndefined() =>
+      badRequestResponse("Recount data bucket was undefined")
 
     case RecountLambdaError.WriteRecountError(_) =>
       badRequestResponse("An error occurred while writing the recount result")
