@@ -4,7 +4,7 @@ import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
 import au.id.tmm.ausvotes.core.model.codecs.GroupCodec._
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
-import au.id.tmm.ausvotes.core.model.parsing.CandidatePosition
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.WritesToS3
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
@@ -37,7 +37,7 @@ object DataBundleWriting {
 
     WritesToS3.putFromOutputStream(s3BucketName, key) { outputStream =>
       SyncEffects.syncException {
-        PreferenceTreeSerialisation.serialise[CandidatePosition](dataBundleForElection.preferenceTree, outputStream)
+        PreferenceTreeSerialisation.serialise[Candidate](dataBundleForElection.preferenceTree, outputStream)
       }
     }
   }

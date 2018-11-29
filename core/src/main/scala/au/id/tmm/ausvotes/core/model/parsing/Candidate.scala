@@ -12,6 +12,8 @@ final case class Candidate(election: SenateElection,
                            btlPosition: CandidatePosition)
 
 object Candidate {
+  implicit val candidateOrdering: Ordering[Candidate] = Ordering.by(_.btlPosition)
+
   final case class AecCandidateId(asString: String) extends AnyVal
 
   object AecCandidateId {

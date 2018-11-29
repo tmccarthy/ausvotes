@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group}
+import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.{FetchPreferenceTreeException, GroupsCandidatesAndPreferences}
@@ -55,7 +55,7 @@ object FetchPreferenceTree {
 
   final case class GroupsCandidatesAndPreferences(
                                                    groupsAndCandidates: GroupsAndCandidates,
-                                                   preferenceTree: RootPreferenceTree[CandidatePosition],
+                                                   preferenceTree: RootPreferenceTree[Candidate],
                                                  ) {
     def groups: Set[Group] = groupsAndCandidates.groups
     def candidates: Set[Candidate] = groupsAndCandidates.candidates

@@ -57,7 +57,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
       GroupAndCandidateFixture.ACT.groupsAndCandidates,
       DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces,
       recountResult,
-      PreferenceTree.from(CandidateFixture.ACT.candidates.map(_.btlPosition))(Iterable.empty),
+      PreferenceTree.from(CandidateFixture.ACT.candidates)(Iterable.empty),
     )
 
     val testLogic = DataBundleWriting.writeToS3Bucket[AwsTestIO](s3BucketName, dataBundleToWrite)

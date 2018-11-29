@@ -36,14 +36,12 @@ class RunRecountSpec extends ImprovedFlatSpec {
       groups = Map((election, state) -> candidateFixture.groupFixture.groups),
       candidates = Map((election, state) -> candidateFixture.candidates),
       ballots = Map((election, state) -> candidateFixture.candidates.toVector.flatMap { candidate =>
-        val btlPosition = candidate.btlPosition
-
         if (candidate == katyGallagher) {
-          Vector.fill(100)(Vector(btlPosition))
+          Vector.fill(100)(Vector(candidate))
         } else if (candidate == zedSeselja) {
-          Vector.fill(99)(Vector(btlPosition))
+          Vector.fill(99)(Vector(candidate))
         } else {
-          Vector.fill(0)(Vector(btlPosition))
+          Vector.fill(0)(Vector(candidate))
         }
       })
     )

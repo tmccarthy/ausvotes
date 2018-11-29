@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources.recount
 
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
@@ -12,7 +12,7 @@ import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferen
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
 import au.id.tmm.ausvotes.shared.recountresources.{CountResult, RecountRequest}
 import au.id.tmm.countstv.counting.FullCountComputation
-import au.id.tmm.countstv.model.{CandidateStatuses, CompletedCount}
+import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.rules.RoundingRules
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 
@@ -34,11 +34,10 @@ object RunRecount {
           .left.map(Error.InvalidCandidateIds)
       }
 
-      // TODO produce a preference tree by Candidate rather than CandidatePosition and avoid these conversions
       completedCountPossibilities <- syncException {
-        FullCountComputation.runCount[CandidatePosition](
-          candidates = allCandidates.map(_.btlPosition),
-          ineligibleCandidates = ineligibleCandidates.map(_.btlPosition),
+        FullCountComputation.runCount[Candidate](
+          candidates = allCandidates,
+          ineligibleCandidates = ineligibleCandidates,
           recountRequest.vacancies,
           preferenceTree,
         )(if (recountRequest.doRounding) RoundingRules.AEC else RoundingRules.NO_ROUNDING)
@@ -60,12 +59,8 @@ object RunRecount {
                                recountRequest: RecountRequest,
                                allCandidates: Set[Candidate],
                                ineligibleCandidates: Set[Candidate],
-                               completedCountPossibilities: ProbabilityMeasure[CompletedCount[CandidatePosition]],
+                               completedCountPossibilities: ProbabilityMeasure[CompletedCount[Candidate]],
                              ): CountResult = {
-    val lookupCandidateByPosition = allCandidates.map { candidate =>
-      candidate.btlPosition -> candidate
-    }.toMap
-
     CountResult(
       CountResult.Request(
         recountRequest.election,
@@ -75,13 +70,7 @@ object RunRecount {
         recountRequest.doRounding,
       ),
       completedCountPossibilities.map { completedCount =>
-        val outcomesByCandidatePosition = completedCount.outcomes
-
-        val candidateStatuses = CandidateStatuses(
-          outcomesByCandidatePosition.asMap.map { case (candidatePosition, candidateOutcome) =>
-            lookupCandidateByPosition(candidatePosition) -> candidateOutcome
-          }
-        )
+        val candidateStatuses = completedCount.outcomes
 
         CountResult.Outcome(
           candidateStatuses.electedCandidates,

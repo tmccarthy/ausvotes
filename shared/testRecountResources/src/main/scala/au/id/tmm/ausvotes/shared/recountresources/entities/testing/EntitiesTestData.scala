@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 
 import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition, Group}
+import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.ausvotes.shared.recountresources.CountResult
@@ -16,7 +16,7 @@ final case class EntitiesTestData(
                                    groups: Map[StateAtElection, Set[Group]] = Map.empty,
                                    candidates: Map[StateAtElection, Set[Candidate]] = Map.empty,
                                    canonicalCountResults: Map[StateAtElection, CountResult] = Map.empty,
-                                   ballots: Map[StateAtElection, Vector[Vector[CandidatePosition]]] = Map.empty,
+                                   ballots: Map[StateAtElection, Vector[Vector[Candidate]]] = Map.empty,
                                  )
 
 object EntitiesTestData {
@@ -44,7 +44,7 @@ object EntitiesTestData {
 
         val groups = entitiesTestData.groups.getOrElse(stateAtElection, Set.empty)
         val candidates = entitiesTestData.candidates.getOrElse(stateAtElection, Set.empty)
-        val preferenceTree = PreferenceTree.from(allCandidates = candidates.map(_.btlPosition))(ballots)
+        val preferenceTree = PreferenceTree.from(candidates)(ballots)
 
         val groupsCandidatesAndPreferences =
           FetchPreferenceTree.GroupsCandidatesAndPreferences(GroupsAndCandidates(groups, candidates), preferenceTree)

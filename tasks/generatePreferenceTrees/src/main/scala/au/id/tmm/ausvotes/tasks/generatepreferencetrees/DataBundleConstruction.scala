@@ -59,9 +59,9 @@ object DataBundleConstruction {
 
     val numPapersHint = StateUtils.numBallots(state)
 
-    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder)
+    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder.map(lookupCandidateByPosition))
 
-    IO.syncException(PreferenceTree.fromIterator(candidates.map(_.btlPosition), numPapersHint)(preparedBallots))
+    IO.syncException(PreferenceTree.fromIterator(candidates, numPapersHint)(preparedBallots))
       .map { preferenceTree =>
         DataBundleForElection(
           election,
@@ -80,7 +80,7 @@ object DataBundleConstruction {
                                           groupsAndCandidates: GroupsAndCandidates,
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                                           canonicalCountResult: CountResult,
-                                          preferenceTree: PreferenceTree.RootPreferenceTree[CandidatePosition],
+                                          preferenceTree: PreferenceTree.RootPreferenceTree[Candidate],
                                         )
 
 }

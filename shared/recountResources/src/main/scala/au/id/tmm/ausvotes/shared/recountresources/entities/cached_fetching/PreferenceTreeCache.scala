@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching
 import java.io.ByteArrayInputStream
 
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
@@ -94,12 +95,10 @@ final class PreferenceTreeCache(
             .leftMap(FetchPreferenceTreeException.FetchGroupsAndCandidatesException)
           preferenceTreeBytes <- preferenceTreeBytesPromise.get
 
-          allCandidatePositions = groupsAndCandidates.candidates.map(_.btlPosition)
-
           preferenceTree <- IO.syncException {
             val inputStream = new ByteArrayInputStream(preferenceTreeBytes)
 
-            PreferenceTreeSerialisation.deserialise(allCandidatePositions, inputStream)
+            PreferenceTreeSerialisation.deserialise[Candidate](groupsAndCandidates.candidates, inputStream)
           }.timedLog(
             "COMPLETE_ENTITY_CACHE_PROMISE",
             "entity_name" -> "preference_tree",
