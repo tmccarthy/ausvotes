@@ -1,0 +1,22 @@
+plugins {
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    }
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':shared:aws')
+    compile project(':shared:io')
+    compile project(':shared:recountResources')
+
+    testCompile project(':core:fixtures')
+    testCompile project(':shared:testAws')
+    testCompile project(':shared:testRecountResources')
+}
