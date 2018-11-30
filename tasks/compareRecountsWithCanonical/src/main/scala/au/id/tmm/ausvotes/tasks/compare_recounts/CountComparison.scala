@@ -3,7 +3,9 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
-import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes}
+import au.id.tmm.countstv.model
+import au.id.tmm.countstv.model.countsteps.DistributionCountStep
+import au.id.tmm.countstv.model.values.Count
 import au.id.tmm.countstv.model.{CandidateVoteCounts, CompletedCount, VoteCount}
 import au.id.tmm.utilities.geo.australia.State
 
@@ -17,40 +19,46 @@ final case class CountComparison(
                                   computedCount: CompletedCount[Candidate],
 
                                   mismatches: SortedSet[Mismatch],
-                                )
+                                ) {
+  def mismatchSignificance: Int = mismatches.map(Mismatch.importanceOf).sum
+}
 
 object CountComparison {
 
   sealed trait Mismatch
 
   object Mismatch {
-    final case class CandidateStatusType(candidate: Candidate, statusInCanonical: CandidateStatus, statusInComputed: CandidateStatus) extends Mismatch
-    final case class CandidateStatus(candidate: Candidate, statusInCanonical: CandidateStatus, statusInComputed: CandidateStatus) extends Mismatch
+    final case class CandidateStatusType(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
+    final case class CandidateStatus(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
 
     final case class FinalRoundingError(canonicalRoundingError: VoteCount, roundingErrorInComputed: VoteCount) extends Mismatch
     final case class FinalExhausted(canonicalRoundingError: VoteCount, roundingErrorInComputed: VoteCount) extends Mismatch
 
-    final case class CandidateVoteCountsBallots(
-                                                 misallocatedBallotsPerCount: Map[Count, NumPapers],
-                                                 firstBadCount: Count,
-                                                 canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                                 candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                               ) extends Mismatch
+    final case class ActionAtCount(count: Count, canonicalAction: Option[ActionAtCount.Action], computedAction: Option[ActionAtCount.Action]) extends Mismatch
+    object ActionAtCount {
+      sealed trait Action
+      object Action {
+        case object InitialAllocation extends Action
+        case object AllocationAfterIneligibles extends Action
+        final case class Distribution(source: DistributionCountStep.Source[Candidate]) extends Action
+        final case class ExcludedNoVotes(source: Candidate) extends Action
+        final case class ElectedNoSurplus(source: Candidate, sourceCounts: Set[Count]) extends Action
+      }
+    }
 
-    final case class CandidateVoteCountsVotes(
-                                               misallocatedVotesPerCount: Map[Count, NumVotes],
-                                               firstBadCount: Count,
-                                               canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                               candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                             ) extends Mismatch
+    final case class VoteCountAtCount(
+                                       misallocatedBallotsPerCount: Map[Count, VoteCount],
+                                       firstBadCount: Count,
+                                       canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[Candidate],
+                                       candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[Candidate],
+                                     ) extends Mismatch
 
-    private def importanceOf(mismatch: Mismatch): Int = mismatch match {
+    def importanceOf(mismatch: Mismatch): Int = mismatch match {
       case _: CandidateStatusType => 1
       case _: CandidateStatus => 2
       case _: FinalRoundingError => 3
       case _: FinalExhausted => 4
-      case _: CandidateVoteCountsBallots => 5
-      case _: CandidateVoteCountsVotes => 6
+      case _: VoteCountAtCount => 5
     }
 
     implicit val ordering: Ordering[Mismatch] = Ordering.by(importanceOf)
