@@ -11,14 +11,14 @@ import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Resources}
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
 import unfiltered.netty.ReceivedMessage
 import unfiltered.request.{DelegatingRequest, HttpRequest}
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}
 
 object AppRoutes {
 
-  def apply[F[+_, +_] : Monad : Resources : FetchCanonicalCountResult : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] = {
+  def apply[F[+_, +_] : Monad : Resources : FetchCanonicalCountSummary : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] = {
 
     val allRoutes: List[PartialRoutes[F]] = List(
       DiagnosticRoutes[F],

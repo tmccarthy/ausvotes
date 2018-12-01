@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
 import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
-import au.id.tmm.ausvotes.shared.recountresources.CountResultSpec._
+import au.id.tmm.ausvotes.shared.recountresources.CountSummarySpec._
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
@@ -15,9 +15,9 @@ import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
-class CountResultSpec extends ImprovedFlatSpec {
+class CountSummarySpec extends ImprovedFlatSpec {
 
-  import CountResultSpec.candidateFixture._
+  import CountSummarySpec.candidateFixture._
 
   "a recount result" can "be encoded to json" in {
 
@@ -131,13 +131,13 @@ class CountResultSpec extends ImprovedFlatSpec {
   }
 }
 
-object CountResultSpec {
+object CountSummarySpec {
   val candidateFixture: CandidateFixture.ACT.type = CandidateFixture.ACT
 
   import candidateFixture._
 
-  val recountResultFixture = CountResult(
-    CountResult.Request(
+  val recountResultFixture = CountSummary(
+    CountSummary.Request(
       election = SenateElection.`2016`,
       state = State.ACT,
       numVacancies = 2,
@@ -145,7 +145,7 @@ object CountResultSpec {
       doRounding = true,
     ),
     ProbabilityMeasure.evenly(
-      CountResult.Outcome(
+      CountSummary.Outcome(
         elected = DupelessSeq(katyGallagher),
         exhaustedVotes = VoteCount.zero,
         roundingError = VoteCount.zero,
@@ -157,7 +157,7 @@ object CountResultSpec {
           mattDonnelly -> CandidateStatus.Ineligible,
         ),
       ),
-      CountResult.Outcome(
+      CountSummary.Outcome(
         elected = DupelessSeq(katyGallagher),
         exhaustedVotes = VoteCount.zero,
         roundingError = VoteCount.zero,

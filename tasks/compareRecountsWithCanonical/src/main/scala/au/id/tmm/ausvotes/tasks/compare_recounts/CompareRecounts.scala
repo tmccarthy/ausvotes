@@ -3,9 +3,12 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchPreferenceTree}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
+import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes}
@@ -20,7 +23,25 @@ import scala.Ordering.Implicits._
 
 object CompareRecounts extends zio.App {
 
-  override def run(args: List[String]): IO[Nothing, ExitStatus] = ???
+  override def run(args: List[String]): IO[Nothing, ExitStatus] = {
+    val election = SenateElection.`2016` // TODO take from args
+    val states = election.states
+
+    for {
+      groupsAndCandidatesCache <- GroupsAndCandidatesCache(???)
+      preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
+
+      comparisons <- {
+        implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
+        implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = ???
+
+        IO.traverse(states) { state =>
+          compareFor[IO](election, state).map((election, state) -> _)
+        }.map(_.toMap)
+      }
+
+    } yield comparisons
+  }
 
   private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Monad]
   (
@@ -28,9 +49,9 @@ object CompareRecounts extends zio.App {
     state: State,
   ): F[Nothing, CountComparison] = {
     for {
-      canonicalCount: CompletedCount[Candidate] <- ???
+      canonicalCount <- (???): F[Nothing, CompletedCount[Candidate]]
 
-      computedCountRequest <- RecountRequest(
+      computedCountRequest = RecountRequest(
         election,
         state,
         canonicalCount.numVacancies,
@@ -38,9 +59,9 @@ object CompareRecounts extends zio.App {
         doRounding = false,
       )
 
-      computedCount <- ???
+      computedCountPossibilities <- (???): F[Nothing, ProbabilityMeasure[CompletedCount[Candidate]]]
 
-    } yield findBestComparisonBetween(election, state)(canonicalCount, computedCount)
+    } yield findBestComparisonBetween(election, state)(canonicalCount, computedCountPossibilities)
   }
 
   private def findBestComparisonBetween(election: SenateElection, state: State)

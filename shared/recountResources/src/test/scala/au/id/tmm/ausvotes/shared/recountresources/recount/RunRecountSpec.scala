@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Name
 import au.id.tmm.ausvotes.shared.io.test.TestIO
 import au.id.tmm.ausvotes.shared.recountresources.entities.testing.EntitiesTestData
-import au.id.tmm.ausvotes.shared.recountresources.{CountResult, RecountRequest}
+import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, RecountRequest}
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -46,7 +46,7 @@ class RunRecountSpec extends ImprovedFlatSpec {
       })
     )
 
-    val actualResult: Either[RunRecount.Error, CountResult] = logicUnderTest.run(testData).result
+    val actualResult: Either[RunRecount.Error, CountSummary] = logicUnderTest.run(testData).result
 
     assert(actualResult.map(_.outcomePossibilities.onlyOutcomeUnsafe.elected) === Right(DupelessSeq(
       katyGallagher,

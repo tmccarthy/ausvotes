@@ -2,20 +2,20 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.recountresources.CountResult
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult.FetchCanonicalCountResultException
+import au.id.tmm.ausvotes.shared.recountresources.CountSummary
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary.FetchCanonicalCountResultException
 import au.id.tmm.utilities.geo.australia.State
 
-trait FetchCanonicalCountResult[F[+_, +_]] {
+trait FetchCanonicalCountSummary[F[+_, +_]] {
 
-  def fetchCanonicalCountResultFor(election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountResult]
+  def fetchCanonicalCountResultFor(election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountSummary]
 
 }
 
-object FetchCanonicalCountResult {
+object FetchCanonicalCountSummary {
 
-  def fetchCanonicalCountResultFor[F[+_, +_] : FetchCanonicalCountResult](election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountResult] =
-    implicitly[FetchCanonicalCountResult[F]].fetchCanonicalCountResultFor(election, state)
+  def fetchCanonicalCountResultFor[F[+_, +_] : FetchCanonicalCountSummary](election: SenateElection, state: State): F[FetchCanonicalCountResultException, CountSummary] =
+    implicitly[FetchCanonicalCountSummary[F]].fetchCanonicalCountResultFor(election, state)
 
   sealed abstract class FetchCanonicalCountResultException extends ExceptionCaseClass
 

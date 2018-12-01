@@ -4,9 +4,9 @@ import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
 import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
 import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
-import au.id.tmm.ausvotes.shared.recountresources.CountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchGroupsAndCandidates, FetchPreferenceTree}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchGroupsAndCandidates, FetchPreferenceTree}
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.geo.australia.State
 
@@ -15,7 +15,7 @@ final case class EntitiesTestData(
 
                                    groups: Map[StateAtElection, Set[Group]] = Map.empty,
                                    candidates: Map[StateAtElection, Set[Candidate]] = Map.empty,
-                                   canonicalCountResults: Map[StateAtElection, CountResult] = Map.empty,
+                                   canonicalCountResults: Map[StateAtElection, CountSummary] = Map.empty,
                                    ballots: Map[StateAtElection, Vector[Vector[Candidate]]] = Map.empty,
                                  )
 
@@ -25,7 +25,7 @@ object EntitiesTestData {
 
   trait TestIOInstance[D]
     extends FetchGroupsAndCandidates[TestIO[D, +?, +?]]
-      with FetchCanonicalCountResult[TestIO[D, +?, +?]]
+      with FetchCanonicalCountSummary[TestIO[D, +?, +?]]
       with FetchPreferenceTree[TestIO[D, +?, +?]]
       with BasicTestData.TestIOInstance[D] {
     protected def entitiesTestDataField(data: D): EntitiesTestData
@@ -85,7 +85,7 @@ object EntitiesTestData {
     override def fetchCanonicalCountResultFor(
                                                election: SenateElection,
                                                state: State,
-                                             ): TestIO[D, FetchCanonicalCountResult.FetchCanonicalCountResultException, CountResult] =
+                                             ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountResultException, CountSummary] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
         val stateAtElection = (election, state)

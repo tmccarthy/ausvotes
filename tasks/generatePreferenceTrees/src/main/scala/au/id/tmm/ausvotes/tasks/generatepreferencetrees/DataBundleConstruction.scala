@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
-import au.id.tmm.ausvotes.shared.recountresources.CountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.geo.australia.State
@@ -37,8 +37,8 @@ object DataBundleConstruction {
       }
     )
 
-    val canonicalRecountResult = CountResult(
-      request = CountResult.Request(
+    val canonicalRecountResult = CountSummary(
+      request = CountSummary.Request(
         election,
         state,
         numVacancies = countData.completedCount.numVacancies,
@@ -46,7 +46,7 @@ object DataBundleConstruction {
         doRounding = true,
       ),
       outcomePossibilities = ProbabilityMeasure.Always(
-        CountResult.Outcome(
+        CountSummary.Outcome(
           elected = candidateStatuses.electedCandidates,
           exhaustedVotes = countData.completedCount.countSteps.last.candidateVoteCounts.exhausted,
           roundingError = countData.completedCount.countSteps.last.candidateVoteCounts.roundingError,
@@ -79,7 +79,7 @@ object DataBundleConstruction {
                                           state: State,
                                           groupsAndCandidates: GroupsAndCandidates,
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                          canonicalCountResult: CountResult,
+                                          canonicalCountResult: CountSummary,
                                           preferenceTree: PreferenceTree.RootPreferenceTree[Candidate],
                                         )
 

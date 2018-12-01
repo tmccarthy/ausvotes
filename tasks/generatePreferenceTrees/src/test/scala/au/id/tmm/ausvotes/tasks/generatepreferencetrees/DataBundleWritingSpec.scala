@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKe
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.S3TestData
-import au.id.tmm.ausvotes.shared.recountresources.CountResult
+import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.tasks.generatepreferencetrees.DataBundleConstruction.DataBundleForElection
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
@@ -24,8 +24,8 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
 
     val s3BucketName = S3BucketName("bucketName")
 
-    val recountResult = CountResult(
-      CountResult.Request(
+    val recountResult = CountSummary(
+      CountSummary.Request(
         SenateElection.`2016`,
         State.ACT,
         2,
@@ -35,7 +35,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
         doRounding = true,
       ),
       outcomePossibilities = ProbabilityMeasure.Always(
-        CountResult.Outcome(
+        CountSummary.Outcome(
           elected = DupelessSeq(katyGallagher),
           exhaustedVotes = VoteCount.zero,
           roundingError = VoteCount.zero,

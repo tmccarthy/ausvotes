@@ -4,8 +4,8 @@ import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.routes.AppRoutes
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult
-import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{CanonicalCountResultCache, GroupsAndCandidatesCache}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
+import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{CanonicalCountSummaryCache, GroupsAndCandidatesCache}
 import io.netty.handler.codec.http.HttpResponse
 import scalaz.zio.{ExitResult, IO, RTS}
 import unfiltered.netty.Server
@@ -20,7 +20,7 @@ object Api {
 
     val startupResources = ioRuntime.unsafeRun(buildStartupResources)
 
-    implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = startupResources.canonicalCountResultCache
+    implicit val fetchCanonicalCountResult: FetchCanonicalCountSummary[IO] = startupResources.canonicalCountResultCache
 
     val routes = AppRoutes[IO](startupResources.config)
 
@@ -53,13 +53,13 @@ object Api {
     for {
       config <- Config.fromEnvironment[IO]
       groupsAndCandidatesCache <- GroupsAndCandidatesCache(config.recountDataBucket)
-      canonicalCountResultCache <- CanonicalCountResultCache(groupsAndCandidatesCache)
+      canonicalCountResultCache <- CanonicalCountSummaryCache(groupsAndCandidatesCache)
     } yield StartupResources(config, groupsAndCandidatesCache, canonicalCountResultCache)
 
   final case class StartupResources(
                                      config: Config,
                                      groupsAndCandidatesCache: GroupsAndCandidatesCache,
-                                     canonicalCountResultCache: CanonicalCountResultCache,
+                                     canonicalCountResultCache: CanonicalCountSummaryCache,
                                    )
 
 }

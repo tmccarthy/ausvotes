@@ -8,9 +8,9 @@ import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.SyncEffects.syncException
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, SyncEffects}
+import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
-import au.id.tmm.ausvotes.shared.recountresources.{CountResult, RecountRequest}
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.rules.RoundingRules
@@ -18,9 +18,10 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 
 object RunRecount {
 
-  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : Monad](
-                                                                                            recountRequest: RecountRequest,
-                                                                                          ): F[RunRecount.Error, CountResult] =
+  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : Monad]
+  (
+    recountRequest: RecountRequest,
+  ): F[RunRecount.Error, ProbabilityMeasure[CompletedCount[Candidate]]] =
     for {
       entities <- FetchPreferenceTree.fetchGroupsCandidatesAndPreferencesFor(recountRequest.election, recountRequest.state)
         .leftMap(Error.FetchEntitiesException)
@@ -51,36 +52,7 @@ object RunRecount {
         )
         .leftMap(Error.PerformRecountException)
 
-      countResult = makeCountResult(recountRequest, allCandidates, ineligibleCandidates, completedCountPossibilities)
-
-    } yield countResult
-
-  private def makeCountResult(
-                               recountRequest: RecountRequest,
-                               allCandidates: Set[Candidate],
-                               ineligibleCandidates: Set[Candidate],
-                               completedCountPossibilities: ProbabilityMeasure[CompletedCount[Candidate]],
-                             ): CountResult = {
-    CountResult(
-      CountResult.Request(
-        recountRequest.election,
-        recountRequest.state,
-        recountRequest.vacancies,
-        ineligibleCandidates,
-        recountRequest.doRounding,
-      ),
-      completedCountPossibilities.map { completedCount =>
-        val candidateStatuses = completedCount.outcomes
-
-        CountResult.Outcome(
-          candidateStatuses.electedCandidates,
-          completedCount.countSteps.last.candidateVoteCounts.exhausted,
-          completedCount.countSteps.last.candidateVoteCounts.roundingError,
-          candidateStatuses,
-        )
-      }
-    )
-  }
+    } yield completedCountPossibilities
 
   sealed abstract class Error extends ExceptionCaseClass
 

@@ -17,7 +17,7 @@ object RecountResponse {
     case object InternalError extends Failure
   }
 
-  final case class Success(recountResult: CountResult) extends RecountResponse
+  final case class Success(recountResult: CountSummary) extends RecountResponse
 
   implicit val encodeRecountResponse: EncodeJson[RecountResponse] = {
     case Success(recountResult) =>
