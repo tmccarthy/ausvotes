@@ -4,7 +4,6 @@ import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.routes.AppRoutes
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{CanonicalCountSummaryCache, GroupsAndCandidatesCache}
 import io.netty.handler.codec.http.HttpResponse
 import scalaz.zio.{ExitResult, IO, RTS}
@@ -19,8 +18,6 @@ object Api {
     val ioRuntime = new RTS {}
 
     val startupResources = ioRuntime.unsafeRun(buildStartupResources)
-
-    implicit val fetchCanonicalCountResult: FetchCanonicalCountSummary[IO] = startupResources.canonicalCountResultCache
 
     val routes = AppRoutes[IO](startupResources.config)
 

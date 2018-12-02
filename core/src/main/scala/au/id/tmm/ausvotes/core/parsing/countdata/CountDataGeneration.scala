@@ -7,6 +7,7 @@ import au.id.tmm.ausvotes.core.rawdata.model.DistributionOfPreferencesRow
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, CountSteps, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
+import au.id.tmm.countstv.rules.RoundingRules
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.collection.IteratorUtils.ImprovedIterator
 import au.id.tmm.utilities.geo.australia.State
@@ -49,7 +50,12 @@ object CountDataGeneration {
       election,
       state,
       CompletedCount(
-        initialAllocationAndMetadata.numVacancies,
+        CountParams[CandidatePosition](
+          groupsAndCandidates.candidates.map(_.btlPosition),
+          initialAllocationAndMetadata.initialAllocation.candidateStatuses.ineligibleCandidates,
+          initialAllocationAndMetadata.numVacancies,
+          RoundingRules.AEC,
+        ),
         initialAllocationAndMetadata.totalFormalPapers,
         initialAllocationAndMetadata.quota,
         countSteps,

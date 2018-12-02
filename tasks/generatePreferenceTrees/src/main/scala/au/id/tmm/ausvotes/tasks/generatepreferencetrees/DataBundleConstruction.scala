@@ -41,7 +41,7 @@ object DataBundleConstruction {
       request = CountSummary.Request(
         election,
         state,
-        numVacancies = countData.completedCount.numVacancies,
+        numVacancies = countData.completedCount.countParams.numVacancies,
         ineligibleCandidates = ineligibleCandidates,
         doRounding = true,
       ),

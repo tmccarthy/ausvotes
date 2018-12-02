@@ -12,7 +12,7 @@ import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
 import au.id.tmm.countstv.counting.FullCountComputation
-import au.id.tmm.countstv.model.CompletedCount
+import au.id.tmm.countstv.model.{CompletedCount, CountParams}
 import au.id.tmm.countstv.rules.RoundingRules
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 
@@ -37,11 +37,14 @@ object RunRecount {
 
       completedCountPossibilities <- syncException {
         FullCountComputation.runCount[Candidate](
-          candidates = allCandidates,
-          ineligibleCandidates = ineligibleCandidates,
-          recountRequest.vacancies,
+          CountParams[Candidate](
+            allCandidates,
+            ineligibleCandidates,
+            recountRequest.vacancies,
+            roundingRules = if (recountRequest.doRounding) RoundingRules.AEC else RoundingRules.NO_ROUNDING,
+          ),
           preferenceTree,
-        )(if (recountRequest.doRounding) RoundingRules.AEC else RoundingRules.NO_ROUNDING)
+        )
       }
         .timedLog(
           "PERFORM_RECOUNT",

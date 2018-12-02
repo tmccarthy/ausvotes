@@ -9,6 +9,7 @@ import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
 import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
 import au.id.tmm.ausvotes.core.model.codecs.ProbabilityMeasureCodec._
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.countstv.model.{CandidateStatuses, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.geo.australia.State
@@ -17,9 +18,47 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 final case class CountSummary(
                                request: CountSummary.Request,
                                outcomePossibilities: ProbabilityMeasure[CountSummary.Outcome],
-                            )
+                             )
 
 object CountSummary {
+
+  def from(
+            request: RecountRequest,
+            completedCountPossibilities: ProbabilityMeasure[CompletedCount[Candidate]],
+          ): Either[CountSummaryConstructionError, CountSummary] =
+    for {
+
+      ineligibleCandidates <- completedCountPossibilities.map(_.outcomes.ineligibleCandidates).onlyOutcome match {
+        case Some(ineligibleCandidates) => Right(ineligibleCandidates)
+        case None => Left(CountSummaryConstructionError.MultipleIneligibleCandidatePossibilities())
+      }
+
+      _ <- if (ineligibleCandidates.map(_.aecId) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
+
+    } yield CountSummary(
+      CountSummary.Request(
+        request.election,
+        request.state,
+        request.vacancies,
+        ineligibleCandidates,
+        doRounding = request.doRounding,
+      ),
+      outcomePossibilities = completedCountPossibilities.map { completedCount =>
+        CountSummary.Outcome(
+          completedCount.outcomes.electedCandidates,
+          completedCount.countSteps.last.candidateVoteCounts.exhausted,
+          completedCount.countSteps.last.candidateVoteCounts.roundingError,
+          completedCount.outcomes,
+        )
+      },
+    )
+
+  abstract class CountSummaryConstructionError extends ExceptionCaseClass
+
+  object CountSummaryConstructionError {
+    final case class MultipleIneligibleCandidatePossibilities() extends CountSummaryConstructionError
+    final case class RequestedIneligibleCandidatesMismatch() extends CountSummaryConstructionError
+  }
 
   final case class Request(
                             election: SenateElection,
@@ -51,13 +90,6 @@ object CountSummary {
   }
 
   object Outcome {
-    def fromCompletedCount(completedCount: CompletedCount[Candidate]): Outcome =
-      Outcome(
-        completedCount.outcomes.electedCandidates,
-        completedCount.countSteps.last.candidateVoteCounts.exhausted,
-        completedCount.countSteps.last.candidateVoteCounts.roundingError,
-        completedCount.outcomes,
-      )
 
     implicit val encode: EncodeJson[Outcome] = outcome =>
       jObjectFields(

@@ -18,6 +18,7 @@ final case class CountComparison(
                                   canonicalCount: CompletedCount[Candidate],
                                   computedCount: CompletedCount[Candidate],
 
+                                  // TODO really need a way of indicating if a category of mismatch doesn't exist, ie it was correct
                                   mismatches: SortedSet[Mismatch],
                                 ) {
   def mismatchSignificance: Int = mismatches.map(Mismatch.importanceOf).sum
@@ -54,11 +55,12 @@ object CountComparison {
                                      ) extends Mismatch
 
     def importanceOf(mismatch: Mismatch): Int = mismatch match {
-      case _: CandidateStatusType => 1
-      case _: CandidateStatus => 2
-      case _: FinalRoundingError => 3
-      case _: FinalExhausted => 4
-      case _: VoteCountAtCount => 5
+      case _: CandidateStatusType => 1000
+      case _: CandidateStatus => 500
+      case _: FinalRoundingError => 250
+      case _: FinalExhausted => 125
+      case _: ActionAtCount => 60
+      case _: VoteCountAtCount => 30
     }
 
     implicit val ordering: Ordering[Mismatch] = Ordering.by(importanceOf)

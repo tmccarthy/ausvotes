@@ -9,7 +9,7 @@ import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadEitherOps
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary.FetchCanonicalCountResultException
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary.FetchCanonicalCountSummaryException
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, EntityLocations}
 import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.{IO, Promise, Semaphore}
@@ -23,12 +23,12 @@ final class CanonicalCountSummaryCache(
 
   private def baseBucket = groupsAndCandidatesCache.baseBucket
 
-  private val canonicalCountResults: CacheMap[FetchCanonicalCountResultException, CountSummary] = mutable.Map()
+  private val canonicalCountResults: CacheMap[FetchCanonicalCountSummaryException, CountSummary] = mutable.Map()
 
-  override def fetchCanonicalCountResultFor(
+  override def fetchCanonicalCountSummaryFor(
                                              election: SenateElection,
                                              state: State,
-                                           ): IO[FetchCanonicalCountResultException, CountSummary] =
+                                           ): IO[FetchCanonicalCountSummaryException, CountSummary] =
     for {
       promise <- canonicalCountPromiseFor(election, state)
       canonicalCount <- promise.get
@@ -37,16 +37,16 @@ final class CanonicalCountSummaryCache(
   private def canonicalCountPromiseFor(
                                         election: SenateElection,
                                         state: State,
-                                      ): IO[Nothing, Promise[FetchCanonicalCountResultException, CountSummary]] =
+                                      ): IO[Nothing, Promise[FetchCanonicalCountSummaryException, CountSummary]] =
     mutex.withPermit {
       getPromiseFor(election, state, canonicalCountResults, mutex) {
         val objectKey = EntityLocations.locationOfCanonicalRecount(election, state)
 
         val fetchJsonLogic = ReadsS3.readAsString(baseBucket, objectKey)
-          .leftMap(FetchCanonicalCountResultException.LoadCanonicalRecountJsonException)
+          .leftMap(FetchCanonicalCountSummaryException.LoadCanonicalRecountJsonException)
 
         val fetchGroupsLogic = groupsAndCandidatesCache.fetchGroupsAndCandidatesFor(election, state).map(_.groups)
-          .leftMap(FetchCanonicalCountResultException.FetchGroupsAndCandidatesException)
+          .leftMap(FetchCanonicalCountSummaryException.FetchGroupsAndCandidatesException)
 
         (fetchJsonLogic par fetchGroupsLogic).map { case (canonicalResultJson, groups) =>
           import groupsAndCandidatesCache.codecs._
@@ -54,7 +54,7 @@ final class CanonicalCountSummaryCache(
           implicit val decodeCandidates: DecodeJson[Candidate] = CandidateCodec.decodeCandidate(groups)
 
           Parse.decodeEither[CountSummary](canonicalResultJson)
-            .left.map(FetchCanonicalCountResultException.DecodeCanonicalRecountJsonException)
+            .left.map(FetchCanonicalCountSummaryException.DecodeCanonicalRecountJsonException)
         }.absolve
       }
     }

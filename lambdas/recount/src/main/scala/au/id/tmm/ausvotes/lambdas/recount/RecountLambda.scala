@@ -13,7 +13,7 @@ import au.id.tmm.ausvotes.shared.io.typeclasses._
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
-import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest, RecountResponse}
+import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, RecountLocations, RecountRequest, RecountResponse}
 import au.id.tmm.utilities.collection.Flyweight
 import com.amazonaws.services.lambda.runtime.Context
 import scalaz.zio.{IO, RTS}
@@ -52,17 +52,20 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
       countResult <- RunRecount.runRecountRequest(recountRequest)
           .leftMap(RecountLambdaError.RecountComputationError)
 
+      countSummary <- Monad.fromEither(CountSummary.from(recountRequest, countResult))
+          .leftMap(RecountLambdaError.RecountSummaryError)
+
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
 
       _ <- WritesToS3.putJson(recountDataBucketName, recountResultKey)(
-        content = countResult.asJson.toString,
+        content = countSummary.asJson.toString,
       )
         .timedLog("PUT_RECOUNT_RESULT",
           "recount_data_bucket_name" -> recountDataBucketName,
           "recount_result_key" -> recountResultKey,
         )
         .leftMap(RecountLambdaError.WriteRecountError)
-    } yield RecountResponse.Success(countResult)
+    } yield RecountResponse.Success(countSummary)
   }
 
   override protected def errorLogTransformer: RecountLambdaErrorLogTransformer.type = RecountLambdaErrorLogTransformer

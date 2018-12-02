@@ -7,6 +7,7 @@ import au.id.tmm.utilities.geo.australia.State
 final case class CountData(election: SenateElection,
                            state: State,
 
+                           // TODO should be by Candidate
                            completedCount: CompletedCount[CandidatePosition],
                           ) {
   def ineligibleCandidates: Set[CandidatePosition] = outcomes.ineligibleCandidates

@@ -7,8 +7,9 @@ import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchPreferenceTree}
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
+import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes}
@@ -41,6 +42,8 @@ object CompareRecounts extends zio.App {
       }
 
     } yield comparisons
+
+    IO.point(ExitStatus.ExitNow(0))
   }
 
   private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Monad]
@@ -49,17 +52,19 @@ object CompareRecounts extends zio.App {
     state: State,
   ): F[Nothing, CountComparison] = {
     for {
-      canonicalCount <- (???): F[Nothing, CompletedCount[Candidate]]
+      canonicalCount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(election, state)
+          .leftMap(_ => ???)
 
       computedCountRequest = RecountRequest(
         election,
         state,
-        canonicalCount.numVacancies,
+        canonicalCount.countParams.numVacancies,
         canonicalCount.outcomes.ineligibleCandidates.map(_.aecId),
         doRounding = false,
       )
 
-      computedCountPossibilities <- (???): F[Nothing, ProbabilityMeasure[CompletedCount[Candidate]]]
+      computedCountPossibilities <- RunRecount.runRecountRequest(computedCountRequest)
+          .leftMap(_ => ???)
 
     } yield findBestComparisonBetween(election, state)(canonicalCount, computedCountPossibilities)
   }

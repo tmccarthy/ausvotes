@@ -82,10 +82,10 @@ object EntitiesTestData {
         TestIO.Output(testData, Right(groupsAndCandidates))
       }
 
-    override def fetchCanonicalCountResultFor(
+    override def fetchCanonicalCountSummaryFor(
                                                election: SenateElection,
                                                state: State,
-                                             ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountResultException, CountSummary] =
+                                             ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
         val stateAtElection = (election, state)
