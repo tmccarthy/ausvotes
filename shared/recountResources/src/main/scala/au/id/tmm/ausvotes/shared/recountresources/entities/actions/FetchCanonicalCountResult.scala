@@ -18,6 +18,11 @@ object FetchCanonicalCountResult {
   def fetchCanonicalCountResultFor[F[+_, +_] : FetchCanonicalCountResult](election: SenateElection, state: State): F[FetchCanonicalCountResultException, CompletedCount[Candidate]] =
     implicitly[FetchCanonicalCountResult[F]].fetchCanonicalCountResultFor(election, state)
 
-  final case class FetchCanonicalCountResultException(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
+  sealed abstract class FetchCanonicalCountResultException extends ExceptionCaseClass with ExceptionCaseClass.WithCause
+
+  object FetchCanonicalCountResultException {
+    final case class FetchGroupsAndCandidatesException(cause: FetchGroupsAndCandidates.FetchGroupsAndCandidatesException) extends FetchCanonicalCountResultException
+    final case class BuildCanonicalRecountException(cause: Exception) extends FetchCanonicalCountResultException
+  }
 
 }
