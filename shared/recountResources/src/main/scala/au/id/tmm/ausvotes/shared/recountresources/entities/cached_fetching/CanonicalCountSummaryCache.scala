@@ -6,8 +6,8 @@ import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
-import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadEitherOps
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.EitherOps
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary.FetchCanonicalCountSummaryException
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, EntityLocations}

@@ -3,9 +3,10 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchPreferenceTree}
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
@@ -46,7 +47,7 @@ object CompareRecounts extends zio.App {
     IO.point(ExitStatus.ExitNow(0))
   }
 
-  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Monad]
+  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : BME]
   (
     election: SenateElection,
     state: State,

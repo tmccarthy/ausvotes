@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.io.test
 
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
 
 final case class TestIO[D, +E, +A](run: D => Output[D, E, A]) {
   def map[B](f: A => B): TestIO[D, E, B] = {
@@ -46,13 +46,13 @@ object TestIO {
     }
   }
 
-  implicit def testIOIsAMonad[D]: Monad[TestIO[D, +?, +?]] = new Monad[TestIO[D, +?, +?]] {
+  implicit def testIOIsABME[D]: BME[TestIO[D, +?, +?]] = new BME[TestIO[D, +?, +?]] {
     override def pure[A](a: A): TestIO[D, Nothing, A] = TestIO.pure(a)
     override def leftPure[E](e: E): TestIO[D, E, Nothing] = TestIO.leftPure(e)
     override def flatten[E1, E2 >: E1, A](io: TestIO[D, E1, TestIO[D, E2, A]]): TestIO[D, E2, A] = io.flatten
     override def flatMap[E1, E2 >: E1, A, B](io: TestIO[D, E1, A])(fafe2b: A => TestIO[D, E2, B]): TestIO[D, E2, B] = io.flatMap(fafe2b)
     override def map[E, A, B](io: TestIO[D, E, A])(fab: A => B): TestIO[D, E, B] = io.map(fab)
-    override def leftMap[E1, E2, A](io: TestIO[D, E1, A])(fe1e2: E1 => E2): TestIO[D, E2, A] = io.leftMap(fe1e2)
+    override def bimap[A, B, C, X](fab: TestIO[D, A, B])(f: A => C, g: B => X): TestIO[D, C, X] = fab.map(g).leftMap(f)
 
     override def attempt[E, A](io: TestIO[D, E, A]): TestIO[D, Nothing, Either[E, A]] = {
       val newRun = io.run andThen {
@@ -67,17 +67,25 @@ object TestIO {
       case Left(error) => TestIO.leftPure(error)
     }
 
-    override def catchLeft[E, A, E1 >: E, A1 >: A](fea: TestIO[D, E, A], pf: PartialFunction[E, TestIO[D, E1, A1]]): TestIO[D, E1, A1] = {
-      val newRun: D => Output[D, E1, A1] = fea.run andThen {
+    override def handleErrorWith[E, A, E1](fea: TestIO[D, E, A])(f: E => TestIO[D, E1, A]): TestIO[D, E1, A] = {
+      val newRun: D => Output[D, E1, A] = fea.run andThen {
         case Output(data, result) => {
           result match {
-            case Left(failure) => pf.applyOrElse[E, TestIO[D, E1, A1]](failure, TestIO.leftPure).run(data)
-            case Right(_) => Output(data, result)
+            case Right(value) => Output[D, E1, A](data, Right(value))
+            case Left(failure) => f(failure).run(data)
           }
         }
       }
 
       TestIO(newRun)
+    }
+
+    /**
+      * Keeps calling `f` until a `scala.util.Right[B]` is returned.
+      */
+    override def tailRecM[E, A, B](a: A)(f: A => TestIO[D, E, Either[A, B]]): TestIO[D, E, B] = f(a).flatMap {
+      case Right(value) => TestIO.pure(value)
+      case Left(value) => tailRecM(value)(f)
     }
   }
 

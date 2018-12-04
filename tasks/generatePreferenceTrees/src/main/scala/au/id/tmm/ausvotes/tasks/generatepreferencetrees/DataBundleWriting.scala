@@ -7,15 +7,16 @@ import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.WritesToS3
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.tasks.generatepreferencetrees.DataBundleConstruction.DataBundleForElection
 import au.id.tmm.countstv.model.preferences.PreferenceTreeSerialisation
 
 object DataBundleWriting {
 
-  def writeToS3Bucket[F[+_, +_] : WritesToS3 : Parallel : SyncEffects : Monad](
+  def writeToS3Bucket[F[+_, +_] : WritesToS3 : Parallel : SyncEffects : BME](
                                                                                 s3BucketName: S3BucketName,
 
                                                                                 dataBundleForElection: DataBundleForElection,
@@ -29,7 +30,7 @@ object DataBundleWriting {
       ))
     } yield Unit
 
-  private def writePreferenceTree[F[+_, +_] : WritesToS3 : SyncEffects : Monad](
+  private def writePreferenceTree[F[+_, +_] : WritesToS3 : SyncEffects : BME](
                                                                                  s3BucketName: S3BucketName,
                                                                                  dataBundleForElection: DataBundleForElection,
                                                                                ): F[Exception, Unit] = {
@@ -42,7 +43,7 @@ object DataBundleWriting {
     }
   }
 
-  private def writeGroupsFile[F[+_, +_] : WritesToS3 : Monad](
+  private def writeGroupsFile[F[+_, +_] : WritesToS3 : BME](
                                                                s3BucketName: S3BucketName,
                                                                dataBundleForElection: DataBundleForElection,
                                                              ): F[Exception, Unit] = {
@@ -57,7 +58,7 @@ object DataBundleWriting {
     WritesToS3.putString(s3BucketName, key)(content, ContentType.APPLICATION_JSON)
   }
 
-  private def writeCandidatesFile[F[+_, +_] : WritesToS3 : SyncEffects : Monad](
+  private def writeCandidatesFile[F[+_, +_] : WritesToS3 : SyncEffects : BME](
                                                                                  s3BucketName: S3BucketName,
                                                                                  dataBundleForElection: DataBundleForElection,
                                                                                ): F[Exception, Unit] = {
@@ -72,7 +73,7 @@ object DataBundleWriting {
     WritesToS3.putString(s3BucketName, key)(content, ContentType.APPLICATION_JSON)
   }
 
-  private def writeCanonicalRecountFile[F[+_, +_] : WritesToS3 : SyncEffects : Monad](
+  private def writeCanonicalRecountFile[F[+_, +_] : WritesToS3 : SyncEffects : BME](
                                                                                        s3BucketName: S3BucketName,
                                                                                        dataBundleForElection: DataBundleForElection,
                                                                                      ): F[Exception, Unit] = {

@@ -1,37 +1,56 @@
-package au.id.tmm.ausvotes.shared.io.typeclasses
+package au.id.tmm.ausvotes.shared.io.instances
 
 import java.time.{Instant, LocalDate, ZonedDateTime}
 
-import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
+import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
 import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
 import scalaz.zio.IO
 
-object IOInstances {
+import scala.util.Try
 
-  implicit val ioIsAMonad: Monad[IO] = new Monad[IO] {
+object ZIOInstances {
+
+  implicit val zioIsABME: BME[IO] = new BME[IO] {
+
+    override def handleErrorWith[E, A, E1](fea: IO[E, A])(f: E => IO[E1, A]): IO[E1, A] = fea.catchAll(f)
+
     override def pure[A](a: A): IO[Nothing, A] = IO.point(a)
 
     override def leftPure[E](e: E): IO[E, Nothing] = IO.fail(e)
 
+    override def map[E, A, B](fea: IO[E, A])(fab: A => B): IO[E, B] = fea.map(fab)
+
+    override def flatMap[E1, E2 >: E1, A, B](fe1a: IO[E1, A])(fafe2b: A => IO[E2, B]): IO[E2, B] = fe1a.flatMap(fafe2b)
+
+    /**
+      * Keeps calling `f` until a `scala.util.Right[B]` is returned.
+      */
+    override def tailRecM[E, A, A1](a: A)(f: A => IO[E, Either[A, A1]]): IO[E, A1] = f(a).flatMap {
+      case Right(a1) => pure(a1)
+      case Left(a) => tailRecM(a)(f)
+    }
+
+    override def recoverWith[E, A, E1 >: E](fea: IO[E, A])(pf: PartialFunction[E, IO[E1, A]]): IO[E1, A] = fea.catchSome(pf)
+
+    override def attempt[E, A](fea: IO[E, A]): IO[Nothing, Either[E, A]] = fea.attempt
+
+    override def absolve[E, A](feEitherEA: IO[E, Either[E, A]]): IO[E, A] = IO.absolve(feEitherEA)
+
+    override def fromTry[A](t: Try[A]): IO[Throwable, A] = IO.fromTry(t)
+
+    override def unit: IO[Nothing, Unit] = IO.unit
+
     override def fromEither[E, A](either: Either[E, A]): IO[E, A] = IO.fromEither(either)
 
-    override def flatten[E1, E2 >: E1, A](io: IO[E1, IO[E2, A]]): IO[E2, A] = io.flatMap[E2, A](identity)
+    override def bimap[A, B, C, D](fab: IO[A, B])(f: A => C, g: B => D): IO[C, D] = fab.bimap(f, g)
 
-    override def flatMap[E1, E2 >: E1, A, B](io: IO[E1, A])(fafe2b: A => IO[E2, B]): IO[E2, B] = io.flatMap(fafe2b)
+    override def flatten[E1, E2 >: E1, A](fefa: IO[E1, IO[E2, A]]): IO[E2, A] = fefa.flatMap(identity(_))
 
-    override def map[E, A, B](io: IO[E, A])(fab: A => B): IO[E, B] = io.map(fab)
-
-    override def leftMap[E1, E2, A](io: IO[E1, A])(fe1e2: E1 => E2): IO[E2, A] = io.leftMap(fe1e2)
-
-    override def attempt[E, A](io: IO[E, A]): IO[Nothing, Either[E, A]] = io.attempt
-
-    override def absolve[E, A](io: IO[E, Either[E, A]]): IO[E, A] = IO.absolve(io)
-
-    override def catchLeft[E, A, E1 >: E, A1 >: A](io: IO[E, A], pf: PartialFunction[E, IO[E1, A1]]): IO[E1, A1] =
-      io.catchSome(pf)
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {

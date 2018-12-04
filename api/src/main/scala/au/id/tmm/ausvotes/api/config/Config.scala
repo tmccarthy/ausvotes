@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.api.config
 import au.id.tmm.ausvotes.api.errors.ConfigException
 import au.id.tmm.ausvotes.shared.aws.data.{LambdaFunctionName, S3BucketName}
 import au.id.tmm.ausvotes.shared.io.actions.EnvVars
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.{MonadEitherOps, MonadOps}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.{Ops, EitherOps}
 
 final case class Config(
                          recountDataBucket: S3BucketName,
@@ -14,7 +14,7 @@ final case class Config(
 
 object Config {
 
-  def fromEnvironment[F[+_, +_] : EnvVars : Monad]: F[ConfigException, Config] =
+  def fromEnvironment[F[+_, +_] : EnvVars : BME]: F[ConfigException, Config] =
     (EnvVars.envVars: F[ConfigException, Map[String, String]]).map { envVars =>
       for {
         recountDataBucket <- readS3BucketName(envVars, "RECOUNT_DATA_BUCKET")

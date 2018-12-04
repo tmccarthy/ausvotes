@@ -4,14 +4,14 @@ import java.time.Duration
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
-import au.id.tmm.ausvotes.shared.io.typeclasses._
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
 
 object Logging {
 
   // TODO figure out how to get rid of this duplication
 
-  implicit class LoggingOps[F[+_, +_] : Log : Now : Monad, +E, +A](fea: F[E, A]) {
+  implicit class LoggingOps[F[+_, +_] : Log : Now : BME, +E, +A](fea: F[E, A]) {
     def timedLog(eventId: String, kvPairs: (String, Any)*): F[E, A] =
       for {
         startTime <- Now.systemNanoTime
@@ -19,18 +19,18 @@ object Logging {
         endTime <- Now.systemNanoTime
         duration = Duration.ofNanos(endTime - startTime).toMillis
         _ <- doLog(eventId, kvPairs.toList, duration)(resultPreLogging)
-        result <- Monad.fromEither(resultPreLogging)
+        result <- BME.fromEither(resultPreLogging)
       } yield result
   }
 
-  def timedLog[F[+_, +_] : Log : Now : Monad, E, A](eventId: String, kvPairs: (String, Any)*)(action: => Either[E, A]): F[E, A] = {
+  def timedLog[F[+_, +_] : Log : Now : BME, E, A](eventId: String, kvPairs: (String, Any)*)(action: => Either[E, A]): F[E, A] = {
     for {
       startTime <- Now.systemNanoTime
       resultPreLogging = action
       endTime <- Now.systemNanoTime
       duration = Duration.ofNanos(endTime - startTime).toMillis
       _ <- doLog(eventId, kvPairs.toList, duration)(resultPreLogging)
-      result <- Monad.fromEither(resultPreLogging)
+      result <- BME.fromEither(resultPreLogging)
     } yield result
   }
 

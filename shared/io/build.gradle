@@ -3,6 +3,8 @@ apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 dependencies {
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
+    compile "org.typelevel:cats-core${s}:1.5.0"
+
     compile "commons-io:commons-io:$commonsIoVersion"
 
     testCompile project(':shared:testIo')

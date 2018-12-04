@@ -9,7 +9,7 @@ import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.Logging
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException

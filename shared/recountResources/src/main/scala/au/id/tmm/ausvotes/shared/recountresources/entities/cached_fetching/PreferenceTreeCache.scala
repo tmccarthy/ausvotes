@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.{FetchPreferenceTreeException, GroupsCandidatesAndPreferences}

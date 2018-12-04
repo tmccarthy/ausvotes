@@ -5,9 +5,9 @@ import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.SyncEffects.syncException
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Monad, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
@@ -18,7 +18,7 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 
 object RunRecount {
 
-  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : Monad]
+  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : BME]
   (
     recountRequest: RecountRequest,
   ): F[RunRecount.Error, ProbabilityMeasure[CompletedCount[Candidate]]] =
@@ -29,7 +29,7 @@ object RunRecount {
       preferenceTree = entities.preferenceTree
 
       allCandidates = entities.groupsAndCandidates.candidates
-      ineligibleCandidates <- Monad.fromEither {
+      ineligibleCandidates <- BME.fromEither {
         CandidateActualisation.actualiseCandidates(allCandidates)(recountRequest.ineligibleCandidateAecIds)
           .invalidCandidateIdsOrCandidates
           .left.map(Error.InvalidCandidateIds)

@@ -9,15 +9,15 @@ import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Resources}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import unfiltered.netty.ReceivedMessage
 import unfiltered.request.{DelegatingRequest, HttpRequest}
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}
 
 object AppRoutes {
 
-  def apply[F[+_, +_] : Monad : Resources : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] = {
+  def apply[F[+_, +_] : BME : Resources : ReadsS3 : InvokesLambda : Log](config: Config): InfallibleRoutes[F] = {
 
     val allRoutes: List[PartialRoutes[F]] = List(
       DiagnosticRoutes[F],
@@ -42,16 +42,16 @@ object AppRoutes {
   }
 
   /*_*/
-  private def recoverError[F[+_, +_] : Monad : Log](
+  private def recoverError[F[+_, +_] : BME : Log](
                                                      responseOrException: F[Exception, ResponseFunction[Any]],
                                                    ): F[Nothing, ResponseFunction[Any]] =
     responseOrException.attempt.flatMap {
-      case Right(response) => Monad.pure(response)
+      case Right(response) => BME.pure(response)
       case Left(exception) => handleException(exception)
     }
   /*_*/
 
-  private[routes] def handleException[F[+_, +_] : Monad : Log](
+  private[routes] def handleException[F[+_, +_] : BME : Log](
                                                                 exception: Exception,
                                                               ): F[Nothing, ResponseFunction[Any]] = exception match {
     case NotFoundException(path) =>

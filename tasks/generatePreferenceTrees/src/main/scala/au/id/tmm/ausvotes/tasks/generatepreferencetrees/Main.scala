@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import scalaz.zio.{App, IO}
 
 object Main extends App {

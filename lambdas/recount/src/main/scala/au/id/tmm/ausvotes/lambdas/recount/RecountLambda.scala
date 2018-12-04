@@ -8,7 +8,8 @@ import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.Log._
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.Monad.MonadOps
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.io.typeclasses._
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
@@ -22,7 +23,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
 
   override def logic(lambdaRequest: RecountRequest, context: Context): IO[RecountLambdaError, RecountResponse] = {
     import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
-    import au.id.tmm.ausvotes.shared.io.typeclasses.IOInstances._
+    import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
@@ -37,7 +38,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
     } yield result
   }
 
-  private def recountLogic[F[+_, +_] : FetchPreferenceTree : WritesToS3 : Log : Now : EnvVars : SyncEffects : Monad]
+  private def recountLogic[F[+_, +_] : FetchPreferenceTree : WritesToS3 : Log : Now : EnvVars : SyncEffects : BME]
   (
     recountRequest: RecountRequest,
     context: Context,
@@ -52,7 +53,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
       countResult <- RunRecount.runRecountRequest(recountRequest)
           .leftMap(RecountLambdaError.RecountComputationError)
 
-      countSummary <- Monad.fromEither(CountSummary.from(recountRequest, countResult))
+      countSummary <- BME.fromEither(CountSummary.from(recountRequest, countResult))
           .leftMap(RecountLambdaError.RecountSummaryError)
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
