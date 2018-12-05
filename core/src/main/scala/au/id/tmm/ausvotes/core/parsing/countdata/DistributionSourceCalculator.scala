@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, CandidatePosition}
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.core.parsing.countdata.DistributionComment.{ElectedLastRemaining, ElectedWithQuotaNoSurplus, ElectedWithSurplus, Excluded}
 import au.id.tmm.countstv.model.CandidateDistributionReason
 import au.id.tmm.countstv.model.countsteps.{CountSteps, DistributionCountStep}
@@ -13,8 +13,8 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
 
   def calculateFor(
                     rawDistributionComment: String,
-                    precedingCountSteps: CountSteps[CandidatePosition],
-                  ): Option[DistributionCountStep.Source[CandidatePosition]] = {
+                    precedingCountSteps: CountSteps[Candidate],
+                  ): Option[DistributionCountStep.Source[Candidate]] = {
     val parsedComment = DistributionComment.from(rawDistributionComment)
 
     parsedComment match {
@@ -36,7 +36,7 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
       }
       case ElectedWithSurplus(candidate, distributionCount, originatingCounts, transferValue) => {
         Some(DistributionCountStep.Source(
-          candidate = identifyCandidateFromSurplusDistribution(candidate, precedingCountSteps).btlPosition,
+          candidate = identifyCandidateFromSurplusDistribution(candidate, precedingCountSteps),
           candidateDistributionReason = CandidateDistributionReason.Election,
           sourceCounts = originatingCounts.map(Count(_)),
           transferValue = TransferValue(transferValue)
@@ -49,7 +49,7 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
 
   private def identifyCandidateFromSurplusDistribution(
                                                         candidateShortName: ShortCandidateName,
-                                                        precedingCountSteps: CountSteps[CandidatePosition],
+                                                        precedingCountSteps: CountSteps[Candidate],
                                                       ): Candidate = {
     val candidatesWithMatchingName = candidatesByShortName.getOrElse(candidateShortName, Set())
 
@@ -61,7 +61,7 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
       // This should be good enough
       val electedCandidatePositions = precedingCountSteps.last.candidateStatuses.electedCandidates
 
-      val electedCandidatesWithMatchingName = candidatesWithMatchingName.filter(c => electedCandidatePositions.contains(c.btlPosition))
+      val electedCandidatesWithMatchingName = candidatesWithMatchingName.filter(c => electedCandidatePositions.contains(c))
 
       if (electedCandidatesWithMatchingName.size == 1) {
         electedCandidatesWithMatchingName.head

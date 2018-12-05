@@ -1,16 +1,15 @@
 package au.id.tmm.ausvotes.core.model
 
-import au.id.tmm.ausvotes.core.model.parsing.CandidatePosition
+import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.countstv.model.{CandidateStatuses, CompletedCount}
 import au.id.tmm.utilities.geo.australia.State
 
 final case class CountData(election: SenateElection,
                            state: State,
 
-                           // TODO should be by Candidate
-                           completedCount: CompletedCount[CandidatePosition],
+                           completedCount: CompletedCount[Candidate],
                           ) {
-  def ineligibleCandidates: Set[CandidatePosition] = outcomes.ineligibleCandidates
+  def ineligibleCandidates: Set[Candidate] = outcomes.ineligibleCandidates
 
-  def outcomes: CandidateStatuses[CandidatePosition] = completedCount.outcomes
+  def outcomes: CandidateStatuses[Candidate] = completedCount.outcomes
 }

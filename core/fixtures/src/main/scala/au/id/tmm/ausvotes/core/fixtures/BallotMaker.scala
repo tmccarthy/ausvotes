@@ -13,7 +13,7 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
                  pollingPlace: PollingPlace = PollingPlaceFixture.ACT.BARTON,
                  batch: Int = 1,
                  paper: Int = 1
-            ) = {
+            ): Ballot = {
     Ballot(candidateFixture.election, candidateFixture.state, division, pollingPlace, batch, paper, atlPreferences, btlPreferences)
   }
 
@@ -49,7 +49,10 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
   def candidatePosition(positionCode: String): CandidatePosition =
     BallotMaker.candidatePosition(candidateFixture.groupFixture)(positionCode)
 
-  def group(groupCode: String) = candidateFixture.groupLookup(groupCode) match {
+  def candidateWithPosition(positionCode: String): Candidate =
+    candidateFixture.candidates.find(_.btlPosition == candidatePosition(positionCode)).get
+
+  def group(groupCode: String): Group = candidateFixture.groupLookup(groupCode) match {
     case g: Group => g
     case u: Ungrouped => throw new IllegalArgumentException(u.toString)
   }

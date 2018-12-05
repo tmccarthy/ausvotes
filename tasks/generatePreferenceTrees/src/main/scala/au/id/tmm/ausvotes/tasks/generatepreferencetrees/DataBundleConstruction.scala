@@ -4,7 +4,6 @@ import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
 import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
-import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
@@ -29,13 +28,9 @@ object DataBundleConstruction {
       candidate.btlPosition -> candidate
     }.toMap
 
-    val ineligibleCandidates = countData.ineligibleCandidates.flatMap(lookupCandidateByPosition.get)
+    val ineligibleCandidates = countData.ineligibleCandidates
 
-    val candidateStatuses = CandidateStatuses(
-      countData.completedCount.outcomes.asMap.map { case (candidatePosition, candidateOutcome) =>
-        lookupCandidateByPosition(candidatePosition) -> candidateOutcome
-      }
-    )
+    val candidateStatuses = countData.completedCount.outcomes
 
     val canonicalRecountResult = CountSummary(
       request = CountSummary.Request(

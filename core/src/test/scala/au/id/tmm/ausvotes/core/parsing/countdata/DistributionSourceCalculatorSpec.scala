@@ -50,7 +50,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
     val distributionSource = sut.calculateFor(comment, countData.completedCount.countSteps.truncateAfter(Count(1)))
 
     assert(distributionSource.get.candidate ===
-      CandidateFixture.ACT.candidateWithName(Name("Katy", "GALLAGHER")).btlPosition)
+      CandidateFixture.ACT.candidateWithName(Name("Katy", "GALLAGHER")))
   }
 
   it should "not produce a source if the candidate was elected as the last woman standing" in {

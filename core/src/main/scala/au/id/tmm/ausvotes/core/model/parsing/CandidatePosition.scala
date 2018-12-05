@@ -10,18 +10,19 @@ final case class CandidatePosition(group: BallotGroup, positionInGroup: Int) ext
 }
 
 object CandidatePosition {
-  def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, CandidatePosition] = {
+
+  // TODO probably move this
+  def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, Candidate] = {
     val numGroups = groupsAndCandidates.groups.size
-    val candidatePositionsInBallotOrder = groupsAndCandidates.candidates.toStream
-      .map(_.btlPosition)
+    val candidatesInBallotOrder = groupsAndCandidates.candidates.toStream
       .sorted
 
-    candidatePositionsInBallotOrder.zipWithIndex
+    candidatesInBallotOrder.zipWithIndex
       .map {
-        case (candidatePosition, index) => (candidatePosition, index + numGroups + 1)
+        case (candidate, index) => (candidate, index + numGroups + 1)
       }
       .map {
-        case (candidatePosition, positionOnBallotOrdinal) => positionOnBallotOrdinal -> candidatePosition
+        case (candidate, positionOnBallotOrdinal) => positionOnBallotOrdinal -> candidate
       }
       .toMap
   }

@@ -25,5 +25,5 @@ class CanonicalRecountComputation(
       canonicalRecount <- IO.syncException {
         parsedDataStore.countDataFor(election, groupsAndCandidates, state)
       }.leftMap(FetchCanonicalCountResultException.BuildCanonicalRecountException)
-    } yield canonicalRecount.completedCount
+    } yield canonicalRecount.completedCount // TODO fix
 }

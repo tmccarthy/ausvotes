@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.computations.exhaustion
 import au.id.tmm.ausvotes.core.model.CountData
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.NotExhausted
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, NormalisedBallot}
-import au.id.tmm.ausvotes.core.model.parsing.{Ballot, CandidatePosition}
+import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
@@ -19,26 +19,29 @@ object ExhaustionCalculator {
       assert(previousCountStep.count.increment == countStep.count)
 
       countStep match {
-        case countStep: InitialAllocation[CandidatePosition] => {}
-        case countStep: AllocationAfterIneligibles[CandidatePosition] => {
+        case countStep: InitialAllocation[Candidate] => {}
+        case countStep: AllocationAfterIneligibles[Candidate] => {
+          val ineligibleCandidatePositions = countStep.candidateStatuses.ineligibleCandidates.map(_.btlPosition)
+          val ineligibleForPreferenceFlowsPositions = countStep.candidateStatuses.ineligibleForPreferenceFlows.map(_.btlPosition)
+
           trackedBallots.foreach { trackedBallot =>
-            if (trackedBallot.currentPreference.exists(countStep.candidateStatuses.ineligibleCandidates)) {
+            if (trackedBallot.currentPreference.exists(ineligibleCandidatePositions)) {
               allocateToNextPreference(
                 trackedBallot,
                 countStep.count,
-                countStep.candidateStatuses.ineligibleForPreferenceFlows,
+                ineligibleForPreferenceFlowsPositions,
                 numElectedCandidates = 0,
               )
             }
           }
         }
-        case countStep: DistributionCountStep[CandidatePosition] => {
+        case countStep: DistributionCountStep[Candidate] => {
           for {
             trackedBallot <- trackedBallots
           } {
             val distributionSource = countStep.distributionSource
             if (
-              trackedBallot.currentPreference.contains(distributionSource.candidate) &&
+              trackedBallot.currentPreference.contains(distributionSource.candidate.btlPosition) &&
                 distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)
             ) {
               val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates diff
@@ -48,7 +51,7 @@ object ExhaustionCalculator {
               allocateToNextPreference(
                 trackedBallot,
                 countStep.count,
-                countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep,
+                (countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep).map(_.btlPosition),
                 numElectedCandidates = countStep.candidateStatuses.electedCandidates.size,
               )
             }
