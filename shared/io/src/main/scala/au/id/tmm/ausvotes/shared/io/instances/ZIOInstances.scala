@@ -2,10 +2,9 @@ package au.id.tmm.ausvotes.shared.io.instances
 
 import java.time.{Instant, LocalDate, ZonedDateTime}
 
-import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now, Resources}
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.actions._
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
 import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
@@ -109,6 +108,12 @@ object ZIOInstances {
     override def parAll[E, A](as: Iterable[IO[E, A]]): IO[E, List[A]] = IO.parAll(as)
 
     override def parTraverse[E, A, B](as: Iterable[A])(f: A => IO[E, B]): IO[E, List[B]] = IO.parTraverse[E, A, B](as)(f)
+  }
+
+  implicit val zioHasAConsole: Console[IO] = new Console[IO] {
+    override def print(string: String): IO[Nothing, Unit] = IO.sync(scala.Console.print(string))
+
+    override def println(string: String): IO[Nothing, Unit] = IO.sync(scala.Console.println(string))
   }
 
 }

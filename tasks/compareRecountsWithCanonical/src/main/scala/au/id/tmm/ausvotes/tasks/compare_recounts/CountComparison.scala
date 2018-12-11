@@ -9,7 +9,7 @@ import au.id.tmm.countstv.model.values.Count
 import au.id.tmm.countstv.model.{CandidateVoteCounts, CompletedCount, VoteCount}
 import au.id.tmm.utilities.geo.australia.State
 
-import scala.collection.immutable.SortedSet
+import scala.collection.immutable.{SortedMap, SortedSet}
 
 final case class CountComparison(
                                   election: SenateElection,
@@ -18,9 +18,19 @@ final case class CountComparison(
                                   canonicalCount: CompletedCount[Candidate],
                                   computedCount: CompletedCount[Candidate],
 
-                                  // TODO really need a way of indicating if a category of mismatch doesn't exist, ie it was correct
-                                  mismatches: SortedSet[Mismatch],
+                                  candidateStatusTypeMismatches: SortedSet[Mismatch.CandidateStatusType],
+                                  candidateStatusMismatches: SortedSet[Mismatch.CandidateStatus],
+
+                                  finalRoundingErrorMismatch: Option[Mismatch.FinalRoundingError],
+                                  finalExhaustedMismatch: Option[Mismatch.FinalExhausted],
+
+                                  actionAtCountMismatch: SortedSet[Mismatch.ActionAtCount],
+                                  voteCountAtCountMismatch: SortedSet[Mismatch.VoteCountAtCount],
                                 ) {
+
+  def mismatches: Set[Mismatch] = candidateStatusTypeMismatches ++ candidateStatusMismatches ++
+    finalRoundingErrorMismatch ++ finalExhaustedMismatch ++ actionAtCountMismatch ++ voteCountAtCountMismatch
+
   def mismatchSignificance: Int = mismatches.map(Mismatch.importanceOf).sum
 }
 
@@ -30,10 +40,16 @@ object CountComparison {
 
   object Mismatch {
     final case class CandidateStatusType(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
+    object CandidateStatusType {
+      implicit val ordering: Ordering[CandidateStatusType] = Ordering.by(_.candidate)
+    }
     final case class CandidateStatus(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
+    object CandidateStatus {
+      implicit val ordering: Ordering[CandidateStatus] = Ordering.by(_.candidate)
+    }
 
     final case class FinalRoundingError(canonicalRoundingError: VoteCount, roundingErrorInComputed: VoteCount) extends Mismatch
-    final case class FinalExhausted(canonicalRoundingError: VoteCount, roundingErrorInComputed: VoteCount) extends Mismatch
+    final case class FinalExhausted(canonicalExhausted: VoteCount, exhaustedInComputed: VoteCount) extends Mismatch
 
     final case class ActionAtCount(count: Count, canonicalAction: Option[ActionAtCount.Action], computedAction: Option[ActionAtCount.Action]) extends Mismatch
     object ActionAtCount {
@@ -45,14 +61,22 @@ object CountComparison {
         final case class ExcludedNoVotes(source: Candidate) extends Action
         final case class ElectedNoSurplus(source: Candidate, sourceCounts: Set[Count]) extends Action
       }
+
+      implicit val ordering: Ordering[ActionAtCount] = Ordering.by(_.count)
     }
 
     final case class VoteCountAtCount(
-                                       misallocatedBallotsPerCount: Map[Count, VoteCount],
+                                       misallocatedBallotsPerCount: SortedMap[Count, VoteCount],
                                        firstBadCount: Count,
                                        canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[Candidate],
                                        candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                     ) extends Mismatch
+                                     ) extends Mismatch {
+      def diff: CandidateVoteCounts[Candidate] =
+        candidateVoteCountsInComputedAtFirstBadCount - canonicalCandidateVoteCountsAtFirstBadCount
+    }
+    object VoteCountAtCount {
+      implicit val ordering: Ordering[VoteCountAtCount] = Ordering.by(_.firstBadCount)
+    }
 
     def importanceOf(mismatch: Mismatch): Int = mismatch match {
       case _: CandidateStatusType => 1000

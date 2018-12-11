@@ -1,15 +1,21 @@
 package au.id.tmm.ausvotes.tasks.compare_recounts
 
+import java.nio.file.Paths
+
+import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.model.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.core.model.parsing.Candidate
-import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
+import au.id.tmm.ausvotes.shared.io.actions.{Console, Log, Now}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchPreferenceTree}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchGroupsAndCandidates, FetchPreferenceTree}
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
+import au.id.tmm.ausvotes.shared.recountresources.entities.core_fetching.CanonicalRecountComputation
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model.countsteps._
@@ -18,43 +24,71 @@ import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, Completed
 import au.id.tmm.utilities.collection.CollectionUtils.Sortable
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import cats.Applicative
+import cats.implicits._
 import scalaz.zio
 import scalaz.zio.IO
 
 import scala.Ordering.Implicits._
+import scala.collection.immutable.SortedMap
 
 object CompareRecounts extends zio.App {
 
   override def run(args: List[String]): IO[Nothing, ExitStatus] = {
+    val s3BucketName = S3BucketName("recount-data.buckets.ausvotes.info") // TODO take from args
+    val aecResourceStorePath = Paths.get("rawData") // TODO take from args
     val election = SenateElection.`2016` // TODO take from args
-    val states = election.states
 
-    for {
-      groupsAndCandidatesCache <- GroupsAndCandidatesCache(???)
+    val errorOrSuccessCode = for {
+      groupsAndCandidatesCache <- GroupsAndCandidatesCache(s3BucketName)
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
 
-      comparisons <- {
+      _ <- {
         implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
-        implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = ???
+        implicit val fetchGroupsAndCandidates: FetchGroupsAndCandidates[IO] = groupsAndCandidatesCache
+        implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = {
+          val aecResourceStore = AecResourceStore.at(aecResourceStorePath)
+          val rawDataStore = RawDataStore(aecResourceStore)
+          val parsedDataStore = ParsedDataStore(rawDataStore)
 
-        IO.traverse(states) { state =>
-          compareFor[IO](election, state).map((election, state) -> _)
-        }.map(_.toMap)
+          new CanonicalRecountComputation(parsedDataStore, groupsAndCandidatesCache)
+        }
+
+        generalRun[IO](election)
       }
+    } yield ExitStatus.ExitNow(0)
 
-    } yield comparisons
+    errorOrSuccessCode.catchAll(_ => IO.point(ExitStatus.ExitNow(1)))
+  }
 
-    IO.point(ExitStatus.ExitNow(0))
+  private def generalRun[F[+_, +_] : FetchGroupsAndCandidates : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Console : BME]
+  (
+    election: SenateElection,
+  ): F[Exception, Unit] = {
+    val states: Set[State] = Set(State.SA) // TODO election.states
+
+    implicit def applicative[E]: Applicative[F[E, +?]] = BME.bifunctorMonadErrorIsAMonadError[E, F]
+
+    for {
+      /*_*/
+      comparisons <- states.toList
+        .sorted(orderStatesByPopulation)
+        .traverse((state: State) =>
+          compareFor[F](election, state)
+        )
+
+      _ <- comparisons.flatMap(RenderCountComparison.render).map(Console.println[F]).sequence
+      /*_*/
+    } yield ()
   }
 
   private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : BME]
   (
     election: SenateElection,
     state: State,
-  ): F[Nothing, CountComparison] = {
+  ): F[Exception, CountComparison] = {
     for {
       canonicalCount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(election, state)
-          .leftMap(_ => ???)
 
       computedCountRequest = RecountRequest(
         election,
@@ -65,7 +99,6 @@ object CompareRecounts extends zio.App {
       )
 
       computedCountPossibilities <- RunRecount.runRecountRequest(computedCountRequest)
-          .leftMap(_ => ???)
 
     } yield findBestComparisonBetween(election, state)(canonicalCount, computedCountPossibilities)
   }
@@ -84,7 +117,12 @@ object CompareRecounts extends zio.App {
           state,
           canonicalCountResult,
           computedCount,
-          mismatches.toSortedSet,
+          mismatches.collect { case m: Mismatch.CandidateStatusType => m }.toSortedSet,
+          mismatches.collect { case m: Mismatch.CandidateStatus => m }.toSortedSet,
+          mismatches.collect { case m: Mismatch.FinalRoundingError => m }.headOption,
+          mismatches.collect { case m: Mismatch.FinalExhausted => m }.headOption,
+          mismatches.collect { case m: Mismatch.ActionAtCount => m }.toSortedSet,
+          mismatches.collect { case m: Mismatch.VoteCountAtCount => m }.toSortedSet,
         )
       }
       .minBy(_.mismatchSignificance)
@@ -140,7 +178,7 @@ object CompareRecounts extends zio.App {
 
       nonZeroMismatchesPerCount.headOption.map { case (firstBadCount, _) =>
         Mismatch.VoteCountAtCount(
-          nonZeroMismatchesPerCount.toMap,
+          SortedMap(nonZeroMismatchesPerCount: _*),
           firstBadCount,
           canonicalCount.countSteps(firstBadCount).candidateVoteCounts,
           computedCount.countSteps(firstBadCount).candidateVoteCounts,
