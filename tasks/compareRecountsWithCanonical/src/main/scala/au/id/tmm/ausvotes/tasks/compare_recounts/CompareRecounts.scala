@@ -19,7 +19,7 @@ import au.id.tmm.ausvotes.shared.recountresources.entities.core_fetching.Canonic
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model.countsteps._
-import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes}
+import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.CollectionUtils.Sortable
 import au.id.tmm.utilities.geo.australia.State
@@ -65,7 +65,7 @@ object CompareRecounts extends zio.App {
   (
     election: SenateElection,
   ): F[Exception, Unit] = {
-    val states: Set[State] = Set(State.SA) // TODO election.states
+    val states: Set[State] = election.states
 
     implicit def applicative[E]: Applicative[F[E, +?]] = BME.bifunctorMonadErrorIsAMonadError[E, F]
 
@@ -95,7 +95,7 @@ object CompareRecounts extends zio.App {
         state,
         canonicalCount.countParams.numVacancies,
         canonicalCount.outcomes.ineligibleCandidates.map(_.aecId),
-        doRounding = false,
+        doRounding = true,
       )
 
       computedCountPossibilities <- RunRecount.runRecountRequest(computedCountRequest)
@@ -160,11 +160,13 @@ object CompareRecounts extends zio.App {
       val canonicalAction = canonicalCountStep.map(actionOf)
       val computedAction = computedCountStep.map(actionOf)
 
-      if (canonicalAction != computedAction) {
-        List(Mismatch.ActionAtCount(count, canonicalAction, computedAction))
-      } else {
-        Nil
+      val actionsMatch = (canonicalAction, computedAction) match {
+        case (Some(canonicalAction), Some(computedAction)) => compareActions(canonicalAction, computedAction)
+        case (None, None) => true
+        case (_, _) => false
       }
+
+      if (actionsMatch) Nil else List(Mismatch.ActionAtCount(count, canonicalAction, computedAction))
     }.toSet.flatten
 
     val ballotAndVoteMismatches: Option[Mismatch] = {
@@ -240,6 +242,41 @@ object CompareRecounts extends zio.App {
         )
       }
       .reduce(_ + _)
+  }
+
+  private def compareActions(left: Mismatch.ActionAtCount.Action, right: Mismatch.ActionAtCount.Action): Boolean = {
+    import Mismatch.ActionAtCount.Action._
+
+    // Source counts 0 and 1 are equivalent
+    def compareSourceCounts(left: Set[Count], right: Set[Count]) =
+      left.map {
+        case Count(1) => Count(0)
+        case c => c
+      } == right.map {
+        case Count(1) => Count(0)
+        case c => c
+      }
+
+    def compareTransferValues(left: TransferValue, right: TransferValue) = math.abs(left.factor - right.factor) < 1e-6
+
+    def compareSources(
+                        left: DistributionCountStep.Source[Candidate],
+                        right: DistributionCountStep.Source[Candidate],
+                      ): Boolean =
+      left.candidateDistributionReason == right.candidateDistributionReason &&
+        left.candidate == right.candidate &&
+        compareTransferValues(left.transferValue, right.transferValue) &&
+        compareSourceCounts(left.sourceCounts, right.sourceCounts)
+
+    (left, right) match {
+      case (InitialAllocation, InitialAllocation) => true
+      case (AllocationAfterIneligibles, AllocationAfterIneligibles) => true
+      case (Distribution(leftSource), Distribution(rightSource)) => compareSources(leftSource, rightSource)
+      case (ExcludedNoVotes(leftSource), ExcludedNoVotes(rightSource)) => leftSource == rightSource
+      case (ElectedNoSurplus(leftSource, leftSourceCounts), ElectedNoSurplus(rightSource, rightSourceCounts)) =>
+        leftSource == rightSource && compareSourceCounts(leftSourceCounts, rightSourceCounts)
+      case (_, _) => false
+    }
   }
 
 }

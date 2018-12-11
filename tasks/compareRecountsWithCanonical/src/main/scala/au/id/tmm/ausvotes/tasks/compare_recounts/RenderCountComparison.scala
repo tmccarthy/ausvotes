@@ -106,7 +106,7 @@ object RenderCountComparison {
     s"$ordinalOneIndexed$suffix"
   }
 
-  private def renderVoteCount(count: VoteCount): String = s"${count.numPapers} papers, ${count.numPapers} votes"
+  private def renderVoteCount(count: VoteCount): String = s"${count.numPapers.asLong} papers, ${count.numVotes.asDouble} votes"
 
   private def actionDescription(action: Option[Mismatch.ActionAtCount.Action]): List[String] = action match {
     case Some(Action.InitialAllocation) => List("Initial allocation")
