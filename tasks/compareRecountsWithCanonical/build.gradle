@@ -20,3 +20,15 @@ dependencies {
     testCompile project(':shared:testAws')
     testCompile project(':shared:testRecountResources')
 }
+
+task compare2016(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    main = 'au.id.tmm.ausvotes.tasks.compare_recounts.CompareRecounts'
+
+    args rootProject.file('rawData').absolutePath,
+        project(':infrastructure').recountDataBucketName,
+        '2016'
+
+    jvmArgs '-Xmx3G'
+}

@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.tasks.compare_recounts
 
-import java.nio.file.Paths
+import java.nio.file.{InvalidPathException, Path, Paths}
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.model.SenateElection
@@ -34,27 +34,40 @@ import scala.collection.immutable.SortedMap
 
 object CompareRecounts extends zio.App {
 
-  override def run(args: List[String]): IO[Nothing, ExitStatus] = {
-    val s3BucketName = S3BucketName("recount-data.buckets.ausvotes.info") // TODO take from args
-    val aecResourceStorePath = Paths.get("rawData") // TODO take from args
-    val election = SenateElection.`2016` // TODO take from args
+  final case class Args(aecResourceStorePath: Path, s3BucketName: S3BucketName, election: SenateElection)
 
+  private def argsFrom(rawArgs: List[String]): Either[String, Args] =
+    for {
+      rawAecResourcePath <- rawArgs.lift(0).toRight("Missing aec resource path")
+      aecResourcePath <- try Right(Paths.get(rawAecResourcePath)) catch {
+        case e: InvalidPathException => Left(e.getMessage)
+      }
+
+      s3BucketName <- rawArgs.lift(1).toRight("Missing bucket name").map(S3BucketName)
+
+      rawElection <- rawArgs.lift(2).toRight("Missing election")
+      election <- SenateElection.forId(rawElection).toRight(s"Bad election $rawElection")
+    } yield Args(aecResourcePath, s3BucketName, election)
+
+  override def run(rawArgs: List[String]): IO[Nothing, ExitStatus] = {
     val errorOrSuccessCode = for {
-      groupsAndCandidatesCache <- GroupsAndCandidatesCache(s3BucketName)
+      args <- IO.fromEither(argsFrom(rawArgs))
+
+      groupsAndCandidatesCache <- GroupsAndCandidatesCache(args.s3BucketName)
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
 
       _ <- {
         implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
         implicit val fetchGroupsAndCandidates: FetchGroupsAndCandidates[IO] = groupsAndCandidatesCache
         implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = {
-          val aecResourceStore = AecResourceStore.at(aecResourceStorePath)
+          val aecResourceStore = AecResourceStore.at(args.aecResourceStorePath)
           val rawDataStore = RawDataStore(aecResourceStore)
           val parsedDataStore = ParsedDataStore(rawDataStore)
 
           new CanonicalRecountComputation(parsedDataStore, groupsAndCandidatesCache)
         }
 
-        generalRun[IO](election)
+        generalRun[IO](args.election)
       }
     } yield ExitStatus.ExitNow(0)
 
