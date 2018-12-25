@@ -5,7 +5,7 @@ import au.id.tmm.utilities.geo.australia.State
 
 object StateCodec {
 
-  implicit val codec: Codec[State] = simpleCodec(
+  implicit val codec: Codec[State] = partialCodec(
     encode = _.abbreviation,
     decode = State.fromAbbreviation,
   )

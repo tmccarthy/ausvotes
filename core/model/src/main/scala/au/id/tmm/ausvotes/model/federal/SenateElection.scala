@@ -32,7 +32,7 @@ object SenateElection {
     case _ => None
   }
 
-  implicit val codec: Codec[SenateElection] = simpleCodec[SenateElection, String](
+  implicit val codec: Codec[SenateElection] = partialCodec[SenateElection, String](
     encode = _.id.asString,
     decode = s => from(Id(s)),
   )
