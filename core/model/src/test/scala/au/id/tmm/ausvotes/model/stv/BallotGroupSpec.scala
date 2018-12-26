@@ -1,5 +1,6 @@
-package au.id.tmm.ausvotes.model
+package au.id.tmm.ausvotes.model.stv
 
+import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.SenateElection
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json

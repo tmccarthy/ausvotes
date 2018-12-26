@@ -1,7 +1,8 @@
-package au.id.tmm.ausvotes.model
+package au.id.tmm.ausvotes.model.stv
 
-import au.id.tmm.ausvotes.model.BallotGroup.Code
 import au.id.tmm.ausvotes.model.Codecs.Codec
+import au.id.tmm.ausvotes.model._
+import au.id.tmm.ausvotes.model.stv.BallotGroup.Code
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
