@@ -1,5 +1,7 @@
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencies {
+    compile "au.id.tmm:countstv${s}:0.1.11"
+
     compile "io.circe:circe-core${s}:$circeVersion"
 }
