@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.model.stv
 
-import au.id.tmm.ausvotes.model.federal.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json

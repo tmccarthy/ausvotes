@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.model.federal
+package au.id.tmm.ausvotes.model.federal.senate
 
 final case class SenateBallotId(
                                  batch: Int,

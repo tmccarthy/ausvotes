@@ -1,9 +1,10 @@
-package au.id.tmm.ausvotes.model.federal
+package au.id.tmm.ausvotes.model.federal.senate
 
 import java.time.LocalDate
 
 import au.id.tmm.ausvotes.model.Codecs._
-import au.id.tmm.ausvotes.model.federal.SenateElection.SenateElectionType
+import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType
 import au.id.tmm.utilities.datetime.LocalDateOrdering
 import au.id.tmm.utilities.geo.australia.State
 

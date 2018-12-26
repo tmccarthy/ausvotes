@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.model.federal
+package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
