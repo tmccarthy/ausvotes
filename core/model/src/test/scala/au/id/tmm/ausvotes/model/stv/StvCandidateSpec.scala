@@ -3,16 +3,21 @@ package au.id.tmm.ausvotes.model.stv
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
-import io.circe.Json
 import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Json}
 
 class StvCandidateSpec extends ImprovedFlatSpec {
 
+  private val election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get
+  private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).right.get
+  private implicit val candidatePositionDecoder: Decoder[CandidatePosition[SenateElectionForState]] =
+    CandidatePosition.decoderUsing(allGroups = List(group))
+
   "an stv candidate" can "be encoded to json" in {
     val stvCandidate = StvCandidate(
-      election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get,
+      election = election,
       candidate = "candidate",
-      position = CandidatePosition(BallotGroup.Code.unsafeMake("A"), 0),
+      position = CandidatePosition(group, 0),
     )
 
     val json = Json.obj(
@@ -26,9 +31,9 @@ class StvCandidateSpec extends ImprovedFlatSpec {
 
   it can "be decoded from json" in {
     val stvCandidate = StvCandidate(
-      election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get,
+      election = election,
       candidate = "candidate",
-      position = CandidatePosition(BallotGroup.Code.unsafeMake("A"), 0),
+      position = CandidatePosition(group, 0),
     )
 
     val json = Json.obj(

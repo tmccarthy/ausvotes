@@ -1,30 +1,42 @@
 package au.id.tmm.ausvotes.model.stv
 
-import au.id.tmm.ausvotes.model.Codecs
-import au.id.tmm.ausvotes.model.Codecs.Codec
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder}
 
 import scala.util.Try
 
-// TODO give some thought as to whether this is needed at this level of abstraction
-final case class CandidatePosition(
-                                    groupCode: BallotGroup.Code,
-                                    indexInGroup: Int,
-                                  )
+final case class CandidatePosition[E](
+                                       group: BallotGroup[E],
+                                       indexInGroup: Int,
+                                     )
 
 object CandidatePosition {
 
+  implicit def encoder[E]: Encoder[CandidatePosition[E]] = p => s"${p.group.code.asString}${p.indexInGroup}".asJson
+
   private val positionPattern = "^([A-Z]{1,2})(\\d+)$".r
 
-  implicit val codec: Codec[CandidatePosition] = Codecs.partialCodec[CandidatePosition, String](
-    encode = p => s"${p.groupCode.asString}${p.indexInGroup}",
-    decode = {
+  def decoderUsing[E](allGroups: Iterable[BallotGroup[E]]): Decoder[CandidatePosition[E]] = {
+    val lookup = allGroups.groupBy(_.code).map { case (code, groups) => code -> groups.headOption }
+
+    decoder(lookup)
+  }
+
+  def decoder[E](groupFromCode: BallotGroup.Code => Option[BallotGroup[E]]): Decoder[CandidatePosition[E]] =
+    Decoder.decodeString.emap {
       case positionPattern(rawCode, rawIndexInGroup) =>
         for {
-          code <- BallotGroup.Code(rawCode).toOption
-          indexInGroup <- Try(rawIndexInGroup.toInt).toOption
-        } yield CandidatePosition(code, indexInGroup)
-      case _ => None
+          code <- BallotGroup.Code(rawCode)
+              .left.map(_ => "Invalid code")
+
+          group <- groupFromCode(code)
+              .toRight(s"""No such group "${code.asString}"""")
+
+          indexInGroup <- Try(rawIndexInGroup.toInt).toEither
+              .left.map(_.getMessage)
+        } yield CandidatePosition(group, indexInGroup)
+
+      case _ => Left("Invalid code")
     }
-  )
 
 }

@@ -20,7 +20,7 @@ package object senate {
   def SenateCandidate(
                        election: SenateElectionForState,
                        candidate: SenateCandidateDetails,
-                       position: CandidatePosition,
+                       position: CandidatePosition[SenateElectionForState],
                      ): SenateCandidate = StvCandidate(election, candidate, position)
 
   type SenateBallot = Ballot[SenateElectionForState, SenateCandidate, FederalBallotJurisdiction, SenateBallotId]
