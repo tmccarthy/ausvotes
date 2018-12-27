@@ -10,6 +10,12 @@ object Flyweights {
     private val underlying: Flyweight[(E, String, Electorate.Id), Electorate[E]] = Flyweight {
       case (election, name, id) => Electorate(election, name, id)
     }
+
+    def make(
+              election: E,
+              name: String,
+              id: Electorate.Id,
+            ): Electorate[E] = underlying((election, name, id))
   }
 
   object ElectorateFlyweight {
@@ -20,6 +26,12 @@ object Flyweights {
     private val underlying: Flyweight[(E, BallotGroup.Code, Option[Party]), Either[Group.InvalidGroupCode.type, Group[E]]] = Flyweight {
       case (election, code, party) => Group(election, code, party)
     }
+
+    def make(
+              election: E,
+              code: BallotGroup.Code,
+              party: Option[Party],
+            ): Either[Group.InvalidGroupCode.type, Group[E]] = underlying((election, code, party))
   }
 
   object GroupFlyweight {
