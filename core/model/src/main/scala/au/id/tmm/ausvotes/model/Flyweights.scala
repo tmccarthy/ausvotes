@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.model
 import au.id.tmm.ausvotes.model.stv.{BallotGroup, Group}
 import au.id.tmm.utilities.collection.Flyweight
 
+// TODO should this sit in the model?
 object Flyweights {
 
   final class ElectorateFlyweight[E] private () {
