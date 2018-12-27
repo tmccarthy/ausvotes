@@ -32,6 +32,8 @@ package object senate {
                     candidatePreferences: Map[SenateCandidate, Preference],
                   ): SenateBallot = Ballot(election, jurisdiction, id, groupPreferences, candidatePreferences)
 
+  type SenateBallotGroup = BallotGroup[SenateElectionForState]
+
   type SenateGroup = Group[SenateElectionForState]
   def SenateGroup(
                    election: SenateElectionForState,
