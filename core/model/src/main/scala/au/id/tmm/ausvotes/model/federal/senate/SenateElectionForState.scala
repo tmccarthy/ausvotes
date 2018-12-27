@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.StateCodec.codec
+import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.utilities.geo.australia.State
 import io.circe.{Decoder, DecodingFailure, Encoder}
 
@@ -31,5 +32,10 @@ object SenateElectionForState {
     } yield electionForState
 
   final case class NoElectionForState(election: SenateElection, state: State) extends ExceptionCaseClass
+
+  implicit val ordering: Ordering[SenateElectionForState] =
+    Ordering.by[SenateElectionForState, (SenateElection, State)](e => (e.election, e.state))(
+      ord = Ordering.Tuple2(SenateElection.ordering.reverse, StateInstances.orderStatesByPopulation.reverse)
+    )
 
 }

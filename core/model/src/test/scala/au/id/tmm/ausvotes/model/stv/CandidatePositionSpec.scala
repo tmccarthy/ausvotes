@@ -18,4 +18,17 @@ class CandidatePositionSpec extends ImprovedFlatSpec {
     assert(Json.fromString("AA2").as[CandidatePosition[String]] === Right(testPosition))
   }
 
+  it should "have an ordering" in {
+    val a0 = CandidatePosition(Group("election", BallotGroup.Code.unsafeMake("A"), party = None).right.get, 0)
+    val a1 = CandidatePosition(Group("election", BallotGroup.Code.unsafeMake("A"), party = None).right.get, 1)
+    val a2 = CandidatePosition(Group("election", BallotGroup.Code.unsafeMake("A"), party = None).right.get, 2)
+    val b1 = CandidatePosition(Group("election", BallotGroup.Code.unsafeMake("B"), party = None).right.get, 1)
+    val c3 = CandidatePosition(Group("election", BallotGroup.Code.unsafeMake("C"), party = None).right.get, 3)
+
+    val positions = List(c3, a2, a1, b1, a0)
+    val sorted = positions.sorted
+
+    assert(sorted === List(a0, a1, a2, b1, c3))
+  }
+
 }

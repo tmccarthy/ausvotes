@@ -10,6 +10,8 @@ final case class StvCandidate[E, C](
 
 object StvCandidate {
 
+  implicit def ordering[E : Ordering, C]: Ordering[StvCandidate[E, C]] = Ordering.by(_.position)
+
   implicit def encoder[E : Encoder, C : Encoder]: Encoder[StvCandidate[E, C]] = Encoder.forProduct3("election", "candidate", "position")(c => (c.election, c.candidate, c.position))
   implicit def decoder[E, C](implicit
                              electionDecoder: Decoder[E],

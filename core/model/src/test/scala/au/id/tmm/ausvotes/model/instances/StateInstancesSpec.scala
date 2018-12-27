@@ -26,4 +26,19 @@ class StateInstancesSpec extends ImprovedFlatSpec {
     assert(json.as[State].isLeft)
   }
 
+  "ordering by state size" should "be correct" in {
+    val expectedOrdering = List(
+      State.NT,
+      State.ACT,
+      State.TAS,
+      State.SA,
+      State.WA,
+      State.QLD,
+      State.VIC,
+      State.NSW,
+    )
+
+    assert(State.ALL_STATES.toList.sorted(StateInstances.orderStatesByPopulation) === expectedOrdering)
+  }
+
 }

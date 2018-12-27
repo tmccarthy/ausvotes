@@ -45,4 +45,6 @@ class StvCandidateSpec extends ImprovedFlatSpec {
     assert(json.as[StvCandidate[SenateElectionForState, String]] === Right(stvCandidate))
   }
 
+  it can ""
+
 }

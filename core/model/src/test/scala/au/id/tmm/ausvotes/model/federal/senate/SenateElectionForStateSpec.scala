@@ -44,4 +44,22 @@ class SenateElectionForStateSpec extends ImprovedFlatSpec {
     assert(json.as[SenateElectionForState].left.map(_.message) === Left("No election for VIC at 2014 WA Senate election"))
   }
 
+  it can "be ordered" in {
+    val list = List(
+      SenateElectionForState(SenateElection.`2014 WA`, State.WA),
+      SenateElectionForState(SenateElection.`2016`, State.NSW),
+      SenateElectionForState(SenateElection.`2016`, State.NT),
+      SenateElectionForState(SenateElection.`2013`, State.VIC),
+    ).map(_.right.get)
+
+    val expectedOrdered = List(
+      SenateElectionForState(SenateElection.`2016`, State.NSW),
+      SenateElectionForState(SenateElection.`2016`, State.NT),
+      SenateElectionForState(SenateElection.`2014 WA`, State.WA),
+      SenateElectionForState(SenateElection.`2013`, State.VIC),
+    ).map(_.right.get)
+
+    assert(list.sorted === expectedOrdered)
+  }
+
 }

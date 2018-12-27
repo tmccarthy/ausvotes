@@ -6,20 +6,21 @@ import au.id.tmm.utilities.collection.Flyweight
 // TODO should this sit in the model?
 object Flyweights {
 
-  final class ElectorateFlyweight[E] private () {
-    private val underlying: Flyweight[(E, String, Electorate.Id), Electorate[E]] = Flyweight {
-      case (election, name, id) => Electorate(election, name, id)
+  final class ElectorateFlyweight[E, J] private () {
+    private val underlying: Flyweight[(E, J, String, Electorate.Id), Electorate[E, J]] = Flyweight {
+      case (election, jurisdiction, name, id) => Electorate(election, jurisdiction, name, id)
     }
 
     def make(
               election: E,
+              jurisdiction: J,
               name: String,
               id: Electorate.Id,
-            ): Electorate[E] = underlying((election, name, id))
+            ): Electorate[E, J] = underlying((election, jurisdiction, name, id))
   }
 
   object ElectorateFlyweight {
-    def apply[E](): ElectorateFlyweight[E] = new ElectorateFlyweight()
+    def apply[E, J](): ElectorateFlyweight[E, J] = new ElectorateFlyweight()
   }
 
   final class GroupFlyweight[E] private () {

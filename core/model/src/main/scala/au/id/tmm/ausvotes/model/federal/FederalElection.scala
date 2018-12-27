@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.model.federal
 import java.time.LocalDate
 import java.time.Month._
 
+import au.id.tmm.ausvotes.model.Codecs
+import au.id.tmm.ausvotes.model.Codecs.Codec
 import au.id.tmm.utilities.datetime.LocalDateOrdering
 
 sealed trait FederalElection {
@@ -16,6 +18,16 @@ sealed trait FederalElection {
 }
 
 object FederalElection {
+
+  def from(id: Id): Option[FederalElection] = id match {
+    case `2016`.id => Some(`2016`)
+    case `2014 WA`.id => Some(`2014 WA`)
+    case `2013`.id => Some(`2013`)
+    case `2010`.id => Some(`2010`)
+    case `2007`.id => Some(`2007`)
+    case `2004`.id => Some(`2004`)
+    case _ => None
+  }
 
   implicit val ordering: Ordering[FederalElection] = Ordering.by[FederalElection, LocalDate](_.date)(LocalDateOrdering)
 
@@ -58,5 +70,10 @@ object FederalElection {
 
   final case class Id(asString: String) extends AnyVal
   final case class AecId(asInt: Int) extends AnyVal
+
+  implicit val codec: Codec[FederalElection] = Codecs.partialCodec[FederalElection, String](
+    encode = _.id.asString,
+    decode = rawId => FederalElection.from(Id(rawId)),
+  )
 
 }

@@ -12,6 +12,8 @@ final case class CandidatePosition[E](
 
 object CandidatePosition {
 
+  implicit def ordering[E : Ordering]: Ordering[CandidatePosition[E]] = Ordering.by(p => (p.group, p.indexInGroup))
+
   implicit def encoder[E]: Encoder[CandidatePosition[E]] = p => s"${p.group.code.asString}${p.indexInGroup}".asJson
 
   private val positionPattern = "^([A-Z]{1,2})(\\d+)$".r

@@ -13,6 +13,8 @@ sealed trait BallotGroup[E] {
 
 object BallotGroup {
 
+  implicit def ordering[E : Ordering]: Ordering[BallotGroup[E]] = Ordering.by(g => (g.election, g.code.index))
+
   implicit def encoder[E : Encoder]: Encoder[BallotGroup[E]] = { group =>
     val baseJson = Json.obj(
       "election" -> group.election.asJson,

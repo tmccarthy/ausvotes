@@ -68,4 +68,50 @@ class BallotGroupSpec extends ImprovedFlatSpec {
     assert(BallotGroup.Code("invalid") === Left(BallotGroup.Code.InvalidCode("invalid")))
   }
 
+  "the ballot group ordering" should "order groups in alphabetical order, with ungrouped last" in {
+    val alp = Group[SenateElection](
+      SenateElection.`2016`,
+      BallotGroup.Code.unsafeMake("A"),
+      Some(Party("Australian Labor Party")),
+    ).right.get
+
+    val liberals = Group[SenateElection](
+      SenateElection.`2016`,
+      BallotGroup.Code.unsafeMake("B"),
+      Some(Party("Liberal Party of Australia")),
+    ).right.get
+
+    val greens = Group[SenateElection](
+      SenateElection.`2016`,
+      BallotGroup.Code.unsafeMake("AA"),
+      Some(Party("Australian Greens")),
+    ).right.get
+
+    val centreAlliance = Group[SenateElection](
+      SenateElection.`2016`,
+      BallotGroup.Code.unsafeMake("ZZ"),
+      Some(Party("Centre Alliance")),
+    ).right.get
+
+    val ungrouped: Ungrouped[SenateElection] = Ungrouped(SenateElection.`2016`)
+
+    val groups = List[BallotGroup[SenateElection]](
+      centreAlliance,
+      ungrouped,
+      liberals,
+      alp,
+      greens,
+    )
+
+    val expectedSorted = List[BallotGroup[SenateElection]](
+      alp,
+      liberals,
+      greens,
+      centreAlliance,
+      ungrouped,
+    )
+
+    assert(groups.sorted === expectedSorted)
+  }
+
 }
