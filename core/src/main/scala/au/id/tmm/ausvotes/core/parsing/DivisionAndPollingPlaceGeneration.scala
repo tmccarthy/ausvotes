@@ -1,31 +1,35 @@
 package au.id.tmm.ausvotes.core.parsing
 
+import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces.DivisionAndPollingPlace
-import au.id.tmm.ausvotes.core.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
-import au.id.tmm.ausvotes.core.model.parsing.PollingPlace
-import au.id.tmm.ausvotes.core.model.parsing.PollingPlace.PollingPlaceType
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, SenateElection}
 import au.id.tmm.ausvotes.core.rawdata.model.PollingPlacesRow
+import au.id.tmm.ausvotes.model.Electorate
+import au.id.tmm.ausvotes.model.Flyweights.ElectorateFlyweight
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
+import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.Address
+import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils
 
 object DivisionAndPollingPlaceGeneration {
 
-  def fromPollingPlaceRows(election: SenateElection,
-                           rows: TraversableOnce[PollingPlacesRow],
-                           divisionFlyweight: DivisionFlyweight = DivisionFlyweight(),
-                           postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): DivisionsAndPollingPlaces = {
+  def fromPollingPlaceRows(
+                            election: FederalElection,
+                            rows: TraversableOnce[PollingPlacesRow],
+                            electorateFlyweight: ElectorateFlyweight[FederalElection, State] = ElectorateFlyweight(),
+                          ): DivisionsAndPollingPlaces = {
     val divisionsAndPollingPlaces: TraversableOnce[DivisionAndPollingPlace] = rows
-      .map(row => fromPollingPlaceRow(election, row, divisionFlyweight, postcodeFlyweight))
+      .map(row => fromPollingPlaceRow(election, row, electorateFlyweight))
 
     DivisionsAndPollingPlaces.from(divisionsAndPollingPlaces)
   }
 
-  def fromPollingPlaceRow(election: SenateElection,
-                          row: PollingPlacesRow,
-                          divisionFlyweight: DivisionFlyweight = DivisionFlyweight(),
-                          postcodeFlyweight: PostcodeFlyweight = PostcodeFlyweight()): DivisionAndPollingPlace = {
+  def fromPollingPlaceRow(
+                           election: FederalElection,
+                           row: PollingPlacesRow,
+                           electorateFlyweight: ElectorateFlyweight[FederalElection, State] = ElectorateFlyweight(),
+                         ): DivisionAndPollingPlace = {
     val state = GenerationUtils.stateFrom(row.state, row)
 
     val pollingPlaceType = row.pollingPlaceTypeId match {
@@ -36,34 +40,30 @@ object DivisionAndPollingPlaceGeneration {
       case 5 => PollingPlaceType.PrePollVotingCentre
     }
 
-    val location = locationFrom(row, postcodeFlyweight)
+    val location = locationFrom(row)
 
-    val division = divisionFlyweight(election, state, row.divisionName, row.divisionId)
+    val division = electorateFlyweight.make(election, state, row.divisionName, Electorate.Id(row.divisionId))
 
     val pollingPlace = PollingPlace(
       election,
-      state,
-      division,
-      row.pollingPlaceId,
+      jurisdiction = au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPointJurisdiction(state, division),
+      PollingPlace.Id(row.pollingPlaceId),
       pollingPlaceType,
       row.pollingPlaceName,
-      location
+      location,
     )
 
     DivisionAndPollingPlace(division, pollingPlace)
   }
 
-  private def locationFrom(row: PollingPlacesRow, postcodeFlyweight: PostcodeFlyweight): PollingPlace.Location = {
+  private def locationFrom(row: PollingPlacesRow): PollingPlace.Location = {
     row.premisesName.trim match {
       case "Multiple sites" => PollingPlace.Location.Multiple
       case premisesName => {
-        val address = premisesAddressFrom(row, postcodeFlyweight)
+        val address = premisesAddressFrom(row)
         val possibleLatLong = latLongFrom(row)
 
-        possibleLatLong match {
-          case Some(latLong) => PollingPlace.Location.Premises(premisesName, address, latLong)
-          case None => PollingPlace.Location.PremisesMissingLatLong(premisesName, address)
-        }
+        PollingPlace.Location.Premises(premisesName, address, possibleLatLong)
       }
     }
   }
@@ -76,11 +76,11 @@ object DivisionAndPollingPlaceGeneration {
     } yield latLong
   }
 
-  private def premisesAddressFrom(row: PollingPlacesRow, postcodeFlyweight: PostcodeFlyweight): Address = {
+  private def premisesAddressFrom(row: PollingPlacesRow): Address = {
     Address(
       lines = addressLinesFrom(row),
       suburb = row.premisesSuburb.trim,
-      postcode = postcodeFlyweight(row.premisesPostcode.trim),
+      postcode = Postcode(row.premisesPostcode.trim),
       state = GenerationUtils.stateFrom(row.premisesState, row)
     )
   }

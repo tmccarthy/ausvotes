@@ -1,16 +1,14 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
-import au.id.tmm.ausvotes.core.model.parsing.CandidatePosition.constructBallotPositionLookup
-import au.id.tmm.ausvotes.core.model.{CountData, GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.rawdata.model.DistributionOfPreferencesRow
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElectionForState}
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, CountSteps, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
 import au.id.tmm.countstv.rules.RoundingRules
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.collection.IteratorUtils.ImprovedIterator
-import au.id.tmm.utilities.geo.australia.State
 
 import scala.annotation.tailrec
 
@@ -22,12 +20,12 @@ object CountDataGeneration {
 
   private val specialBallotPositions = Set(ballotPositionForExhausted, ballotPositionForGainLoss)
 
-  def fromDistributionOfPreferencesRows(election: SenateElection,
-                                        state: State,
-                                        allGroupsAndCandidates: GroupsAndCandidates,
-                                        distributionOfPreferencesRows: Iterator[DistributionOfPreferencesRow]
-                                       ): CountData = {
-    val groupsAndCandidates = allGroupsAndCandidates.findFor(election, state)
+  def fromDistributionOfPreferencesRows(
+                                         election: SenateElectionForState,
+                                         allGroupsAndCandidates: GroupsAndCandidates,
+                                         distributionOfPreferencesRows: Iterator[DistributionOfPreferencesRow],
+                                       ): SenateCountData = {
+    val groupsAndCandidates = allGroupsAndCandidates.findFor(election)
     val candidatePositionLookup = constructBallotPositionLookup(groupsAndCandidates)
     val distributionSourceCalculator = new DistributionSourceCalculator(groupsAndCandidates.candidates)
 
@@ -46,11 +44,10 @@ object CountDataGeneration {
       distributionOfPreferencesRows
     )
 
-    CountData(
+    SenateCountData(
       election,
-      state,
-      CompletedCount(
-        CountParams[Candidate](
+      CompletedCount[SenateCandidate](
+        CountParams[SenateCandidate](
           groupsAndCandidates.candidates,
           initialAllocationAndMetadata.initialAllocation.candidateStatuses.ineligibleCandidates,
           initialAllocationAndMetadata.numVacancies,
@@ -63,8 +60,23 @@ object CountDataGeneration {
     )
   }
 
+  private def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, SenateCandidate] = {
+    val numGroups = groupsAndCandidates.groups.size
+    val candidatesInBallotOrder = groupsAndCandidates.candidates.toStream
+      .sorted
+
+    candidatesInBallotOrder.zipWithIndex
+      .map {
+        case (candidate, index) => (candidate, index + numGroups + 1)
+      }
+      .map {
+        case (candidate, positionOnBallotOrdinal) => positionOnBallotOrdinal -> candidate
+      }
+      .toMap
+  }
+
   private def readInitialAllocation(rows: Iterator[DistributionOfPreferencesRow],
-                                    candidatePositionLookup: Map[Int, Candidate],
+                                    candidatePositionLookup: Map[Int, SenateCandidate],
                                     distributionSourceCalculator: DistributionSourceCalculator
                                    ): InitialPositionAndMetadata = {
 
@@ -78,7 +90,7 @@ object CountDataGeneration {
 
     val ineligibleCandidates = candidatePositionLookup.values.toSet diff parsedCountStepData.candidateTransfers.keySet
     val initialCandidateStatuses = {
-      val builder = Map.newBuilder[Candidate, CandidateStatus]
+      val builder = Map.newBuilder[SenateCandidate, CandidateStatus]
 
       candidatePositionLookup.values.foreach { candidate =>
         builder += candidate -> CandidateStatus.Remaining
@@ -96,7 +108,7 @@ object CountDataGeneration {
     }
 
     // AEC data doesn't include transfers due to ineligibles, so we just set them to zero
-    val allocationAfterIneligibles = AllocationAfterIneligibles[Candidate](
+    val allocationAfterIneligibles = AllocationAfterIneligibles[SenateCandidate](
       candidateStatuses = initialCandidateStatuses,
       candidateVoteCounts = parsedCountStepData.candidateVoteCountsGivenNoPrevious,
       transfersDueToIneligibles = Map.empty,
@@ -104,7 +116,7 @@ object CountDataGeneration {
 
     // The "InitialAllocation" in our sense doesn't have any elected candidates, but otherwise it'll be the same as the
     // allocation after ineligibles.
-    val initialAllocation = InitialAllocation[Candidate](
+    val initialAllocation = InitialAllocation[SenateCandidate](
       candidateStatuses = CandidateStatuses(
         asMap = allocationAfterIneligibles.candidateStatuses.asMap.mapValues {
           case CandidateStatus.Elected(_, _) => CandidateStatus.Remaining
@@ -132,12 +144,12 @@ object CountDataGeneration {
   }
 
   @tailrec
-  private def readDistributionSteps(stepsSoFar: CountSteps.AllowingAppending[Candidate],
-                                    maybeDistributionSourceForFirstStep: Option[DistributionCountStep.Source[Candidate]],
-                                    candidatePositionLookup: Map[Int, Candidate],
+  private def readDistributionSteps(stepsSoFar: CountSteps.AllowingAppending[SenateCandidate],
+                                    maybeDistributionSourceForFirstStep: Option[DistributionCountStep.Source[SenateCandidate]],
+                                    candidatePositionLookup: Map[Int, SenateCandidate],
                                     distributionSourceCalculator: DistributionSourceCalculator,
                                     dopRows: Iterator[DistributionOfPreferencesRow]
-                                   ): CountSteps.AllowingAppending[Candidate] = {
+                                   ): CountSteps.AllowingAppending[SenateCandidate] = {
     if (maybeDistributionSourceForFirstStep.isEmpty) {
       return stepsSoFar
     }
@@ -159,7 +171,7 @@ object CountDataGeneration {
       case Some(parsedCountStepData) => {
         val newCandidateStatuses = accumulateCandidateOutcomes(count, previousStep.candidateStatuses, parsedCountStepData)
 
-        val thisDistributionStep = DistributionCountStep[Candidate](
+        val thisDistributionStep = DistributionCountStep[SenateCandidate](
           count,
           newCandidateStatuses,
           parsedCountStepData.candidateVoteCountsGiven(previousStep.candidateVoteCounts),
@@ -185,9 +197,9 @@ object CountDataGeneration {
   }
 
   private def parseNextCountStep(rows: Iterator[DistributionOfPreferencesRow],
-                                 candidatePositionLookup: Map[Int, Candidate],
+                                 candidatePositionLookup: Map[Int, SenateCandidate],
                                  distributionSourceCalculator: DistributionSourceCalculator,
-                                 previouslyExcludedCandidates: DupelessSeq[Candidate],
+                                 previouslyExcludedCandidates: DupelessSeq[SenateCandidate],
                                  expectedCount: Count
                                 ): Option[ParsedCountStepData] = {
     if (!rows.hasNext) {
@@ -227,7 +239,7 @@ object CountDataGeneration {
   }
 
   private def readRowsForNextCount(rows: Iterator[DistributionOfPreferencesRow],
-                                   candidatePositionLookup: Map[Int, Candidate],
+                                   candidatePositionLookup: Map[Int, SenateCandidate],
                                    expectedCount: Count
                                   ): (Vector[DistributionOfPreferencesRow], DistributionOfPreferencesRow, DistributionOfPreferencesRow) = {
     val countRows = rows.readUntil(row => row.ballotPosition == ballotPositionForGainLoss)
@@ -252,9 +264,9 @@ object CountDataGeneration {
     )
   }
 
-  private def allElectedCandidatesOf(candidatePositionLookup: Map[Int, Candidate],
+  private def allElectedCandidatesOf(candidatePositionLookup: Map[Int, SenateCandidate],
                                      candidateTransferRows: Vector[DistributionOfPreferencesRow]
-                                    ): DupelessSeq[Candidate] = {
+                                    ): DupelessSeq[SenateCandidate] = {
     val candidatesInOrderElected = candidateTransferRows.toStream
       .filter(_.orderElected != 0)
       .sortBy(_.orderElected)
@@ -263,10 +275,10 @@ object CountDataGeneration {
     DupelessSeq(candidatesInOrderElected :_*)
   }
 
-  private def allExcludedCandidatesOf(candidatePositionLookup: Map[Int, Candidate],
-                                      previouslyExcluded: DupelessSeq[Candidate],
+  private def allExcludedCandidatesOf(candidatePositionLookup: Map[Int, SenateCandidate],
+                                      previouslyExcluded: DupelessSeq[SenateCandidate],
                                       candidateTransferRows: Vector[DistributionOfPreferencesRow]
-                                     ): DupelessSeq[Candidate] = {
+                                     ): DupelessSeq[SenateCandidate] = {
     val allExcludedCandidatesAtThisStep = candidateTransferRows.toStream
       .filter(_.status == excludedStatus)
       .map(row => candidatePositionLookup(row.ballotPosition))
@@ -274,9 +286,9 @@ object CountDataGeneration {
     previouslyExcluded ++ allExcludedCandidatesAtThisStep
   }
 
-  private def newlyElectedCandidatesIn(candidatePositionLookup: Map[Int, Candidate],
+  private def newlyElectedCandidatesIn(candidatePositionLookup: Map[Int, SenateCandidate],
                                        candidateTransferRows: Vector[DistributionOfPreferencesRow]
-                                      ): DupelessSeq[Candidate] = {
+                                      ): DupelessSeq[SenateCandidate] = {
     val newlyElectedCandidates = candidateTransferRows.toStream
       .filter(_.changed contains true)
       .filter(_.orderElected != 0)
@@ -286,9 +298,9 @@ object CountDataGeneration {
     DupelessSeq(newlyElectedCandidates :_*)
   }
 
-  private def newlyExcludedCandidateIn(candidatePositionLookup: Map[Int, Candidate],
+  private def newlyExcludedCandidateIn(candidatePositionLookup: Map[Int, SenateCandidate],
                                        candidateTransferRows: Vector[DistributionOfPreferencesRow]
-                                      ): Option[Candidate] = {
+                                      ): Option[SenateCandidate] = {
     val newlyExcludedCandidates = candidateTransferRows.toStream
       .filter(_.changed contains true)
       .filter(_.status == excludedStatus)
@@ -303,9 +315,9 @@ object CountDataGeneration {
   }
 
   private def accumulateCandidateOutcomes(count: Count,
-                                          outcomesToNow: CandidateStatuses[Candidate],
+                                          outcomesToNow: CandidateStatuses[SenateCandidate],
                                           parsedCountStepData: ParsedCountStepData
-                                         ): CandidateStatuses[Candidate] = {
+                                         ): CandidateStatuses[SenateCandidate] = {
     val electedCandidateStatuses = parsedCountStepData.candidatesElectedThisStep
       .zipWithIndex
       .toMap
@@ -329,17 +341,17 @@ object CountDataGeneration {
                                                 totalFormalPapers: NumPapers,
                                                 quota: NumVotes,
                                                 distributionComment: String,
-                                                candidateTransfers: Map[Candidate, ParsedCountStepTransfer],
-                                                allElectedCandidates: DupelessSeq[Candidate],
-                                                allExcludedCandidates: DupelessSeq[Candidate],
+                                                candidateTransfers: Map[SenateCandidate, ParsedCountStepTransfer],
+                                                allElectedCandidates: DupelessSeq[SenateCandidate],
+                                                allExcludedCandidates: DupelessSeq[SenateCandidate],
                                                 exhaustedTransfers: ParsedCountStepTransfer,
                                                 gainLossTransfers: ParsedCountStepTransfer,
-                                                candidatesElectedThisStep: DupelessSeq[Candidate],
-                                                candidateExcludedThisStep: Option[Candidate],
+                                                candidatesElectedThisStep: DupelessSeq[SenateCandidate],
+                                                candidateExcludedThisStep: Option[SenateCandidate],
                                               ) {
     def candidateVoteCountsGiven(
-                                  previousCandidateVoteCounts: CandidateVoteCounts[Candidate]
-                                ): CandidateVoteCounts[Candidate] =
+                                  previousCandidateVoteCounts: CandidateVoteCounts[SenateCandidate]
+                                ): CandidateVoteCounts[SenateCandidate] =
       CandidateVoteCounts(
         perCandidate = candidateTransfers.map { case (candidate, transfer) =>
           candidate -> transfer.asVoteCountGiven(previousCandidateVoteCounts.perCandidate(candidate))
@@ -348,7 +360,7 @@ object CountDataGeneration {
         roundingError = gainLossTransfers.asVoteCountGiven(previousCandidateVoteCounts.roundingError),
       )
 
-    def candidateVoteCountsGivenNoPrevious: CandidateVoteCounts[Candidate] = {
+    def candidateVoteCountsGivenNoPrevious: CandidateVoteCounts[SenateCandidate] = {
       CandidateVoteCounts(
         perCandidate = candidateTransfers.mapValues { transfer =>
           transfer.asVoteCountGiven(previousVoteCount = VoteCount.zero)
@@ -359,9 +371,9 @@ object CountDataGeneration {
     }
   }
 
-  private final case class InitialPositionAndMetadata(initialAllocation: InitialAllocation[Candidate],
-                                                      allocationAfterIneligibles: AllocationAfterIneligibles[Candidate],
-                                                      nextDistributionSource: Option[DistributionCountStep.Source[Candidate]],
+  private final case class InitialPositionAndMetadata(initialAllocation: InitialAllocation[SenateCandidate],
+                                                      allocationAfterIneligibles: AllocationAfterIneligibles[SenateCandidate],
+                                                      nextDistributionSource: Option[DistributionCountStep.Source[SenateCandidate]],
                                                       numVacancies: Int,
                                                       totalFormalPapers: NumPapers,
                                                       quota: NumVotes)

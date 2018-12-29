@@ -1,31 +1,26 @@
 package au.id.tmm.ausvotes.core.computations.ballotnormalisation
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.computation.NormalisedBallot
-import au.id.tmm.ausvotes.core.model.parsing.Ballot.AtlPreferences
-import au.id.tmm.ausvotes.core.model.parsing._
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.ausvotes.model.federal.senate._
 
-class BallotNormaliser private (election: SenateElection,
-                                state: State,
-                                candidates: Set[Candidate],
+class BallotNormaliser private (election: SenateElectionForState,
+                                candidates: Set[SenateCandidate],
                                 minPreferencesAtl: Int = 1,
                                 minPreferencesBtl: Int = 6) {
 
   private val relevantCandidates = candidates.toStream
     .filter(_.election == election)
-    .filter(_.state == state)
 
-  private val positionsPerGroup: Map[BallotGroup, Vector[CandidatePosition]] =
+  private val candidatesPerGroup: Map[SenateBallotGroup, Vector[SenateCandidate]] =
     relevantCandidates
-      .map(_.btlPosition)
       .sorted
       .toVector
-      .groupBy(_.group)
+      .groupBy(_.position.group)
 
-  def normalise(ballot: Ballot): NormalisedBallot = {
-    val (atlGroupOrder, atlCandidateOrder, atlFormalPrefCount) = normaliseAtl(ballot.atlPreferences)
-    val (btlCandidateOrder, btlFormalPrefCount) = normaliseBtl(ballot.btlPreferences)
+  def normalise(ballot: SenateBallot): NormalisedBallot = {
+    val (atlGroupOrder, atlCandidateOrder, atlFormalPrefCount) = normaliseAtl(ballot.groupPreferences)
+    val (btlCandidateOrder, btlFormalPrefCount) = normaliseBtl(ballot.candidatePreferences)
 
     val canonicalCandidateOrder = if (btlCandidateOrder.nonEmpty) {
       btlCandidateOrder
@@ -36,7 +31,7 @@ class BallotNormaliser private (election: SenateElection,
     NormalisedBallot(atlGroupOrder, atlCandidateOrder, atlFormalPrefCount, btlCandidateOrder, btlFormalPrefCount, canonicalCandidateOrder)
   }
 
-  private def normaliseAtl(atlPreferences: AtlPreferences): (Vector[Group], Vector[CandidatePosition], Int) = {
+  private def normaliseAtl(atlPreferences: AtlPreferences): (Vector[SenateGroup], Vector[SenateCandidate], Int) = {
     val groupsInPreferenceOrder = generalNormalise(atlPreferences, minPreferencesAtl)
 
     val formalPreferenceCount = groupsInPreferenceOrder.size
@@ -46,10 +41,10 @@ class BallotNormaliser private (election: SenateElection,
     (groupsInPreferenceOrder, candidateOrder, formalPreferenceCount)
   }
 
-  private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[Group]): Vector[CandidatePosition] =
-    groupsInPreferenceOrder.flatMap(positionsPerGroup)
+  private def distributeToCandidatePositions(groupsInPreferenceOrder: Vector[SenateGroup]): Vector[SenateCandidate] =
+    groupsInPreferenceOrder.flatMap(candidatesPerGroup)
 
-  private def normaliseBtl(btlPreferences: Map[CandidatePosition, Preference]): (Vector[CandidatePosition], Int) = {
+  private def normaliseBtl(btlPreferences: Map[SenateCandidate, Preference]): (Vector[SenateCandidate], Int) = {
     val candidateOrder = generalNormalise(btlPreferences, minPreferencesBtl)
 
     val formalPreferenceCount = candidateOrder.size
@@ -105,6 +100,6 @@ class BallotNormaliser private (election: SenateElection,
 }
 
 object BallotNormaliser {
-  def apply(election: SenateElection, state: State, candidates: Set[Candidate]): BallotNormaliser =
-    new BallotNormaliser(election, state, candidates)
+  def apply(election: SenateElectionForState, candidates: Set[SenateCandidate]): BallotNormaliser =
+    new BallotNormaliser(election, candidates)
 }

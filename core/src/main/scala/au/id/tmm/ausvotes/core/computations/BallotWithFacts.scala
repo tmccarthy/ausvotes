@@ -1,15 +1,14 @@
 package au.id.tmm.ausvotes.core.computations
 
-import au.id.tmm.ausvotes.core.model.HowToVoteCard
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot, SavingsProvision}
-import au.id.tmm.ausvotes.core.model.parsing.Ballot
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateHtv}
 
-final case class BallotWithFacts(ballot: Ballot,
-                                 normalisedBallot: NormalisedBallot,
-                                 isDonkeyVote: Boolean,
-                                 firstPreference: FirstPreference,
-                                 matchingHowToVote: Option[HowToVoteCard],
-                                 exhaustion: BallotExhaustion,
-                                 savingsProvisionsUsed: Set[SavingsProvision]
-                                ) {
-}
+final case class BallotWithFacts(
+                                  ballot: SenateBallot,
+                                  normalisedBallot: NormalisedBallot,
+                                  isDonkeyVote: Boolean,
+                                  firstPreference: FirstPreference,
+                                  matchingHowToVote: Option[SenateHtv],
+                                  exhaustion: BallotExhaustion,
+                                  savingsProvisionsUsed: Set[SavingsProvision],
+                                )

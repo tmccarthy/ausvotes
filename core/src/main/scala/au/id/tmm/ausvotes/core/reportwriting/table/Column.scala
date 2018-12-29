@@ -1,10 +1,11 @@
 package au.id.tmm.ausvotes.core.reportwriting.table
 
-import au.id.tmm.ausvotes.core.model.PartySignificance
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
-import au.id.tmm.ausvotes.core.model.parsing.Party.{Independent, RegisteredParty}
-import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.ausvotes.core.reportwriting.table.Row.DataRow
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPointJurisdiction
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
+import au.id.tmm.ausvotes.model.stv.{Group, Ungrouped}
+import au.id.tmm.ausvotes.model.{Electorate, Party, PartySignificance, VoteCollectionPoint}
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.annotation.tailrec
@@ -35,10 +36,11 @@ object Column {
     @tailrec
     override def valueForKey(key: Any): String = key match {
       case s: State => s.abbreviation
-      case Group(_, state, _, _) => valueForKey(state)
-      case Ungrouped(_, state) => valueForKey(state)
-      case Division(_, state, _, _) => valueForKey(state)
-      case v: VoteCollectionPoint => valueForKey(v.state)
+      case Group(SenateElectionForState(_, state), _, _) => valueForKey(state)
+      case Ungrouped(SenateElectionForState(_, state)) => valueForKey(state)
+      case Electorate(_, state: State, _, _) => valueForKey(state)
+      case VoteCollectionPoint.PollingPlace(_, FederalVoteCollectionPointJurisdiction(state, _), _, _, _, _) => valueForKey(state)
+      case VoteCollectionPoint.Special(_, FederalVoteCollectionPointJurisdiction(state, _), _, _) => valueForKey(state)
     }
   }
 
@@ -47,8 +49,9 @@ object Column {
 
     @tailrec
     override def valueForKey(key: Any): String = key match {
-      case Division(_, _, name, _) => name
-      case v: VoteCollectionPoint => valueForKey(v.division)
+      case Electorate(_, _, name, _) => name
+      case VoteCollectionPoint.PollingPlace(_, FederalVoteCollectionPointJurisdiction(state, _), _, _, _, _) => valueForKey(state)
+      case VoteCollectionPoint.Special(_, FederalVoteCollectionPointJurisdiction(state, _), _, _) => valueForKey(state)
     }
   }
 
@@ -56,7 +59,7 @@ object Column {
     val heading = "Vote collection point"
 
     override def valueForKey(key: Any): String = key match {
-      case v: VoteCollectionPoint => v.name
+      case v: VoteCollectionPoint[_, _] => v.name
     }
   }
 
@@ -65,10 +68,10 @@ object Column {
 
     @tailrec
     override def valueForKey(key: Any): String = key match {
-      case RegisteredParty(name) => name
-      case Independent => "Independent"
-      case Group(_, _, _, party) => valueForKey(party)
-      case Ungrouped(_, _) => valueForKey(Independent)
+      case Some(Party(partyName)) => partyName
+      case None => "Independent"
+      case Group(_, _, party) => valueForKey(party)
+      case Ungrouped(_) => valueForKey(None)
     }
   }
 
@@ -76,8 +79,8 @@ object Column {
     val heading = "Party type"
 
     override def valueForKey(key: Any): String = key match {
-      case PartySignificance.MajorParty => "Major parties"
-      case PartySignificance.MinorParty => "Minor parties"
+      case PartySignificance.Major => "Major parties"
+      case PartySignificance.Minor => "Minor parties"
       case PartySignificance.Independent => "Independents"
     }
   }
@@ -86,8 +89,8 @@ object Column {
     val heading = "Group"
 
     override def valueForKey(key: Any): String = key match {
-      case Group(_, _, code, party) => s"$code (${PartyNameColumn.valueForKey(party)})"
-      case Ungrouped(_, _) => s"${Ungrouped.code} (Ungrouped)"
+      case Group(_, code, party) => s"${code.asString} (${PartyNameColumn.valueForKey(party)})"
+      case Ungrouped(_) => s"${Ungrouped.code} (Ungrouped)"
     }
   }
 

@@ -1,10 +1,13 @@
 package au.id.tmm.ausvotes.core.reporting
 
-import au.id.tmm.ausvotes.core.model.parsing.{BallotGroup, Division, Party}
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.Division
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallotGroup
 import au.id.tmm.utilities.geo.australia.State
 
 trait PerBallotTallierReportBuilder extends ReportBuilder {
+
   def primaryCountColumnTitle: String
 
   override def reportTitle: String
@@ -22,7 +25,7 @@ object PerBallotTallierReportBuilder {
   }
 
   trait IncludesPerFirstPreferenceTally { this: PerBallotTallierReportBuilder with IncludesNationalTally =>
-    final def nationalPerFirstPreferenceTallier: Tallier1[Party] = TallierBuilder.counting(ballotCounter)
+    final def nationalPerFirstPreferenceTallier: Tallier1[Option[Party]] = TallierBuilder.counting(ballotCounter)
       .groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)
 
     val perFirstPreferenceTableBuilder = TableBuilders.NationalPerFirstPrefTableBuilder(nationalTallier,
@@ -46,7 +49,7 @@ object PerBallotTallierReportBuilder {
   }
 
   trait IncludesPerFirstPreferencedGroupTally { this: PerBallotTallierReportBuilder with IncludesPerStateTally =>
-    final def perFirstPreferencedGroupTallier: Tallier2[State, BallotGroup] = TallierBuilder.counting(ballotCounter)
+    final def perFirstPreferencedGroupTallier: Tallier2[State, SenateBallotGroup] = TallierBuilder.counting(ballotCounter)
       .groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup)
 
     val perGroupTableBuilders: Vector[TableBuilders.PerGroupTableBuilder] = State.ALL_STATES

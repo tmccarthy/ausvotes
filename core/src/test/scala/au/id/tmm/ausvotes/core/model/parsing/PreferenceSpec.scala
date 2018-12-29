@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.core.model.parsing
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
+// TODO test this in the RawPreferenceParserSpec
 class PreferenceSpec extends ImprovedFlatSpec {
 
   "a preference" can "be a number" in {

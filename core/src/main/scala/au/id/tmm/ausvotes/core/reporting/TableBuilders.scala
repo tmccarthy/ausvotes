@@ -1,10 +1,12 @@
 package au.id.tmm.ausvotes.core.reporting
 
-import au.id.tmm.ausvotes.core.model.PartySignificance
-import au.id.tmm.ausvotes.core.model.parsing.{BallotGroup, Division, Party, VoteCollectionPoint}
+import au.id.tmm.ausvotes.core.computations.parties.PartySignificanceComputation
 import au.id.tmm.ausvotes.core.reportwriting.table.Column._
 import au.id.tmm.ausvotes.core.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp}
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallotGroup
+import au.id.tmm.ausvotes.model.{Party, PartySignificance}
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable
@@ -48,7 +50,7 @@ object TableBuilders {
   }
 
   final case class NationalPerFirstPrefTableBuilder(nationalTallier: Tallier0,
-                                                    perFirstPrefTallier: Tallier1[Party],
+                                                    perFirstPrefTallier: Tallier1[Option[Party]],
                                                     primaryCountColumnTitle: String) extends TableBuilder {
     override def requiredTalliers: Set[Tallier] = Set(
       perFirstPrefTallier,
@@ -57,7 +59,7 @@ object TableBuilders {
       formalBallotsNationally
     )
 
-    override def tableFrom(tallies: TallyBundle): TallyTable[Party] = {
+    override def tableFrom(tallies: TallyBundle): TallyTable[Option[Party]] = {
       val matchingBallotsPerParty = tallies.tallyProducedBy(perFirstPrefTallier)
       val totalFormalBallotsPerParty = tallies.tallyProducedBy(formalBallotsNationallyByFirstPreference)
 
@@ -71,7 +73,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable[Party](
+      TallyTable[Option[Party]](
         matchingBallotsPerParty,
         totalFormalBallotsPerParty(_).value,
         totalMatchingNationally.value,
@@ -84,7 +86,7 @@ object TableBuilders {
   }
 
   final case class NationallyPerPartyTypeTableBuilder(nationalTallier: Tallier0,
-                                                      perFirstPrefTallier: Tallier1[Party],
+                                                      perFirstPrefTallier: Tallier1[Option[Party]],
                                                       primaryCountColumnTitle: String) extends TableBuilder {
     override def requiredTalliers: Set[Tallier] = Set(
       perFirstPrefTallier,
@@ -119,11 +121,11 @@ object TableBuilders {
       )
     }
 
-    private def convertToBeByPartySignificance(tallyByParty: Tally1[Party]): Tally1[PartySignificance] = Tally1 {
+    private def convertToBeByPartySignificance(tallyByParty: Tally1[Option[Party]]): Tally1[PartySignificance] = Tally1 {
       val builder = mutable.Map[PartySignificance, Tally0]().withDefaultValue(Tally0())
 
       for ((party, tally) <- tallyByParty.asMap) {
-        val partySignificance = PartySignificance.of(party)
+        val partySignificance = PartySignificanceComputation.of(party)
         val newValue = builder(partySignificance) + tally
 
         builder.update(partySignificance, newValue)
@@ -209,7 +211,7 @@ object TableBuilders {
   }
 
   final case class PerGroupTableBuilder(stateTallier: Tallier1[State],
-                                        perGroupTallier: Tallier2[State, BallotGroup],
+                                        perGroupTallier: Tallier2[State, SenateBallotGroup],
                                         primaryCountColumnTitle: String,
                                         state: State) extends TableBuilder {
     override def requiredTalliers: Set[Tallier] = Set(
@@ -219,7 +221,7 @@ object TableBuilders {
       formalBallotsByState
     )
 
-    override def tableFrom(tallies: TallyBundle): TallyTable[BallotGroup] = {
+    override def tableFrom(tallies: TallyBundle): TallyTable[SenateBallotGroup] = {
       val matchingBallotsInStateByGroup = tallies.tallyProducedBy(perGroupTallier)(state)
       val totalFormalBallotsInStateByGroup = tallies
         .tallyProducedBy(countFormalBallots.groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup))(state)
@@ -234,7 +236,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable[BallotGroup](
+      TallyTable[SenateBallotGroup](
         matchingBallotsInStateByGroup,
         totalFormalBallotsInStateByGroup(_).value,
         totalMatchingInState.value,
@@ -247,7 +249,7 @@ object TableBuilders {
   }
 
   final case class PerVoteCollectionPointTableBuilder(nationalTallier: Tallier0,
-                                                      perVoteCollectionPointTallier: Tallier1[VoteCollectionPoint],
+                                                      perVoteCollectionPointTallier: Tallier1[FederalVcp],
                                                       primaryCountColumnTitle: String) extends TableBuilder {
     override def requiredTalliers: Set[Tallier] = Set(
       perVoteCollectionPointTallier,
@@ -256,7 +258,7 @@ object TableBuilders {
       formalBallotsNationally
     )
 
-    override def tableFrom(tallies: TallyBundle): TallyTable[VoteCollectionPoint] = {
+    override def tableFrom(tallies: TallyBundle): TallyTable[FederalVcp] = {
       val matchingBallotsPerPollingPlace = tallies.tallyProducedBy(perVoteCollectionPointTallier)
       val totalFormalBallotsPerPollingPlace = tallies.tallyProducedBy(countFormalBallots.groupedBy(BallotGrouping.VoteCollectionPoint))
 
@@ -272,7 +274,7 @@ object TableBuilders {
         FractionColumn()
       )
 
-      TallyTable[VoteCollectionPoint](
+      TallyTable[FederalVcp](
         matchingBallotsPerPollingPlace,
         totalFormalBallotsPerPollingPlace(_).value,
         totalMatchingNationally.value,

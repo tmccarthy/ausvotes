@@ -1,38 +1,38 @@
 package au.id.tmm.ausvotes.core.model
 
-import au.id.tmm.ausvotes.core.model.parsing.{Division, PollingPlace}
+import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace}
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable
 
 final case class DivisionsAndPollingPlaces(divisions: Set[Division],
-                                           pollingPlaces: Set[PollingPlace]) {
+                                           pollingPlaces: Set[FederalPollingPlace]) {
 
   lazy val lookupDivisionByName: Map[String, Division] = divisions.groupBy(_.name).mapValues(_.head)
 
-  lazy val lookupPollingPlaceByName: Map[(State, String), PollingPlace] = pollingPlaces
-    .groupBy(pollingPlace => (pollingPlace.state, pollingPlace.name))
+  lazy val lookupPollingPlaceByName: Map[(State, String), FederalPollingPlace] = pollingPlaces
+    .groupBy(pollingPlace => (pollingPlace.jurisdiction.state, pollingPlace.name))
     .mapValues(_.head)
 
-  def findFor(election: SenateElection, state: State): DivisionsAndPollingPlaces = DivisionsAndPollingPlaces(
+  def findFor(election: FederalElection, state: State): DivisionsAndPollingPlaces = DivisionsAndPollingPlaces(
     divisions = divisions.toStream
       .filter(_.election == election)
-      .filter(_.state == state)
+      .filter(_.jurisdiction == state)
       .toSet,
     pollingPlaces = pollingPlaces.toStream
       .filter(_.election == election)
-      .filter(_.state == state)
+      .filter(_.jurisdiction.state == state)
       .toSet
   )
 
 }
 
 object DivisionsAndPollingPlaces {
-  final case class DivisionAndPollingPlace(division: Division, pollingPlace: PollingPlace)
+  final case class DivisionAndPollingPlace(division: Division, pollingPlace: FederalPollingPlace)
 
   def from(divisionsAndPollingPlaces: TraversableOnce[DivisionAndPollingPlace]): DivisionsAndPollingPlaces = {
     val divisions = mutable.ArrayBuffer[Division]()
-    val pollingPlaces = mutable.ArrayBuffer[PollingPlace]()
+    val pollingPlaces = mutable.ArrayBuffer[FederalPollingPlace]()
 
     for (DivisionAndPollingPlace(division, pollingPlace) <- divisionsAndPollingPlaces) {
       divisions.append(division)

@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.model
 
 import au.id.tmm.ausvotes.model.Codecs.Codec
 
-final case class Party(name: String)
+final case class Party(name: String) extends AnyVal
 
 object Party {
 

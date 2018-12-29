@@ -1,33 +1,33 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.core.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
-import au.id.tmm.ausvotes.core.model.parsing.{BallotGroup, CandidatePosition, Group, Preference}
-import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
+import au.id.tmm.ausvotes.core.parsing.RawPreferenceParser.preferenceFromRawValue
+import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.ausvotes.model.Preference.{Cross, Numbered, Tick}
+import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.stv.BallotGroup
 
-class RawPreferenceParser private (election: SenateElection, state: State, groupsAndCandidates: GroupsAndCandidates) {
+class RawPreferenceParser private (election: SenateElectionForState, groupsAndCandidates: GroupsAndCandidates) {
 
   private val relevantGroups = groupsAndCandidates.groups
-    .filter(g => g.election == election && g.state == state)
+    .filter(g => g.election == election)
 
   private val relevantCandidates = groupsAndCandidates.candidates
-    .filter(c => c.election == election && c.state == state)
+    .filter(c => c.election == election)
 
   private val numGroupsAtl = relevantGroups.size
 
-  private val groupsInOrder: Vector[Group] = relevantGroups
+  private val groupsInOrder: Vector[SenateGroup] = relevantGroups
     .toStream
-    .sorted(BallotGroup.ordering)
+    .sorted(BallotGroup.ordering(implicitly[Ordering[SenateElectionForState]]))
     .toVector
 
-  private val indexBtlToCandidatePos: Map[Int, CandidatePosition] = {
-    val btlCandidatesInOrder = relevantCandidates
-      .toStream
-      .sortBy(_.btlPosition)
+  private val indexBtlToCandidate: Map[Int, SenateCandidate] = {
+    val btlCandidatesInOrder = relevantCandidates.toList.sorted
 
     btlCandidatesInOrder.zipWithIndex
       .map {
-        case (candidate, btlIndex) => btlIndex -> candidate.btlPosition
+        case (candidate, btlIndex) => btlIndex -> candidate
       }
       .toMap
   }
@@ -46,10 +46,10 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
   private def atlPreferencesFrom(rawGroupPreferences: Array[String]): AtlPreferences = {
     assert(numGroupsAtl == rawGroupPreferences.length)
 
-    val returnedMapBuilder = Map.newBuilder[Group, Preference]
+    val returnedMapBuilder = Map.newBuilder[SenateGroup, Preference]
 
     for (groupIndex <- groupsInOrder.indices) {
-      val groupPreferenceOption = Preference.fromRawValue(rawGroupPreferences(groupIndex))
+      val groupPreferenceOption = preferenceFromRawValue(rawGroupPreferences(groupIndex))
 
       if (groupPreferenceOption.isDefined) {
         returnedMapBuilder += (groupsInOrder(groupIndex) -> groupPreferenceOption.get)
@@ -60,13 +60,13 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
   }
 
   private def btlPreferencesFrom(candidatePreferences: Array[String]): BtlPreferences = {
-    val returnedMapBuilder = Map.newBuilder[CandidatePosition, Preference]
+    val returnedMapBuilder = Map.newBuilder[SenateCandidate, Preference]
 
     for (candidateIndex <- candidatePreferences.indices) {
-      val candidatePreferenceOption = Preference.fromRawValue(candidatePreferences(candidateIndex))
+      val candidatePreferenceOption = preferenceFromRawValue(candidatePreferences(candidateIndex))
 
       if (candidatePreferenceOption.isDefined) {
-        returnedMapBuilder += (indexBtlToCandidatePos(candidateIndex) -> candidatePreferenceOption.get)
+        returnedMapBuilder += (indexBtlToCandidate(candidateIndex) -> candidatePreferenceOption.get)
       }
     }
 
@@ -75,8 +75,51 @@ class RawPreferenceParser private (election: SenateElection, state: State, group
 }
 
 object RawPreferenceParser {
-  def apply(election: SenateElection,
-            state: State,
-            groupsAndCandidates: GroupsAndCandidates): RawPreferenceParser =
-    new RawPreferenceParser(election, state, groupsAndCandidates)
+
+  private val tickChar = '/'
+  private val crossChar = '*'
+
+  def apply(
+             election: SenateElectionForState,
+             groupsAndCandidates: GroupsAndCandidates,
+           ): RawPreferenceParser =
+    new RawPreferenceParser(election, groupsAndCandidates)
+
+  private[parsing] def preferenceFromRawValue(rawValue: String): Option[Preference] = {
+    val trimmedRawValue = rawValue.trim
+
+    if (trimmedRawValue.isEmpty) {
+      None
+    } else {
+      asNumbered(trimmedRawValue)
+        .orElse(asMark(trimmedRawValue))
+        .orElse(throw new IllegalArgumentException(s"$rawValue is not a valid preference"))
+    }
+  }
+
+  private def asNumbered(trimmedRawValue: String): Option[Numbered] = {
+    try {
+      Some(Numbered(trimmedRawValue.toInt))
+    } catch {
+      case e: NumberFormatException => None
+    }
+  }
+
+  private def asMark(trimmedRawValue: String): Option[Preference] = {
+    if (trimmedRawValue.length == 1) {
+      asMark(trimmedRawValue.charAt(0))
+    } else {
+      None
+    }
+  }
+
+  private def asMark(char: Char): Option[Preference] = {
+    if (char == tickChar) {
+      Some(Tick)
+    } else if (char == crossChar) {
+      Some(Cross)
+    } else {
+      None
+    }
+  }
 }

@@ -2,18 +2,16 @@ package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.computations.donkeyvotes.DonkeyVoteDetector
 import au.id.tmm.ausvotes.core.computations.exhaustion.ExhaustionCalculator
+import au.id.tmm.ausvotes.core.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.ausvotes.core.computations.savings.SavingsComputation
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Ballot
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElectionForState}
 
 object BallotFactsComputation {
 
-  def computeFactsFor(election: SenateElection,
-                      state: State,
+  def computeFactsFor(election: SenateElectionForState,
                       computationInputData: ComputationInputData,
                       computationTools: ComputationTools,
-                      ballots: Iterable[Ballot]): Iterable[BallotWithFacts] = {
+                      ballots: Iterable[SenateBallot]): Iterable[BallotWithFacts] = {
 
     val ballotNormaliser = computationTools.stateLevel.ballotNormaliser
 
@@ -28,7 +26,7 @@ object BallotFactsComputation {
           ballot = ballot,
           normalisedBallot = normalisedBallot,
           isDonkeyVote = DonkeyVoteDetector.isDonkeyVote(ballot),
-          firstPreference = computationTools.stateLevel.firstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
+          firstPreference = FirstPreferenceCalculator.firstPreferenceOf(normalisedBallot),
           matchingHowToVote = computationTools.electionLevel.matchingHowToVoteCalculator.findMatchingHowToVoteCard(ballot),
           exhaustion            = exhaustionsPerBallot(ballot),
           savingsProvisionsUsed = SavingsComputation.savingsProvisionsUsedBy(ballot, normalisedBallot)

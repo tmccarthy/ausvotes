@@ -3,10 +3,10 @@ package au.id.tmm.ausvotes.core.rawdata.resources
 import java.net.URL
 import java.nio.file.{Path, Paths}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 
 final case class FirstPreferencesResource(election: SenateElection) extends Resource {
-  private val nameSansExtension = s"SenateFirstPrefsByStateByVoteTypeDownload-${election.aecID}"
+  private val nameSansExtension = s"SenateFirstPrefsByStateByVoteTypeDownload-${election.id.asString}"
 
   override val url: URL = new URL(s"https://results.aec.gov.au/20499/Website/Downloads/$nameSansExtension.csv")
 

@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.engine
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.reporting.ReportBuilder
 import au.id.tmm.ausvotes.core.reportwriting.Report
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.concurrent.Future

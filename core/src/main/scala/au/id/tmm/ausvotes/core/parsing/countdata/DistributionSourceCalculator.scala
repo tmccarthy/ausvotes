@@ -1,20 +1,20 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.core.parsing.countdata.DistributionComment.{ElectedLastRemaining, ElectedWithQuotaNoSurplus, ElectedWithSurplus, Excluded}
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.countstv.model.CandidateDistributionReason
 import au.id.tmm.countstv.model.countsteps.{CountSteps, DistributionCountStep}
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
-private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]) {
+private[countdata] class DistributionSourceCalculator(candidates: Set[SenateCandidate]) {
 
-  private val candidatesByShortName: Map[ShortCandidateName, Set[Candidate]] = candidates
+  private val candidatesByShortName: Map[ShortCandidateName, Set[SenateCandidate]] = candidates
     .groupBy(ShortCandidateName.fromCandidate)
 
   def calculateFor(
                     rawDistributionComment: String,
-                    precedingCountSteps: CountSteps[Candidate],
-                  ): Option[DistributionCountStep.Source[Candidate]] = {
+                    precedingCountSteps: CountSteps[SenateCandidate],
+                  ): Option[DistributionCountStep.Source[SenateCandidate]] = {
     val parsedComment = DistributionComment.from(rawDistributionComment)
 
     parsedComment match {
@@ -49,8 +49,8 @@ private[countdata] class DistributionSourceCalculator(candidates: Set[Candidate]
 
   private def identifyCandidateFromSurplusDistribution(
                                                         candidateShortName: ShortCandidateName,
-                                                        precedingCountSteps: CountSteps[Candidate],
-                                                      ): Candidate = {
+                                                        precedingCountSteps: CountSteps[SenateCandidate],
+                                                      ): SenateCandidate = {
     val candidatesWithMatchingName = candidatesByShortName.getOrElse(candidateShortName, Set())
 
     if (candidatesWithMatchingName.isEmpty) {

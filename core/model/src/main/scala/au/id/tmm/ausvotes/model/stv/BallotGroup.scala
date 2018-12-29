@@ -91,7 +91,7 @@ object Group {
     case code => Right(new Group(election, code, party))
   }
 
-  case object InvalidGroupCode
+  case object InvalidGroupCode extends ExceptionCaseClass
 
 }
 

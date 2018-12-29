@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.core.model.computation
 
-import au.id.tmm.ausvotes.core.model.parsing.{CandidatePosition, Group}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateGroup}
 
-final case class NormalisedBallot(atlGroupOrder: Vector[Group],
-                                  atlCandidateOrder: Vector[CandidatePosition],
+final case class NormalisedBallot(atlGroupOrder: Vector[SenateGroup],
+                                  atlCandidateOrder: Vector[SenateCandidate],
                                   atlFormalPreferenceCount: Int,
-                                  btlCandidateOrder: Vector[CandidatePosition],
+                                  btlCandidateOrder: Vector[SenateCandidate],
                                   btlFormalPreferenceCount: Int,
-                                  canonicalOrder: Vector[CandidatePosition]) { // TODO this should be an option
+                                  canonicalOrder: Vector[SenateCandidate]) { // TODO this should be an option
   def isInformal: Boolean = canonicalOrder.isEmpty
   def isFormal: Boolean = !isInformal
 

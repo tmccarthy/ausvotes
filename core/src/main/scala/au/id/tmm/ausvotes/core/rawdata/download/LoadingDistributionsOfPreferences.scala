@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.core.rawdata.download
 import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipFile}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.resources.DistributionOfPreferencesResource
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.io.ZipFileUtils.{ImprovedPath, ImprovedZipFile}
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption

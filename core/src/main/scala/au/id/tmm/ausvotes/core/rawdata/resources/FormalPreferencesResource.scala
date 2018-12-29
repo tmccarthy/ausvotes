@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.core.rawdata.resources
 import java.net.URL
 import java.nio.file.{Path, Paths}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.SenateElection._
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection.`2016`
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
 import au.id.tmm.utilities.hashing.Digest
@@ -12,7 +12,7 @@ import au.id.tmm.utilities.hashing.Digest
 final case class FormalPreferencesResource private(election: SenateElection,
                                                    state: State,
                                                    digest: Digest) extends ResourceWithDigest {
-  private val nameSansExtension = s"aec-senate-formalpreferences-${election.aecID}-${state.abbreviation}"
+  private val nameSansExtension = s"aec-senate-formalpreferences-${election.id.asString}-${state.abbreviation}"
 
   override val url: URL = new URL(s"https://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
@@ -47,9 +47,9 @@ object FormalPreferencesResource {
     Digest("81f30f3bbbc66d01dd11f6288cb7e7567c2eec037a8eeaca69ce88a722fb86c0"))
 
 
-  def of(election: SenateElection, state: State): Option[FormalPreferencesResource] = {
+  def of(election: SenateElectionForState): Option[FormalPreferencesResource] = {
     election match {
-      case `2016` => Some(for2016(state))
+      case SenateElectionForState(`2016`, state) => Some(for2016(state))
       case _ => None
     }
   }
@@ -64,7 +64,8 @@ object FormalPreferencesResource {
       case WA => WA_2016
       case NT => NT_2016
       case ACT => ACT_2016
-      case _ => ???
+      case _ => //noinspection NotImplementedCode
+        ???
     }
   }
 }

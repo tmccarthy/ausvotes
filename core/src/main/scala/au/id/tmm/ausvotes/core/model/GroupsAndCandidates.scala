@@ -1,22 +1,19 @@
 package au.id.tmm.ausvotes.core.model
 
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup}
 
-final case class GroupsAndCandidates(groups: Set[Group], candidates: Set[Candidate]) {
-  def contains(group: Group): Boolean = groups.contains(group)
+final case class GroupsAndCandidates(groups: Set[SenateGroup], candidates: Set[SenateCandidate]) {
+  def contains(group: SenateGroup): Boolean = groups.contains(group)
 
-  def contains(candidate: Candidate): Boolean = candidates.contains(candidate)
+  def contains(candidate: SenateCandidate): Boolean = candidates.contains(candidate)
 
-  def findFor(election: SenateElection, state: State): GroupsAndCandidates = GroupsAndCandidates(
+  def findFor(election: SenateElectionForState): GroupsAndCandidates = GroupsAndCandidates(
     groups = groups.toStream
       .filter(_.election == election)
-      .filter(_.state == state)
       .toSet,
 
     candidates = candidates.toStream
       .filter(_.election == election)
-      .filter(_.state == state)
       .toSet
   )
 }

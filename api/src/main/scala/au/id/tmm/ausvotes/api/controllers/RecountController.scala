@@ -34,7 +34,7 @@ class RecountController(config: Config) {
     val election = apiRequest.election
     val state = apiRequest.state
 
-    NumVacanciesComputation.numVacanciesForStateAtElection(election, state).map { defaultNumVacancies =>
+    NumVacanciesComputation.numVacanciesFor(election, state).map { defaultNumVacancies =>
       RecountRequest(
         election,
         state,

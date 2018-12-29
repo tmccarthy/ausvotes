@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.core.tallies
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, NotExhausted}
-import au.id.tmm.ausvotes.core.model.parsing.Ballot.AtlPreferences
-import au.id.tmm.ausvotes.core.model.parsing.Preference
+import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.ausvotes.model.federal.senate.AtlPreferences
 
 trait BallotCounter {
 
@@ -93,7 +93,7 @@ object BallotCounter {
     override def isCounted(ballotWithFacts: BallotWithFacts): Boolean = {
       val ballot = ballotWithFacts.ballot
 
-      ballot.btlPreferences.isEmpty && hasOnly1Atl(ballot.atlPreferences)
+      ballot.candidatePreferences.isEmpty && hasOnly1Atl(ballot.groupPreferences)
     }
 
     private def hasOnly1Atl(atlPreferences: AtlPreferences) =

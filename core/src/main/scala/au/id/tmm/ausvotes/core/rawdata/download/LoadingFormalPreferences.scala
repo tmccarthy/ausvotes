@@ -4,9 +4,8 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipFile}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.resources.FormalPreferencesResource
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import au.id.tmm.utilities.io.ZipFileUtils.{ImprovedPath, ImprovedZipFile}
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 
@@ -22,9 +21,9 @@ object LoadingFormalPreferences {
     } yield source
   }
 
-  def resourceMatching(election: SenateElection, state: State): Try[FormalPreferencesResource] =
-    FormalPreferencesResource.of(election, state)
-      .failIfAbsent(new UnsupportedOperationException(s"Could not find raw data for $state at $election"))
+  def resourceMatching(election: SenateElectionForState): Try[FormalPreferencesResource] =
+    FormalPreferencesResource.of(election)
+      .failIfAbsent(new UnsupportedOperationException(s"Could not find raw data for $election"))
 
   private def csvInputStreamFrom(resource: FormalPreferencesResource, zipFilePath: Path): Try[InputStream] =
     for {

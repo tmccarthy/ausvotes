@@ -23,6 +23,12 @@ package object senate {
                        position: CandidatePosition[SenateElectionForState],
                      ): SenateCandidate = StvCandidate(election, candidate, position)
 
+  type SenateCandidatePosition = CandidatePosition[SenateElectionForState]
+  def SenateCandidatePosition(
+                               ballotGroup: SenateBallotGroup,
+                               indexInGroup: Int,
+                             ): SenateCandidatePosition = CandidatePosition(ballotGroup, indexInGroup)
+
   type SenateBallot = Ballot[SenateElectionForState, SenateCandidate, FederalBallotJurisdiction, SenateBallotId]
   def SenateBallot(
                     election: SenateElectionForState,
@@ -45,7 +51,7 @@ package object senate {
   def SenateHtv(
                  election: SenateElectionForState,
                  issuer: SenateGroup,
-                 suggestedOrder: List[SenateGroup],
+                 suggestedOrder: Vector[SenateGroup],
                ): SenateHtv = HowToVoteCard(election, issuer, suggestedOrder)
 
   type SenateCountData = CountData[SenateElectionForState, SenateCandidate]
@@ -53,5 +59,8 @@ package object senate {
                        election: SenateElectionForState,
                        completedCount: CompletedCount[SenateCandidate],
                      ): SenateCountData = CountData(election, completedCount)
+
+  type AtlPreferences = Map[SenateGroup, Preference]
+  type BtlPreferences = Map[SenateCandidate, Preference]
 
 }

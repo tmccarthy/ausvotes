@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.core.rawdata.download
 
 import java.nio.file.Path
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.resources.PollingPlacesResource
+import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.utilities.option.OptionUtils.ImprovedOption
 
 import scala.io.Source
@@ -16,7 +16,7 @@ object LoadingPollingPlaces {
     } yield source
   }
 
-  def resourceMatching(election: SenateElection): Try[PollingPlacesResource] =
+  def resourceMatching(election: FederalElection): Try[PollingPlacesResource] =
     PollingPlacesResource.of(election)
       .failIfAbsent(new UnsupportedOperationException(s"Could not find raw polling places data for $election"))
 

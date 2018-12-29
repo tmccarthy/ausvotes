@@ -3,18 +3,18 @@ package au.id.tmm.ausvotes.core.rawdata.resources
 import java.net.URL
 import java.nio.file.{Path, Paths}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.hashing.Digest
 
 final case class DistributionOfPreferencesResource(election: SenateElection, digest: Digest) extends ResourceWithDigest {
-  private val nameSansExtension = s"SenateDopDownload-${election.aecID}"
+  private val nameSansExtension = s"SenateDopDownload-${election.id.asString}"
 
   override val url: URL = new URL(s"https://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
   override val localFileName: Path = Paths.get(s"$nameSansExtension.zip")
 
-  def zipEntryNameOf(state: State): String = s"SenateStateDOPDownload-${election.aecID}-${state.abbreviation.toUpperCase}.csv"
+  def zipEntryNameOf(state: State): String = s"SenateStateDOPDownload-${election.id.asString}-${state.abbreviation.toUpperCase}.csv"
 }
 
 object DistributionOfPreferencesResource {

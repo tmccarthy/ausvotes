@@ -5,10 +5,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import au.id.tmm.ausvotes.core.engine.{ParsedDataStore, ReportEngine, TallyEngine}
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
 import au.id.tmm.ausvotes.core.reporting._
 import au.id.tmm.ausvotes.core.reportwriting.ReportWriter
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import com.google.common.base.Stopwatch
 

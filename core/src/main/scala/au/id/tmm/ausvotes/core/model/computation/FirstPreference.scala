@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.model.computation
 
-import au.id.tmm.ausvotes.core.model.parsing.{BallotGroup, Party}
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallotGroup
 
-final case class FirstPreference(group: BallotGroup, party: Party) {
-
-}
+// TODO generalise and move to the model subproject
+final case class FirstPreference(group: SenateBallotGroup, party: Option[Party])

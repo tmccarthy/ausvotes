@@ -1,11 +1,12 @@
 package au.id.tmm.ausvotes.core.computations.savings
 
 import au.id.tmm.ausvotes.core.model.computation.{NormalisedBallot, SavingsProvision}
-import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Preference}
+import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallot
 
 object SavingsComputation {
 
-  def savingsProvisionsUsedBy(ballot: Ballot, normalised: NormalisedBallot): Set[SavingsProvision] = {
+  def savingsProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedBallot): Set[SavingsProvision] = {
     Stream(
       markUsageProvisionsUsedBy(ballot, normalised),
       insufficientSquaresProvisionsUsedBy(ballot, normalised),
@@ -15,12 +16,12 @@ object SavingsComputation {
       .toSet
   }
 
-  private def markUsageProvisionsUsedBy(ballot: Ballot, normalised: NormalisedBallot): Option[SavingsProvision.UsedMark] = {
+  private def markUsageProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedBallot): Option[SavingsProvision.UsedMark] = {
 
     if (normalised.isNormalisedToAtl) {
-      markUsageOf(ballot.atlPreferences.values)
+      markUsageOf(ballot.groupPreferences.values)
     } else {
-      markUsageOf(ballot.btlPreferences.values)
+      markUsageOf(ballot.candidatePreferences.values)
     }
   }
 
@@ -36,11 +37,11 @@ object SavingsComputation {
     None
   }
 
-  private def countErrorSavingsProvisionsUsedBy(ballot: Ballot,
+  private def countErrorSavingsProvisionsUsedBy(ballot: SenateBallot,
                                                 normalised: NormalisedBallot
                                                ): Option[SavingsProvision.CountingError] = {
-    def hasCountErrorAtl = ballot.atlPreferences.size > normalised.atlFormalPreferenceCount
-    def hasCountErrorBtl = ballot.btlPreferences.size > normalised.btlFormalPreferenceCount
+    def hasCountErrorAtl = ballot.groupPreferences.size > normalised.atlFormalPreferenceCount
+    def hasCountErrorBtl = ballot.candidatePreferences.size > normalised.btlFormalPreferenceCount
 
     if (normalised.isNormalisedToAtl && hasCountErrorAtl) {
       Some(SavingsProvision.CountingErrorAtl)
@@ -53,7 +54,7 @@ object SavingsComputation {
     }
   }
 
-  private def insufficientSquaresProvisionsUsedBy(ballot: Ballot,
+  private def insufficientSquaresProvisionsUsedBy(ballot: SenateBallot,
                                                   normalised: NormalisedBallot
                                                  ): Option[SavingsProvision.InsufficientPreferences] = {
     def markedInsufficientSquaresAtl = normalised.atlFormalPreferenceCount < 6

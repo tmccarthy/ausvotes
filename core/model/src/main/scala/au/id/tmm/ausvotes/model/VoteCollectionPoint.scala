@@ -1,12 +1,13 @@
 package au.id.tmm.ausvotes.model
 
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.Location
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.{Location, PollingPlaceType}
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.Address
 
 sealed trait VoteCollectionPoint[E, J] {
   def election: E
   def jurisdiction: J
+  def name: String
 }
 
 object VoteCollectionPoint {
@@ -19,7 +20,7 @@ object VoteCollectionPoint {
       orderingUpToJurisdiction.compare(left, right) match {
         case 0 => {
           (left, right) match {
-            case (PollingPlace(_, _, _, leftName, _), PollingPlace(_, _, _, rightName, _)) => leftName.compareTo(rightName)
+            case (PollingPlace(_, _, _, _, leftName, _), PollingPlace(_, _, _, _, rightName, _)) => leftName.compareTo(rightName)
             case (_: Special[E, J], _: PollingPlace[E, J]) => 1
             case (_: PollingPlace[E, J], _: Special[E, J]) => -1
             case (left: Special[E, J], right: Special[E, J]) => Special.ordering[E, J].compare(left, right)
@@ -35,7 +36,9 @@ object VoteCollectionPoint {
                                   jurisdiction: J,
                                   specialVcpType: Special.SpecialVcpType,
                                   id: Special.Id,
-                                ) extends VoteCollectionPoint[E, J]
+                                ) extends VoteCollectionPoint[E, J] {
+    override def name: String = s"${specialVcpType.toString.toUpperCase} ${id.asInt}"
+  }
 
   object Special {
 
@@ -70,6 +73,7 @@ object VoteCollectionPoint {
                                        election: E,
                                        jurisdiction: J,
                                        id: PollingPlace.Id,
+                                       pollingPlaceType: PollingPlaceType,
                                        name: String,
                                        location: Location,
                                      ) extends VoteCollectionPoint[E, J]

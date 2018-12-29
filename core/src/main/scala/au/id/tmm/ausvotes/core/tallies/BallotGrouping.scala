@@ -1,9 +1,12 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.core.computations.parties.PartyCanonicalisation
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
 import au.id.tmm.ausvotes.core.model.parsing._
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotGroup, SenateElection}
 import au.id.tmm.utilities.geo.australia.State
 
 trait BallotGrouping[A] {
@@ -32,46 +35,47 @@ object BallotGrouping {
 
   case object SenateElection extends SingletonBallotGrouping[SenateElection] {
     override def groupOf(ballotWithFacts: BallotWithFacts): SenateElection =
-      ballotWithFacts.ballot.election
+      ballotWithFacts.ballot.election.election
 
     override val name: String = "election"
   }
 
   case object State extends SingletonBallotGrouping[State] {
     override def groupOf(ballotWithFacts: BallotWithFacts): State =
-      ballotWithFacts.ballot.state
+      ballotWithFacts.ballot.election.state
 
     override val name: String = "state"
   }
 
   case object Division extends SingletonBallotGrouping[Division] {
     override def groupOf(ballotWithFacts: BallotWithFacts): Division =
-      ballotWithFacts.ballot.division
+      ballotWithFacts.ballot.jurisdiction.electorate
 
     override val name: String = "division"
   }
 
-  case object VoteCollectionPoint extends SingletonBallotGrouping[VoteCollectionPoint] {
-    override def groupOf(ballotWithFacts: BallotWithFacts): VoteCollectionPoint =
-      ballotWithFacts.ballot.voteCollectionPoint
+  case object VoteCollectionPoint extends SingletonBallotGrouping[FederalVcp] {
+    override def groupOf(ballotWithFacts: BallotWithFacts): FederalVcp =
+      ballotWithFacts.ballot.jurisdiction.voteCollectionPoint
 
     override val name: String = "vcp"
   }
 
-  case object FirstPreferencedPartyNationalEquivalent extends SingletonBallotGrouping[Party] {
-    override def groupOf(ballotWithFacts: BallotWithFacts): Party = ballotWithFacts.firstPreference.party.nationalEquivalent
+  case object FirstPreferencedPartyNationalEquivalent extends SingletonBallotGrouping[Option[Party]] {
+    override def groupOf(ballotWithFacts: BallotWithFacts): Option[Party] =
+      ballotWithFacts.firstPreference.party.map(PartyCanonicalisation.nationalEquivalentOf)
 
     override val name: String = "first-preferenced party (national)"
   }
 
-  case object FirstPreferencedParty extends SingletonBallotGrouping[Party] {
-    override def groupOf(ballotWithFacts: BallotWithFacts): Party = ballotWithFacts.firstPreference.party
+  case object FirstPreferencedParty extends SingletonBallotGrouping[Option[Party]] {
+    override def groupOf(ballotWithFacts: BallotWithFacts): Option[Party] = ballotWithFacts.firstPreference.party
 
     override val name: String = "first-preferenced party"
   }
 
-  case object FirstPreferencedGroup extends SingletonBallotGrouping[BallotGroup] {
-    override def groupOf(ballotWithFacts: BallotWithFacts): BallotGroup = ballotWithFacts.firstPreference.group
+  case object FirstPreferencedGroup extends SingletonBallotGrouping[SenateBallotGroup] {
+    override def groupOf(ballotWithFacts: BallotWithFacts): SenateBallotGroup = ballotWithFacts.firstPreference.group
 
     override val name: String = "first-preferenced group"
   }

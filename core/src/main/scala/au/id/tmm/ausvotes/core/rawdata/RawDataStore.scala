@@ -1,14 +1,14 @@
 package au.id.tmm.ausvotes.core.rawdata
 
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.csv.{ParsingDistributionOfPreferences, ParsingFirstPreferences, ParsingFormalPreferences, ParsingPollingPlaces}
 import au.id.tmm.ausvotes.core.rawdata.model.{DistributionOfPreferencesRow, FirstPreferencesRow, FormalPreferencesRow, PollingPlacesRow}
+import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.collection.CloseableIterator
-import au.id.tmm.utilities.geo.australia.State
 
 final class RawDataStore private (aecResourceStore: AecResourceStore) {
-  def distributionsOfPreferencesFor(election: SenateElection, state: State): CloseableIterator[DistributionOfPreferencesRow] = {
-    aecResourceStore.distributionOfPreferencesFor(election, state)
+  def distributionsOfPreferencesFor(election: SenateElectionForState): CloseableIterator[DistributionOfPreferencesRow] = {
+    aecResourceStore.distributionOfPreferencesFor(election)
       .flatMap(ParsingDistributionOfPreferences.parseLines)
       .get
   }
@@ -19,13 +19,13 @@ final class RawDataStore private (aecResourceStore: AecResourceStore) {
       .get
   }
 
-  def formalPreferencesFor(election: SenateElection, state: State): CloseableIterator[FormalPreferencesRow] = {
-    aecResourceStore.formalPreferencesFor(election, state)
+  def formalPreferencesFor(election: SenateElectionForState): CloseableIterator[FormalPreferencesRow] = {
+    aecResourceStore.formalPreferencesFor(election)
       .flatMap(ParsingFormalPreferences.parseLines)
       .get
   }
 
-  def pollingPlacesFor(election: SenateElection): CloseableIterator[PollingPlacesRow] = {
+  def pollingPlacesFor(election: FederalElection): CloseableIterator[PollingPlacesRow] = {
     aecResourceStore.pollingPlacesFor(election)
       .flatMap(ParsingPollingPlaces.parseLines)
       .get

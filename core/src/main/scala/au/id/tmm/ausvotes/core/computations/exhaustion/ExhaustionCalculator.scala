@@ -1,9 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.exhaustion
 
-import au.id.tmm.ausvotes.core.model.CountData
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.NotExhausted
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, NormalisedBallot}
-import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateCandidate, SenateCountData}
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
@@ -11,7 +10,10 @@ import scala.annotation.tailrec
 
 object ExhaustionCalculator {
 
-  def exhaustionsOf(countData: CountData, ballots: Vector[(Ballot, NormalisedBallot)]): Map[Ballot, BallotExhaustion] = {
+  def exhaustionsOf(
+                     countData: SenateCountData,
+                     ballots: Vector[(SenateBallot, NormalisedBallot)],
+                   ): Map[SenateBallot, BallotExhaustion] = {
 
     val trackedBallots = ballots.map { case (ballot, normalisedBallot) => new TrackedBallot(ballot, normalisedBallot) }
 
@@ -19,29 +21,29 @@ object ExhaustionCalculator {
       assert(previousCountStep.count.increment == countStep.count)
 
       countStep match {
-        case countStep: InitialAllocation[Candidate] => {}
-        case countStep: AllocationAfterIneligibles[Candidate] => {
-          val ineligibleCandidatePositions = countStep.candidateStatuses.ineligibleCandidates.map(_.btlPosition)
-          val ineligibleForPreferenceFlowsPositions = countStep.candidateStatuses.ineligibleForPreferenceFlows.map(_.btlPosition)
+        case countStep: InitialAllocation[SenateCandidate] => {}
+        case countStep: AllocationAfterIneligibles[SenateCandidate] => {
+          val ineligibleCandidates = countStep.candidateStatuses.ineligibleCandidates
+          val ineligibleForPreferenceFlows = countStep.candidateStatuses.ineligibleForPreferenceFlows
 
           trackedBallots.foreach { trackedBallot =>
-            if (trackedBallot.currentPreference.exists(ineligibleCandidatePositions)) {
+            if (trackedBallot.currentPreference.exists(ineligibleCandidates)) {
               allocateToNextPreference(
                 trackedBallot,
                 countStep.count,
-                ineligibleForPreferenceFlowsPositions,
+                ineligibleForPreferenceFlows,
                 numElectedCandidates = 0,
               )
             }
           }
         }
-        case countStep: DistributionCountStep[Candidate] => {
+        case countStep: DistributionCountStep[SenateCandidate] => {
           for {
             trackedBallot <- trackedBallots
           } {
             val distributionSource = countStep.distributionSource
             if (
-              trackedBallot.currentPreference.contains(distributionSource.candidate.btlPosition) &&
+              trackedBallot.currentPreference.contains(distributionSource.candidate) &&
                 distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)
             ) {
               val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates diff
@@ -51,7 +53,7 @@ object ExhaustionCalculator {
               allocateToNextPreference(
                 trackedBallot,
                 countStep.count,
-                (countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep).map(_.btlPosition),
+                countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep,
                 numElectedCandidates = countStep.candidateStatuses.electedCandidates.size,
               )
             }
@@ -72,7 +74,7 @@ object ExhaustionCalculator {
   @tailrec
   private def allocateToNextPreference(ballot: TrackedBallot,
                                        count: Count,
-                                       candidatesIneligibleForPreferenceFlows: Set[CandidatePosition],
+                                       candidatesIneligibleForPreferenceFlows: Set[SenateCandidate],
                                        numElectedCandidates: Int): Unit = {
     ballot.exhaustion match {
       case NotExhausted => {
@@ -94,9 +96,9 @@ object ExhaustionCalculator {
 
   }
 
-  private final case class Allocation(candidatePosition: CandidatePosition, fromCount: Count)
+  private final case class Allocation(candidatePosition: SenateCandidate, fromCount: Count)
 
-  private final class TrackedBallot(val ballot: Ballot,
+  private final class TrackedBallot(val ballot: SenateBallot,
                                     val normalisedBallot: NormalisedBallot,
 
                                     var currentPreferenceIndex: Int = 0,
@@ -108,7 +110,7 @@ object ExhaustionCalculator {
                                    ) {
     def currentAllocation: Option[Allocation] = currentPreference.map(Allocation(_, allocatedAtCount))
 
-    def currentPreference: Option[CandidatePosition] = normalisedBallot.canonicalOrder.lift(currentPreferenceIndex)
+    def currentPreference: Option[SenateCandidate] = normalisedBallot.canonicalOrder.lift(currentPreferenceIndex)
 
     def incrementCurrentPreference(currentCount: Count): Unit = {
       currentPreferenceIndex = currentPreferenceIndex + 1

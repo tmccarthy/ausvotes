@@ -1,7 +1,6 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.core.model.parsing.Group
-import au.id.tmm.ausvotes.core.model.{HowToVoteCard, SenateElection}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState, SenateGroup, SenateHtv}
 import au.id.tmm.utilities.geo.australia.State
 
 object HowToVoteCardGeneration {
@@ -75,8 +74,8 @@ object HowToVoteCardGeneration {
       (State.TAS, "Liberal Party of Australia") -> "F,D,P,T,A,B",
       (State.TAS, "Australian Sex Party/Marijuana (HEMP) Party") -> "H,U,S,R,Q,L",
       (State.TAS, "Pauline Hanson's One Nation") -> "I,D,P,A,S,N", // The groups listed in this how to vote were
-//                                                                    I,D,AG,A,S,N, but there is no AG group in Tas. The
-//                                                                    Shooters and Fishers are group P
+      //                                                                    I,D,AG,A,S,N, but there is no AG group in Tas. The
+      //                                                                    Shooters and Fishers are group P
       (State.TAS, "Renewable Energy Party") -> "L,S,C,H,Q,B,J,R,O",
       (State.TAS, "Australian Liberty Alliance") -> "N,D,T,P,A,M",
       (State.TAS, "VOTEFLUX.ORG | Upgrade Democracy!") -> "P,D,I,A,N,T,S",
@@ -105,9 +104,9 @@ object HowToVoteCardGeneration {
       (State.NSW, "Australian Labor Party") -> "N,AL,AN,AB,AG,D",
       (State.NSW, "Pirate Party Australia") -> "R,AL,AG,I,N,AN",
       (State.NSW, "Pauline Hanson's One Nation") -> "S,M,AB,H,AM,AD",
-//      (State.NSW, "Veterans Party") -> "", The Veterans Party lists the Cycling and Science parties in positions 4
-//                                           and 5 respectively, but these parties are in the same group. The HTV is
-//                                           invalid.
+      //      (State.NSW, "Veterans Party") -> "", The Veterans Party lists the Cycling and Science parties in positions 4
+      //                                           and 5 respectively, but these parties are in the same group. The HTV is
+      //                                           invalid.
       (State.NSW, "Animal Justice Party") -> "AB,AK,AN,A,AL,N",
       (State.NSW, "Australian Sex Party") -> "AG,AO,K,AN,U,AB",
       (State.NSW, "The Greens") -> "AL,R,I,L,AB,N",
@@ -130,25 +129,21 @@ object HowToVoteCardGeneration {
     }.toMap
   }
 
-  def from(election: SenateElection, groups: Set[Group]): Set[HowToVoteCard] = {
+  def from(election: SenateElection, groups: Set[SenateGroup]): Set[SenateHtv] = {
     require(election == SenateElection.`2016`, s"$election is unsupported")
 
     val groupCodeLookup = groups
-      .filter(_.election == SenateElection.`2016`)
-      .groupBy(group => (group.state, group.code))
+      .filter(_.election.election == SenateElection.`2016`)
+      .groupBy(group => (group.election.state, group.code.asString))
       .mapValues(_.head)
 
     groups.flatMap(htvIn2016For(_, groupCodeLookup))
   }
 
-  private def htvIn2016For(group: Group, groupCodeLookup: Map[(State, String), Group]): Option[HowToVoteCard] = {
-    htvsFor2016.get(group.state, group.code)
-      .map(htvGroupCodes => {
-        val htvGroupOrder = htvGroupCodes.map(groupCode => groupCodeLookup(group.state, groupCode))
-
-        assert(htvGroupOrder.head == group)
-
-        HowToVoteCard(SenateElection.`2016`, group.state, group, htvGroupOrder)
-      })
-  }
+  private def htvIn2016For(group: SenateGroup, groupCodeLookup: Map[(State, String), SenateGroup]): Option[SenateHtv] =
+    for {
+      htvGroupCodes <- htvsFor2016.get((group.election.state, group.code.asString))
+      htvGroupOrder = htvGroupCodes.map(groupCode => groupCodeLookup(group.election.state, groupCode))
+      electionForState <- SenateElectionForState(SenateElection.`2016`, group.election.state).toOption
+    } yield SenateHtv(electionForState, group, htvGroupOrder)
 }
