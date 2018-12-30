@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.core.engine
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.exhaustion.ExhaustionCalculator
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.Exhausted
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
@@ -18,21 +18,22 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
     val rawDataStore = RawDataStore(aecRawDataStore)
     val parsedDataStore = ParsedDataStore(rawDataStore)
 
-    val election = SenateElection.`2016`
+    val senateElection = SenateElection.`2016`
     val state = State.TAS
+    val election = SenateElectionForState(senateElection, state).right.get
 
-    val groupsAndCandidates = parsedDataStore.groupsAndCandidatesFor(election)
-    val divisionsAndPollingPlaces = parsedDataStore.divisionsAndPollingPlacesFor(election)
+    val groupsAndCandidates = parsedDataStore.groupsAndCandidatesFor(senateElection)
+    val divisionsAndPollingPlaces = parsedDataStore.divisionsAndPollingPlacesFor(senateElection.federalElection)
 
-    val countData = parsedDataStore.countDataFor(election, groupsAndCandidates, state)
+    val countData = parsedDataStore.countDataFor(election, groupsAndCandidates)
 
     val counts = 1 to countData.completedCount.countSteps.last.count.asInt inclusive
 
     val actualCumulativeExhaustedVotesPerCount = {
 
-      val allBallots = parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces, state).toVector
+      val allBallots = parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces).toVector
 
-      val normaliser = BallotNormaliser(election, state, groupsAndCandidates.candidates)
+      val normaliser = BallotNormaliser(election, groupsAndCandidates.candidates)
 
       val ballotsWithNormalised = allBallots.map(ballot => ballot -> normaliser.normalise(ballot))
 
