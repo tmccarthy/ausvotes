@@ -12,7 +12,7 @@ import au.id.tmm.utilities.hashing.Digest
 final case class FormalPreferencesResource private(election: SenateElection,
                                                    state: State,
                                                    digest: Digest) extends ResourceWithDigest {
-  private val nameSansExtension = s"aec-senate-formalpreferences-${election.id.asString}-${state.abbreviation}"
+  private val nameSansExtension = s"aec-senate-formalpreferences-${election.federalElection.aecId.asInt}-${state.abbreviation}"
 
   override val url: URL = new URL(s"https://results.aec.gov.au/20499/Website/External/$nameSansExtension.zip")
 
