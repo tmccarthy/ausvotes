@@ -1,6 +1,5 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.core.computations.parties.PartyCanonicalisation
 import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.rawdata.model.FirstPreferencesRow
 import au.id.tmm.ausvotes.model.Flyweights.GroupFlyweight
@@ -77,7 +76,7 @@ object GroupAndCandidateGeneration {
     if (partyName.isEmpty || ("Independent" equalsIgnoreCase partyName)) {
       None
     } else {
-      Some(PartyCanonicalisation.canonicalise(Party(partyName)))
+      Some(Party(partyName))
     }
   }
 

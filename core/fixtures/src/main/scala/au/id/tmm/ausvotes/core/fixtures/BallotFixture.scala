@@ -94,7 +94,7 @@ object BallotFixture {
     }
 
     val formalBtl: SenateBallot = {
-      val btlPrefs = orderedBtlPreferences("A0", "B1", "B0", "J0", "UG0", "UG2", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
+      val btlPrefs = orderedBtlPreferences("A0", "B1", "B0", "J0", "UG0", "UG1", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
 
       makeBallot(Map.empty, btlPrefs)
     }

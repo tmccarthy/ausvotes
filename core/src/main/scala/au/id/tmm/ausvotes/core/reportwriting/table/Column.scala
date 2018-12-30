@@ -50,8 +50,8 @@ object Column {
     @tailrec
     override def valueForKey(key: Any): String = key match {
       case Electorate(_, _, name, _) => name
-      case VoteCollectionPoint.PollingPlace(_, FederalVcpJurisdiction(state, _), _, _, _, _) => valueForKey(state)
-      case VoteCollectionPoint.Special(_, FederalVcpJurisdiction(state, _), _, _) => valueForKey(state)
+      case VoteCollectionPoint.PollingPlace(_, FederalVcpJurisdiction(_, division), _, _, _, _) => valueForKey(division)
+      case VoteCollectionPoint.Special(_, FederalVcpJurisdiction(_, division), _, _) => valueForKey(division)
     }
   }
 
@@ -68,7 +68,7 @@ object Column {
 
     @tailrec
     override def valueForKey(key: Any): String = key match {
-      case Some(Party(partyName)) => partyName
+      case Some(party: Party) => party.name
       case None => "Independent"
       case Group(_, _, party) => valueForKey(party)
       case Ungrouped(_) => valueForKey(None)
@@ -90,7 +90,7 @@ object Column {
 
     override def valueForKey(key: Any): String = key match {
       case Group(_, code, party) => s"${code.asString} (${PartyNameColumn.valueForKey(party)})"
-      case Ungrouped(_) => s"${Ungrouped.code} (Ungrouped)"
+      case Ungrouped(_) => s"${Ungrouped.code.asString} (Ungrouped)"
     }
   }
 

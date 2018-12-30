@@ -1,12 +1,12 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
-import au.id.tmm.ausvotes.core.computations.parties.PartyCanonicalisation
+import au.id.tmm.ausvotes.core.computations.parties.PartyEquivalenceComputation
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
 import au.id.tmm.ausvotes.core.model.parsing._
 import au.id.tmm.ausvotes.model.Party
-import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp}
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotGroup, SenateElection}
+import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp}
 import au.id.tmm.utilities.geo.australia.State
 
 trait BallotGrouping[A] {
@@ -63,7 +63,7 @@ object BallotGrouping {
 
   case object FirstPreferencedPartyNationalEquivalent extends SingletonBallotGrouping[Option[Party]] {
     override def groupOf(ballotWithFacts: BallotWithFacts): Option[Party] =
-      ballotWithFacts.firstPreference.party.map(PartyCanonicalisation.nationalEquivalentOf)
+      ballotWithFacts.firstPreference.party.map(PartyEquivalenceComputation.nationalEquivalentOf)
 
     override val name: String = "first-preferenced party (national)"
   }

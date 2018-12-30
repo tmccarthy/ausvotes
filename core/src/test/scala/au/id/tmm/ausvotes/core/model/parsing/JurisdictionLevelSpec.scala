@@ -8,7 +8,7 @@ class JurisdictionLevelSpec extends ImprovedFlatSpec {
   private val testBallot = BallotFixture.ACT.formalAtl
 
   "the national jurisdiction level" should "extract the senate election of a ballot" in {
-    assert(JurisdictionLevel.Nation.ofBallot(testBallot) === testBallot.election)
+    assert(JurisdictionLevel.Nation.ofBallot(testBallot) === testBallot.election.election.federalElection)
   }
 
   "the state jurisdiction level" should "extract the state of a ballot" in {

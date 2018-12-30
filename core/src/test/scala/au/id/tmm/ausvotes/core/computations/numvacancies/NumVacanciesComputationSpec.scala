@@ -8,29 +8,25 @@ class NumVacanciesComputationSpec extends ImprovedFlatSpec {
 
   "the numVacancies computation" should "indicate the number of vacancies for a state at a normal election" in {
     assert(
-      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2013`, State.SA).right.get) ===
-        Right(6)
+      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2013`, State.SA).right.get) === 6
     )
   }
 
   it should "indicate the number of vacancies for a territory at a normal election" in {
     assert(
-      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2013`, State.NT).right.get) ===
-        Right(2)
+      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2013`, State.NT).right.get) === 2
     )
   }
 
   it should "indicate the number of vacancies for a state at a double dissolution election" in {
     assert(
-      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2016`, State.WA).right.get) ===
-        Right(12)
+      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2016`, State.WA).right.get) === 12
     )
   }
 
   it should "indicate the number of vacancies for a territory at a double dissolution election" in {
     assert(
-      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2016`, State.ACT).right.get) ===
-        Right(2)
+      NumVacanciesComputation.numVacanciesFor(SenateElectionForState(SenateElection.`2016`, State.ACT).right.get) === 2
     )
   }
 

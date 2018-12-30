@@ -98,15 +98,6 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
     assert(groupsAndCandidates contains expectedCandidate)
   }
 
-  it should "flyweight generated parties" in {
-    val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
-
-    val laborGroup = groupsAndCandidates.groups.filter(_.party.contains(Party("Australian Labor Party"))).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.candidate.party.contains(Party("Australian Labor Party"))).head
-
-    assert(laborGroup.party eq laborCandidate.candidate.party)
-  }
-
   it should "flyweight generated groups" in {
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 

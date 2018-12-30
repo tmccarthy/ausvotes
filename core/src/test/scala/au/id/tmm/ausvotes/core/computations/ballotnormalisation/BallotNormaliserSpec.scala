@@ -116,7 +116,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
   "normalising btl preferences" should "reproduce the preferences expressed below the line" in {
     val ballot: SenateBallot = formalBtl
 
-    val expectedOrder = candidateOrder("A0", "B1", "B0", "J0", "UG0", "UG2", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
+    val expectedOrder = candidateOrder("A0", "B1", "B0", "J0", "UG0", "UG1", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
     val normalisedBallot = sut.normalise(ballot)
 
     assert(normalisedBallot.canonicalOrder === expectedOrder)
