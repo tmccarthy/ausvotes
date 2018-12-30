@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.fixtures
 import au.id.tmm.ausvotes.core.fixtures.DivisionFixture.DivisionFixture
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
-import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace, FederalVoteCollectionPointJurisdiction}
+import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace, FederalVcpJurisdiction}
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 
@@ -30,7 +30,7 @@ object PollingPlaceFixture {
 
     val BARTON: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = divisionLookup("Canberra"),
       ),
@@ -45,7 +45,7 @@ object PollingPlaceFixture {
 
     val MOBILE_TEAM_1: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = divisionLookup("Canberra"),
       ),
@@ -60,7 +60,7 @@ object PollingPlaceFixture {
 
     val HOSPITAL_TEAM_1: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = divisionLookup("Canberra"),
       ),
@@ -72,7 +72,7 @@ object PollingPlaceFixture {
 
     val WODEN_PRE_POLL: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = divisionLookup("Canberra"),
       ),
@@ -101,7 +101,7 @@ object PollingPlaceFixture {
 
     val ALICE_SPRINGS: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = divisionLookup("Lingiari"),
       ),
@@ -125,7 +125,7 @@ object PollingPlaceFixture {
 
     val ASHFIELD: FederalPollingPlace = FederalPollingPlace(
       election = election,
-      jurisdiction = FederalVoteCollectionPointJurisdiction(
+      jurisdiction = FederalVcpJurisdiction(
         state = state,
         division = DivisionFixture.WA.PERTH,
       ),

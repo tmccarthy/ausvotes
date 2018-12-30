@@ -1,8 +1,9 @@
 package au.id.tmm.ausvotes.core.engine
 
 import au.id.tmm.ausvotes.core.fixtures.{GroupAndCandidateFixture, MockAecResourceStore}
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
+import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -26,32 +27,31 @@ class ParsedDataStoreSpec extends ImprovedFlatSpec {
   }
 
   it should "retrieve the divisions" in {
-    val divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(SenateElection.`2016`)
+    val divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(FederalElection.`2016`)
 
     assert(divisionsAndPollingPlaces.divisions.size === 150)
   }
 
   it should "retrieve the polling places" in {
-    val divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(SenateElection.`2016`)
+    val divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(FederalElection.`2016`)
 
     assert(divisionsAndPollingPlaces.pollingPlaces.size === 8328)
   }
 
-  it should "retrive the ballots" in {
+  it should "retrieve the ballots" in {
     for {
       ballots <- resource.managed(sut.ballotsFor(
-        election = SenateElection.`2016`,
+        election = SenateElectionForState(SenateElection.`2016`, State.ACT).right.get,
         groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates,
-        divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(SenateElection.`2016`),
-        state = State.ACT)
-      )
+        divisionsAndPollingPlaces = sut.divisionsAndPollingPlacesFor(FederalElection.`2016`),
+      ))
     } {
       assert(ballots.size === 4)
     }
   }
 
   it should "retrieve the count data" in {
-    val countData = sut.countDataFor(SenateElection.`2016`, GroupAndCandidateFixture.ACT.groupsAndCandidates, State.ACT)
+    val countData = sut.countDataFor(SenateElectionForState(SenateElection.`2016`, State.ACT).right.get, GroupAndCandidateFixture.ACT.groupsAndCandidates)
 
     assert(countData.completedCount.countSteps.size === 30)
 

@@ -29,25 +29,25 @@ object BallotGeneration {
       voteCollectionPointName match {
         case absentee(number) => VoteCollectionPoint.Special(
           federalElection,
-          FederalVoteCollectionPointJurisdiction(election.state, division),
+          FederalVcpJurisdiction(election.state, division),
           SpecialVcpType.Absentee,
           VoteCollectionPoint.Special.Id(number.toInt),
         )
         case postal(number) => VoteCollectionPoint.Special(
           federalElection,
-          FederalVoteCollectionPointJurisdiction(election.state, division),
+          FederalVcpJurisdiction(election.state, division),
           SpecialVcpType.Postal,
           VoteCollectionPoint.Special.Id(number.toInt),
         )
         case prepoll(number) => VoteCollectionPoint.Special(
           federalElection,
-          FederalVoteCollectionPointJurisdiction(election.state, division),
+          FederalVcpJurisdiction(election.state, division),
           SpecialVcpType.PrePoll,
           VoteCollectionPoint.Special.Id(number.toInt),
         )
         case provisional(number) => VoteCollectionPoint.Special(
           federalElection,
-          FederalVoteCollectionPointJurisdiction(election.state, division),
+          FederalVcpJurisdiction(election.state, division),
           SpecialVcpType.Provisional,
           VoteCollectionPoint.Special.Id(number.toInt),
         )

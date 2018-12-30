@@ -1,8 +1,7 @@
 package au.id.tmm.ausvotes.core.computations.ballotnormalisation
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Ballot
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -13,14 +12,14 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   private val candidates = CandidateFixture.ACT.candidates
 
-  private val sut = BallotNormaliser(SenateElection.`2016`, State.ACT, candidates)
+  private val sut = BallotNormaliser(SenateElectionForState(SenateElection.`2016`, State.ACT).right.get, candidates)
 
   import ballots._
   import ballots.ballotMaker._
 
   // Section 269(2)
   "normalising either atl or btl preferences" should "use the btl preferences if they are formal" in {
-    val ballot: Ballot = formalAtlAndBtl
+    val ballot: SenateBallot = formalAtlAndBtl
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -38,7 +37,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 272
   "normalising atl preferences" should "distribute preferences to members of the group" in {
-    val ballot: Ballot = formalAtl
+    val ballot: SenateBallot = formalAtl
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -49,7 +48,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1)(b)
   it should "mark a ballot as formal if at least 1 square is numbered with 1" in {
-    val ballot: Ballot = oneAtl
+    val ballot: SenateBallot = oneAtl
 
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
@@ -59,7 +58,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1A)(a)
   it should "consider a tick in a square as equivalent to marking 1 in that square" in {
-    val ballot: Ballot = tickedAtl
+    val ballot: SenateBallot = tickedAtl
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
     val normalisedBallot = sut.normalise(ballot)
@@ -69,7 +68,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1A)(a)
   it should "consider a cross in a square as equivalent to marking 1 in that square" in {
-    val ballot: Ballot = crossedAtl
+    val ballot: SenateBallot = crossedAtl
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
     val normalisedBallot = sut.normalise(ballot)
@@ -79,7 +78,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1A)(b)
   it should "mark a ballot as formal if it has repeated numbers after 1" in {
-    val ballot: Ballot = atlWithRepeatedNumbers
+    val ballot: SenateBallot = atlWithRepeatedNumbers
 
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
@@ -89,7 +88,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1A)(b)
   it should "mark a ballot as formal if it has missed numbers after 1" in {
-    val ballot: Ballot = atlMissedNumbers
+    val ballot: SenateBallot = atlMissedNumbers
 
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
@@ -99,7 +98,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 269(1A)(b)
   it should "mark a ballot as informal if number 1 is repeated" in {
-    val ballot: Ballot = atl1Repeated
+    val ballot: SenateBallot = atl1Repeated
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -107,7 +106,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
   }
 
   it should "correctly count formal preferences when the ballot contains a counting error" in {
-    val ballot: Ballot = atlWithRepeatedNumbers
+    val ballot: SenateBallot = atlWithRepeatedNumbers
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -115,7 +114,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
   }
 
   "normalising btl preferences" should "reproduce the preferences expressed below the line" in {
-    val ballot: Ballot = formalBtl
+    val ballot: SenateBallot = formalBtl
 
     val expectedOrder = candidateOrder("A0", "B1", "B0", "J0", "UG0", "UG2", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
     val normalisedBallot = sut.normalise(ballot)
@@ -125,7 +124,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(1)(b)
   it should "mark a ballot as formal if at least the numbers from 1 to 6 have been marked without repetition" in {
-    val ballot: Ballot = sixNumberedBtl
+    val ballot: SenateBallot = sixNumberedBtl
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
@@ -135,7 +134,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(1)(b)
   it should "mark a ballot as informal if a number between 1 and 6 has been repeated" in {
-    val ballot: Ballot = btlRepeatedNumberBelow6
+    val ballot: SenateBallot = btlRepeatedNumberBelow6
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -144,7 +143,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(1)(b)
   it should "mark a ballot as informal if a number between 1 and 6 has been missed" in {
-    val ballot: Ballot = btlMissedNumberBelow6
+    val ballot: SenateBallot = btlMissedNumberBelow6
 
     val normalisedBallot = sut.normalise(ballot)
 
@@ -153,7 +152,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(2)(a)
   it should "consider a tick in a square as equivalent to marking 1 in that square" in {
-    val ballot: Ballot = tickedBtl
+    val ballot: SenateBallot = tickedBtl
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
@@ -163,7 +162,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(2)(a)
   it should "consider a cross in a square as equivalent to marking 1 in that square" in {
-    val ballot: Ballot = crossedBtl
+    val ballot: SenateBallot = crossedBtl
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
@@ -173,7 +172,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(2)(b)
   it should "mark a ballot as formal if it has repeated numbers after 6" in {
-    val ballot: Ballot = btlRepeatedNumberAfter6
+    val ballot: SenateBallot = btlRepeatedNumberAfter6
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
@@ -183,7 +182,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   // Section 268A(2)(b)
   it should "mark a ballot as formal if it has missed numbers after 6" in {
-    val ballot: Ballot = btlMissedNumberAfter6
+    val ballot: SenateBallot = btlMissedNumberAfter6
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
@@ -192,7 +191,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
   }
 
   it should "correctly count formal preferences when the ballot contains a counting error" in {
-    val ballot: Ballot = btlMissedNumberAfter6
+    val ballot: SenateBallot = btlMissedNumberAfter6
 
     val normalisedBallot = sut.normalise(ballot)
 

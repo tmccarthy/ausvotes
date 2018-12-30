@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures.{DivisionFixture, PollingPlaceFixture}
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.flyweights.{DivisionFlyweight, PostcodeFlyweight}
-import au.id.tmm.ausvotes.core.model.parsing.PollingPlace
 import au.id.tmm.ausvotes.core.rawdata.model.PollingPlacesRow
+import au.id.tmm.ausvotes.model.Flyweights.ElectorateFlyweight
+import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class DivisionAndPollingPlaceGenerationSpec extends ImprovedFlatSpec {
@@ -24,73 +24,56 @@ class DivisionAndPollingPlaceGenerationSpec extends ImprovedFlatSpec {
   behaviour of "the polling place generator"
 
   it should "generate the division" in {
-    val actualDivision = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
+    val actualDivision = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithLocation)
       .division
 
     assert(DivisionFixture.ACT.CANBERRA === actualDivision)
   }
 
   it should "generate a polling place with a physical location" in {
-    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithLocation)
       .pollingPlace
 
     assert(PollingPlaceFixture.ACT.BARTON === actual)
   }
 
   it should "generate a polling place with an address but no lat/long" in {
-    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocationNoLatLong)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithLocationNoLatLong)
       .pollingPlace
 
     assert(PollingPlaceFixture.ACT.MOBILE_TEAM_1 === actual)
   }
 
   it should "generate a polling place with no address lines but a lat/long" in {
-    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithNoAddressLinesAndLatLong)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithNoAddressLinesAndLatLong)
       .pollingPlace
 
     assert(PollingPlaceFixture.ACT.WODEN_PRE_POLL === actual)
   }
 
   it should "generate a polling place with multiple locations" in {
-    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations)
+    val actual = DivisionAndPollingPlaceGeneration.fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithMultlipleLocations)
       .pollingPlace
 
     assert(PollingPlaceFixture.ACT.HOSPITAL_TEAM_1 === actual)
   }
 
   it should "flyweight divisions" in {
-    val divisionFlyweight = DivisionFlyweight()
+    val divisionFlyweight = ElectorateFlyweight[FederalElection, State]()
 
     val pollingPlace1 = DivisionAndPollingPlaceGeneration
-      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, divisionFlyweight)
+      .fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithLocation, divisionFlyweight)
       .pollingPlace
 
     val pollingPlace2 = DivisionAndPollingPlaceGeneration
-      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithMultlipleLocations, divisionFlyweight)
+      .fromPollingPlaceRow(FederalElection.`2016`, pollingPlaceWithMultlipleLocations, divisionFlyweight)
       .pollingPlace
 
-    assert(pollingPlace1.division eq pollingPlace2.division)
-  }
-
-  it should "flyweight postcodes" in {
-    val postcodeFlyweight = PostcodeFlyweight()
-
-    val pollingPlace1 = DivisionAndPollingPlaceGeneration
-      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, postcodeFlyweight = postcodeFlyweight)
-      .pollingPlace
-
-    val pollingPlace2 = DivisionAndPollingPlaceGeneration
-      .fromPollingPlaceRow(SenateElection.`2016`, pollingPlaceWithLocation, postcodeFlyweight = postcodeFlyweight)
-      .pollingPlace
-
-    val location1 = pollingPlace1.location.asInstanceOf[PollingPlace.Location.Premises]
-    val location2 = pollingPlace2.location.asInstanceOf[PollingPlace.Location.Premises]
-
-    assert(location1.address.postcode eq location2.address.postcode)
+    assert(pollingPlace1.jurisdiction.division eq pollingPlace2.jurisdiction.division)
   }
 
   it should "be able to handle multiple rows of raw data" in {
-    val actualPollingPlaces = DivisionAndPollingPlaceGeneration.fromPollingPlaceRows(SenateElection.`2016`,
+    val actualPollingPlaces = DivisionAndPollingPlaceGeneration.fromPollingPlaceRows(FederalElection.`2016`,
       Vector(pollingPlaceWithLocation, pollingPlaceWithMultlipleLocations)).pollingPlaces
 
     val expectedPollingPlaces = Set(PollingPlaceFixture.ACT.BARTON, PollingPlaceFixture.ACT.HOSPITAL_TEAM_1)

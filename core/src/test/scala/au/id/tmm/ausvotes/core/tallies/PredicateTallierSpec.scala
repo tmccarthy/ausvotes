@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
+import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -36,7 +36,7 @@ class PredicateTallierSpec extends ImprovedFlatSpec {
   "the national count per first preference" should "produce the right tally per party" in {
     val tally = sut.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent).tally(testBallotsWithFacts)
 
-    assert(tally === Tally1(RegisteredParty("Liberal Democratic Party") -> 1d))
+    assert(tally === Tally1(Some(Party("Liberal Democratic Party")) -> 1d))
   }
 
   "the count per state" should "produce the right tally per state" in {

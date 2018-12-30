@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.core.reportwriting
 import java.nio.file.Files
 
 import au.id.tmm.ausvotes.core.fixtures.DivisionFixture
-import au.id.tmm.ausvotes.core.model.parsing.Division
 import au.id.tmm.ausvotes.core.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.ausvotes.core.tallies.{Tally0, Tally1}
+import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}

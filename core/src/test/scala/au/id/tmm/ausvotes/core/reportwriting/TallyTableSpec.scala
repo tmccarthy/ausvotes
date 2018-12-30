@@ -1,11 +1,13 @@
 package au.id.tmm.ausvotes.core.reportwriting
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, DivisionFixture, PollingPlaceFixture}
-import au.id.tmm.ausvotes.core.model.parsing.Party.{Independent, RegisteredParty}
-import au.id.tmm.ausvotes.core.model.parsing._
-import au.id.tmm.ausvotes.core.model.{PartySignificance, SenateElection}
 import au.id.tmm.ausvotes.core.reportwriting.table.{Column, TallyTable}
 import au.id.tmm.ausvotes.core.tallies.{Tally0, Tally1}
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallotGroup
+import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp, FederalVcpJurisdiction}
+import au.id.tmm.ausvotes.model.stv.Ungrouped
+import au.id.tmm.ausvotes.model.{Party, PartySignificance, VoteCollectionPoint}
 import au.id.tmm.utilities.collection.Matrix
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.geo.australia.State._
@@ -88,16 +90,16 @@ class TallyTableSpec extends ImprovedFlatSpec {
   }
 
   "a per first preferenced party table" should "look as expected" in {
-    val primaryCountTally = Tally1[Party](
-      RegisteredParty("Apples") -> 5d,
-      RegisteredParty("Oranges") -> 6d,
-      Independent -> 2d
+    val primaryCountTally = Tally1[Option[Party]](
+      Some(Party("Apples")) -> 5d,
+      Some(Party("Oranges")) -> 6d,
+      None -> 2d,
     )
 
-    val denominatorTally = Tally1[Party](
-      RegisteredParty("Apples") -> 12d,
-      RegisteredParty("Oranges") -> 10d,
-      Independent -> 4d
+    val denominatorTally = Tally1[Option[Party]](
+      Some(Party("Apples")) -> 12d,
+      Some(Party("Oranges")) -> 10d,
+      None -> 4d,
     )
 
     val columns = Vector(
@@ -106,7 +108,7 @@ class TallyTableSpec extends ImprovedFlatSpec {
       Column.FractionColumn("% of total")
     )
 
-    val table = TallyTable[Party](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
+    val table = TallyTable[Option[Party]](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
 
     val expected = Matrix(
       Vector("Party", "Monkey votes", "% of total"),
@@ -121,14 +123,14 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   "a per first preferenced party type table" should "look as expected" in {
     val primaryCountTally = Tally1[PartySignificance](
-      PartySignificance.MajorParty -> 5d,
-      PartySignificance.MinorParty -> 6d,
+      PartySignificance.Major -> 5d,
+      PartySignificance.Minor -> 6d,
       PartySignificance.Independent -> 2d
     )
 
     val denominatorTally = Tally1[PartySignificance](
-      PartySignificance.MajorParty -> 12d,
-      PartySignificance.MinorParty -> 10d,
+      PartySignificance.Major -> 12d,
+      PartySignificance.Minor -> 10d,
       PartySignificance.Independent -> 4d
     )
 
@@ -156,14 +158,14 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
     import ballotMaker.group
 
-    val primaryCountTally = Tally1[BallotGroup](
+    val primaryCountTally = Tally1[SenateBallotGroup](
       group("A") -> 5d,
-      Ungrouped(SenateElection.`2016`, State.ACT) -> 2d
+      Ungrouped(CandidateFixture.ACT.election) -> 2d
     )
 
-    val denominatorTally = Tally1[BallotGroup](
+    val denominatorTally = Tally1[SenateBallotGroup](
       group("A") -> 10d,
-      Ungrouped(SenateElection.`2016`, State.ACT) -> 8d
+      Ungrouped(CandidateFixture.ACT.election) -> 8d
     )
 
     val columns = Vector(
@@ -174,7 +176,7 @@ class TallyTableSpec extends ImprovedFlatSpec {
       Column.FractionColumn("% of total")
     )
 
-    val table = TallyTable[BallotGroup](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
+    val table = TallyTable[SenateBallotGroup](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
 
     val expected = Matrix(
       Vector("State", "Group", "Party", "Monkey votes", "% of total"),
@@ -218,14 +220,14 @@ class TallyTableSpec extends ImprovedFlatSpec {
 
   "a per vote vote collection place table" should "look as expected" in {
     val absenteeVoteCollectionPoint =
-      VoteCollectionPoint.Absentee(SenateElection.`2016`, State.NT, DivisionFixture.NT.SOLOMON, 1)
+      VoteCollectionPoint.Special(DivisionFixture.NT.election, FederalVcpJurisdiction(State.NT, DivisionFixture.NT.SOLOMON), SpecialVcpType.Absentee, VoteCollectionPoint.Special.Id(1))
 
-    val primaryCountTally = Tally1[VoteCollectionPoint](
+    val primaryCountTally = Tally1[FederalVcp](
       PollingPlaceFixture.ACT.BARTON -> 5d,
       absenteeVoteCollectionPoint -> 2d
     )
 
-    val denominatorTally = Tally1[VoteCollectionPoint](
+    val denominatorTally = Tally1[FederalVcp](
       PollingPlaceFixture.ACT.BARTON -> 10d,
       absenteeVoteCollectionPoint -> 8d
     )
@@ -238,7 +240,7 @@ class TallyTableSpec extends ImprovedFlatSpec {
       Column.FractionColumn("% of total")
     )
 
-    val table = TallyTable[VoteCollectionPoint](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
+    val table = TallyTable[FederalVcp](primaryCountTally, denominatorTally(_).value, 13, 26, columns)
 
     val expected = Matrix(
       Vector("State", "Division", "Vote collection point", "Monkey votes", "% of total"),

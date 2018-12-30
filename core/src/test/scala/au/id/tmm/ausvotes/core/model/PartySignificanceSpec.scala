@@ -1,41 +1,41 @@
 package au.id.tmm.ausvotes.core.model
 
-import au.id.tmm.ausvotes.core.model.PartySignificance.{MajorParty, MinorParty}
-import au.id.tmm.ausvotes.core.model.parsing.Party
-import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
+import au.id.tmm.ausvotes.core.computations.parties.PartySignificanceComputation
+import au.id.tmm.ausvotes.model.PartySignificance._
+import au.id.tmm.ausvotes.model.{Party, PartySignificance}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PartySignificanceSpec extends ImprovedFlatSpec {
 
   "party significance" should "be 'major' for the ALP" in {
-    assert(PartySignificance.of(RegisteredParty("Australian Labor Party")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("Australian Labor Party"))) === Major)
   }
 
   it should "be 'major' for a party whose national equivalent is the ALP" in {
-    assert(PartySignificance.of(RegisteredParty("Australian Labor Party (Northern Territory) Branch")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("Australian Labor Party (Northern Territory) Branch"))) === Major)
   }
 
   it should "be 'major' for the Greens" in {
-    assert(PartySignificance.of(RegisteredParty("The Greens")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("The Greens"))) === Major)
   }
 
   it should "be 'major' for a party whose national equivalent is the Greens" in {
-    assert(PartySignificance.of(RegisteredParty("The Greens (WA)")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("The Greens (WA)"))) === Major)
   }
 
   it should "be 'major' for the Liberal Party of Australia" in {
-    assert(PartySignificance.of(RegisteredParty("Liberal Party of Australia")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("Liberal Party of Australia"))) === Major)
   }
 
   it should "be 'major' for any coalition party" in {
-    assert(PartySignificance.of(RegisteredParty("The Nationals")) === MajorParty)
+    assert(PartySignificanceComputation.of(Some(Party("The Nationals"))) === Major)
   }
 
   it should "be 'minor' for Family First" in {
-    assert(PartySignificance.of(RegisteredParty("Family First Party")) === MinorParty)
+    assert(PartySignificanceComputation.of(Some(Party("Family First Party"))) === Minor)
   }
 
   it should "be 'independent' for an independent" in {
-    assert(PartySignificance.of(Party.Independent) === PartySignificance.Independent)
+    assert(PartySignificanceComputation.of(None) === PartySignificance.Independent)
   }
 }

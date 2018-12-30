@@ -46,7 +46,7 @@ object DivisionAndPollingPlaceGeneration {
 
     val pollingPlace = PollingPlace(
       election,
-      jurisdiction = au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPointJurisdiction(state, division),
+      jurisdiction = au.id.tmm.ausvotes.model.federal.FederalVcpJurisdiction(state, division),
       PollingPlace.Id(row.pollingPlaceId),
       pollingPlaceType,
       row.pollingPlaceName,

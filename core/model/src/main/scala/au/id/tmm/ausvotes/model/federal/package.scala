@@ -13,12 +13,12 @@ package object federal {
                 id: Electorate.Id,
               ): Division = Electorate(election, jurisdiction, name, id)
 
-  type FederalVcp = VoteCollectionPoint[FederalElection, FederalVoteCollectionPointJurisdiction]
+  type FederalVcp = VoteCollectionPoint[FederalElection, FederalVcpJurisdiction]
 
-  type FederalPollingPlace = PollingPlace[FederalElection, FederalVoteCollectionPointJurisdiction]
+  type FederalPollingPlace = PollingPlace[FederalElection, FederalVcpJurisdiction]
   def FederalPollingPlace(
                            election: FederalElection,
-                           jurisdiction: FederalVoteCollectionPointJurisdiction,
+                           jurisdiction: FederalVcpJurisdiction,
                            id: PollingPlace.Id,
                            pollingPlaceType: PollingPlace.PollingPlaceType,
                            name: String,

@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.countstv.model.CandidateStatus._
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
@@ -14,7 +14,7 @@ class CountDataGenerationWithIneligiblesSpec extends ImprovedFlatSpec {
   private lazy val actualCountData = CountDataTestUtils.WA.countData
 
   it should "have the correct candidate outcomes" in {
-    val expectedOutcomes = CandidateStatuses[Candidate](
+    val expectedOutcomes = CandidateStatuses[SenateCandidate](
       candidateWithPosition("B1") -> Excluded(Ordinal(30 - 1), Count(198)),
       candidateWithPosition("UG1") -> Excluded(Ordinal(20 - 1), Count(124)),
       candidateWithPosition("H1") -> Excluded(Ordinal(17 - 1), Count(101)),
@@ -96,6 +96,6 @@ class CountDataGenerationWithIneligiblesSpec extends ImprovedFlatSpec {
       candidateWithPosition("G2") -> Excluded(Ordinal(7 - 1), Count(35)),
     )
 
-    assert(actualCountData.outcomes === expectedOutcomes)
+    assert(actualCountData.completedCount.outcomes === expectedOutcomes)
   }
 }

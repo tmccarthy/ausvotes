@@ -60,7 +60,7 @@ object CountDataGeneration {
     )
   }
 
-  private def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, SenateCandidate] = {
+  private[countdata] def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, SenateCandidate] = {
     val numGroups = groupsAndCandidates.groups.size
     val candidatesInBallotOrder = groupsAndCandidates.candidates.toStream
       .sorted

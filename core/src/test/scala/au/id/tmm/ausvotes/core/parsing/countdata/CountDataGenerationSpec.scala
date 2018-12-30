@@ -1,10 +1,9 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CountDataTestUtils}
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.countstv.model.CandidateDistributionReason._
 import au.id.tmm.countstv.model.CandidateStatus._
-import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
+import au.id.tmm.countstv.model.countsteps.DistributionCountStep
 import au.id.tmm.countstv.model.values._
 import au.id.tmm.countstv.model.{CandidateStatuses, CandidateVoteCounts, VoteCount}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -241,4 +240,35 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
 
     assert(actualCountData.outcomes === expectedOutcomes)
   }
+
+  "the ballot position to candidate map" should "be constructed correctly" in {
+    val actual = CountDataGeneration.constructBallotPositionLookup(groupsAndCandidates)
+    val expected = Map(
+      11 -> candidateWithPosition("A0"),
+      12 -> candidateWithPosition("A1"),
+      13 -> candidateWithPosition("B0"),
+      14 -> candidateWithPosition("B1"),
+      15 -> candidateWithPosition("C0"),
+      16 -> candidateWithPosition("C1"),
+      17 -> candidateWithPosition("D0"),
+      18 -> candidateWithPosition("D1"),
+      19 -> candidateWithPosition("E0"),
+      20 -> candidateWithPosition("E1"),
+      21 -> candidateWithPosition("F0"),
+      22 -> candidateWithPosition("F1"),
+      23 -> candidateWithPosition("G0"),
+      24 -> candidateWithPosition("G1"),
+      25 -> candidateWithPosition("H0"),
+      26 -> candidateWithPosition("H1"),
+      27 -> candidateWithPosition("I0"),
+      28 -> candidateWithPosition("I1"),
+      29 -> candidateWithPosition("J0"),
+      30 -> candidateWithPosition("J1"),
+      31 -> candidateWithPosition("UG0"),
+      32 -> candidateWithPosition("UG1")
+    )
+
+    assert(expected === actual)
+  }
+
 }

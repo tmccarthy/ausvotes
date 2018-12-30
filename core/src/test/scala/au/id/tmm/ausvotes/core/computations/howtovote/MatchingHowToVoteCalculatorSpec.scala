@@ -1,9 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.howtovote
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, BallotMaker, CandidateFixture, GroupFixture}
-import au.id.tmm.ausvotes.core.model.{HowToVoteCard, SenateElection}
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, _}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class MatchingHowToVoteCalculatorSpec extends ImprovedFlatSpec {
@@ -16,7 +15,7 @@ class MatchingHowToVoteCalculatorSpec extends ImprovedFlatSpec {
   import ballotMaker.groupOrder
 
   "the matching how to vote card calculator" should "identify the how to vote card used" in {
-    val expected = HowToVoteCard(SenateElection.`2016`, State.ACT, groupOrder("H").head,
+    val expected = SenateHtv(ballotMaker.candidateFixture.election, groupOrder("H").head,
       groupOrder("H", "B", "J", "G", "C", "E"))
 
     val actual = sut.findMatchingHowToVoteCard(BallotFixture.ACT.usesHtv)

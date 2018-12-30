@@ -2,13 +2,13 @@ package au.id.tmm.ausvotes.core.computations.exhaustion
 
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
-import au.id.tmm.ausvotes.core.model.parsing.Ballot
+import au.id.tmm.ausvotes.model.federal.senate.SenateBallot
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
 
-  private def exhaustionOfBallot(ballotFactsTestUtils: BallotFactsTestUtils)(ballot: Ballot): BallotExhaustion = {
+  private def exhaustionOfBallot(ballotFactsTestUtils: BallotFactsTestUtils)(ballot: SenateBallot): BallotExhaustion = {
     val normalisedBallot = ballotFactsTestUtils.normaliser.normalise(ballot)
 
     val exhaustionsPerBallot = ExhaustionCalculator.exhaustionsOf(
@@ -19,9 +19,9 @@ class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
     exhaustionsPerBallot(ballot)
   }
 
-  private def exhaustionOfActBallot(ballot: Ballot) = exhaustionOfBallot(BallotFactsTestUtils.ACT)(ballot)
+  private def exhaustionOfActBallot(ballot: SenateBallot) = exhaustionOfBallot(BallotFactsTestUtils.ACT)(ballot)
 
-  private def exhaustionOfWaBallot(ballot: Ballot) = exhaustionOfBallot(BallotFactsTestUtils.WA)(ballot)
+  private def exhaustionOfWaBallot(ballot: SenateBallot) = exhaustionOfBallot(BallotFactsTestUtils.WA)(ballot)
 
   "the exhaustion calculator" should "correctly identify the exhaustion of a ballot" in {
     val exhaustion = exhaustionOfActBallot(BallotFixture.ACT.exhaustingBallot)

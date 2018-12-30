@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.core.engine
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
 import au.id.tmm.ausvotes.core.reporting.ExhaustedVotesReportBuilder
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.apache.commons.io.IOUtils
@@ -24,12 +24,12 @@ class ReportEngineSpec extends ImprovedFlatSpec {
 
     val tallyEngine = MockTallyEngine.thatReturns(TallyBundle(
       countFormalBallots.overall() -> Tally0(42),
-      countFormalBallots.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(RegisteredParty("Oranges") -> 22, RegisteredParty("Apples") -> 20),
+      countFormalBallots.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(Some(Party("Oranges")) -> 22, Some(Party("Apples")) -> 20),
       countFormalBallots.groupedBy(BallotGrouping.State) -> Tally1(State.ACT -> 42d),
       countFormalBallots.groupedBy(BallotGrouping.Division) -> Tally1(DivisionFixture.ACT.CANBERRA -> 42d),
       countFormalBallots.groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup) -> Tally2(State.ACT -> Tally1(group("C") -> 23, group("I") -> 19)),
       countExhaustedVotes.overall() -> Tally0(32),
-      countExhaustedVotes.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(RegisteredParty("Oranges") -> 17, RegisteredParty("Apples") -> 15),
+      countExhaustedVotes.groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent) -> Tally1(Some(Party("Oranges")) -> 17, Some(Party("Apples")) -> 15),
       countExhaustedVotes.groupedBy(BallotGrouping.State) -> Tally1(State.ACT -> 32d),
       countExhaustedVotes.groupedBy(BallotGrouping.Division) -> Tally1(DivisionFixture.ACT.CANBERRA -> 32d),
       countExhaustedVotes.groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedGroup) -> Tally2(State.ACT -> Tally1(group("C") -> 23, group("I") -> 9))

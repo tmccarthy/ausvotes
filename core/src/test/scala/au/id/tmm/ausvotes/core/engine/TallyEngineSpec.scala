@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.engine
 
 import au.id.tmm.ausvotes.core.fixtures.MockParsedDataStore
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.tallies.{BallotCounter, TallierBuilder, Tally0}
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

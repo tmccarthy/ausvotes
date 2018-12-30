@@ -9,7 +9,7 @@ object GroupAndCandidateFixture {
   trait GroupsAndCandidatesFixture {
     def senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def election = SenateElectionForState(senateElection, state)
+    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
 
     def groupsAndCandidates: au.id.tmm.ausvotes.core.model.GroupsAndCandidates
   }

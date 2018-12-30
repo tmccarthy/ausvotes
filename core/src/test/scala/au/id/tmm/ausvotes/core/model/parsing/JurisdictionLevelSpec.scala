@@ -12,14 +12,14 @@ class JurisdictionLevelSpec extends ImprovedFlatSpec {
   }
 
   "the state jurisdiction level" should "extract the state of a ballot" in {
-    assert(JurisdictionLevel.State.ofBallot(testBallot) === testBallot.state)
+    assert(JurisdictionLevel.State.ofBallot(testBallot) === testBallot.jurisdiction.state)
   }
 
   "the division jurisdiction level" should "extract the division of a ballot" in {
-    assert(JurisdictionLevel.Division.ofBallot(testBallot) === testBallot.division)
+    assert(JurisdictionLevel.Division.ofBallot(testBallot) === testBallot.jurisdiction.electorate)
   }
 
   "the vote collection point jurisdiction level" should "extract the vote collection point of a ballot" in {
-    assert(JurisdictionLevel.VoteCollectionPoint.ofBallot(testBallot) === testBallot.voteCollectionPoint)
+    assert(JurisdictionLevel.VoteCollectionPoint.ofBallot(testBallot) === testBallot.jurisdiction.voteCollectionPoint)
   }
 }

@@ -1,9 +1,11 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.{Ballot, VoteCollectionPoint}
 import au.id.tmm.ausvotes.core.rawdata.model.FormalPreferencesRow
+import au.id.tmm.ausvotes.model.VoteCollectionPoint
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
+import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.federal.{FederalBallotJurisdiction, FederalElection, FederalVcpJurisdiction}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -12,8 +14,8 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   private def pollingPlaceLookup = PollingPlaceFixture.ACT.pollingPlaceLookup
   private def divisionLookup = DivisionFixture.ACT.divisionLookup
 
-  private val rawPreferenceParser = RawPreferenceParser(SenateElection.`2016`,
-    State.ACT, GroupAndCandidateFixture.ACT.groupsAndCandidates)
+  private val rawPreferenceParser =
+    RawPreferenceParser(GroupAndCandidateFixture.ACT.election, GroupAndCandidateFixture.ACT.groupsAndCandidates)
 
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
@@ -22,14 +24,20 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
 
     val actualBallot = generateBallotFrom(testCsvRow)
 
-    val expectedBallot = Ballot(SenateElection.`2016`,
-      State.ACT,
-      DivisionFixture.ACT.CANBERRA,
-      PollingPlaceFixture.ACT.BARTON,
-      1,
-      1,
-      ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
-      Map.empty)
+    val expectedBallot = SenateBallot(
+      GroupAndCandidateFixture.ACT.election,
+      FederalBallotJurisdiction(
+        State.ACT,
+        DivisionFixture.ACT.CANBERRA,
+        PollingPlaceFixture.ACT.BARTON,
+      ),
+      SenateBallotId(
+        batch = 1,
+        paper = 1,
+      ),
+      groupPreferences = ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
+      candidatePreferences = Map.empty,
+    )
 
     assert(expectedBallot === actualBallot)
   }
@@ -37,14 +45,19 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   it should "generate a ballot from a postal vote collection point" in {
     val testCsvRow = FormalPreferencesRow("Canberra", "POSTAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
-    val actualBallot: Ballot = generateBallotFrom(testCsvRow)
+    val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
-    val expectedBallot = Ballot(SenateElection.`2016`,
-      State.ACT,
-      DivisionFixture.ACT.CANBERRA,
-      VoteCollectionPoint.Postal(SenateElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, 2),
-      1,
-      1,
+    val expectedBallot = SenateBallot(
+      election = CandidateFixture.ACT.election,
+      FederalBallotJurisdiction(
+        State.ACT,
+        DivisionFixture.ACT.CANBERRA,
+        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Postal, VoteCollectionPoint.Special.Id(2)),
+      ),
+      SenateBallotId(
+        1,
+        1,
+      ),
       ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
       Map.empty)
 
@@ -54,14 +67,19 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   it should "generate a ballot from an absentee vote collection point" in {
     val testCsvRow = FormalPreferencesRow("Canberra", "ABSENT 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
-    val actualBallot: Ballot = generateBallotFrom(testCsvRow)
+    val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
-    val expectedBallot = Ballot(SenateElection.`2016`,
-      State.ACT,
-      DivisionFixture.ACT.CANBERRA,
-      VoteCollectionPoint.Absentee(SenateElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, 2),
-      1,
-      1,
+    val expectedBallot = SenateBallot(
+      election = CandidateFixture.ACT.election,
+      FederalBallotJurisdiction(
+        State.ACT,
+        DivisionFixture.ACT.CANBERRA,
+        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Absentee, VoteCollectionPoint.Special.Id(2)),
+      ),
+      SenateBallotId(
+        1,
+        1,
+      ),
       ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
       Map.empty)
 
@@ -71,14 +89,19 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   it should "generate a ballot from an pre-poll vote collection point" in {
     val testCsvRow = FormalPreferencesRow("Canberra", "PRE_POLL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
-    val actualBallot: Ballot = generateBallotFrom(testCsvRow)
+    val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
-    val expectedBallot = Ballot(SenateElection.`2016`,
-      State.ACT,
-      DivisionFixture.ACT.CANBERRA,
-      VoteCollectionPoint.PrePoll(SenateElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, 2),
-      1,
-      1,
+    val expectedBallot = SenateBallot(
+      election = CandidateFixture.ACT.election,
+      FederalBallotJurisdiction(
+        State.ACT,
+        DivisionFixture.ACT.CANBERRA,
+        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.PrePoll, VoteCollectionPoint.Special.Id(2)),
+      ),
+      SenateBallotId(
+        1,
+        1,
+      ),
       ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
       Map.empty)
 
@@ -88,24 +111,28 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   it should "generate a ballot from an provisional vote collection point" in {
     val testCsvRow = FormalPreferencesRow("Canberra", "PROVISIONAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
-    val actualBallot: Ballot = generateBallotFrom(testCsvRow)
+    val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
-    val expectedBallot = Ballot(SenateElection.`2016`,
-      State.ACT,
-      DivisionFixture.ACT.CANBERRA,
-      VoteCollectionPoint.Provisional(SenateElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, 2),
-      1,
-      1,
+    val expectedBallot = SenateBallot(
+      election = CandidateFixture.ACT.election,
+      FederalBallotJurisdiction(
+        State.ACT,
+        DivisionFixture.ACT.CANBERRA,
+        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Provisional, VoteCollectionPoint.Special.Id(2)),
+      ),
+      SenateBallotId(
+        1,
+        1,
+      ),
       ballotMaker.orderedAtlPreferences("F", "H", "C", "A", "G", "I"),
       Map.empty)
 
     assert(expectedBallot === actualBallot)
   }
 
-  def generateBallotFrom(testCsvRow: FormalPreferencesRow): Ballot = {
+  def generateBallotFrom(testCsvRow: FormalPreferencesRow): SenateBallot = {
     val actualBallot = BallotGeneration.fromFormalPreferencesRow(
-      SenateElection.`2016`,
-      State.ACT,
+      CandidateFixture.ACT.election,
       rawPreferenceParser,
       divisionLookup,
       (state, name) => pollingPlaceLookup(name),

@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.reportwriting.table
 
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
 import au.id.tmm.ausvotes.core.reportwriting.table.Row.DataRow
-import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPointJurisdiction
+import au.id.tmm.ausvotes.model.federal.FederalVcpJurisdiction
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import au.id.tmm.ausvotes.model.stv.{Group, Ungrouped}
 import au.id.tmm.ausvotes.model.{Electorate, Party, PartySignificance, VoteCollectionPoint}
@@ -39,8 +39,8 @@ object Column {
       case Group(SenateElectionForState(_, state), _, _) => valueForKey(state)
       case Ungrouped(SenateElectionForState(_, state)) => valueForKey(state)
       case Electorate(_, state: State, _, _) => valueForKey(state)
-      case VoteCollectionPoint.PollingPlace(_, FederalVoteCollectionPointJurisdiction(state, _), _, _, _, _) => valueForKey(state)
-      case VoteCollectionPoint.Special(_, FederalVoteCollectionPointJurisdiction(state, _), _, _) => valueForKey(state)
+      case VoteCollectionPoint.PollingPlace(_, FederalVcpJurisdiction(state, _), _, _, _, _) => valueForKey(state)
+      case VoteCollectionPoint.Special(_, FederalVcpJurisdiction(state, _), _, _) => valueForKey(state)
     }
   }
 
@@ -50,8 +50,8 @@ object Column {
     @tailrec
     override def valueForKey(key: Any): String = key match {
       case Electorate(_, _, name, _) => name
-      case VoteCollectionPoint.PollingPlace(_, FederalVoteCollectionPointJurisdiction(state, _), _, _, _, _) => valueForKey(state)
-      case VoteCollectionPoint.Special(_, FederalVoteCollectionPointJurisdiction(state, _), _, _) => valueForKey(state)
+      case VoteCollectionPoint.PollingPlace(_, FederalVcpJurisdiction(state, _), _, _, _, _) => valueForKey(state)
+      case VoteCollectionPoint.Special(_, FederalVcpJurisdiction(state, _), _, _) => valueForKey(state)
     }
   }
 

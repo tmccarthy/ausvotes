@@ -40,4 +40,16 @@ class SenateElectionSpec extends ImprovedFlatSpec {
     assert(Json.fromString("2016").as[SenateElection] === Right(SenateElection.`2016`))
   }
 
+  it can "be looked up by its ID if it is the 2013 election" in {
+    assert(SenateElection.from(SenateElection.Id("2013")) === Some(SenateElection.`2013`))
+  }
+
+  it can "be looked up by its ID if it is the 2014 WA election" in {
+    assert(SenateElection.from(SenateElection.Id("2014WA")) === Some(SenateElection.`2014 WA`))
+  }
+
+  it can "be looked up by its ID if it is the 2016 election" in {
+    assert(SenateElection.from(SenateElection.Id("2016")) === Some(SenateElection.`2016`))
+  }
+
 }

@@ -1,13 +1,12 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RawPreferenceParserSpec extends ImprovedFlatSpec {
 
-  private val sut = RawPreferenceParser(SenateElection.`2016`, State.ACT, GroupAndCandidateFixture.ACT.groupsAndCandidates)
+  private val sut = RawPreferenceParser(GroupAndCandidateFixture.ACT.election, GroupAndCandidateFixture.ACT.groupsAndCandidates)
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   behaviour of "the raw preferences parser"
@@ -66,6 +65,34 @@ class RawPreferenceParserSpec extends ImprovedFlatSpec {
 
     assert(expectedAtl == atlPrefs)
     assert(expectedBtl == btlPrefs)
+  }
+
+  "parsing raw preference codes" should "succeed for a number" in {
+    assert(RawPreferenceParser.preferenceFromRawValue("1") contains Preference.Numbered(1))
+  }
+
+  it can "succeed for a tick" in {
+    assert(RawPreferenceParser.preferenceFromRawValue("/") contains Preference.Tick)
+  }
+
+  it can "succeed for a cross" in {
+    assert(RawPreferenceParser.preferenceFromRawValue("*") contains Preference.Cross)
+  }
+
+  it can "succeed for a missing preference" in {
+    assert(RawPreferenceParser.preferenceFromRawValue("") === None)
+  }
+
+  it should "fail for an invalid character" in {
+    intercept[IllegalArgumentException]{
+      RawPreferenceParser.preferenceFromRawValue("&")
+    }
+  }
+
+  it should "fail for an invalid combination of characters" in {
+    intercept[IllegalArgumentException]{
+      RawPreferenceParser.preferenceFromRawValue("&&&")
+    }
   }
 
 }

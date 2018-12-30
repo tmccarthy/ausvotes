@@ -71,8 +71,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     case u: SenateUngrouped => throw new IllegalArgumentException(u.toString)
   }
 
-  def candidateOrder(candidatesInOrder: String*): Vector[SenateCandidatePosition] = {
-    candidatesInOrder.map(candidatePosition).toVector
+  def candidateOrder(candidatesInOrder: String*): Vector[SenateCandidate] = {
+    candidatesInOrder.map(candidateWithPosition).toVector
   }
 
   def groupOrder(groupsInOrder: String*): Vector[SenateGroup] = {

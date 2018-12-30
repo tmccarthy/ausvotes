@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot}
-import au.id.tmm.ausvotes.core.model.parsing.Party.RegisteredParty
+import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class BallotFactsComputationSpec extends ImprovedFlatSpec {
@@ -46,7 +46,7 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
     val ballotWithFacts = factsFor(testBallot)
 
     assert(ballotWithFacts.firstPreference ===
-      FirstPreference(ballotMaker.group("A"), RegisteredParty("Liberal Democratic Party")))
+      FirstPreference(ballotMaker.group("A"), Some(Party("Liberal Democratic Party"))))
   }
 
   it should "compute the exhaustion" in {

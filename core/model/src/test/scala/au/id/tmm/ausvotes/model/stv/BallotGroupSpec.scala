@@ -52,6 +52,9 @@ class BallotGroupSpec extends ImprovedFlatSpec {
     assert(Ungrouped(SenateElection.`2016`).code === Ungrouped.code)
   }
 
+  // TODO encode test
+  // TODO decode test
+
   "a ballot group code" should "have an index for a single-letter code" in {
     assert(BallotGroup.Code("D").map(_.index) === Right(3))
   }
