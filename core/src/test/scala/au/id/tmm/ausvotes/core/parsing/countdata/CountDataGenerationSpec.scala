@@ -1,9 +1,10 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CountDataTestUtils}
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.countstv.model.CandidateDistributionReason._
 import au.id.tmm.countstv.model.CandidateStatus._
-import au.id.tmm.countstv.model.countsteps.DistributionCountStep
+import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values._
 import au.id.tmm.countstv.model.{CandidateStatuses, CandidateVoteCounts, VoteCount}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -21,9 +22,9 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
     CandidateStatuses(groupsAndCandidates.candidates.map(_ -> Remaining).toMap)
 
   "the generated count data" should "have the correct initial allocation" in {
-    val expectedInitialAllocation = InitialAllocation[Candidate](
+    val expectedInitialAllocation = InitialAllocation[SenateCandidate](
       candidateStatuses = statusesAllRemaining,
-      candidateVoteCounts = CandidateVoteCounts[Candidate](
+      candidateVoteCounts = CandidateVoteCounts[SenateCandidate](
         perCandidate = Map(
           candidateWithPosition("A0") -> VoteCount(7371),
           candidateWithPosition("A1") -> VoteCount(89),
@@ -57,9 +58,9 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "have the correct allocation after ineligibles" in {
-    val expectedAllocationAfterIneligibles = AllocationAfterIneligibles[Candidate](
+    val expectedAllocationAfterIneligibles = AllocationAfterIneligibles[SenateCandidate](
       candidateStatuses = statusesAllRemaining.update(candidateWithPosition("C0"), Elected(Ordinal.first, Count(1))),
-      candidateVoteCounts = CandidateVoteCounts[Candidate](
+      candidateVoteCounts = CandidateVoteCounts[SenateCandidate](
         perCandidate = Map(
           candidateWithPosition("A0") -> VoteCount(7371),
           candidateWithPosition("A1") -> VoteCount(89),
@@ -103,7 +104,7 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
 
   it should "have the correct 8th distribution step" in {
 
-    val expectedDistributionStep = DistributionCountStep[Candidate](
+    val expectedDistributionStep = DistributionCountStep[SenateCandidate](
       Count(8),
       candidateStatuses = statusesAllRemaining.updateFrom(Map(
         candidateWithPosition("C0") -> Elected(Ordinal.first, Count(1)),
@@ -153,7 +154,7 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
 
   it should "have the correct last distribution step" in {
 
-    val expectedDistributionStep = DistributionCountStep[Candidate](
+    val expectedDistributionStep = DistributionCountStep[SenateCandidate](
       Count(29),
       candidateStatuses = statusesAllRemaining.updateFrom(Map(
         candidateWithPosition("C0") -> Elected(Ordinal.first, Count(1)),
@@ -238,7 +239,7 @@ class CountDataGenerationSpec extends ImprovedFlatSpec {
       candidateWithPosition("UG1") -> Excluded(Ordinal(7 - 1), Count(14))
     )
 
-    assert(actualCountData.outcomes === expectedOutcomes)
+    assert(actualCountData.completedCount.outcomes === expectedOutcomes)
   }
 
   "the ballot position to candidate map" should "be constructed correctly" in {
