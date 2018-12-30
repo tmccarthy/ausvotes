@@ -1,14 +1,16 @@
 package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.core.model
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, SenateElection}
+import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 
 object DivisionAndPollingPlaceFixture {
 
   trait DivisionsAndPollingPlacesFixture {
-    def election: SenateElection.`2016`.type = SenateElection.`2016`
+    def senateElection: SenateElection.`2016`.type = SenateElection.`2016`
     def state: State
+    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
 
     def divisionsAndPollingPlaces: au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
   }

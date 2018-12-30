@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Division
+import au.id.tmm.ausvotes.model.Electorate
+import au.id.tmm.ausvotes.model.federal.{Division, FederalElection}
 import au.id.tmm.utilities.geo.australia.State
 
 object DivisionFixture {
 
   trait DivisionFixture {
-    val election: SenateElection = SenateElection.`2016`
+    val election: FederalElection = FederalElection.`2016`
     def state: State
     def divisions: Set[Division]
 
@@ -19,9 +19,9 @@ object DivisionFixture {
   object ACT extends DivisionFixture {
     override val state: State = State.ACT
 
-    override val divisions = Set(
-      Division(election, state, "Canberra", 101),
-      Division(election, state, "Fenner", 102)
+    override val divisions: Set[Division] = Set(
+      Division(election, state, "Canberra", Electorate.Id(101)),
+      Division(election, state, "Fenner", Electorate.Id(102)),
     )
 
     val CANBERRA: Division = divisionLookup("Canberra")
@@ -30,10 +30,10 @@ object DivisionFixture {
   object NT extends DivisionFixture {
     override val state: State = State.NT
 
-    val LINGIARI = Division(election, state, "Lingiari", 306)
-    val SOLOMON = Division(election, state, "Solomon", 307)
+    val LINGIARI: Division = Division(election, state, "Lingiari", Electorate.Id(306))
+    val SOLOMON: Division = Division(election, state, "Solomon", Electorate.Id(307))
 
-    override val divisions = Set(
+    override val divisions: Set[Division] = Set(
       LINGIARI,
       SOLOMON
     )
@@ -42,7 +42,7 @@ object DivisionFixture {
   object WA extends DivisionFixture {
     override val state: State = State.WA
 
-    val PERTH = Division(election, state, "Perth", 245)
+    val PERTH: Division = Division(election, state, "Perth", Electorate.Id(245))
 
     override def divisions: Set[Division] = Set(
       PERTH,

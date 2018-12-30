@@ -1,26 +1,27 @@
 package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.core.fixtures.GroupFixture.GroupFixture
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
-import au.id.tmm.ausvotes.core.model.parsing.Party.{Independent, RegisteredParty}
-import au.id.tmm.ausvotes.core.model.parsing._
+import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.{Candidate, Name, Party}
 import au.id.tmm.utilities.geo.australia.State
 
 object CandidateFixture {
 
   trait CandidateFixture {
-    val election: SenateElection = SenateElection.`2016`
+    val senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def candidates: Set[Candidate]
+    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def candidates: Set[SenateCandidate]
 
     def groupFixture: GroupFixture
 
-    lazy val groupLookup: Map[String, BallotGroup] = groupFixture.groupLookup
+    lazy val groupLookup: Map[String, SenateBallotGroup] = groupFixture.groupLookup
 
-    def candidateWithId(aecId: String): Candidate = candidates.find(_.aecId.asString == aecId).get
+    def candidateWithId(aecId: Int): SenateCandidate = candidates.find(_.candidate.id.asInt == aecId).get
 
-    def candidateWithName(name: Name): Candidate = candidates.find(_.name equalsIgnoreCase name).get
+    def candidateWithName(name: Name): SenateCandidate = candidates.find(_.candidate.name equalsIgnoreCase name).get
+
+    def candidateWithPosition(candidatePosition: SenateCandidatePosition): SenateCandidate = candidates.find(_.position == candidatePosition).get
   }
 
   object NT extends CandidateFixture {
@@ -28,26 +29,26 @@ object CandidateFixture {
 
     override val groupFixture: GroupFixture.NT.type = GroupFixture.NT
 
-    override val candidates = Set(
-      Candidate(election, state, AecCandidateId("28558"), Name("Jan", "PILE"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 0)),
-      Candidate(election, state, AecCandidateId("28559"), Name("Jimmy", "GIMINI"), RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("A"), 1)),
-      Candidate(election, state, AecCandidateId("29601"), Name("Andrew", "KAVASILAS"), RegisteredParty("Marijuana (HEMP) Party"), CandidatePosition(groupLookup("B"), 0)),
-      Candidate(election, state, AecCandidateId("29602"), Name("Timothy", "JONES"), RegisteredParty("Australian Sex Party"), CandidatePosition(groupLookup("B"), 1)),
-      Candidate(election, state, AecCandidateId("28003"), Name("Trudy", "CAMPBELL"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 0)),
-      Candidate(election, state, AecCandidateId("28004"), Name("Ian", "BARRY"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("C"), 1)),
-      Candidate(election, state, AecCandidateId("28544"), Name("Michael", "CONNARD"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 0)),
-      Candidate(election, state, AecCandidateId("28546"), Name("Kathy", "BANNISTER"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("D"), 1)),
-      Candidate(election, state, AecCandidateId("28820"), Name("Nigel", "SCULLION"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 0)),
-      Candidate(election, state, AecCandidateId("28822"), Name("Jenni", "LILLIS"), RegisteredParty("Country Liberals (NT)"), CandidatePosition(groupLookup("E"), 1)),
-      Candidate(election, state, AecCandidateId("28575"), Name("Malarndirri", "MCCARTHY"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 0)),
-      Candidate(election, state, AecCandidateId("28576"), Name("Pat", "HONAN"), RegisteredParty("Australian Labor Party (Northern Territory) Branch"), CandidatePosition(groupLookup("F"), 1)),
-      Candidate(election, state, AecCandidateId("28573"), Name("Carol", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 0)),
-      Candidate(election, state, AecCandidateId("28574"), Name("John", "ORDISH"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("G"), 1)),
-      Candidate(election, state, AecCandidateId("28538"), Name("TS", "LEE"), Independent, CandidatePosition(groupLookup("UG"), 0)),
-      Candidate(election, state, AecCandidateId("29145"), Name("Tristan", "MARSHALL"), RegisteredParty("Online Direct Democracy - (Empowering the People!)"), CandidatePosition(groupLookup("UG"), 1)),
-      Candidate(election, state, AecCandidateId("29597"), Name("Maurie Japarta", "RYAN"), Independent, CandidatePosition(groupLookup("UG"), 2)),
-      Candidate(election, state, AecCandidateId("29140"), Name("Marney", "MacDONALD"), RegisteredParty("Antipaedophile Party"), CandidatePosition(groupLookup("UG"), 3)),
-      Candidate(election, state, AecCandidateId("29596"), Name("Greg", "STRETTLES"), Independent, CandidatePosition(groupLookup("UG"), 4)),
+    override val candidates: Set[SenateCandidate] = Set(
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28558), name = Name("Jan", "PILE"), party = Some(Party("Rise Up Australia Party"))), SenateCandidatePosition(groupLookup("A"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28559), name = Name("Jimmy", "GIMINI"), party = Some(Party("Rise Up Australia Party"))), SenateCandidatePosition(groupLookup("A"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29601), name = Name("Andrew", "KAVASILAS"), party = Some(Party("Marijuana (HEMP) Party"))), SenateCandidatePosition(groupLookup("B"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29602), name = Name("Timothy", "JONES"), party = Some(Party("Australian Sex Party"))), SenateCandidatePosition(groupLookup("B"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28003), name = Name("Trudy", "CAMPBELL"), party = Some(Party("Citizens Electoral Council"))), SenateCandidatePosition(groupLookup("C"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28004), name = Name("Ian", "BARRY"), party = Some(Party("Citizens Electoral Council"))), SenateCandidatePosition(groupLookup("C"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28544), name = Name("Michael", "CONNARD"), party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("D"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28546), name = Name("Kathy", "BANNISTER"), party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("D"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28820), name = Name("Nigel", "SCULLION"), party = Some(Party("Country Liberals (NT)"))), SenateCandidatePosition(groupLookup("E"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28822), name = Name("Jenni", "LILLIS"), party = Some(Party("Country Liberals (NT)"))), SenateCandidatePosition(groupLookup("E"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28575), name = Name("Malarndirri", "MCCARTHY"), party = Some(Party("Australian Labor Party (Northern Territory) Branch"))), SenateCandidatePosition(groupLookup("F"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28576), name = Name("Pat", "HONAN"), party = Some(Party("Australian Labor Party (Northern Territory) Branch"))), SenateCandidatePosition(groupLookup("F"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28573), name = Name("Carol", "ORDISH"), party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("G"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28574), name = Name("John", "ORDISH"), party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("G"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28538), name = Name("TS", "LEE"), party = None), SenateCandidatePosition(groupLookup("UG"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29145), name = Name("Tristan", "MARSHALL"), party = Some(Party("Online Direct Democracy - (Empowering the People!)"))), SenateCandidatePosition(groupLookup("UG"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29597), name = Name("Maurie Japarta", "RYAN"), party = None), SenateCandidatePosition(groupLookup("UG"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29140), name = Name("Marney", "MacDONALD"), party = Some(Party("Antipaedophile Party"))), SenateCandidatePosition(groupLookup("UG"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29596), name = Name("Greg", "STRETTLES"), party = None), SenateCandidatePosition(groupLookup("UG"), 4)),
     )
   }
 
@@ -56,37 +57,37 @@ object CandidateFixture {
 
     override val groupFixture: GroupFixture.ACT.type = GroupFixture.ACT
 
-    override val candidates = Set(
-      Candidate(election, state, AecCandidateId("29611"),    Name("Matt", "DONNELLY"),       RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("A"), 0)),
-      Candidate(election, state, AecCandidateId("29612"),    Name("Cawley", "HENNINGS"),     RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("A"), 1)),
-      Candidate(election, state, AecCandidateId("28933"),    Name("David", "EDWARDS"),       RegisteredParty("Secular Party of Australia"), CandidatePosition(groupLookup("B"), 0)),
-      Candidate(election, state, AecCandidateId("28937"),    Name("Denis", "MIHALJEVIC"),    RegisteredParty("Secular Party of Australia"), CandidatePosition(groupLookup("B"), 1)),
-      Candidate(election, state, AecCandidateId("28147"),    Name("Katy", "GALLAGHER"),      RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("C"), 0)),
-      Candidate(election, state, AecCandidateId("28149"),    Name("David", "SMITH"),         RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("C"), 1)),
-      Candidate(election, state, AecCandidateId("29514"),    Name("Sandie", "O'CONNOR"),     RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("D"), 0)),
-      Candidate(election, state, AecCandidateId("29518"),    Name("Jess", "WYATT"),          RegisteredParty("Rise Up Australia Party"), CandidatePosition(groupLookup("D"), 1)),
-      Candidate(election, state, AecCandidateId("28468"),    Name("John", "HAYDON"),         RegisteredParty("Sustainable Australia"), CandidatePosition(groupLookup("E"), 0)),
-      Candidate(election, state, AecCandidateId("28469"),    Name("Martin", "TYE"),          RegisteredParty("Sustainable Australia"), CandidatePosition(groupLookup("E"), 1)),
-      Candidate(election, state, AecCandidateId("28773"),    Name("Zed", "SESELJA"),         RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 0)),
-      Candidate(election, state, AecCandidateId("28782"),    Name("Jane", "HIATT"),          RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 1)),
-      Candidate(election, state, AecCandidateId("28254"),    Name("Deborah", "FIELD"),       RegisteredParty("Animal Justice Party"), CandidatePosition(groupLookup("G"), 0)),
-      Candidate(election, state, AecCandidateId("28256"),    Name("Jessica", "MONTAGNE"),    RegisteredParty("Animal Justice Party"), CandidatePosition(groupLookup("G"), 1)),
-      Candidate(election, state, AecCandidateId("28306"),    Name("Christina", "HOBBS"),     RegisteredParty("The Greens"), CandidatePosition(groupLookup("H"), 0)),
-      Candidate(election, state, AecCandidateId("28308"),    Name("Sue", "WAREHAM"),         RegisteredParty("The Greens"), CandidatePosition(groupLookup("H"), 1)),
-      Candidate(election, state, AecCandidateId("28760"),    Name("David William", "KIM"),   RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("I"), 0)),
-      Candidate(election, state, AecCandidateId("28763"),    Name("Elizabeth", "TADROS"),    RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("I"), 1)),
-      Candidate(election, state, AecCandidateId("29390"),    Name("Steven", "BAILEY"),       RegisteredParty("Australian Sex Party"), CandidatePosition(groupLookup("J"), 0)),
-      Candidate(election, state, AecCandidateId("29391"),    Name("Robbie", "SWAN"),         RegisteredParty("Australian Sex Party"), CandidatePosition(groupLookup("J"), 1)),
-      Candidate(election, state, AecCandidateId("29520"),   Name("Michael Gerard", "HAY"),  RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"), CandidatePosition(groupLookup("UG"), 0)),
-      Candidate(election, state, AecCandidateId("28150"),   Name("Anthony", "HANSON"),      RegisteredParty("Mature Australia"), CandidatePosition(groupLookup("UG"), 1))
+    override val candidates: Set[SenateCandidate] = Set(
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29611),    name = Name("Matt", "DONNELLY"),       party = Some(Party("Liberal Democrats"))), SenateCandidatePosition(groupLookup("A"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29612),    name = Name("Cawley", "HENNINGS"),     party = Some(Party("Liberal Democrats"))), SenateCandidatePosition(groupLookup("A"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28933),    name = Name("David", "EDWARDS"),       party = Some(Party("Secular Party of Australia"))), SenateCandidatePosition(groupLookup("B"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28937),    name = Name("Denis", "MIHALJEVIC"),    party = Some(Party("Secular Party of Australia"))), SenateCandidatePosition(groupLookup("B"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28147),    name = Name("Katy", "GALLAGHER"),      party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("C"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28149),    name = Name("David", "SMITH"),         party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("C"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29514),    name = Name("Sandie", "O'CONNOR"),     party = Some(Party("Rise Up Australia Party"))), SenateCandidatePosition(groupLookup("D"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29518),    name = Name("Jess", "WYATT"),          party = Some(Party("Rise Up Australia Party"))), SenateCandidatePosition(groupLookup("D"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28468),    name = Name("John", "HAYDON"),         party = Some(Party("Sustainable Australia"))), SenateCandidatePosition(groupLookup("E"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28469),    name = Name("Martin", "TYE"),          party = Some(Party("Sustainable Australia"))), SenateCandidatePosition(groupLookup("E"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28773),    name = Name("Zed", "SESELJA"),         party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28782),    name = Name("Jane", "HIATT"),          party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28254),    name = Name("Deborah", "FIELD"),       party = Some(Party("Animal Justice Party"))), SenateCandidatePosition(groupLookup("G"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28256),    name = Name("Jessica", "MONTAGNE"),    party = Some(Party("Animal Justice Party"))), SenateCandidatePosition(groupLookup("G"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28306),    name = Name("Christina", "HOBBS"),     party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("H"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28308),    name = Name("Sue", "WAREHAM"),         party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("H"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28760),    name = Name("David William", "KIM"),   party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("I"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28763),    name = Name("Elizabeth", "TADROS"),    party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("I"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29390),    name = Name("Steven", "BAILEY"),       party = Some(Party("Australian Sex Party"))), SenateCandidatePosition(groupLookup("J"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29391),    name = Name("Robbie", "SWAN"),         party = Some(Party("Australian Sex Party"))), SenateCandidatePosition(groupLookup("J"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29520),   name = Name("Michael Gerard", "HAY"),  party = Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))), SenateCandidatePosition(groupLookup("UG"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28150),   name = Name("Anthony", "HANSON"),      party = Some(Party("Mature Australia"))), SenateCandidatePosition(groupLookup("UG"), 1))
     )
 
-    val katyGallagher: Candidate = candidateWithName(Name("Katy", "GALLAGHER"))
-    val zedSeselja: Candidate = candidateWithName(Name("Zed", "SESELJA"))
-    val janeHiatt: Candidate = candidateWithName(Name("Jane", "HIATT"))
-    val christinaHobbs: Candidate = candidateWithName(Name("Christina", "HOBBS"))
-    val mattDonnelly: Candidate = candidateWithName(Name("Matt", "DONNELLY"))
-    val anthonyHanson: Candidate = candidateWithName(Name("Anthony", "HANSON"))
+    val katyGallagher: SenateCandidate = candidateWithName(Name("Katy", "GALLAGHER"))
+    val zedSeselja: SenateCandidate = candidateWithName(Name("Zed", "SESELJA"))
+    val janeHiatt: SenateCandidate = candidateWithName(Name("Jane", "HIATT"))
+    val christinaHobbs: SenateCandidate = candidateWithName(Name("Christina", "HOBBS"))
+    val mattDonnelly: SenateCandidate = candidateWithName(Name("Matt", "DONNELLY"))
+    val anthonyHanson: SenateCandidate = candidateWithName(Name("Anthony", "HANSON"))
   }
 
   object TAS extends CandidateFixture {
@@ -94,65 +95,65 @@ object CandidateFixture {
 
     override val groupFixture: GroupFixture.TAS.type = GroupFixture.TAS
 
-    override lazy val candidates = Set(
-      Candidate(election, state, AecCandidateId("28580"), Name("Eric", "ABETZ"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 0)),
-      Candidate(election, state, AecCandidateId("28600"), Name("Suzanne", "CASS"), RegisteredParty("Derryn Hinch's Justice Party"), CandidatePosition(groupLookup("J"), 0)),
-      Candidate(election, state, AecCandidateId("29141"), Name("Quentin", "VON STIEGLITZ"), RegisteredParty("Palmer United Party"), CandidatePosition(groupLookup("G"), 2)),
-      Candidate(election, state, AecCandidateId("29124"), Name("Max", "KAYE"), RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"), CandidatePosition(groupLookup("O"), 1)),
-      Candidate(election, state, AecCandidateId("28595"), Name("Lisa", "SINGH"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 5)),
-      Candidate(election, state, AecCandidateId("28368"), Name("Nick", "McKIM"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("C"), 1)),
-      Candidate(election, state, AecCandidateId("28276"), Name("Kevin", "HARKINS"), RegisteredParty("Australian Recreational Fishers Party"), CandidatePosition(groupLookup("S"), 0)),
-      Candidate(election, state, AecCandidateId("28187"), Name("JoAnne", "VOLTA"), RegisteredParty("The Arts Party"), CandidatePosition(groupLookup("U"), 1)),
-      Candidate(election, state, AecCandidateId("28597"), Name("Mishka", "GORA"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("D"), 1)),
-      Candidate(election, state, AecCandidateId("28596"), Name("Silvana", "NERO-NILE"), RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("D"), 0)),
-      Candidate(election, state, AecCandidateId("28589"), Name("Andrew", "ROBERTS"), RegisteredParty("Family First"), CandidatePosition(groupLookup("A"), 1)),
-      Candidate(election, state, AecCandidateId("28048"), Name("Steve", "KUCINA"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("K"), 1)),
-      Candidate(election, state, AecCandidateId("28592"), Name("Carol", "BROWN"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 2)),
-      Candidate(election, state, AecCandidateId("28186"), Name("Scott", "O'HARA"), RegisteredParty("The Arts Party"), CandidatePosition(groupLookup("U"), 0)),
-      Candidate(election, state, AecCandidateId("28588"), Name("Peter", "MADDEN"), RegisteredParty("Family First"), CandidatePosition(groupLookup("A"), 0)),
-      Candidate(election, state, AecCandidateId("28587"), Name("Sharon", "JOYCE"), RegisteredParty("Renewable Energy Party"), CandidatePosition(groupLookup("L"), 1)),
-      Candidate(election, state, AecCandidateId("29560"), Name("Karen", "BEVIS"), RegisteredParty("Animal Justice Party"), CandidatePosition(groupLookup("Q"), 0)),
-      Candidate(election, state, AecCandidateId("28581"), Name("Stephen", "PARRY"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 1)),
-      Candidate(election, state, AecCandidateId("28594"), Name("John", "SHORT"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 4)),
-      Candidate(election, state, AecCandidateId("28582"), Name("Jonathon", "DUNIAM"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 2)),
-      Candidate(election, state, AecCandidateId("28579"), Name("Richard", "TEMBY"), RegisteredParty("Mature Australia"), CandidatePosition(groupLookup("UG"), 2)),
-      Candidate(election, state, AecCandidateId("28385"), Name("Ian", "ALSTON"), RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("T"), 1)),
-      Candidate(election, state, AecCandidateId("28598"), Name("Michelle", "HOULT"), RegisteredParty("Nick Xenophon Team"), CandidatePosition(groupLookup("E"), 0)),
-      Candidate(election, state, AecCandidateId("28374"), Name("Kate", "McCULLOCH"), RegisteredParty("Pauline Hanson's One Nation"), CandidatePosition(groupLookup("I"), 0)),
-      Candidate(election, state, AecCandidateId("28361"), Name("Jacqui", "LAMBIE"), RegisteredParty("Jacqui Lambie Network"), CandidatePosition(groupLookup("M"), 0)),
-      Candidate(election, state, AecCandidateId("28363"), Name("Steve", "MARTIN"), RegisteredParty("Jacqui Lambie Network"), CandidatePosition(groupLookup("M"), 1)),
-      Candidate(election, state, AecCandidateId("28593"), Name("Catryna", "BILYK"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 3)),
-      Candidate(election, state, AecCandidateId("29139"), Name("Justin Leigh", "STRINGER"), RegisteredParty("Palmer United Party"), CandidatePosition(groupLookup("G"), 1)),
-      Candidate(election, state, AecCandidateId("28583"), Name("David", "BUSHBY"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 3)),
-      Candidate(election, state, AecCandidateId("29283"), Name("Jin-oh", "CHOI"), RegisteredParty("Science Party"), CandidatePosition(groupLookup("R"), 1)),
-      Candidate(election, state, AecCandidateId("29288"), Name("Matthew", "ALLEN"), RegisteredParty("Shooters, Fishers and Farmers"), CandidatePosition(groupLookup("P"), 0)),
-      Candidate(election, state, AecCandidateId("28601"), Name("Daniel", "BAKER"), RegisteredParty("Derryn Hinch's Justice Party"), CandidatePosition(groupLookup("J"), 1)),
-      Candidate(election, state, AecCandidateId("28599"), Name("Nicky", "COHEN"), RegisteredParty("Nick Xenophon Team"), CandidatePosition(groupLookup("E"), 1)),
-      Candidate(election, state, AecCandidateId("28381"), Name("Clinton", "MEAD"), RegisteredParty("Liberal Democrats"), CandidatePosition(groupLookup("T"), 0)),
-      Candidate(election, state, AecCandidateId("28054"), Name("George", "LANE"), RegisteredParty("Independent"), CandidatePosition(groupLookup("UG"), 4)),
-      Candidate(election, state, AecCandidateId("28584"), Name("Richard", "COLBECK"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 4)),
-      Candidate(election, state, AecCandidateId("28586"), Name("Rob", "MANSON"), RegisteredParty("Renewable Energy Party"), CandidatePosition(groupLookup("L"), 0)),
-      Candidate(election, state, AecCandidateId("28591"), Name("Helen", "POLLEY"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 1)),
-      Candidate(election, state, AecCandidateId("29281"), Name("Hans", "WILLINK"), RegisteredParty("Science Party"), CandidatePosition(groupLookup("R"), 0)),
-      Candidate(election, state, AecCandidateId("28375"), Name("Natasia", "MANZI"), RegisteredParty("Pauline Hanson's One Nation"), CandidatePosition(groupLookup("I"), 1)),
-      Candidate(election, state, AecCandidateId("28585"), Name("John", "TUCKER"), RegisteredParty("Liberal"), CandidatePosition(groupLookup("F"), 5)),
-      Candidate(election, state, AecCandidateId("28590"), Name("Anne", "URQUHART"), RegisteredParty("Australian Labor Party"), CandidatePosition(groupLookup("B"), 0)),
-      Candidate(election, state, AecCandidateId("28801"), Name("Susan", "HORWOOD"), RegisteredParty("Australian Liberty Alliance"), CandidatePosition(groupLookup("N"), 1)),
-      Candidate(election, state, AecCandidateId("29239"), Name("Kaye", "MARSKELL"), RegisteredParty("Independent"), CandidatePosition(groupLookup("UG"), 1)),
-      Candidate(election, state, AecCandidateId("28370"), Name("Anna", "REYNOLDS"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("C"), 2)),
-      Candidate(election, state, AecCandidateId("28367"), Name("Peter", "WHISH-WILSON"), RegisteredParty("The Greens"), CandidatePosition(groupLookup("C"), 0)),
-      Candidate(election, state, AecCandidateId("28365"), Name("Rob", "WATERMAN"), RegisteredParty("Jacqui Lambie Network"), CandidatePosition(groupLookup("M"), 2)),
-      Candidate(election, state, AecCandidateId("29291"), Name("Ricky", "MIDSON"), RegisteredParty("Shooters, Fishers and Farmers"), CandidatePosition(groupLookup("P"), 1)),
-      Candidate(election, state, AecCandidateId("29119"), Name("Adam", "POULTON"), RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"), CandidatePosition(groupLookup("O"), 0)),
-      Candidate(election, state, AecCandidateId("28277"), Name("Carmen", "EVANS"), RegisteredParty("Australian Recreational Fishers Party"), CandidatePosition(groupLookup("S"), 1)),
-      Candidate(election, state, AecCandidateId("29135"), Name("Kevin", "MORGAN"), RegisteredParty("Palmer United Party"), CandidatePosition(groupLookup("G"), 0)),
-      Candidate(election, state, AecCandidateId("28358"), Name("David", "CRAWFORD"), RegisteredParty("Antipaedophile Party"), CandidatePosition(groupLookup("UG"), 0)),
-      Candidate(election, state, AecCandidateId("28047"), Name("Meg", "THORNTON"), RegisteredParty("Citizens Electoral Council"), CandidatePosition(groupLookup("K"), 0)),
-      Candidate(election, state, AecCandidateId("29302"), Name("Francesca", "COLLINS"), RegisteredParty("Australian Sex Party"), CandidatePosition(groupLookup("H"), 0)),
-      Candidate(election, state, AecCandidateId("29567"), Name("Alison", "BAKER"), RegisteredParty("Animal Justice Party"), CandidatePosition(groupLookup("Q"), 1)),
-      Candidate(election, state, AecCandidateId("28767"), Name("Grant", "RUSSELL"), RegisteredParty("Independent"), CandidatePosition(groupLookup("UG"), 3)),
-      Candidate(election, state, AecCandidateId("28800"), Name("Tony", "ROBINSON"), RegisteredParty("Australian Liberty Alliance"), CandidatePosition(groupLookup("N"), 0)),
-      Candidate(election, state, AecCandidateId("29307"), Name("Matt", "OWEN"), RegisteredParty("Marijuana (HEMP) Party"), CandidatePosition(groupLookup("H"), 1))
+    override lazy val candidates: Set[SenateCandidate] = Set(
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28580), name = Name("Eric", "ABETZ"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28600), name = Name("Suzanne", "CASS"), party = Some(Party("Derryn Hinch's Justice Party"))), SenateCandidatePosition(groupLookup("J"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29141), name = Name("Quentin", "VON STIEGLITZ"), party = Some(Party("Palmer United Party"))), SenateCandidatePosition(groupLookup("G"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29124), name = Name("Max", "KAYE"), party = Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))), SenateCandidatePosition(groupLookup("O"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28595), name = Name("Lisa", "SINGH"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 5)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28368), name = Name("Nick", "McKIM"), party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("C"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28276), name = Name("Kevin", "HARKINS"), party = Some(Party("Australian Recreational Fishers Party"))), SenateCandidatePosition(groupLookup("S"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28187), name = Name("JoAnne", "VOLTA"), party = Some(Party("The Arts Party"))), SenateCandidatePosition(groupLookup("U"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28597), name = Name("Mishka", "GORA"), party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("D"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28596), name = Name("Silvana", "NERO-NILE"), party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("D"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28589), name = Name("Andrew", "ROBERTS"), party = Some(Party("Family First"))), SenateCandidatePosition(groupLookup("A"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28048), name = Name("Steve", "KUCINA"), party = Some(Party("Citizens Electoral Council"))), SenateCandidatePosition(groupLookup("K"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28592), name = Name("Carol", "BROWN"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28186), name = Name("Scott", "O'HARA"), party = Some(Party("The Arts Party"))), SenateCandidatePosition(groupLookup("U"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28588), name = Name("Peter", "MADDEN"), party = Some(Party("Family First"))), SenateCandidatePosition(groupLookup("A"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28587), name = Name("Sharon", "JOYCE"), party = Some(Party("Renewable Energy Party"))), SenateCandidatePosition(groupLookup("L"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29560), name = Name("Karen", "BEVIS"), party = Some(Party("Animal Justice Party"))), SenateCandidatePosition(groupLookup("Q"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28581), name = Name("Stephen", "PARRY"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28594), name = Name("John", "SHORT"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28582), name = Name("Jonathon", "DUNIAM"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28579), name = Name("Richard", "TEMBY"), party = Some(Party("Mature Australia"))), SenateCandidatePosition(groupLookup("UG"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28385), name = Name("Ian", "ALSTON"), party = Some(Party("Liberal Democrats"))), SenateCandidatePosition(groupLookup("T"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28598), name = Name("Michelle", "HOULT"), party = Some(Party("Nick Xenophon Team"))), SenateCandidatePosition(groupLookup("E"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28374), name = Name("Kate", "McCULLOCH"), party = Some(Party("Pauline Hanson's One Nation"))), SenateCandidatePosition(groupLookup("I"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28361), name = Name("Jacqui", "LAMBIE"), party = Some(Party("Jacqui Lambie Network"))), SenateCandidatePosition(groupLookup("M"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28363), name = Name("Steve", "MARTIN"), party = Some(Party("Jacqui Lambie Network"))), SenateCandidatePosition(groupLookup("M"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28593), name = Name("Catryna", "BILYK"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29139), name = Name("Justin Leigh", "STRINGER"), party = Some(Party("Palmer United Party"))), SenateCandidatePosition(groupLookup("G"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28583), name = Name("David", "BUSHBY"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29283), name = Name("Jin-oh", "CHOI"), party = Some(Party("Science Party"))), SenateCandidatePosition(groupLookup("R"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29288), name = Name("Matthew", "ALLEN"), party = Some(Party("Shooters, Fishers and Farmers"))), SenateCandidatePosition(groupLookup("P"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28601), name = Name("Daniel", "BAKER"), party = Some(Party("Derryn Hinch's Justice Party"))), SenateCandidatePosition(groupLookup("J"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28599), name = Name("Nicky", "COHEN"), party = Some(Party("Nick Xenophon Team"))), SenateCandidatePosition(groupLookup("E"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28381), name = Name("Clinton", "MEAD"), party = Some(Party("Liberal Democrats"))), SenateCandidatePosition(groupLookup("T"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28054), name = Name("George", "LANE"), party = Some(Party("party = None"))), SenateCandidatePosition(groupLookup("UG"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28584), name = Name("Richard", "COLBECK"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28586), name = Name("Rob", "MANSON"), party = Some(Party("Renewable Energy Party"))), SenateCandidatePosition(groupLookup("L"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28591), name = Name("Helen", "POLLEY"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29281), name = Name("Hans", "WILLINK"), party = Some(Party("Science Party"))), SenateCandidatePosition(groupLookup("R"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28375), name = Name("Natasia", "MANZI"), party = Some(Party("Pauline Hanson's One Nation"))), SenateCandidatePosition(groupLookup("I"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28585), name = Name("John", "TUCKER"), party = Some(Party("Liberal"))), SenateCandidatePosition(groupLookup("F"), 5)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28590), name = Name("Anne", "URQUHART"), party = Some(Party("Australian Labor Party"))), SenateCandidatePosition(groupLookup("B"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28801), name = Name("Susan", "HORWOOD"), party = Some(Party("Australian Liberty Alliance"))), SenateCandidatePosition(groupLookup("N"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29239), name = Name("Kaye", "MARSKELL"), party = Some(Party("party = None"))), SenateCandidatePosition(groupLookup("UG"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28370), name = Name("Anna", "REYNOLDS"), party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("C"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28367), name = Name("Peter", "WHISH-WILSON"), party = Some(Party("The Greens"))), SenateCandidatePosition(groupLookup("C"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28365), name = Name("Rob", "WATERMAN"), party = Some(Party("Jacqui Lambie Network"))), SenateCandidatePosition(groupLookup("M"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29291), name = Name("Ricky", "MIDSON"), party = Some(Party("Shooters, Fishers and Farmers"))), SenateCandidatePosition(groupLookup("P"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29119), name = Name("Adam", "POULTON"), party = Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))), SenateCandidatePosition(groupLookup("O"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28277), name = Name("Carmen", "EVANS"), party = Some(Party("Australian Recreational Fishers Party"))), SenateCandidatePosition(groupLookup("S"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29135), name = Name("Kevin", "MORGAN"), party = Some(Party("Palmer United Party"))), SenateCandidatePosition(groupLookup("G"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28358), name = Name("David", "CRAWFORD"), party = Some(Party("Antipaedophile Party"))), SenateCandidatePosition(groupLookup("UG"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28047), name = Name("Meg", "THORNTON"), party = Some(Party("Citizens Electoral Council"))), SenateCandidatePosition(groupLookup("K"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29302), name = Name("Francesca", "COLLINS"), party = Some(Party("Australian Sex Party"))), SenateCandidatePosition(groupLookup("H"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29567), name = Name("Alison", "BAKER"), party = Some(Party("Animal Justice Party"))), SenateCandidatePosition(groupLookup("Q"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28767), name = Name("Grant", "RUSSELL"), party = Some(Party("party = None"))), SenateCandidatePosition(groupLookup("UG"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28800), name = Name("Tony", "ROBINSON"), party = Some(Party("Australian Liberty Alliance"))), SenateCandidatePosition(groupLookup("N"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29307), name = Name("Matt", "OWEN"), party = Some(Party("Marijuana (HEMP) Party"))), SenateCandidatePosition(groupLookup("H"), 1))
     )
   }
 
@@ -161,86 +162,86 @@ object CandidateFixture {
 
     override val groupFixture: GroupFixture = GroupFixture.WA
 
-    override lazy val candidates: Set[Candidate] = Set(
-      Candidate(election, state, AecCandidateId("29437"), Name("Mark David", "IMISIDES"),          RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("A"), 0)),
-      Candidate(election, state, AecCandidateId("29440"), Name("Philip Campbell", "READ"),         RegisteredParty("Christian Democratic Party (Fred Nile Group)"), CandidatePosition(groupLookup("A"), 1)),
-      Candidate(election, state, AecCandidateId("28400"), Name("Andrew", "SKERRITT"),              RegisteredParty("Shooters, Fishers and Farmers"),                CandidatePosition(groupLookup("B"), 0)),
-      Candidate(election, state, AecCandidateId("28401"), Name("Ross", "WILLIAMSON"),              RegisteredParty("Shooters, Fishers and Farmers"),                CandidatePosition(groupLookup("B"), 1)),
-      Candidate(election, state, AecCandidateId("28527"), Name("Luke", "BOLTON"),                  RegisteredParty("Nick Xenophon Team"),                           CandidatePosition(groupLookup("C"), 0)),
-      Candidate(election, state, AecCandidateId("28528"), Name("Michael", "BOVELL"),               RegisteredParty("Nick Xenophon Team"),                           CandidatePosition(groupLookup("C"), 1)),
-      Candidate(election, state, AecCandidateId("28516"), Name("Sue", "LINES"),                    RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 0)),
-      Candidate(election, state, AecCandidateId("28517"), Name("Glenn", "STERLE"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 1)),
-      Candidate(election, state, AecCandidateId("28518"), Name("Patrick", "DODSON"),               RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 2)),
-      Candidate(election, state, AecCandidateId("28519"), Name("Louise", "PRATT"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 3)),
-      Candidate(election, state, AecCandidateId("28520"), Name("Mark", "REED"),                    RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 4)),
-      Candidate(election, state, AecCandidateId("28521"), Name("Susan", "BOWERS"),                 RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 5)),
-      Candidate(election, state, AecCandidateId("28522"), Name("Mia", "ONORATO"),                  RegisteredParty("Australian Labor Party"),                       CandidatePosition(groupLookup("D"), 6)),
-      Candidate(election, state, AecCandidateId("28098"), Name("Jean", "ROBINSON"),                RegisteredParty("Citizens Electoral Council of Australia"),      CandidatePosition(groupLookup("E"), 0)),
-      Candidate(election, state, AecCandidateId("28099"), Name("Judy", "SUDHOLZ"),                 RegisteredParty("Citizens Electoral Council of Australia"),      CandidatePosition(groupLookup("E"), 1)),
-      Candidate(election, state, AecCandidateId("29189"), Name("Kado", "MUIR"),                    RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 0)),
-      Candidate(election, state, AecCandidateId("29190"), Name("Nick", "FARDELL"),                 RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 1)),
-      Candidate(election, state, AecCandidateId("29191"), Name("Elizabeth", "RE"),                 RegisteredParty("The Nationals"),                                CandidatePosition(groupLookup("F"), 2)),
-      Candidate(election, state, AecCandidateId("28341"), Name("Kamala", "EMANUEL"),               RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 0)),
-      Candidate(election, state, AecCandidateId("28342"), Name("Seamus", "DOHERTY"),               RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 1)),
-      Candidate(election, state, AecCandidateId("28343"), Name("Farida", "IQBAL"),                 RegisteredParty("Socialist Alliance"),                           CandidatePosition(groupLookup("G"), 2)),
-      Candidate(election, state, AecCandidateId("29604"), Name("Nicki", "HIDE"),                   RegisteredParty("Derryn Hinch's Justice Party"),                 CandidatePosition(groupLookup("H"), 0)),
-      Candidate(election, state, AecCandidateId("29605"), Name("Rachael", "HIGGINS"),              RegisteredParty("Derryn Hinch's Justice Party"),                 CandidatePosition(groupLookup("H"), 1)),
-      Candidate(election, state, AecCandidateId("29193"), Name("Zhenya Dio", "WANG"),              RegisteredParty("Palmer United Party"),                          CandidatePosition(groupLookup("I"), 0)),
-      Candidate(election, state, AecCandidateId("29194"), Name("Jacque", "KRUGER"),                RegisteredParty("Palmer United Party"),                          CandidatePosition(groupLookup("I"), 1)),
-      Candidate(election, state, AecCandidateId("28246"), Name("Scott", "LUDLAM"),                 RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 0)),
-      Candidate(election, state, AecCandidateId("28247"), Name("Rachel", "SIEWERT"),               RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 1)),
-      Candidate(election, state, AecCandidateId("28248"), Name("Jordon", "STEELE-JOHN"),           RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 2)),
-      Candidate(election, state, AecCandidateId("28249"), Name("Samantha", "JENKINSON"),           RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 3)),
-      Candidate(election, state, AecCandidateId("28250"), Name("Michael", "BALDOCK"),              RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 4)),
-      Candidate(election, state, AecCandidateId("28251"), Name("Rai", "ISMAIL"),                   RegisteredParty("The Greens (WA)"),                              CandidatePosition(groupLookup("J"), 5)),
-      Candidate(election, state, AecCandidateId("28831"), Name("Katrina", "LOVE"),                 RegisteredParty("Animal Justice Party"),                         CandidatePosition(groupLookup("K"), 0)),
-      Candidate(election, state, AecCandidateId("28834"), Name("Alicia", "SUTTON"),                RegisteredParty("Animal Justice Party"),                         CandidatePosition(groupLookup("K"), 1)),
-      Candidate(election, state, AecCandidateId("28270"), Name("Stuart", "DONALD"),                RegisteredParty("Mature Australia"),                             CandidatePosition(groupLookup("L"), 0)),
-      Candidate(election, state, AecCandidateId("28271"), Name("Patti", "BRADSHAW"),               RegisteredParty("Mature Australia"),                             CandidatePosition(groupLookup("L"), 1)),
-      Candidate(election, state, AecCandidateId("28264"), Name("Robert", "BURATTI"),               RegisteredParty("The Arts Party"),                               CandidatePosition(groupLookup("M"), 0)),
-      Candidate(election, state, AecCandidateId("28265"), Name("Robert Kenneth Leslie", "TAYLOR"), RegisteredParty("The Arts Party"),                               CandidatePosition(groupLookup("M"), 1)),
-      Candidate(election, state, AecCandidateId("29197"), Name("Peter", "MAH"),                    RegisteredParty("Australian Cyclists Party"),                    CandidatePosition(groupLookup("N"), 0)),
-      Candidate(election, state, AecCandidateId("29198"), Name("Christopher John", "HOWARD"),      RegisteredParty("Australian Cyclists Party"),                    CandidatePosition(groupLookup("N"), 1)),
-      Candidate(election, state, AecCandidateId("28272"), Name("Pedro", "SCHWINDT"),               RegisteredParty("Renewable Energy Party"),                       CandidatePosition(groupLookup("O"), 0)),
-      Candidate(election, state, AecCandidateId("28273"), Name("Camilla", "SUNDBLADH"),            RegisteredParty("Renewable Energy Party"),                       CandidatePosition(groupLookup("O"), 1)),
-      Candidate(election, state, AecCandidateId("28402"), Name("Anthony", "HARDWICK"),             RegisteredParty("Rise Up Australia Party"),                      CandidatePosition(groupLookup("Q"), 0)),
-      Candidate(election, state, AecCandidateId("28403"), Name("Sheila", "MUNDY"),                 RegisteredParty("Rise Up Australia Party"),                      CandidatePosition(groupLookup("Q"), 1)),
-      Candidate(election, state, AecCandidateId("28523"), Name("Debbie", "ROBINSON"),              RegisteredParty("Australian Liberty Alliance"),                  CandidatePosition(groupLookup("P"), 0)),
-      Candidate(election, state, AecCandidateId("28524"), Name("Marion", "HERCOCK"),               RegisteredParty("Australian Liberty Alliance"),                  CandidatePosition(groupLookup("P"), 1)),
-      Candidate(election, state, AecCandidateId("29186"), Name("Rodney Norman", "CULLETON"),       RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 0)),
-      Candidate(election, state, AecCandidateId("29187"), Name("Peter", "GEORGIOU"),               RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 1)),
-      Candidate(election, state, AecCandidateId("29188"), Name("Ioanna", "CULLETON"),              RegisteredParty("Pauline Hanson's One Nation"),                  CandidatePosition(groupLookup("R"), 2)),
-      Candidate(election, state, AecCandidateId("29607"), Name("Michael", "BALDERSTONE"),          RegisteredParty("Marijuana (HEMP) Party"),                       CandidatePosition(groupLookup("S"), 0)),
-      Candidate(election, state, AecCandidateId("29608"), Name("James", "HURLEY"),                 RegisteredParty("Australian Sex Party"),                         CandidatePosition(groupLookup("S"), 1)),
-      Candidate(election, state, AecCandidateId("28804"), Name("Fernando", "BOVE"),                RegisteredParty("Democratic Labour Party"),                      CandidatePosition(groupLookup("T"), 0)),
-      Candidate(election, state, AecCandidateId("28807"), Name("Troy", "KIERNAN"),                 RegisteredParty("Democratic Labour Party"),                      CandidatePosition(groupLookup("T"), 1)),
-      Candidate(election, state, AecCandidateId("28494"), Name("Michaelia", "CASH"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 1)),
-      Candidate(election, state, AecCandidateId("28497"), Name("Chris", "BACK"),                   RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 4)),
-      Candidate(election, state, AecCandidateId("29395"), Name("Sara", "FARGHER"),                 RegisteredParty("Health Australia Party"),                       CandidatePosition(groupLookup("U"), 1)),
-      Candidate(election, state, AecCandidateId("29360"), Name("Samantha", "TILBURY"),             RegisteredParty("Health Australia Party"),                       CandidatePosition(groupLookup("U"), 0)),
-      Candidate(election, state, AecCandidateId("28864"), Name("Stuey", "PAULL"),                  Independent,                                                     CandidatePosition(groupLookup("V"), 0)),
-      Candidate(election, state, AecCandidateId("28865"), Name("Gary J", "MORRIS"),                Independent,                                                     CandidatePosition(groupLookup("V"), 1)),
-      Candidate(election, state, AecCandidateId("28821"), Name("Lindsay", "CAMERON"),              RegisteredParty("Australian Christians"),                        CandidatePosition(groupLookup("W"), 0)),
-      Candidate(election, state, AecCandidateId("28825"), Name("Jacky", "YOUNG"),                  RegisteredParty("Australian Christians"),                        CandidatePosition(groupLookup("W"), 1)),
-      Candidate(election, state, AecCandidateId("28493"), Name("Mathias", "CORMANN"),              RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 0)),
-      Candidate(election, state, AecCandidateId("28495"), Name("Dean", "SMITH"),                   RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 2)),
-      Candidate(election, state, AecCandidateId("28496"), Name("Linda", "REYNOLDS"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 3)),
-      Candidate(election, state, AecCandidateId("28502"), Name("Sheridan", "INGRAM"),              RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 6)),
-      Candidate(election, state, AecCandidateId("28500"), Name("David", "JOHNSTON"),               RegisteredParty("Liberal Party of Australia"),                   CandidatePosition(groupLookup("X"), 5)),
-      Candidate(election, state, AecCandidateId("28153"), Name("Lyn", "VICKERY"),                  RegisteredParty("Australia First Party"),                        CandidatePosition(groupLookup("Y"), 0)),
-      Candidate(election, state, AecCandidateId("28155"), Name("Brian", "McREA"),                  RegisteredParty("Australia First Party"),                        CandidatePosition(groupLookup("Y"), 1)),
-      Candidate(election, state, AecCandidateId("28514"), Name("Graeme Michael", "KLASS"),         RegisteredParty("Liberal Democratic Party"),                     CandidatePosition(groupLookup("Z"), 0)),
-      Candidate(election, state, AecCandidateId("28515"), Name("Connor", "WHITTLE"),               RegisteredParty("Liberal Democratic Party"),                     CandidatePosition(groupLookup("Z"), 1)),
-      Candidate(election, state, AecCandidateId("29200"), Name("Richard", "THOMAS"),               RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"),            CandidatePosition(groupLookup("AA"), 0)),
-      Candidate(election, state, AecCandidateId("29201"), Name("Mark", "CONNOLLY"),                RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!"),            CandidatePosition(groupLookup("AA"), 1)),
-      Candidate(election, state, AecCandidateId("28525"), Name("Linda", "ROSE"),                   RegisteredParty("Family First Party"),                           CandidatePosition(groupLookup("AB"), 0)),
-      Candidate(election, state, AecCandidateId("28526"), Name("Henry", "HENG"),                   RegisteredParty("Family First Party"),                           CandidatePosition(groupLookup("AB"), 1)),
-      Candidate(election, state, AecCandidateId("28097"), Name("Kai", "JONES"),                    Independent,                                                     CandidatePosition(groupLookup("UG"), 0)),
-      Candidate(election, state, AecCandidateId("28279"), Name("Tammara", "MOODY"),                RegisteredParty("Australian Antipaedophile Party"),              CandidatePosition(groupLookup("UG"), 1)),
-      Candidate(election, state, AecCandidateId("28188"), Name("Julie", "MATHESON"),               Independent,                                                     CandidatePosition(groupLookup("UG"), 2)),
-      Candidate(election, state, AecCandidateId("29356"), Name("Peter", "CASTIEAU"),               Independent,                                                     CandidatePosition(groupLookup("UG"), 3)),
-      Candidate(election, state, AecCandidateId("29401"), Name("Susan", "HODDINOTT"),              RegisteredParty("Katter's Australian Party"),                    CandidatePosition(groupLookup("UG"), 4)),
-      Candidate(election, state, AecCandidateId("29428"), Name("Norm", "RAMSAY"),                  Independent,                                                     CandidatePosition(groupLookup("UG"), 5)),
+    override lazy val candidates: Set[SenateCandidate] = Set(
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29437), name = Name("Mark David", "IMISIDES"),          party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("A"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29440), name = Name("Philip Campbell", "READ"),         party = Some(Party("Christian Democratic Party (Fred Nile Group)"))), SenateCandidatePosition(groupLookup("A"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28400), name = Name("Andrew", "SKERRITT"),              party = Some(Party("Shooters, Fishers and Farmers"))),                SenateCandidatePosition(groupLookup("B"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28401), name = Name("Ross", "WILLIAMSON"),              party = Some(Party("Shooters, Fishers and Farmers"))),                SenateCandidatePosition(groupLookup("B"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28527), name = Name("Luke", "BOLTON"),                  party = Some(Party("Nick Xenophon Team"))),                           SenateCandidatePosition(groupLookup("C"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28528), name = Name("Michael", "BOVELL"),               party = Some(Party("Nick Xenophon Team"))),                           SenateCandidatePosition(groupLookup("C"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28516), name = Name("Sue", "LINES"),                    party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28517), name = Name("Glenn", "STERLE"),                 party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28518), name = Name("Patrick", "DODSON"),               party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28519), name = Name("Louise", "PRATT"),                 party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28520), name = Name("Mark", "REED"),                    party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28521), name = Name("Susan", "BOWERS"),                 party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 5)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28522), name = Name("Mia", "ONORATO"),                  party = Some(Party("Australian Labor Party"))),                       SenateCandidatePosition(groupLookup("D"), 6)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28098), name = Name("Jean", "ROBINSON"),                party = Some(Party("Citizens Electoral Council of Australia"))),      SenateCandidatePosition(groupLookup("E"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28099), name = Name("Judy", "SUDHOLZ"),                 party = Some(Party("Citizens Electoral Council of Australia"))),      SenateCandidatePosition(groupLookup("E"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29189), name = Name("Kado", "MUIR"),                    party = Some(Party("The Nationals"))),                                SenateCandidatePosition(groupLookup("F"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29190), name = Name("Nick", "FARDELL"),                 party = Some(Party("The Nationals"))),                                SenateCandidatePosition(groupLookup("F"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29191), name = Name("Elizabeth", "RE"),                 party = Some(Party("The Nationals"))),                                SenateCandidatePosition(groupLookup("F"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28341), name = Name("Kamala", "EMANUEL"),               party = Some(Party("Socialist Alliance"))),                           SenateCandidatePosition(groupLookup("G"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28342), name = Name("Seamus", "DOHERTY"),               party = Some(Party("Socialist Alliance"))),                           SenateCandidatePosition(groupLookup("G"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28343), name = Name("Farida", "IQBAL"),                 party = Some(Party("Socialist Alliance"))),                           SenateCandidatePosition(groupLookup("G"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29604), name = Name("Nicki", "HIDE"),                   party = Some(Party("Derryn Hinch's Justice Party"))),                 SenateCandidatePosition(groupLookup("H"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29605), name = Name("Rachael", "HIGGINS"),              party = Some(Party("Derryn Hinch's Justice Party"))),                 SenateCandidatePosition(groupLookup("H"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29193), name = Name("Zhenya Dio", "WANG"),              party = Some(Party("Palmer United Party"))),                          SenateCandidatePosition(groupLookup("I"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29194), name = Name("Jacque", "KRUGER"),                party = Some(Party("Palmer United Party"))),                          SenateCandidatePosition(groupLookup("I"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28246), name = Name("Scott", "LUDLAM"),                 party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28247), name = Name("Rachel", "SIEWERT"),               party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28248), name = Name("Jordon", "STEELE-JOHN"),           party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28249), name = Name("Samantha", "JENKINSON"),           party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28250), name = Name("Michael", "BALDOCK"),              party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28251), name = Name("Rai", "ISMAIL"),                   party = Some(Party("The Greens (WA)"))),                              SenateCandidatePosition(groupLookup("J"), 5)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28831), name = Name("Katrina", "LOVE"),                 party = Some(Party("Animal Justice Party"))),                         SenateCandidatePosition(groupLookup("K"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28834), name = Name("Alicia", "SUTTON"),                party = Some(Party("Animal Justice Party"))),                         SenateCandidatePosition(groupLookup("K"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28270), name = Name("Stuart", "DONALD"),                party = Some(Party("Mature Australia"))),                             SenateCandidatePosition(groupLookup("L"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28271), name = Name("Patti", "BRADSHAW"),               party = Some(Party("Mature Australia"))),                             SenateCandidatePosition(groupLookup("L"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28264), name = Name("Robert", "BURATTI"),               party = Some(Party("The Arts Party"))),                               SenateCandidatePosition(groupLookup("M"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28265), name = Name("Robert Kenneth Leslie", "TAYLOR"), party = Some(Party("The Arts Party"))),                               SenateCandidatePosition(groupLookup("M"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29197), name = Name("Peter", "MAH"),                    party = Some(Party("Australian Cyclists Party"))),                    SenateCandidatePosition(groupLookup("N"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29198), name = Name("Christopher John", "HOWARD"),      party = Some(Party("Australian Cyclists Party"))),                    SenateCandidatePosition(groupLookup("N"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28272), name = Name("Pedro", "SCHWINDT"),               party = Some(Party("Renewable Energy Party"))),                       SenateCandidatePosition(groupLookup("O"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28273), name = Name("Camilla", "SUNDBLADH"),            party = Some(Party("Renewable Energy Party"))),                       SenateCandidatePosition(groupLookup("O"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28402), name = Name("Anthony", "HARDWICK"),             party = Some(Party("Rise Up Australia Party"))),                      SenateCandidatePosition(groupLookup("Q"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28403), name = Name("Sheila", "MUNDY"),                 party = Some(Party("Rise Up Australia Party"))),                      SenateCandidatePosition(groupLookup("Q"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28523), name = Name("Debbie", "ROBINSON"),              party = Some(Party("Australian Liberty Alliance"))),                  SenateCandidatePosition(groupLookup("P"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28524), name = Name("Marion", "HERCOCK"),               party = Some(Party("Australian Liberty Alliance"))),                  SenateCandidatePosition(groupLookup("P"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29186), name = Name("Rodney Norman", "CULLETON"),       party = Some(Party("Pauline Hanson's One Nation"))),                  SenateCandidatePosition(groupLookup("R"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29187), name = Name("Peter", "GEORGIOU"),               party = Some(Party("Pauline Hanson's One Nation"))),                  SenateCandidatePosition(groupLookup("R"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29188), name = Name("Ioanna", "CULLETON"),              party = Some(Party("Pauline Hanson's One Nation"))),                  SenateCandidatePosition(groupLookup("R"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29607), name = Name("Michael", "BALDERSTONE"),          party = Some(Party("Marijuana (HEMP) Party"))),                       SenateCandidatePosition(groupLookup("S"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29608), name = Name("James", "HURLEY"),                 party = Some(Party("Australian Sex Party"))),                         SenateCandidatePosition(groupLookup("S"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28804), name = Name("Fernando", "BOVE"),                party = Some(Party("Democratic Labour Party"))),                      SenateCandidatePosition(groupLookup("T"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28807), name = Name("Troy", "KIERNAN"),                 party = Some(Party("Democratic Labour Party"))),                      SenateCandidatePosition(groupLookup("T"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28494), name = Name("Michaelia", "CASH"),               party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28497), name = Name("Chris", "BACK"),                   party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29395), name = Name("Sara", "FARGHER"),                 party = Some(Party("Health Australia Party"))),                       SenateCandidatePosition(groupLookup("U"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29360), name = Name("Samantha", "TILBURY"),             party = Some(Party("Health Australia Party"))),                       SenateCandidatePosition(groupLookup("U"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28864), name = Name("Stuey", "PAULL"),                  party = None),                                                     SenateCandidatePosition(groupLookup("V"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28865), name = Name("Gary J", "MORRIS"),                party = None),                                                     SenateCandidatePosition(groupLookup("V"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28821), name = Name("Lindsay", "CAMERON"),              party = Some(Party("Australian Christians"))),                        SenateCandidatePosition(groupLookup("W"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28825), name = Name("Jacky", "YOUNG"),                  party = Some(Party("Australian Christians"))),                        SenateCandidatePosition(groupLookup("W"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28493), name = Name("Mathias", "CORMANN"),              party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28495), name = Name("Dean", "SMITH"),                   party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28496), name = Name("Linda", "REYNOLDS"),               party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28502), name = Name("Sheridan", "INGRAM"),              party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 6)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28500), name = Name("David", "JOHNSTON"),               party = Some(Party("Liberal Party of Australia"))),                   SenateCandidatePosition(groupLookup("X"), 5)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28153), name = Name("Lyn", "VICKERY"),                  party = Some(Party("Australia First Party"))),                        SenateCandidatePosition(groupLookup("Y"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28155), name = Name("Brian", "McREA"),                  party = Some(Party("Australia First Party"))),                        SenateCandidatePosition(groupLookup("Y"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28514), name = Name("Graeme Michael", "KLASS"),         party = Some(Party("Liberal Democratic Party"))),                     SenateCandidatePosition(groupLookup("Z"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28515), name = Name("Connor", "WHITTLE"),               party = Some(Party("Liberal Democratic Party"))),                     SenateCandidatePosition(groupLookup("Z"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29200), name = Name("Richard", "THOMAS"),               party = Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))),            SenateCandidatePosition(groupLookup("AA"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29201), name = Name("Mark", "CONNOLLY"),                party = Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))),            SenateCandidatePosition(groupLookup("AA"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28525), name = Name("Linda", "ROSE"),                   party = Some(Party("Family First Party"))),                           SenateCandidatePosition(groupLookup("AB"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28526), name = Name("Henry", "HENG"),                   party = Some(Party("Family First Party"))),                           SenateCandidatePosition(groupLookup("AB"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28097), name = Name("Kai", "JONES"),                    party = None),                                                     SenateCandidatePosition(groupLookup("UG"), 0)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28279), name = Name("Tammara", "MOODY"),                party = Some(Party("Australian Antipaedophile Party"))),              SenateCandidatePosition(groupLookup("UG"), 1)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(28188), name = Name("Julie", "MATHESON"),               party = None),                                                     SenateCandidatePosition(groupLookup("UG"), 2)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29356), name = Name("Peter", "CASTIEAU"),               party = None),                                                     SenateCandidatePosition(groupLookup("UG"), 3)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29401), name = Name("Susan", "HODDINOTT"),              party = Some(Party("Katter's Australian Party"))),                    SenateCandidatePosition(groupLookup("UG"), 4)),
+      SenateCandidate(election, SenateCandidateDetails(election, id = Candidate.Id(29428), name = Name("Norm", "RAMSAY"),                  party = None),                                                     SenateCandidatePosition(groupLookup("UG"), 5)),
     )
   }
 }

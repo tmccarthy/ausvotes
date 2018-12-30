@@ -47,6 +47,9 @@ package object senate {
                    party: Option[Party],
                  ): Either[InvalidGroupCode.type, SenateGroup] = Group(election, code, party)
 
+  type SenateUngrouped = Ungrouped[SenateElectionForState]
+  def SenateUngrouped(electionForState: SenateElectionForState): SenateUngrouped = Ungrouped(electionForState)
+
   type SenateHtv = HowToVoteCard[SenateElectionForState, SenateGroup]
   def SenateHtv(
                  election: SenateElectionForState,

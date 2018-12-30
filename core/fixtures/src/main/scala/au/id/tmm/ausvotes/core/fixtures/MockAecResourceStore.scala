@@ -3,48 +3,47 @@ package au.id.tmm.ausvotes.core.fixtures
 import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.SenateElection.`2016`
 import au.id.tmm.ausvotes.core.rawdata.AecResourceStore
+import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import org.apache.commons.io.FilenameUtils
 
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Failure, Try}
 
+// TODO move to the core tests
 object MockAecResourceStore extends AecResourceStore {
-  override def distributionOfPreferencesFor(election: SenateElection, state: State): Try[Source] = {
-    if (election == `2016`) {
-      state match {
-        case State.WA => sourceFromResource(s"SenateStateDOPDownload-20499-${state.abbreviation}.csv.gz")
-        case _ => sourceFromResource(s"SenateStateDOPDownload-20499-${state.abbreviation}.csv")
-      }
-    } else {
-      badElection(election)
+  override def distributionOfPreferencesFor(election: SenateElectionForState): Try[Source] = {
+    election match {
+      case SenateElectionForState(SenateElection.`2016`, state @ State.WA) => sourceFromResource(s"SenateStateDOPDownload-20499-${state.abbreviation}.csv.gz")
+      case SenateElectionForState(SenateElection.`2016`, state) => sourceFromResource(s"SenateStateDOPDownload-20499-${state.abbreviation}.csv")
+      case _ => badElection(election)
     }
   }
 
   override def firstPreferencesFor(election: SenateElection): Try[Source] = {
     election match {
-      case `2016` => sourceFromResource("firstPreferencesTest.csv")
+      case SenateElection.`2016` => sourceFromResource("firstPreferencesTest.csv")
       case _ => badElection(election)
     }
   }
 
-  override def formalPreferencesFor(election: SenateElection, state: State): Try[Source] = {
+  override def formalPreferencesFor(election: SenateElectionForState): Try[Source] = {
     election match {
-      case `2016` => sourceFromResource("formalPreferencesTest.csv")
+      case SenateElectionForState(SenateElection.`2016`, _) => sourceFromResource("formalPreferencesTest.csv")
       case _ => badElection(election)
     }
   }
 
-  override def pollingPlacesFor(election: SenateElection): Try[Source] = {
+  override def pollingPlacesFor(election: FederalElection): Try[Source] = {
     election match {
-      case `2016` => sourceFromResource("GeneralPollingPlacesDownload-20499.csv")
+      case FederalElection.`2016` => sourceFromResource("GeneralPollingPlacesDownload-20499.csv")
+      case e => Failure(new NotImplementedError(s"No support for election $e"))
     }
   }
 
-  private def badElection(election: SenateElection) = throw new IllegalArgumentException(s"No data for $election")
+  private def badElection(election: Any) = throw new IllegalArgumentException(s"No data for $election")
 
   private def sourceFromResource(resourceName: String) = Try {
     if (FilenameUtils.getExtension(resourceName) == "gz") {

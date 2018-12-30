@@ -1,20 +1,24 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model.{CountData, GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
-final class CountDataTestUtils private(val state: State,
-                                       val groupsAndCandidates: GroupsAndCandidates,
-                                       val ballotMaker: BallotMaker,
-                                   ) {
+final class CountDataTestUtils private(
+                                        val state: State,
+                                        val groupsAndCandidates: GroupsAndCandidates,
+                                        val ballotMaker: BallotMaker,
+                                      ) {
   private val rawDataStore = RawDataStore(MockAecResourceStore)
-  val election: SenateElection.`2016`.type = SenateElection.`2016`
 
-  lazy val countData: CountData = resource.managed(rawDataStore.distributionsOfPreferencesFor(election, state))
-    .map(CountDataGeneration.fromDistributionOfPreferencesRows(election, state, groupsAndCandidates, _))
+  val senateElection: SenateElection.`2016`.type = SenateElection.`2016`
+  val election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+
+  lazy val countData: SenateCountData = resource.managed(rawDataStore.distributionsOfPreferencesFor(election))
+    .map(CountDataGeneration.fromDistributionOfPreferencesRows(election, groupsAndCandidates, _))
     .toTry
     .get
 

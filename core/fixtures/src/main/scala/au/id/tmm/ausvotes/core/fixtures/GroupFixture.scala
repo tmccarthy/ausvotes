@@ -1,93 +1,95 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Party.{Independent, RegisteredParty}
-import au.id.tmm.ausvotes.core.model.parsing.{BallotGroup, Group, Ungrouped}
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.utilities.geo.australia.State
 
 object GroupFixture {
 
   trait GroupFixture {
-    val election: SenateElection = SenateElection.`2016`
+    val senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def groups: Set[Group]
+    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def groups: Set[SenateGroup]
 
-    lazy val ungrouped = Ungrouped(election, state)
+    lazy val ungrouped: SenateUngrouped = SenateUngrouped(election)
 
-    lazy val groupLookup: Map[String, BallotGroup] = (groups ++ Set(ungrouped)).groupBy(_.code).mapValues(_.head)
+    lazy val groupLookup: Map[String, SenateBallotGroup] = (groups ++ Set(ungrouped)).groupBy(_.code.asString).mapValues(_.head)
   }
 
   object NT extends GroupFixture {
     override val state: State = State.NT
 
-    override val groups = Set(
-      Group(election, state, "C", RegisteredParty("Citizens Electoral Council of Australia")),
-      Group(election, state, "B", RegisteredParty("Marijuana (HEMP) Party/Australian Sex Party")),
-      Group(election, state, "A", RegisteredParty("Rise Up Australia Party")),
-      Group(election, state, "D", RegisteredParty("The Greens")),
-      Group(election, state, "F", RegisteredParty("Australian Labor Party (Northern Territory) Branch")),
-      Group(election, state, "E", RegisteredParty("Country Liberals (NT)")),
-      Group(election, state, "G", RegisteredParty("Christian Democratic Party (Fred Nile Group)"))
+    override val groups: Set[SenateGroup] = Set(
+      SenateGroup(election, BallotGroup.Code("C").right.get, Some(Party("Citizens Electoral Council of Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("B").right.get, Some(Party("Marijuana (HEMP) Party/Australian Sex Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("A").right.get, Some(Party("Rise Up Australia Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("D").right.get, Some(Party("The Greens"))).right.get,
+      SenateGroup(election, BallotGroup.Code("F").right.get, Some(Party("Australian Labor Party (Northern Territory) Branch"))).right.get,
+      SenateGroup(election, BallotGroup.Code("E").right.get, Some(Party("Country Liberals (NT)"))).right.get,
+      SenateGroup(election, BallotGroup.Code("G").right.get, Some(Party("Christian Democratic Party (Fred Nile Group)"))).right.get,
     )
   }
 
   object ACT extends GroupFixture {
     override val state: State = State.ACT
 
-    override val groups = Set(
-      Group(election, state, "A", RegisteredParty("Liberal Democratic Party")),
-      Group(election, state, "B", RegisteredParty("Secular Party of Australia")),
-      Group(election, state, "C", RegisteredParty("Australian Labor Party")),
-      Group(election, state, "E", RegisteredParty("Sustainable Australia")),
-      Group(election, state, "D", RegisteredParty("Rise Up Australia Party")),
-      Group(election, state, "F", RegisteredParty("Liberal")),
-      Group(election, state, "G", RegisteredParty("Animal Justice Party")),
-      Group(election, state, "H", RegisteredParty("The Greens")),
-      Group(election, state, "I", RegisteredParty("Christian Democratic Party (Fred Nile Group)")),
-      Group(election, state, "J", RegisteredParty("Australian Sex Party"))
+    override val groups: Set[SenateGroup] = Set(
+      SenateGroup(election, BallotGroup.Code("A").right.get, Some(Party("Liberal Democratic Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("B").right.get, Some(Party("Secular Party of Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("C").right.get, Some(Party("Australian Labor Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("E").right.get, Some(Party("Sustainable Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("D").right.get, Some(Party("Rise Up Australia Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("F").right.get, Some(Party("Liberal"))).right.get,
+      SenateGroup(election, BallotGroup.Code("G").right.get, Some(Party("Animal Justice Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("H").right.get, Some(Party("The Greens"))).right.get,
+      SenateGroup(election, BallotGroup.Code("I").right.get, Some(Party("Christian Democratic Party (Fred Nile Group)"))).right.get,
+      SenateGroup(election, BallotGroup.Code("J").right.get, Some(Party("Australian Sex Party"))).right.get,
     )
 
-    val ALP_GROUP: Group = groups.find(_.party == RegisteredParty("Australian Labor Party")).get
+    val ALP_GROUP: SenateGroup = groups.find(_.party.contains(Party("Australian Labor Party"))).get
   }
 
   object TAS extends GroupFixture {
     override val state: State = State.TAS
 
+    //noinspection NotImplementedCode
     override lazy val groups: Nothing = ???
   }
 
   object WA extends GroupFixture {
     override val state: State = State.WA
 
-    override lazy val groups: Set[Group] = Set(
-      Group(election, state, "J", RegisteredParty("The Greens (WA)")),
-      Group(election, state, "A", RegisteredParty("Christian Democratic Party (Fred Nile Group)")),
-      Group(election, state, "D", RegisteredParty("Australian Labor Party")),
-      Group(election, state, "N", RegisteredParty("Australian Cyclists Party")),
-      Group(election, state, "C", RegisteredParty("Nick Xenophon Team")),
-      Group(election, state, "AA", RegisteredParty("VOTEFLUX.ORG | Upgrade Democracy!")),
-      Group(election, state, "Q", RegisteredParty("Rise Up Australia Party")),
-      Group(election, state, "AB", RegisteredParty("Family First Party")),
-      Group(election, state, "S", RegisteredParty("Australian Sex Party/Marijuana (HEMP) Party")),
-      Group(election, state, "V", Independent),
-      Group(election, state, "L", RegisteredParty("Mature Australia")),
-      Group(election, state, "X", RegisteredParty("Liberal Party of Australia")),
-      Group(election, state, "M", RegisteredParty("The Arts Party")),
-      Group(election, state, "Z", RegisteredParty("Liberal Democratic Party")),
-      Group(election, state, "O", RegisteredParty("Renewable Energy Party")),
-      Group(election, state, "T", RegisteredParty("Democratic Labour Party")),
-      Group(election, state, "U", RegisteredParty("Health Australia Party")),
-      Group(election, state, "H", RegisteredParty("Derryn Hinch's Justice Party")),
-      Group(election, state, "R", RegisteredParty("Pauline Hanson's One Nation")),
-      Group(election, state, "E", RegisteredParty("Citizens Electoral Council of Australia")),
-      Group(election, state, "P", RegisteredParty("Australian Liberty Alliance")),
-      Group(election, state, "B", RegisteredParty("Shooters, Fishers and Farmers")),
-      Group(election, state, "K", RegisteredParty("Animal Justice Party")),
-      Group(election, state, "F", RegisteredParty("The Nationals")),
-      Group(election, state, "G", RegisteredParty("Socialist Alliance")),
-      Group(election, state, "W", RegisteredParty("Australian Christians")),
-      Group(election, state, "Y", RegisteredParty("Australia First Party")),
-      Group(election, state, "I", RegisteredParty("Palmer United Party")),
+    override lazy val groups: Set[SenateGroup] = Set(
+      SenateGroup(election, BallotGroup.Code("J").right.get, Some(Party("The Greens (WA)"))).right.get,
+      SenateGroup(election, BallotGroup.Code("A").right.get, Some(Party("Christian Democratic Party (Fred Nile Group)"))).right.get,
+      SenateGroup(election, BallotGroup.Code("D").right.get, Some(Party("Australian Labor Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("N").right.get, Some(Party("Australian Cyclists Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("C").right.get, Some(Party("Nick Xenophon Team"))).right.get,
+      SenateGroup(election, BallotGroup.Code("AA").right.get, Some(Party("VOTEFLUX.ORG | Upgrade Democracy!"))).right.get,
+      SenateGroup(election, BallotGroup.Code("Q").right.get, Some(Party("Rise Up Australia Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("AB").right.get, Some(Party("Family First Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("S").right.get, Some(Party("Australian Sex Party/Marijuana (HEMP) Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("V").right.get, party = None).right.get,
+      SenateGroup(election, BallotGroup.Code("L").right.get, Some(Party("Mature Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("X").right.get, Some(Party("Liberal Party of Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("M").right.get, Some(Party("The Arts Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("Z").right.get, Some(Party("Liberal Democratic Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("O").right.get, Some(Party("Renewable Energy Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("T").right.get, Some(Party("Democratic Labour Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("U").right.get, Some(Party("Health Australia Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("H").right.get, Some(Party("Derryn Hinch's Justice Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("R").right.get, Some(Party("Pauline Hanson's One Nation"))).right.get,
+      SenateGroup(election, BallotGroup.Code("E").right.get, Some(Party("Citizens Electoral Council of Australia"))).right.get,
+      SenateGroup(election, BallotGroup.Code("P").right.get, Some(Party("Australian Liberty Alliance"))).right.get,
+      SenateGroup(election, BallotGroup.Code("B").right.get, Some(Party("Shooters, Fishers and Farmers"))).right.get,
+      SenateGroup(election, BallotGroup.Code("K").right.get, Some(Party("Animal Justice Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("F").right.get, Some(Party("The Nationals"))).right.get,
+      SenateGroup(election, BallotGroup.Code("G").right.get, Some(Party("Socialist Alliance"))).right.get,
+      SenateGroup(election, BallotGroup.Code("W").right.get, Some(Party("Australian Christians"))).right.get,
+      SenateGroup(election, BallotGroup.Code("Y").right.get, Some(Party("Australia First Party"))).right.get,
+      SenateGroup(election, BallotGroup.Code("I").right.get, Some(Party("Palmer United Party"))).right.get,
     )
   }
 }

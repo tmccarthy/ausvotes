@@ -2,19 +2,27 @@ package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture.CandidateFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupFixture.GroupFixture
-import au.id.tmm.ausvotes.core.model.parsing.Ballot.{AtlPreferences, BtlPreferences}
-import au.id.tmm.ausvotes.core.model.parsing._
+import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction, FederalPollingPlace}
+import au.id.tmm.ausvotes.model.stv.BallotGroup
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def makeBallot(atlPreferences: AtlPreferences = Map.empty,
                  btlPreferences: BtlPreferences = Map.empty,
                  division: Division = DivisionFixture.ACT.CANBERRA,
-                 pollingPlace: PollingPlace = PollingPlaceFixture.ACT.BARTON,
+                 pollingPlace: FederalPollingPlace = PollingPlaceFixture.ACT.BARTON,
                  batch: Int = 1,
                  paper: Int = 1
-            ): Ballot = {
-    Ballot(candidateFixture.election, candidateFixture.state, division, pollingPlace, batch, paper, atlPreferences, btlPreferences)
+            ): SenateBallot = {
+    SenateBallot(
+      candidateFixture.election,
+      FederalBallotJurisdiction(candidateFixture.state, division, pollingPlace),
+      SenateBallotId(batch, paper),
+      atlPreferences,
+      btlPreferences,
+    )
   }
 
   def orderedAtlPreferences(groupsInOrder: String*): AtlPreferences = {
@@ -24,12 +32,18 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     atlPreferences(preferencesPerGroup: _*)
   }
 
+  private def makePreference(rawCode: String): Preference = rawCode match {
+    case "/" => Preference.Tick
+    case "*" => Preference.Cross
+    case number => Preference.Numbered(number.toInt)
+  }
+
   def atlPreferences(prefPerGroup: (String, String)*): AtlPreferences = {
     prefPerGroup.map {
-      case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> Preference.fromRawValue(rawPref).get
+      case (groupCode, rawPref) => candidateFixture.groupLookup(groupCode) -> makePreference(rawPref)
     }.map {
-      case (group: Group, preference) => group -> preference
-      case (u: Ungrouped, preference) => throw new IllegalArgumentException("Can't have Ungrouped above the line")
+      case (group: SenateGroup, preference) => group -> preference
+      case (u: SenateUngrouped, preference) => throw new IllegalArgumentException("Can't have Ungrouped above the line")
     }.toMap
   }
 
@@ -42,26 +56,26 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 
   def btlPreferences(prefPerCandidate: (String, String)*): BtlPreferences = {
     prefPerCandidate.map {
-      case (posCode, rawPref) => candidatePosition(posCode) -> Preference.fromRawValue(rawPref).get
+      case (posCode, rawPref) => candidateFixture.candidateWithPosition(candidatePosition(posCode)) -> makePreference(rawPref)
     }.toMap
   }
 
-  def candidatePosition(positionCode: String): CandidatePosition =
+  def candidatePosition(positionCode: String): SenateCandidatePosition =
     BallotMaker.candidatePosition(candidateFixture.groupFixture)(positionCode)
 
-  def candidateWithPosition(positionCode: String): Candidate =
-    candidateFixture.candidates.find(_.btlPosition == candidatePosition(positionCode)).get
+  def candidateWithPosition(positionCode: String): SenateCandidate =
+    candidateFixture.candidateWithPosition(candidatePosition(positionCode))
 
-  def group(groupCode: String): Group = candidateFixture.groupLookup(groupCode) match {
-    case g: Group => g
-    case u: Ungrouped => throw new IllegalArgumentException(u.toString)
+  def group(groupCode: String): SenateGroup = candidateFixture.groupLookup(groupCode) match {
+    case g: SenateGroup => g
+    case u: SenateUngrouped => throw new IllegalArgumentException(u.toString)
   }
 
-  def candidateOrder(candidatesInOrder: String*): Vector[CandidatePosition] = {
+  def candidateOrder(candidatesInOrder: String*): Vector[SenateCandidatePosition] = {
     candidatesInOrder.map(candidatePosition).toVector
   }
 
-  def groupOrder(groupsInOrder: String*): Vector[Group] = {
+  def groupOrder(groupsInOrder: String*): Vector[SenateGroup] = {
     groupsInOrder.map(group).toVector
   }
 }
@@ -69,8 +83,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
 object BallotMaker {
   private val candidatePositionCodePattern = "([A-Z]+)(\\d+)".r
 
-  def candidatePosition(groupFixture: GroupFixture)(positionCode: String): CandidatePosition = positionCode match {
+  def candidatePosition(groupFixture: GroupFixture)(positionCode: String): SenateCandidatePosition = positionCode match {
     case candidatePositionCodePattern(groupCode, position) =>
-      CandidatePosition(groupFixture.groupLookup(groupCode), position.toInt)
+      SenateCandidatePosition(groupFixture.groupLookup(BallotGroup.Code(groupCode).right.get.asString), position.toInt)
   }
 }
