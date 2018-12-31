@@ -12,7 +12,14 @@ sealed trait SenateElection {
   val federalElection: FederalElection
 
   val senateElectionType: SenateElectionType = SenateElectionType.HalfSenate
-  val states: Set[State] = State.ALL_STATES
+
+  protected val states: Set[State] = State.ALL_STATES
+
+  val allStateElections: Set[SenateElectionForState] = states.map { state =>
+    SenateElectionForState.makeUnsafe(this, state)
+  }
+
+  val electionsPerState: Map[State, SenateElectionForState] = allStateElections.map(e => e.state -> e).toMap
 
   val id: SenateElection.Id
 

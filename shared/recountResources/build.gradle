@@ -15,6 +15,8 @@ dependencies {
     compile project(':shared:aws')
     compile project(':shared:io')
 
+    compile "io.circe:circe-parser${s}:$circeVersion"
+
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')
     testCompile project(':shared:testRecountResources')

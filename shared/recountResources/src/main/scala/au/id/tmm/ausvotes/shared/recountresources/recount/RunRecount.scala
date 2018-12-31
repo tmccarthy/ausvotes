@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources.recount
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
+import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
@@ -21,9 +21,9 @@ object RunRecount {
   def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : BME]
   (
     recountRequest: RecountRequest,
-  ): F[RunRecount.Error, ProbabilityMeasure[CompletedCount[Candidate]]] =
+  ): F[RunRecount.Error, ProbabilityMeasure[CompletedCount[SenateCandidate]]] =
     for {
-      entities <- FetchPreferenceTree.fetchGroupsCandidatesAndPreferencesFor(recountRequest.election, recountRequest.state)
+      entities <- FetchPreferenceTree.fetchGroupsCandidatesAndPreferencesFor(recountRequest.election)
         .leftMap(Error.FetchEntitiesException)
 
       preferenceTree = entities.preferenceTree
@@ -36,8 +36,8 @@ object RunRecount {
       }
 
       completedCountPossibilities <- syncException {
-        FullCountComputation.runCount[Candidate](
-          CountParams[Candidate](
+        FullCountComputation.runCount[SenateCandidate](
+          CountParams[SenateCandidate](
             allCandidates,
             ineligibleCandidates,
             recountRequest.vacancies,
@@ -48,8 +48,8 @@ object RunRecount {
       }
         .timedLog(
           "PERFORM_RECOUNT",
-          "election" -> recountRequest.election,
-          "state" -> recountRequest.state,
+          "election" -> recountRequest.election.election,
+          "state" -> recountRequest.election.state,
           "num_ineligible_candidates" -> ineligibleCandidates.size,
           "num_vacancies" -> recountRequest.vacancies,
         )
@@ -61,7 +61,7 @@ object RunRecount {
 
   object Error {
     final case class FetchEntitiesException(cause: FetchPreferenceTreeException) extends Error with ExceptionCaseClass.WithCause
-    final case class InvalidCandidateIds(invalidCandidateIds: Set[AecCandidateId]) extends Error
+    final case class InvalidCandidateIds(invalidCandidateIds: Set[Candidate.Id]) extends Error
     final case class PerformRecountException(cause: Exception) extends Error with ExceptionCaseClass.WithCause
   }
 

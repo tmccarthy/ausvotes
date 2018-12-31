@@ -1,22 +1,19 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
-import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.{FetchPreferenceTreeException, GroupsCandidatesAndPreferences}
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
-import au.id.tmm.utilities.geo.australia.State
 
 trait FetchPreferenceTree[F[+_, +_]] {
 
   def fetchGroupsCandidatesAndPreferencesFor(
-                                              election: SenateElection,
-                                              state: State,
+                                              election: SenateElectionForState,
                                             ): F[FetchPreferenceTreeException, GroupsCandidatesAndPreferences]
 
   def useGroupsCandidatesAndPreferencesWhileCaching[E, A](
-                                                           election: SenateElection,
-                                                           state: State,
+                                                           election: SenateElectionForState,
                                                          )(
                                                            handleEntityFetchError: FetchPreferenceTreeException => F[E, A],
                                                            handleCachePopulationError: FetchPreferenceTreeException => F[E, Unit],
@@ -29,21 +26,19 @@ trait FetchPreferenceTree[F[+_, +_]] {
 object FetchPreferenceTree {
 
   def fetchGroupsCandidatesAndPreferencesFor[F[+_, +_] : FetchPreferenceTree](
-                                                                               election: SenateElection,
-                                                                               state: State,
+                                                                               election: SenateElectionForState,
                                                                              ): F[FetchPreferenceTreeException, GroupsCandidatesAndPreferences] =
-    implicitly[FetchPreferenceTree[F]].fetchGroupsCandidatesAndPreferencesFor(election, state)
+    implicitly[FetchPreferenceTree[F]].fetchGroupsCandidatesAndPreferencesFor(election)
 
   def useGroupsCandidatesAndPreferencesWhileCaching[F[+_, +_] : FetchPreferenceTree, E, A](
-                                                                                            election: SenateElection,
-                                                                                            state: State,
+                                                                                            election: SenateElectionForState,
                                                                                           )(
                                                                                             handleEntityFetchError: FetchPreferenceTreeException => F[E, A],
                                                                                             handleCachePopulationError: FetchPreferenceTreeException => F[E, Unit],
                                                                                           )(
                                                                                             action: GroupsCandidatesAndPreferences => F[E, A],
                                                                                           ): F[E, A] =
-    implicitly[FetchPreferenceTree[F]].useGroupsCandidatesAndPreferencesWhileCaching(election, state)(handleEntityFetchError, handleCachePopulationError)(action)
+    implicitly[FetchPreferenceTree[F]].useGroupsCandidatesAndPreferencesWhileCaching(election)(handleEntityFetchError, handleCachePopulationError)(action)
 
   sealed abstract class FetchPreferenceTreeException extends ExceptionCaseClass
 
@@ -55,9 +50,9 @@ object FetchPreferenceTree {
 
   final case class GroupsCandidatesAndPreferences(
                                                    groupsAndCandidates: GroupsAndCandidates,
-                                                   preferenceTree: RootPreferenceTree[Candidate],
+                                                   preferenceTree: RootPreferenceTree[SenateCandidate],
                                                  ) {
-    def groups: Set[Group] = groupsAndCandidates.groups
-    def candidates: Set[Candidate] = groupsAndCandidates.candidates
+    def groups: Set[SenateGroup] = groupsAndCandidates.groups
+    def candidates: Set[SenateCandidate] = groupsAndCandidates.candidates
   }
 }

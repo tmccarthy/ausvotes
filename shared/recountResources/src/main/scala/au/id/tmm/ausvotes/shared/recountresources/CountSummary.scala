@@ -1,19 +1,13 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import argonaut.Argonaut._
-import argonaut.{DecodeJson, EncodeJson}
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
-import au.id.tmm.ausvotes.core.model.codecs.DupelessSeqCodec._
-import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
-import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
-import au.id.tmm.ausvotes.core.model.codecs.ProbabilityMeasureCodec._
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
+import au.id.tmm.ausvotes.model.instances.CountStvCodecs._
+import au.id.tmm.ausvotes.model.instances.ProbabilityMeasureCodec._
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.countstv.model.{CandidateStatuses, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import io.circe.{Decoder, Encoder}
 
 final case class CountSummary(
                                request: CountSummary.Request,
@@ -24,7 +18,7 @@ object CountSummary {
 
   def from(
             request: RecountRequest,
-            completedCountPossibilities: ProbabilityMeasure[CompletedCount[Candidate]],
+            completedCountPossibilities: ProbabilityMeasure[CompletedCount[SenateCandidate]],
           ): Either[CountSummaryConstructionError, CountSummary] =
     for {
 
@@ -33,12 +27,11 @@ object CountSummary {
         case None => Left(CountSummaryConstructionError.MultipleIneligibleCandidatePossibilities())
       }
 
-      _ <- if (ineligibleCandidates.map(_.aecId) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
+      _ <- if (ineligibleCandidates.map(_.candidate.id) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
 
     } yield CountSummary(
       CountSummary.Request(
         request.election,
-        request.state,
         request.vacancies,
         ineligibleCandidates,
         doRounding = request.doRounding,
@@ -61,56 +54,38 @@ object CountSummary {
   }
 
   final case class Request(
-                            election: SenateElection,
-                            state: State,
+                            election: SenateElectionForState,
                             numVacancies: Int,
-                            ineligibleCandidates: Set[Candidate],
+                            ineligibleCandidates: Set[SenateCandidate],
                             doRounding: Boolean,
                           )
 
   final case class Outcome(
-                            elected: DupelessSeq[Candidate],
+                            elected: DupelessSeq[SenateCandidate],
                             exhaustedVotes: VoteCount,
                             roundingError: VoteCount,
-                            candidateOutcomes: CandidateStatuses[Candidate],
+                            candidateOutcomes: CandidateStatuses[SenateCandidate],
                           )
 
   object Request {
-    implicit val encode: EncodeJson[Request] = request =>
-      jObjectFields(
-        "election" -> request.election.asJson,
-        "state" -> request.state.asJson,
-        "numVacancies" -> request.numVacancies.asJson,
-        "ineligibleCandidates" -> request.ineligibleCandidates.asJson,
-        "doRounding" -> request.doRounding.asJson,
-      )
+    implicit val encoder: Encoder[Request] = Encoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(r => (r.election, r.numVacancies, r.ineligibleCandidates, r.doRounding))
 
-    implicit def decode(implicit decodeCandidate: DecodeJson[Candidate]): DecodeJson[Request] =
-      jdecode5L(Request.apply)("election", "state", "numVacancies", "ineligibleCandidates", "doRounding")
+    implicit def decode(implicit decodeCandidate: Decoder[SenateCandidate]): Decoder[Request] =
+      Decoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(Request.apply)
   }
 
   object Outcome {
 
-    implicit val encode: EncodeJson[Outcome] = outcome =>
-      jObjectFields(
-        "elected" -> outcome.candidateOutcomes.electedCandidates.asJson,
-        "exhaustedVotes" -> outcome.exhaustedVotes.asJson,
-        "roundingError" -> outcome.roundingError.asJson,
-        "candidateOutcomes" -> outcome.candidateOutcomes.asJson,
-      )
+    implicit val encoder: Encoder[Outcome] = Encoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(o => (o.candidateOutcomes.electedCandidates, o.exhaustedVotes, o.roundingError, o.candidateOutcomes))
 
-    implicit def decode(implicit decodeCandidate: DecodeJson[Candidate]): DecodeJson[Outcome] =
-      jdecode4L(Outcome.apply)("elected", "exhaustedVotes", "roundingError", "candidateOutcomes")
+    implicit def decode(implicit decodeCandidate: Decoder[SenateCandidate]): Decoder[Outcome] =
+      Decoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(Outcome.apply)
 
   }
 
-  implicit val encodeRecountResult: EncodeJson[CountSummary] = result =>
-    jObjectFields(
-      "request" -> result.request.asJson,
-      "outcomePossibilities" -> result.outcomePossibilities.asJson,
-    )
+  implicit val encoder: Encoder[CountSummary] = Encoder.forProduct2("request", "outcomePossibilities")(r => (r.request, r.outcomePossibilities))
 
-  implicit def decodeRecountResult(implicit decodeCandidates: DecodeJson[Candidate]): DecodeJson[CountSummary] =
-    jdecode2L(CountSummary.apply)("request", "outcomePossibilities")
+  implicit def decode(implicit decodeCandidate: Decoder[SenateCandidate]): Decoder[CountSummary] =
+    Decoder.forProduct2("request", "outcomePossibilities")(CountSummary.apply)
 
 }

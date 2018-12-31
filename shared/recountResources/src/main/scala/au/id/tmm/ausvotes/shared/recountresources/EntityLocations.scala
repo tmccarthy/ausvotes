@@ -1,24 +1,23 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
-import au.id.tmm.utilities.geo.australia.State
 
 object EntityLocations {
 
-  private def locationOfDirectoryFor(election: SenateElection, state: State): S3ObjectKey =
-    S3ObjectKey("recountData", election.id, state.abbreviation)
+  private def locationOfDirectoryFor(election: SenateElectionForState): S3ObjectKey =
+    S3ObjectKey("recountData", election.election.id.asString, election.state.abbreviation)
 
-  def locationOfGroupsObject(election: SenateElection, state: State): S3ObjectKey =
-    locationOfDirectoryFor(election, state) / "groups.json"
+  def locationOfGroupsObject(election: SenateElectionForState): S3ObjectKey =
+    locationOfDirectoryFor(election) / "groups.json"
 
-  def locationOfCandidatesObject(election: SenateElection, state: State): S3ObjectKey =
-    locationOfDirectoryFor(election, state) / "candidates.json"
+  def locationOfCandidatesObject(election: SenateElectionForState): S3ObjectKey =
+    locationOfDirectoryFor(election) / "candidates.json"
 
-  def locationOfPreferenceTree(election: SenateElection, state: State): S3ObjectKey =
-    locationOfDirectoryFor(election, state) / "preferences.tree"
+  def locationOfPreferenceTree(election: SenateElectionForState): S3ObjectKey =
+    locationOfDirectoryFor(election) / "preferences.tree"
 
-  def locationOfCanonicalRecount(election: SenateElection, state: State): S3ObjectKey =
-    locationOfDirectoryFor(election, state) / "canonicalRecountResult.json"
+  def locationOfCanonicalRecount(election: SenateElectionForState): S3ObjectKey =
+    locationOfDirectoryFor(election) / "canonicalRecountResult.json"
 
 }

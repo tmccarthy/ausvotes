@@ -1,25 +1,22 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import scalaz.zio.{IO, Promise, Semaphore}
 
 import scala.collection.mutable
 
 package object cached_fetching {
 
-  private[cached_fetching] type CacheMap[E, A] = mutable.Map[StateAtElection, Promise[E, A]]
+  private[cached_fetching] type CacheMap[E, A] = mutable.Map[SenateElectionForState, Promise[E, A]]
 
   private[cached_fetching] def getPromiseFor[E, A](
-                           election: SenateElection,
-                           state: State,
-                           cacheMap: CacheMap[E, A],
-                           mutex: Semaphore,
-                         )(
-                           fetch: IO[E, A]
-                         ): IO[Nothing, Promise[E, A]] = {
-    cacheMap.get((election, state)).foreach(promise => return IO.point(promise))
+                                                    election: SenateElectionForState,
+                                                    cacheMap: CacheMap[E, A],
+                                                    mutex: Semaphore,
+                                                  )(
+                                                    fetch: IO[E, A]
+                                                  ): IO[Nothing, Promise[E, A]] = {
+    cacheMap.get(election).foreach(promise => return IO.point(promise))
 
     for {
       promise <- Promise.make[E, A]
@@ -27,7 +24,7 @@ package object cached_fetching {
       fetchAndCompletePromise = fetch.attempt.flatMap {
         case Right(entity) => promise.complete(entity)
         case Left(exception) => mutex.withPermit {
-          cacheMap.remove((election, state))
+          cacheMap.remove(election)
 
           promise.error(exception)
         }
@@ -35,7 +32,7 @@ package object cached_fetching {
 
       _ <- fetchAndCompletePromise.fork
     } yield {
-      cacheMap.update((election, state), promise)
+      cacheMap.update(election, promise)
 
       promise
     }

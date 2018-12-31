@@ -1,12 +1,10 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.core_fetching
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountResult.FetchCanonicalCountResultException
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchGroupsAndCandidates}
 import au.id.tmm.countstv.model.CompletedCount
-import au.id.tmm.utilities.geo.australia.State
 import scalaz.zio.IO
 
 class CanonicalRecountComputation(
@@ -15,15 +13,14 @@ class CanonicalRecountComputation(
                                  ) extends FetchCanonicalCountResult[IO]{
 
   override def fetchCanonicalCountResultFor(
-                                             election: SenateElection,
-                                             state: State,
-                                           ): IO[FetchCanonicalCountResultException, CompletedCount[Candidate]] =
+                                             election: SenateElectionForState,
+                                           ): IO[FetchCanonicalCountResultException, CompletedCount[SenateCandidate]] =
     for {
-      groupsAndCandidates <- fetchGroupsAndCandidates.fetchGroupsAndCandidatesFor(election, state)
+      groupsAndCandidates <- fetchGroupsAndCandidates.fetchGroupsAndCandidatesFor(election)
           .leftMap(FetchCanonicalCountResultException.FetchGroupsAndCandidatesException)
 
       canonicalRecount <- IO.syncException {
-        parsedDataStore.countDataFor(election, groupsAndCandidates, state)
+        parsedDataStore.countDataFor(election, groupsAndCandidates)
       }.leftMap(FetchCanonicalCountResultException.BuildCanonicalRecountException)
     } yield canonicalRecount.completedCount
 }

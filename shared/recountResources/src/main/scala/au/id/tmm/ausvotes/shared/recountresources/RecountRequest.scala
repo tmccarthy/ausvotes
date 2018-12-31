@@ -1,24 +1,19 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import argonaut.Argonaut._
-import argonaut._
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec.aecCandidateIdCodec
-import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
+import io.circe.{Decoder, Encoder}
 
 final case class RecountRequest(
-                                 election: SenateElection,
-                                 state: State,
+                                 election: SenateElectionForState,
                                  vacancies: Int,
-                                 ineligibleCandidateAecIds: Set[AecCandidateId],
+                                 ineligibleCandidateAecIds: Set[Candidate.Id],
                                  doRounding: Boolean,
                                )
 
 object RecountRequest {
 
-  implicit val codec: CodecJson[RecountRequest] =
-    casecodec5(apply, unapply)("election", "state", "vacancies", "ineligibleCandidates", "doRounding")
+  implicit val encoder: Encoder[RecountRequest] = Encoder.forProduct4("election", "vacancies", "ineligibleCandidates", "doRounding")(c => (c.election, c.vacancies, c.ineligibleCandidateAecIds, c.doRounding))
+  implicit val decoder: Decoder[RecountRequest] = Decoder.forProduct4("election", "vacancies", "ineligibleCandidates", "doRounding")(RecountRequest.apply)
 
 }
