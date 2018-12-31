@@ -1,22 +1,20 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 
-import au.id.tmm.ausvotes.core.model.SenateElection.StateAtElection
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Group}
-import au.id.tmm.ausvotes.core.model.{GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup}
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchGroupsAndCandidates, FetchPreferenceTree}
 import au.id.tmm.countstv.model.preferences.PreferenceTree
-import au.id.tmm.utilities.geo.australia.State
 
 final case class EntitiesTestData(
                                    basicTestData: BasicTestData = BasicTestData(),
 
-                                   groups: Map[StateAtElection, Set[Group]] = Map.empty,
-                                   candidates: Map[StateAtElection, Set[Candidate]] = Map.empty,
-                                   canonicalCountResults: Map[StateAtElection, CountSummary] = Map.empty,
-                                   ballots: Map[StateAtElection, Vector[Vector[Candidate]]] = Map.empty,
+                                   groups: Map[SenateElectionForState, Set[SenateGroup]] = Map.empty,
+                                   candidates: Map[SenateElectionForState, Set[SenateCandidate]] = Map.empty,
+                                   canonicalCountResults: Map[SenateElectionForState, CountSummary] = Map.empty,
+                                   ballots: Map[SenateElectionForState, Vector[Vector[SenateCandidate]]] = Map.empty,
                                  )
 
 object EntitiesTestData {
@@ -33,17 +31,15 @@ object EntitiesTestData {
     override protected def setBasicTestDataField(oldData: D, newBasicTestData: BasicTestData): D
 
     override def fetchGroupsCandidatesAndPreferencesFor(
-                                                         election: SenateElection,
-                                                         state: State,
+                                                         election: SenateElectionForState,
                                                        ): TestIO[D, FetchPreferenceTree.FetchPreferenceTreeException, FetchPreferenceTree.GroupsCandidatesAndPreferences] = {
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
-        val stateAtElection = (election, state)
 
-        val ballots = entitiesTestData.ballots.getOrElse(stateAtElection, Vector.empty)
+        val ballots = entitiesTestData.ballots.getOrElse(election, Vector.empty)
 
-        val groups = entitiesTestData.groups.getOrElse(stateAtElection, Set.empty)
-        val candidates = entitiesTestData.candidates.getOrElse(stateAtElection, Set.empty)
+        val groups = entitiesTestData.groups.getOrElse(election, Set.empty)
+        val candidates = entitiesTestData.candidates.getOrElse(election, Set.empty)
         val preferenceTree = PreferenceTree.from(candidates)(ballots)
 
         val groupsCandidatesAndPreferences =
@@ -55,8 +51,7 @@ object EntitiesTestData {
 
     //noinspection NotImplementedCode
     override def useGroupsCandidatesAndPreferencesWhileCaching[E, A](
-                                                                      election: SenateElection,
-                                                                      state: State,
+                                                                      election: SenateElectionForState,
                                                                     )(
                                                                       handleEntityFetchError: FetchPreferenceTree.FetchPreferenceTreeException => TestIO[D, E, A],
                                                                       handleCachePopulationError: FetchPreferenceTree.FetchPreferenceTreeException => TestIO[D, E, Unit],
@@ -67,30 +62,27 @@ object EntitiesTestData {
     }
 
     override def fetchGroupsAndCandidatesFor(
-                                              election: SenateElection,
-                                              state: State,
+                                              election: SenateElectionForState,
                                             ): TestIO[D, FetchGroupsAndCandidatesException, GroupsAndCandidates] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
-        val stateAtElection = (election, state)
 
         val groupsAndCandidates = GroupsAndCandidates(
-          entitiesTestData.groups.getOrElse(stateAtElection, Set.empty),
-          entitiesTestData.candidates.getOrElse(stateAtElection, Set.empty),
+          entitiesTestData.groups.getOrElse(election, Set.empty),
+          entitiesTestData.candidates.getOrElse(election, Set.empty),
         )
 
         TestIO.Output(testData, Right(groupsAndCandidates))
       }
 
     override def fetchCanonicalCountSummaryFor(
-                                               election: SenateElection,
-                                               state: State,
+                                                election: SenateElectionForState,
                                              ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
-        val stateAtElection = (election, state)
 
-        TestIO.Output(testData, Right(entitiesTestData.canonicalCountResults.getOrElse(stateAtElection, ???))) // TODO encode the s3 not found behaviour into an error
+        //noinspection NotImplementedCode
+        TestIO.Output(testData, Right(entitiesTestData.canonicalCountResults.getOrElse(election, ???))) // TODO encode the s3 not found behaviour into an error
       }
   }
 
