@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.shared.recountresources.recount
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.{Candidate, Name}
+import au.id.tmm.ausvotes.model.Name
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection}
 import au.id.tmm.ausvotes.shared.io.test.TestIO
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.testing.EntitiesTestData
@@ -21,12 +21,10 @@ class RunRecountSpec extends ImprovedFlatSpec {
 
   "performing a recount" should "successfully complete a count" in {
 
-    val election = SenateElection.`2016`
-    val state = State.ACT
+    val election = SenateElection.`2016`.electionsPerState(State.ACT)
 
     val request = RecountRequest(
       election = election,
-      state = state,
       vacancies = 2,
       ineligibleCandidateAecIds = Set.empty,
       doRounding = true,
@@ -35,9 +33,9 @@ class RunRecountSpec extends ImprovedFlatSpec {
     val logicUnderTest = RunRecount.runRecountRequest[TestIO[EntitiesTestData, +?, +?]](request)
 
     val testData = EntitiesTestData(
-      groups = Map((election, state) -> candidateFixture.groupFixture.groups),
-      candidates = Map((election, state) -> candidateFixture.candidates),
-      ballots = Map((election, state) -> candidateFixture.candidates.toVector.flatMap { candidate =>
+      groups = Map(election -> candidateFixture.groupFixture.groups),
+      candidates = Map(election -> candidateFixture.candidates),
+      ballots = Map(election -> candidateFixture.candidates.toVector.flatMap { candidate =>
         if (candidate == katyGallagher) {
           Vector.fill(100)(Vector(candidate))
         } else if (candidate == zedSeselja) {
@@ -48,7 +46,7 @@ class RunRecountSpec extends ImprovedFlatSpec {
       })
     )
 
-    val actualResult: Either[RunRecount.Error, ProbabilityMeasure[CompletedCount[Candidate]]] = logicUnderTest.run(testData).result
+    val actualResult: Either[RunRecount.Error, ProbabilityMeasure[CompletedCount[SenateCandidate]]] = logicUnderTest.run(testData).result
 
     assert(actualResult.map(_.onlyOutcomeUnsafe.outcomes.electedCandidates) === Right(DupelessSeq(
       katyGallagher,

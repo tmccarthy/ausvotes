@@ -1,15 +1,16 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import argonaut.Argonaut._
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
+import au.id.tmm.ausvotes.model.Candidate
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class RecountResponseSpec extends ImprovedFlatSpec {
 
   "the recount response encoder" can "encode a failure due to a bad request" in {
     val failure: RecountResponse = RecountResponse.Failure.RequestDecodeError("Invalid json", "{")
 
-    val expectedJson = jObjectFields(
+    val expectedJson = Json.obj(
       "success" -> false.asJson,
       "errorType" -> "RequestDecodeError".asJson,
       "message" -> "Invalid json".asJson,
@@ -20,12 +21,12 @@ class RecountResponseSpec extends ImprovedFlatSpec {
   }
 
   it can "encode a failure due to invalid candidate ids" in {
-    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set(AecCandidateId("123"), AecCandidateId("456")))
+    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set(Candidate.Id(123), Candidate.Id(456)))
 
-    val expectedJson = jObjectFields(
+    val expectedJson = Json.obj(
       "success" -> false.asJson,
       "errorType" -> "InvalidCandidateIds".asJson,
-      "invalidCandidateIds" -> jArrayElements(
+      "invalidCandidateIds" -> Json.arr(
         "123".asJson,
         "456".asJson,
       ),
@@ -37,7 +38,7 @@ class RecountResponseSpec extends ImprovedFlatSpec {
   it can "encode an internal error" in {
     val failure: RecountResponse = RecountResponse.Failure.InternalError
 
-    val expectedJson = jObjectFields(
+    val expectedJson = Json.obj(
       "success" -> false.asJson,
       "errorType" -> "InternalError".asJson,
     )
@@ -50,7 +51,7 @@ class RecountResponseSpec extends ImprovedFlatSpec {
       CountSummarySpec.recountResultFixture
     )
 
-    val expectedJson = jObjectFields(
+    val expectedJson = Json.obj(
       "success" -> true.asJson,
       "recountResult" -> CountSummarySpec.recountResultFixture.asJson,
     )

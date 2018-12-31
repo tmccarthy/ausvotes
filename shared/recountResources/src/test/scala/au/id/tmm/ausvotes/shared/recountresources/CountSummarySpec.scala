@@ -1,12 +1,8 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.codecs.CandidateCodec._
-import au.id.tmm.ausvotes.core.model.codecs.GeneralCodecs._
-import au.id.tmm.ausvotes.core.model.codecs.PartyCodec._
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection}
+import au.id.tmm.ausvotes.model.instances.CountStvCodecs._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummarySpec._
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
@@ -14,6 +10,8 @@ import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class CountSummarySpec extends ImprovedFlatSpec {
 
@@ -23,102 +21,102 @@ class CountSummarySpec extends ImprovedFlatSpec {
 
     val recountResult = recountResultFixture
 
-    val expectedEncode = jObjectFields(
-      "request" -> jObjectFields(
-        "election" -> jString("2016"),
-        "state" -> jString("ACT"),
-        "numVacancies" -> jNumber(2),
-        "ineligibleCandidates" -> jArrayElements(mattDonnelly.asJson),
-        "doRounding" -> jTrue,
+    val expectedEncode = Json.obj(
+      "request" -> Json.obj(
+        "election" -> Json.fromString("2016"),
+        "state" -> Json.fromString("ACT"),
+        "numVacancies" -> Json.fromInt(2),
+        "ineligibleCandidates" -> Json.arr(mattDonnelly.asJson),
+        "doRounding" -> Json.True,
       ),
-      "outcomePossibilities" -> jArrayElements(
-        jObjectFields(
-          "probability" -> jString("1/2"),
-          "outcome" -> jObjectFields(
-            "elected" -> jArrayElements(katyGallagher.asJson, zedSeselja.asJson),
+      "outcomePossibilities" -> Json.arr(
+        Json.obj(
+          "probability" -> Json.fromString("1/2"),
+          "outcome" -> Json.obj(
+            "elected" -> Json.arr(katyGallagher.asJson, zedSeselja.asJson),
             "exhaustedVotes" -> VoteCount.zero.asJson,
             "roundingError" -> VoteCount.zero.asJson,
-            "candidateOutcomes" -> jArrayElements(
-              jObjectFields(
+            "candidateOutcomes" -> Json.arr(
+              Json.obj(
                 "candidate" -> katyGallagher.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("elected"),
-                  "ordinal" -> jNumber(0),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("elected"),
+                  "ordinal" -> Json.fromInt(0),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> zedSeselja.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("elected"),
-                  "ordinal" -> jNumber(1),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("elected"),
+                  "ordinal" -> Json.fromInt(1),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> christinaHobbs.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("remaining"),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("remaining"),
                 ),
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> anthonyHanson.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("excluded"),
-                  "ordinal" -> jNumber(0),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("excluded"),
+                  "ordinal" -> Json.fromInt(0),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> mattDonnelly.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("ineligible"),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("ineligible"),
                 ),
               ),
             ),
           ),
         ),
-        jObjectFields(
-          "probability" -> jString("1/2"),
-          "outcome" -> jObjectFields(
-            "elected" -> jArrayElements(zedSeselja.asJson, katyGallagher.asJson),
+        Json.obj(
+          "probability" -> Json.fromString("1/2"),
+          "outcome" -> Json.obj(
+            "elected" -> Json.arr(zedSeselja.asJson, katyGallagher.asJson),
             "exhaustedVotes" -> VoteCount.zero.asJson,
             "roundingError" -> VoteCount.zero.asJson,
-            "candidateOutcomes" -> jArrayElements(
-              jObjectFields(
+            "candidateOutcomes" -> Json.arr(
+              Json.obj(
                 "candidate" -> zedSeselja.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("elected"),
-                  "ordinal" -> jNumber(0),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("elected"),
+                  "ordinal" -> Json.fromInt(0),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> katyGallagher.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("elected"),
-                  "ordinal" -> jNumber(1),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("elected"),
+                  "ordinal" -> Json.fromInt(1),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> christinaHobbs.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("remaining"),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("remaining"),
                 ),
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> anthonyHanson.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("excluded"),
-                  "ordinal" -> jNumber(0),
-                  "count" -> jNumber(1),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("excluded"),
+                  "ordinal" -> Json.fromInt(0),
+                  "count" -> Json.fromInt(1),
                 )
               ),
-              jObjectFields(
+              Json.obj(
                 "candidate" -> mattDonnelly.asJson,
-                "outcome" -> jObjectFields(
-                  "status" -> jString("ineligible"),
+                "outcome" -> Json.obj(
+                  "status" -> Json.fromString("ineligible"),
                 ),
               ),
             ),
@@ -138,8 +136,7 @@ object CountSummarySpec {
 
   val recountResultFixture = CountSummary(
     CountSummary.Request(
-      election = SenateElection.`2016`,
-      state = State.ACT,
+      election = SenateElection.`2016`.electionsPerState(State.ACT),
       numVacancies = 2,
       ineligibleCandidates = Set(mattDonnelly),
       doRounding = true,
@@ -149,7 +146,7 @@ object CountSummarySpec {
         elected = DupelessSeq(katyGallagher),
         exhaustedVotes = VoteCount.zero,
         roundingError = VoteCount.zero,
-        CandidateStatuses[Candidate](
+        CandidateStatuses[SenateCandidate](
           katyGallagher -> CandidateStatus.Elected(Ordinal.first, Count(1)),
           zedSeselja -> CandidateStatus.Elected(Ordinal.second, Count(1)),
           anthonyHanson -> CandidateStatus.Excluded(Ordinal.first, Count(1)),
@@ -161,7 +158,7 @@ object CountSummarySpec {
         elected = DupelessSeq(katyGallagher),
         exhaustedVotes = VoteCount.zero,
         roundingError = VoteCount.zero,
-        CandidateStatuses[Candidate](
+        CandidateStatuses[SenateCandidate](
           katyGallagher -> CandidateStatus.Elected(Ordinal.second, Count(1)),
           zedSeselja -> CandidateStatus.Elected(Ordinal.first, Count(1)),
           anthonyHanson -> CandidateStatus.Excluded(Ordinal.first, Count(1)),
