@@ -27,8 +27,8 @@ class RecountResponseSpec extends ImprovedFlatSpec {
       "success" -> false.asJson,
       "errorType" -> "InvalidCandidateIds".asJson,
       "invalidCandidateIds" -> Json.arr(
-        "123".asJson,
-        "456".asJson,
+        123.asJson,
+        456.asJson,
       ),
     )
 

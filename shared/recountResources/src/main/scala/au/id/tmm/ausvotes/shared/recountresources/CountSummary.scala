@@ -76,10 +76,10 @@ object CountSummary {
 
   object Outcome {
 
-    implicit val encoder: Encoder[Outcome] = Encoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(o => (o.candidateOutcomes.electedCandidates, o.exhaustedVotes, o.roundingError, o.candidateOutcomes))
+    implicit val encoder: Encoder[Outcome] = Encoder.forProduct4("elected", "exhaustedVotes", "roundingError", "candidateOutcomes")(o => (o.candidateOutcomes.electedCandidates, o.exhaustedVotes, o.roundingError, o.candidateOutcomes))
 
     implicit def decode(implicit decodeCandidate: Decoder[SenateCandidate]): Decoder[Outcome] =
-      Decoder.forProduct4("election", "numVacancies", "ineligibleCandidates", "doRounding")(Outcome.apply)
+      Decoder.forProduct4("elected", "exhaustedVotes", "roundingError", "candidateOutcomes")(Outcome.apply)
 
   }
 

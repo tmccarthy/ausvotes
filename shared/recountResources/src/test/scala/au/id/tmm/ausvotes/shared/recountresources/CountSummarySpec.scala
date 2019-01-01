@@ -23,8 +23,10 @@ class CountSummarySpec extends ImprovedFlatSpec {
 
     val expectedEncode = Json.obj(
       "request" -> Json.obj(
-        "election" -> Json.fromString("2016"),
-        "state" -> Json.fromString("ACT"),
+        "election" -> Json.obj(
+          "election" -> Json.fromString("2016"),
+          "state" -> Json.fromString("ACT"),
+        ),
         "numVacancies" -> Json.fromInt(2),
         "ineligibleCandidates" -> Json.arr(mattDonnelly.asJson),
         "doRounding" -> Json.True,
