@@ -21,7 +21,7 @@ class RunRecountSpec extends ImprovedFlatSpec {
 
   "performing a recount" should "successfully complete a count" in {
 
-    val election = SenateElection.`2016`.electionsPerState(State.ACT)
+    val election = SenateElection.`2016`.electionForState(State.ACT).get
 
     val request = RecountRequest(
       election = election,

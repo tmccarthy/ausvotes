@@ -138,7 +138,7 @@ object CountSummarySpec {
 
   val recountResultFixture = CountSummary(
     CountSummary.Request(
-      election = SenateElection.`2016`.electionsPerState(State.ACT),
+      election = SenateElection.`2016`.electionForState(State.ACT).get,
       numVacancies = 2,
       ineligibleCandidates = Set(mattDonnelly),
       doRounding = true,

@@ -20,7 +20,7 @@ class RecountRoutesSpec extends ImprovedFlatSpec {
     )
 
     val expectedRecountRequest = RecountApiRequest(
-      SenateElection.`2016`.electionsPerState(State.VIC),
+      SenateElection.`2016`.electionForState(State.VIC).get,
       numVacancies = Some(6),
       ineligibleCandidates = Some(Set(Candidate.Id(1234))),
       doRounding = Some(true),

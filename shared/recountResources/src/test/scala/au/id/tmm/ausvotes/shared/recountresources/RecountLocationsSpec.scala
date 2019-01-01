@@ -10,7 +10,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
 
   "The recount location" can "be computed when there are no ineligible candidates" in {
     val recountLocation = RecountLocations.locationOfRecountFor(RecountRequest(
-      SenateElection.`2016`.electionsPerState(State.VIC),
+      SenateElection.`2016`.electionForState(State.VIC).get,
       12,
       Set.empty,
       doRounding = true,
@@ -31,7 +31,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
 
   it can "be computed when there are ineligible candidates" in {
     val recountLocation = RecountLocations.locationOfRecountFor(RecountRequest(
-      SenateElection.`2014 WA`.electionsPerState(State.WA),
+      SenateElection.`2014 WA`.electionForState(State.WA).get,
       6,
       Set(Candidate.Id(123), Candidate.Id(456)),
       doRounding = false,

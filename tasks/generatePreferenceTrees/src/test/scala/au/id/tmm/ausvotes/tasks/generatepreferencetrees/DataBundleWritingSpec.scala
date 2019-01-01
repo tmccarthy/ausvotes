@@ -26,7 +26,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
 
     val recountResult = CountSummary(
       CountSummary.Request(
-        SenateElection.`2016`.electionsPerState(State.ACT),
+        SenateElection.`2016`.electionForState(State.ACT).get,
         2,
         ineligibleCandidates = Set(
           zedSeselja,
@@ -51,7 +51,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
     )
 
     val dataBundleToWrite = DataBundleForElection(
-      SenateElection.`2016`.electionsPerState(State.ACT),
+      SenateElection.`2016`.electionForState(State.ACT).get,
       GroupAndCandidateFixture.ACT.groupsAndCandidates,
       DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces,
       recountResult,

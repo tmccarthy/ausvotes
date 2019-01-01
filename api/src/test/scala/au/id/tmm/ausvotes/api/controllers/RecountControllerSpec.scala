@@ -36,7 +36,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
   behaviour of "requesting a recount"
 
-  private val election = SenateElection.`2016`.electionsPerState(State.ACT)
+  private val election = SenateElection.`2016`.electionForState(State.ACT).get
 
   it should "return a cached recount if one is present in s3" in {
     val request = RecountApiRequest(election, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)

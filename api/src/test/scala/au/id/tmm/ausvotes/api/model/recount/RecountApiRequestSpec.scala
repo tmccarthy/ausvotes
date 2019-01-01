@@ -20,7 +20,7 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
     val request = actualRecountRequestGiven()
 
     val expectedRecountRequest = RecountApiRequest(
-      SenateElection.`2016`.electionsPerState(State.VIC),
+      SenateElection.`2016`.electionForState(State.VIC).get,
       numVacancies = Some(12),
       ineligibleCandidates = Some(Set(Candidate.Id(123), Candidate.Id(456), Candidate.Id(789))),
       doRounding = Some(true),
