@@ -13,7 +13,7 @@ sealed trait SenateElection {
 
   val senateElectionType: SenateElectionType = SenateElectionType.HalfSenate
 
-  protected val states: Set[State] = State.ALL_STATES
+  protected def states: Set[State] = State.ALL_STATES
 
   val allStateElections: Set[SenateElectionForState] = states.map { state =>
     SenateElectionForState.makeUnsafe(this, state)
@@ -55,7 +55,7 @@ object SenateElection {
 
   case object `2014 WA` extends SenateElection {
     override val federalElection: FederalElection = FederalElection.`2014 WA`
-    override val states: Set[State] = Set(State.WA)
+    override def states: Set[State] = Set(State.WA)
     override val id: SenateElection.Id = SenateElection.Id(federalElection.id.asString)
   }
 
