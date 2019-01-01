@@ -19,7 +19,8 @@ dependencies {
     compile "commons-io:commons-io:$commonsIoVersion"
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
 
-    compile "io.argonaut:argonaut${s}:$argonautVersion"
+    compile "io.circe:circe-core${s}:$circeVersion"
+    compile "io.circe:circe-parser${s}:$circeVersion"
 
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 

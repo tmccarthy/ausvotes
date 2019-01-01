@@ -3,11 +3,11 @@ package au.id.tmm.ausvotes.lambdas.utils.snsintegration
 import java.time.Instant
 import java.util.UUID
 
-import argonaut.Argonaut._
-import argonaut._
-import au.id.tmm.ausvotes.lambdas.utils.DateTimeCodecs._
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.SnsLambdaRequest.SnsBody
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.SnsLambdaRequest.SnsBody.MessageAttributes
+import cats.syntax.show.toShow
+import io.circe.parser._
+import io.circe.{Decoder, DecodingFailure}
 
 final case class SnsLambdaRequest[A](
                                       eventVersion: String,
@@ -36,10 +36,10 @@ object SnsLambdaRequest {
     final case class MessageAttributes()
 
     object MessageAttributes {
-      implicit val decode: DecodeJson[MessageAttributes] = c => DecodeResult.ok(MessageAttributes())
+      implicit val decode: Decoder[MessageAttributes] = c => Right(MessageAttributes())
     }
 
-    implicit def decode[A : DecodeJson]: DecodeJson[SnsBody[A]] = c => {
+    implicit def decode[A : Decoder]: Decoder[SnsBody[A]] = c => {
       for {
         signatureVersion <- c.downField("SignatureVersion").as[String]
         timestamp <- c.downField("Timestamp").as[Instant]
@@ -47,7 +47,7 @@ object SnsLambdaRequest {
         signingCertUrl <- c.downField("SigningCertUrl").as[String]
         messageId <- c.downField("MessageId").as[UUID]
         messageString <- c.downField("Message").as[String]
-        messageJson <- DecodeResult(JsonParser.parse(messageString).left.map(message => message -> c.history))
+        messageJson <- parse(messageString).left.map(message => DecodingFailure(message.show, c.history))
         message <- messageJson.as[A]
         messageAttributes <- c.downField("MessageAttributes").as[MessageAttributes]
         eventType <- c.downField("Type").as[String]
@@ -70,7 +70,7 @@ object SnsLambdaRequest {
     }
   }
 
-  implicit def decode[A : DecodeJson]: DecodeJson[SnsLambdaRequest[A]] = rootCursor => {
+  implicit def decode[A : Decoder]: Decoder[SnsLambdaRequest[A]] = rootCursor => {
     val c = rootCursor.downField("Records").downN(0)
 
     for {

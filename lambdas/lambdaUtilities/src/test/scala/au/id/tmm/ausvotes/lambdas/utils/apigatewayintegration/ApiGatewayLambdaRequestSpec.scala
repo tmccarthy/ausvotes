@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import argonaut.Parse
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.parser._
 
 class ApiGatewayLambdaRequestSpec extends ImprovedFlatSpec {
 
@@ -110,7 +110,7 @@ class ApiGatewayLambdaRequestSpec extends ImprovedFlatSpec {
       isBase64Encoded = false,
     )
 
-    assert(Parse.decodeEither[ApiGatewayLambdaRequest](requestJson) === Right(expectedRequest))
+    assert(parse(requestJson).flatMap(_.as[ApiGatewayLambdaRequest]) === Right(expectedRequest))
   }
 
 }

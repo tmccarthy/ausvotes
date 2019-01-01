@@ -3,9 +3,8 @@ package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
-import argonaut.{Argonaut, DecodeJson}
-import au.id.tmm.ausvotes.lambdas.utils.DateTimeCodecs
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaRequest.RequestContext
+import io.circe.Decoder
 
 final case class ApiGatewayLambdaRequest(
                                           resource: String,
@@ -22,7 +21,7 @@ final case class ApiGatewayLambdaRequest(
 
 object ApiGatewayLambdaRequest {
 
-  implicit val decoder: DecodeJson[ApiGatewayLambdaRequest] = c => for {
+  implicit val decoder: Decoder[ApiGatewayLambdaRequest] = c => for {
     resource <- c.downField("resource").as[String]
     path <- c.downField("path").as[String]
     httpMethod <- c.downField("httpMethod").as[String]
@@ -55,13 +54,12 @@ object ApiGatewayLambdaRequest {
 
   object RequestContext {
 
-    private implicit val requestTimeDecoder: DecodeJson[OffsetDateTime] =
-      DateTimeCodecs.offsetDateTimeDecoder(DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss xxxx"))
+    private implicit val requestTimeDecoder: Decoder[OffsetDateTime] =
+      Decoder.decodeOffsetDateTimeWithFormatter(DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss xxxx"))
 
-    implicit val decoder: DecodeJson[RequestContext] = Argonaut.jdecode12L(RequestContext.apply)(
-      "accountId", "resourceId", "stage", "requestId", "extendedRequestId", "requestTime", "path", "protocol",
-      "identity", "resourcePath", "httpMethod", "apiId",
-    )
+    implicit val decoder: Decoder[RequestContext] = Decoder.forProduct12("accountId", "resourceId", "stage",
+      "requestId", "extendedRequestId", "requestTime", "path", "protocol", "identity", "resourcePath", "httpMethod",
+      "apiId")(RequestContext.apply)
 
     final case class Identity(
                                cognitoIdentityPoolId: Option[String],
@@ -79,10 +77,10 @@ object ApiGatewayLambdaRequest {
                              )
 
     object Identity {
-      implicit val decoder: DecodeJson[Identity] = Argonaut.jdecode12L(Identity.apply)(
+      implicit val decoder: Decoder[Identity] = Decoder.forProduct12(
         "cognitoIdentityPoolId", "accountId", "cognitoIdentityId", "caller", "apiKey", "sourceIp", "accessKey",
         "cognitoAuthenticationType", "cognitoAuthenticationProvider", "userArn", "userAgent", "user",
-      )
+      )(Identity.apply)
     }
   }
 }

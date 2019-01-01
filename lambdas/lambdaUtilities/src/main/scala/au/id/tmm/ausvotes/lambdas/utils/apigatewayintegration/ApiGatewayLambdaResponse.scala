@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration
 
-import argonaut.Argonaut._
-import argonaut._
+import io.circe.syntax.EncoderOps
+import io.circe.{Encoder, Json}
 
 final case class ApiGatewayLambdaResponse(
                                            statusCode: Int,
@@ -11,7 +11,7 @@ final case class ApiGatewayLambdaResponse(
 
 object ApiGatewayLambdaResponse {
 
-  implicit val encodeResponse: EncodeJson[ApiGatewayLambdaResponse] = response => jObjectFields(
+  implicit val encodeResponse: Encoder[ApiGatewayLambdaResponse] = response => Json.obj(
     "statusCode" -> response.statusCode.asJson,
     "headers" -> response.headers.asJson,
     "body" -> response.body.toString().asJson,

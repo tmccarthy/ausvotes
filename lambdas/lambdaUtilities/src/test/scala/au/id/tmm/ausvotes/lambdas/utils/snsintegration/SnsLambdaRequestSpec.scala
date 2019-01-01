@@ -3,16 +3,17 @@ package au.id.tmm.ausvotes.lambdas.utils.snsintegration
 import java.time.Instant
 import java.util.UUID
 
-import argonaut.{DecodeJson, Parse}
 import au.id.tmm.ausvotes.lambdas.utils.snsintegration.SnsLambdaRequest.SnsBody.MessageAttributes
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Decoder
+import io.circe.parser.parse
 
 class SnsLambdaRequestSpec extends ImprovedFlatSpec {
 
   "a request" can "be decoded" in {
     final case class Message(message: String)
 
-    implicit val decodeMessage: DecodeJson[Message] = c => c.downField("message").as[String].map(Message)
+    implicit val decodeMessage: Decoder[Message] = c => c.downField("message").as[String].map(Message)
 
     val requestJson =
       """
@@ -68,7 +69,7 @@ class SnsLambdaRequestSpec extends ImprovedFlatSpec {
       ),
     )
 
-    assert(Parse.decodeEither[SnsLambdaRequest[Message]](requestJson) === Right(expectedRequest))
+    assert(parse(requestJson).flatMap(_.as[SnsLambdaRequest[Message]]) === Right(expectedRequest))
   }
 
 }
