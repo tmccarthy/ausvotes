@@ -83,7 +83,7 @@ object CompareRecounts extends zio.App {
     for {
       /*_*/
       comparisons <- elections.toList
-        .sorted(orderStatesByPopulation.reverse)
+        .sortBy(_.state)(orderStatesByPopulation.reverse)
         .traverse((election: SenateElectionForState) =>
           compareFor[F](election)
         )
