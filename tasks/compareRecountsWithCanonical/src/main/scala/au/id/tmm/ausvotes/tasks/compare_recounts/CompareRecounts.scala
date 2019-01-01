@@ -3,10 +3,9 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import java.nio.file.{InvalidPathException, Path, Paths}
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.model.SenateElection
 import au.id.tmm.ausvotes.core.model.StateInstances.orderStatesByPopulation
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.{Console, Log, Now}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
@@ -22,7 +21,6 @@ import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.CollectionUtils.Sortable
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import cats.Applicative
 import cats.implicits._
@@ -45,8 +43,8 @@ object CompareRecounts extends zio.App {
 
       s3BucketName <- rawArgs.lift(1).toRight("Missing bucket name").map(S3BucketName)
 
-      rawElection <- rawArgs.lift(2).toRight("Missing election")
-      election <- SenateElection.forId(rawElection).toRight(s"Bad election $rawElection")
+      rawElection <- rawArgs.lift(2).toRight("Missing election").map(SenateElection.Id)
+      election <- SenateElection.from(rawElection).toRight(s"Bad election $rawElection")
     } yield Args(aecResourcePath, s3BucketName, election)
 
   override def run(rawArgs: List[String]): IO[Nothing, ExitStatus] = {
@@ -76,18 +74,18 @@ object CompareRecounts extends zio.App {
 
   private def generalRun[F[+_, +_] : FetchGroupsAndCandidates : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Console : BME]
   (
-    election: SenateElection,
+    senateElection: SenateElection,
   ): F[Exception, Unit] = {
-    val states: Set[State] = election.states
+    val elections: Set[SenateElectionForState] = senateElection.allStateElections
 
     implicit def applicative[E]: Applicative[F[E, +?]] = BME.bifunctorMonadErrorIsAMonadError[E, F]
 
     for {
       /*_*/
-      comparisons <- states.toList
+      comparisons <- elections.toList
         .sorted(orderStatesByPopulation.reverse)
-        .traverse((state: State) =>
-          compareFor[F](election, state)
+        .traverse((election: SenateElectionForState) =>
+          compareFor[F](election)
         )
 
       _ <- comparisons.flatMap(RenderCountComparison.render).map(Console.println[F]).sequence
@@ -97,29 +95,27 @@ object CompareRecounts extends zio.App {
 
   private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : BME]
   (
-    election: SenateElection,
-    state: State,
+    election: SenateElectionForState,
   ): F[Exception, CountComparison] = {
     for {
-      canonicalCount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(election, state)
+      canonicalCount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(election)
 
       computedCountRequest = RecountRequest(
         election,
-        state,
         canonicalCount.countParams.numVacancies,
-        canonicalCount.outcomes.ineligibleCandidates.map(_.aecId),
+        canonicalCount.outcomes.ineligibleCandidates.map(_.candidate.id),
         doRounding = true,
       )
 
       computedCountPossibilities <- RunRecount.runRecountRequest(computedCountRequest)
 
-    } yield findBestComparisonBetween(election, state)(canonicalCount, computedCountPossibilities)
+    } yield findBestComparisonBetween(election)(canonicalCount, computedCountPossibilities)
   }
 
-  private def findBestComparisonBetween(election: SenateElection, state: State)
+  private def findBestComparisonBetween(election: SenateElectionForState)
                                        (
-                                         canonicalCountResult: CompletedCount[Candidate],
-                                         computedCountResults: ProbabilityMeasure[CompletedCount[Candidate]],
+                                         canonicalCountResult: CompletedCount[SenateCandidate],
+                                         computedCountResults: ProbabilityMeasure[CompletedCount[SenateCandidate]],
                                        ): CountComparison = {
     computedCountResults.asMap.keySet
       .map { computedCount =>
@@ -127,7 +123,6 @@ object CompareRecounts extends zio.App {
 
         CountComparison(
           election,
-          state,
           canonicalCountResult,
           computedCount,
           mismatches.collect { case m: Mismatch.CandidateStatusType => m }.toSortedSet,
@@ -142,8 +137,8 @@ object CompareRecounts extends zio.App {
   }
 
   private def compareRecounts(
-                               canonicalCount: CompletedCount[Candidate],
-                               computedCount: CompletedCount[Candidate],
+                               canonicalCount: CompletedCount[SenateCandidate],
+                               computedCount: CompletedCount[SenateCandidate],
                              ): Set[Mismatch] = {
 
     val canonicalFinalStatuses = canonicalCount.countSteps.last.candidateStatuses
@@ -212,7 +207,7 @@ object CompareRecounts extends zio.App {
     case (_, _) => false
   }
 
-  private def actionOf(countStep: CountStep[Candidate]): Mismatch.ActionAtCount.Action = countStep match {
+  private def actionOf(countStep: CountStep[SenateCandidate]): Mismatch.ActionAtCount.Action = countStep match {
     case InitialAllocation(_, _) => Mismatch.ActionAtCount.Action.InitialAllocation
     case AllocationAfterIneligibles(_, _, _) => Mismatch.ActionAtCount.Action.AllocationAfterIneligibles
     case DistributionCountStep(_, _, _, distributionSource) => Mismatch.ActionAtCount.Action.Distribution(distributionSource)
@@ -220,7 +215,7 @@ object CompareRecounts extends zio.App {
     case ElectedNoSurplusCountStep(_, _, _, electedCandidate, sourceCounts) => Mismatch.ActionAtCount.Action.ElectedNoSurplus(electedCandidate, sourceCounts)
   }
 
-  private def zip[U](left: CountSteps[Candidate], right: CountSteps[Candidate])(action: (Count, Option[CountStep[Candidate]], Option[CountStep[Candidate]]) => U): List[U] = {
+  private def zip[U](left: CountSteps[SenateCandidate], right: CountSteps[SenateCandidate])(action: (Count, Option[CountStep[SenateCandidate]], Option[CountStep[SenateCandidate]]) => U): List[U] = {
     val largestCount = left.last.count max right.last.count
 
     Range.inclusive(0, largestCount.asInt).map { countAsInt =>
@@ -233,9 +228,9 @@ object CompareRecounts extends zio.App {
   }
 
   private def numMisallocatedBallotsBetween(
-                                             allCandidates: Set[Candidate],
-                                             left: CandidateVoteCounts[Candidate],
-                                             right: CandidateVoteCounts[Candidate],
+                                             allCandidates: Set[SenateCandidate],
+                                             left: CandidateVoteCounts[SenateCandidate],
+                                             right: CandidateVoteCounts[SenateCandidate],
                                            ): VoteCount = {
     val differencesForCandidates = allCandidates.toList.map { candidate =>
       val votesForCandidateLeft = left.perCandidate(candidate)
@@ -273,8 +268,8 @@ object CompareRecounts extends zio.App {
     def compareTransferValues(left: TransferValue, right: TransferValue) = math.abs(left.factor - right.factor) < 1e-6
 
     def compareSources(
-                        left: DistributionCountStep.Source[Candidate],
-                        right: DistributionCountStep.Source[Candidate],
+                        left: DistributionCountStep.Source[SenateCandidate],
+                        right: DistributionCountStep.Source[SenateCandidate],
                       ): Boolean =
       left.candidateDistributionReason == right.candidateDistributionReason &&
         left.candidate == right.candidate &&

@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.tasks.compare_recounts
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch.ActionAtCount.Action
 import au.id.tmm.countstv.model.values.Ordinal
@@ -12,8 +12,8 @@ object RenderCountComparison {
 
   def render(countComparison: CountComparison): List[String] = {
     List(
-      s"Election: ${countComparison.election.name}",
-      s"State: ${countComparison.state.toNiceString.capitalize}"
+      s"Election: ${countComparison.election.election.name}",
+      s"State: ${countComparison.election.state.toNiceString.capitalize}"
     ) ++ indent(
       renderMismatchesOrSuccess("Candidate status types", countComparison.candidateStatusTypeMismatches.toList) ++
         renderMismatchesOrSuccess("Candidate statuses", countComparison.candidateStatusMismatches.toList) ++
@@ -76,8 +76,8 @@ object RenderCountComparison {
         )
   }
 
-  private def candidateDescription(candidate: Candidate): String =
-    s"${candidate.aecId.asString} (${candidate.name.surname}, ${candidate.name.givenNames})"
+  private def candidateDescription(candidate: SenateCandidate): String =
+    s"${candidate.candidate.id.asInt} (${candidate.candidate.name.surname}, ${candidate.candidate.name.givenNames})"
 
   private def statusTypeDescription(status: CandidateStatus): String = status match {
     case CandidateStatus.Remaining => "Remaining"
@@ -136,10 +136,10 @@ object RenderCountComparison {
     case None => List("None")
   }
 
-  private def renderDiff(diff: CandidateVoteCounts[Candidate]): List[String] =
+  private def renderDiff(diff: CandidateVoteCounts[SenateCandidate]): List[String] =
     diff.perCandidate.toList
       .filter { case (_, voteCount) => voteCount != VoteCount.zero }
-      .sortBy { case (candidate, _) => candidate.btlPosition }
+      .sortBy { case (candidate, _) => candidate.position }
       .map { case (candidate, voteCount) => s"${renderVoteCount(voteCount)} for ${candidateDescription(candidate)}" } ++
       List(
         s"${renderVoteCount(diff.roundingError)} for rounding error",

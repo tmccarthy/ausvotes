@@ -1,22 +1,19 @@
 package au.id.tmm.ausvotes.tasks.compare_recounts
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model
 import au.id.tmm.countstv.model.countsteps.DistributionCountStep
 import au.id.tmm.countstv.model.values.Count
 import au.id.tmm.countstv.model.{CandidateVoteCounts, CompletedCount, VoteCount}
-import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
 final case class CountComparison(
-                                  election: SenateElection,
-                                  state: State,
+                                  election: SenateElectionForState,
 
-                                  canonicalCount: CompletedCount[Candidate],
-                                  computedCount: CompletedCount[Candidate],
+                                  canonicalCount: CompletedCount[SenateCandidate],
+                                  computedCount: CompletedCount[SenateCandidate],
 
                                   candidateStatusTypeMismatches: SortedSet[Mismatch.CandidateStatusType],
                                   candidateStatusMismatches: SortedSet[Mismatch.CandidateStatus],
@@ -39,11 +36,11 @@ object CountComparison {
   sealed trait Mismatch
 
   object Mismatch {
-    final case class CandidateStatusType(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
+    final case class CandidateStatusType(candidate: SenateCandidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
     object CandidateStatusType {
       implicit val ordering: Ordering[CandidateStatusType] = Ordering.by(_.candidate)
     }
-    final case class CandidateStatus(candidate: Candidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
+    final case class CandidateStatus(candidate: SenateCandidate, statusInCanonical: model.CandidateStatus, statusInComputed: model.CandidateStatus) extends Mismatch
     object CandidateStatus {
       implicit val ordering: Ordering[CandidateStatus] = Ordering.by(_.candidate)
     }
@@ -57,9 +54,9 @@ object CountComparison {
       object Action {
         case object InitialAllocation extends Action
         case object AllocationAfterIneligibles extends Action
-        final case class Distribution(source: DistributionCountStep.Source[Candidate]) extends Action
-        final case class ExcludedNoVotes(source: Candidate) extends Action
-        final case class ElectedNoSurplus(source: Candidate, sourceCounts: Set[Count]) extends Action
+        final case class Distribution(source: DistributionCountStep.Source[SenateCandidate]) extends Action
+        final case class ExcludedNoVotes(source: SenateCandidate) extends Action
+        final case class ElectedNoSurplus(source: SenateCandidate, sourceCounts: Set[Count]) extends Action
       }
 
       implicit val ordering: Ordering[ActionAtCount] = Ordering.by(_.count)
@@ -68,10 +65,10 @@ object CountComparison {
     final case class VoteCountAtCount(
                                        misallocatedBallotsPerCount: SortedMap[Count, VoteCount],
                                        firstBadCount: Count,
-                                       canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[Candidate],
-                                       candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[Candidate],
+                                       canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[SenateCandidate],
+                                       candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[SenateCandidate],
                                      ) extends Mismatch {
-      def diff: CandidateVoteCounts[Candidate] =
+      def diff: CandidateVoteCounts[SenateCandidate] =
         candidateVoteCountsInComputedAtFirstBadCount - canonicalCandidateVoteCountsAtFirstBadCount
     }
     object VoteCountAtCount {
