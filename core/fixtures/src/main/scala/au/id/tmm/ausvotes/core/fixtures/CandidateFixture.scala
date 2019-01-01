@@ -10,7 +10,7 @@ object CandidateFixture {
   trait CandidateFixture {
     val senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def election: SenateElectionForState = senateElection.electionForState(state).get
     def candidates: Set[SenateCandidate]
 
     def groupFixture: GroupFixture

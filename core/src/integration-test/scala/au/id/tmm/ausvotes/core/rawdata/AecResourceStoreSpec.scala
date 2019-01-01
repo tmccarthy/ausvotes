@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core.rawdata
 
-import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
@@ -10,7 +10,7 @@ class AecResourceStoreSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
   private val senateElection = SenateElection.`2016`
   private val federalElection = senateElection.federalElection
   private val state = State.NT
-  private val election = SenateElectionForState(senateElection, state).right.get
+  private val election = senateElection.electionForState(state).get
 
   "the loading of distribution of preferences data" should "be successful" in {
     val source = aecResourceStore.distributionOfPreferencesFor(election)

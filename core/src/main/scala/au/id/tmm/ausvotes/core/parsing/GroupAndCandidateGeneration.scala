@@ -39,10 +39,7 @@ object GroupAndCandidateGeneration {
                                       election: SenateElection,
                                       rawRow: FirstPreferencesRow): Either[SenateGroup, SenateCandidate] = {
     val state = stateFrom(rawRow)
-    val electionForState = SenateElectionForState(election, state) match {
-      case Right(success) => success
-      case Left(failure) => throw failure
-    }
+    val electionForState = election.electionForState(state).get
 
     if (rawRow.positionInGroup == 0) {
       Left(groupFromTicketRow(groupFlyweight, electionForState, rawRow))

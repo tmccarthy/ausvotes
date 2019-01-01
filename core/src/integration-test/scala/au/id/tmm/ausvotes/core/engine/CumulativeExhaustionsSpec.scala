@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.exhaustion.ExhaustionCalculator
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.Exhausted
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
-import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
@@ -20,7 +20,7 @@ class CumulativeExhaustionsSpec extends ImprovedFlatSpec with NeedsCleanDirector
 
     val senateElection = SenateElection.`2016`
     val state = State.TAS
-    val election = SenateElectionForState(senateElection, state).right.get
+    val election = senateElection.electionForState(state).get
 
     val groupsAndCandidates = parsedDataStore.groupsAndCandidatesFor(senateElection)
     val divisionsAndPollingPlaces = parsedDataStore.divisionsAndPollingPlacesFor(senateElection.federalElection)

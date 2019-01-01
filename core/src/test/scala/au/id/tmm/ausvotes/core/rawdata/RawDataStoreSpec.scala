@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.rawdata
 
 import au.id.tmm.ausvotes.core.fixtures.MockAecResourceStore
 import au.id.tmm.ausvotes.model.federal.FederalElection
-import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import resource.managed
@@ -15,7 +15,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec {
 
   it should "retrieve formal preferences for the NT as expected" in {
     for {
-      formalPreferencesRows <- managed(rawDataStore.formalPreferencesFor(SenateElectionForState(SenateElection.`2016`, State.NT).right.get))
+      formalPreferencesRows <- managed(rawDataStore.formalPreferencesFor(SenateElection.`2016`.electionForState(State.NT).get))
     } {
       assert(formalPreferencesRows.size === 4)
     }
@@ -31,7 +31,7 @@ class RawDataStoreSpec extends ImprovedFlatSpec {
 
   it should "retrieve the distribution of preferences for the NT as expected" in {
     for {
-      dopRows <- managed(rawDataStore.distributionsOfPreferencesFor(SenateElectionForState(SenateElection.`2016`, State.NT).right.get))
+      dopRows <- managed(rawDataStore.distributionsOfPreferencesFor(SenateElection.`2016`.electionForState(State.NT).get))
     } {
       assert(dopRows.size === 21)
     }

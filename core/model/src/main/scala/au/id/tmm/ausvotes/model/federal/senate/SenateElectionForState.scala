@@ -17,7 +17,7 @@ object SenateElectionForState {
     new SenateElectionForState(election, state)
 
   def apply(election: SenateElection, state: State): Either[NoElectionForState, SenateElectionForState] =
-    election.electionsPerState.get(state).toRight(NoElectionForState(election, state))
+    election.electionForState(state).toRight(NoElectionForState(election, state))
 
   implicit val encoder: Encoder[SenateElectionForState] = Encoder.forProduct2("election", "state")(n => (n.election, n.state))
   implicit val decoder: Decoder[SenateElectionForState] = cursor =>

@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.model.federal.senate
 
+import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -50,6 +51,14 @@ class SenateElectionSpec extends ImprovedFlatSpec {
 
   it can "be looked up by its ID if it is the 2016 election" in {
     assert(SenateElection.from(SenateElection.Id("2016")) === Some(SenateElection.`2016`))
+  }
+
+  it can "construct the election for a state" in {
+    assert(SenateElection.`2016`.electionForState(State.VIC) === Some(SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.VIC)))
+  }
+
+  it should "not construct the election for a state that did not have an election" in {
+    assert(SenateElection.`2014 WA`.electionForState(State.VIC) === None)
   }
 
 }

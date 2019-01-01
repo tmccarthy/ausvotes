@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState, SenateGroup, SenateHtv}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateGroup, SenateHtv}
 import au.id.tmm.utilities.geo.australia.State
 
 object HowToVoteCardGeneration {
@@ -144,6 +144,6 @@ object HowToVoteCardGeneration {
     for {
       htvGroupCodes <- htvsFor2016.get((group.election.state, group.code.asString))
       htvGroupOrder = htvGroupCodes.map(groupCode => groupCodeLookup(group.election.state, groupCode))
-      electionForState <- SenateElectionForState(SenateElection.`2016`, group.election.state).toOption
+      electionForState <- SenateElection.`2016`.electionForState(group.election.state)
     } yield SenateHtv(electionForState, group, htvGroupOrder)
 }

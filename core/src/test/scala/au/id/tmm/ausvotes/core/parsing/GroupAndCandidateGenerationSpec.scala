@@ -40,7 +40,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   behaviour of "the group and candidate generator"
 
   it should "generate a group" in {
-    val expectedGroup = SenateGroup(SenateElectionForState(`2016`, State.ACT).right.get, BallotGroup.Code("C").right.get, Some(Party("Australian Labor Party"))).right.get
+    val expectedGroup = SenateGroup(`2016`.electionForState(State.ACT).get, BallotGroup.Code("C").right.get, Some(Party("Australian Labor Party"))).right.get
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -48,7 +48,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a group without a party" in {
-    val expectedGroup = SenateGroup(SenateElectionForState(`2016`, State.VIC).right.get, BallotGroup.Code("B").right.get, None).right.get
+    val expectedGroup = SenateGroup(`2016`.electionForState(State.VIC).get, BallotGroup.Code("B").right.get, None).right.get
 
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
@@ -80,7 +80,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a grouped, independent candidate" in {
-    val election = SenateElectionForState(`2016`, State.VIC).right.get
+    val election = `2016`.electionForState(State.VIC).get
 
     val expectedCandidate = SenateCandidate(
       election = election,

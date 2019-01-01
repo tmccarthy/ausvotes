@@ -10,7 +10,7 @@ object DivisionAndPollingPlaceFixture {
   trait DivisionsAndPollingPlacesFixture {
     def senateElection: SenateElection.`2016`.type = SenateElection.`2016`
     def state: State
-    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def election: SenateElectionForState = senateElection.electionForState(state).get
 
     def divisionsAndPollingPlaces: au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
   }

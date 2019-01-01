@@ -8,7 +8,7 @@ object BallotFixture {
   trait BallotsFixture {
     def senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def election: SenateElectionForState = senateElection.electionForState(state).get
 
     def ballotMaker: BallotMaker
   }

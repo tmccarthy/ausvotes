@@ -73,10 +73,7 @@ object TallyEngine extends TallyEngine {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
 
     val tallyFuturesPerState = orderBySize(states)
-      .flatMap(state => SenateElectionForState(election, state) match {
-        case Right(electionForState) => Some(electionForState)
-        case Left(_) => None
-      })
+      .flatMap(election.electionForState)
       .map(election => talliesForState(
         parsedDataStore,
         election,

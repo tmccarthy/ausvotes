@@ -19,7 +19,9 @@ sealed trait SenateElection {
     SenateElectionForState.makeUnsafe(this, state)
   }
 
-  val electionsPerState: Map[State, SenateElectionForState] = allStateElections.map(e => e.state -> e).toMap
+  private val electionsPerState: Map[State, SenateElectionForState] = allStateElections.map(e => e.state -> e).toMap
+
+  def electionForState(state: State): Option[SenateElectionForState] = electionsPerState.get(state)
 
   val id: SenateElection.Id
 

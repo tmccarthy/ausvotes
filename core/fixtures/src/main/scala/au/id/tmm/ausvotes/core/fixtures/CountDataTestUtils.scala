@@ -15,7 +15,7 @@ final class CountDataTestUtils private(
   private val rawDataStore = RawDataStore(MockAecResourceStore)
 
   val senateElection: SenateElection.`2016`.type = SenateElection.`2016`
-  val election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+  val election: SenateElectionForState = senateElection.electionForState(state).get
 
   lazy val countData: SenateCountData = resource.managed(rawDataStore.distributionsOfPreferencesFor(election))
     .map(CountDataGeneration.fromDistributionOfPreferencesRows(election, groupsAndCandidates, _))

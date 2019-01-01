@@ -8,7 +8,7 @@ import io.circe.{Decoder, Json}
 
 class StvCandidateSpec extends ImprovedFlatSpec {
 
-  private val election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get
+  private val election = SenateElection.`2016`.electionForState(State.VIC).get
   private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).right.get
   private implicit val candidatePositionDecoder: Decoder[CandidatePosition[SenateElectionForState]] =
     CandidatePosition.decoderUsing(allGroups = List(group))

@@ -10,7 +10,7 @@ object GroupFixture {
   trait GroupFixture {
     val senateElection: SenateElection = SenateElection.`2016`
     def state: State
-    def election: SenateElectionForState = SenateElectionForState(senateElection, state).right.get
+    def election: SenateElectionForState = senateElection.electionForState(state).get
     def groups: Set[SenateGroup]
 
     lazy val ungrouped: SenateUngrouped = SenateUngrouped(election)

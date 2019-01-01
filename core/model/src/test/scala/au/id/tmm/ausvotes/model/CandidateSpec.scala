@@ -10,7 +10,7 @@ class CandidateSpec extends ImprovedFlatSpec {
 
   "a candidate" can "be encoded to json" in {
     val candidate = Candidate(
-      election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get,
+      election = SenateElection.`2016`.electionForState(State.VIC).get,
       name = Name("Jane", "Doe"),
       party = None,
       id = Candidate.Id(42),
@@ -28,7 +28,7 @@ class CandidateSpec extends ImprovedFlatSpec {
 
   it can "be decoded from json" in {
     val candidate = Candidate(
-      election = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get,
+      election = SenateElection.`2016`.electionForState(State.VIC).get,
       name = Name("Jane", "Doe"),
       party = None,
       id = Candidate.Id(42),
