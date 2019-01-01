@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import argonaut.Argonaut.{jObjectFields, jString}
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.apigatewayintegration.ApiGatewayLambdaResponse
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
+import io.circe.Json
 
 object RecountLambdaErrorResponseTransformer
   extends LambdaHarness.ErrorResponseTransformer[ApiGatewayLambdaResponse, RecountLambdaError] {
@@ -11,14 +11,14 @@ object RecountLambdaErrorResponseTransformer
   private[recount] def badRequestResponse(message: String): ApiGatewayLambdaResponse = ApiGatewayLambdaResponse(
     statusCode = 400,
     headers = Map.empty,
-    body = jObjectFields(
-      "message" -> jString(message),
+    body = Json.obj(
+      "message" -> Json.fromString(message),
     )
   )
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
     case RecountLambdaError.RecountComputationError(RunRecount.Error.InvalidCandidateIds(invalidCandidateAecIds)) =>
-      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asString).mkString("[\"", "\", \"", "\"]")}""")
+      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asInt).mkString("[\"", "\", \"", "\"]")}""")
 
     case RecountLambdaError.RecountComputationError(_) =>
     badRequestResponse("An error occurred while performing the recount computation")

@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.lambdas
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 
 package object recount {
 
-  type RequiresCandidates[A] = Set[Candidate] => A
+  type RequiresCandidates[A] = Set[SenateCandidate] => A
 
 }

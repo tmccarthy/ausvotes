@@ -1,6 +1,5 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import argonaut.Argonaut._
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness
 import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness.{ErrorResponseTransformer, RequestDecodeError, RequestReadError}
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.WritesToS3
@@ -9,14 +8,14 @@ import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.Log._
 import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
-import au.id.tmm.ausvotes.shared.io.typeclasses._
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME, _}
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, RecountLocations, RecountRequest, RecountResponse}
 import au.id.tmm.utilities.collection.Flyweight
 import com.amazonaws.services.lambda.runtime.Context
+import io.circe.syntax.EncoderOps
 import scalaz.zio.{IO, RTS}
 
 final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse, RecountLambdaError](RecountLambda.rts) {

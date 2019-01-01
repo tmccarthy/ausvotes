@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.lambdas.recount
 
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
 import au.id.tmm.ausvotes.lambdas.recount.RecountLambdaError._
+import au.id.tmm.ausvotes.model.Candidate
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount.Error.InvalidCandidateIds
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -16,7 +16,7 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
   behaviour of "a recount lambda"
 
   errorResponseTest(
-    error = RecountComputationError(InvalidCandidateIds(Set(AecCandidateId("invalid1"), AecCandidateId("invalid2")))),
+    error = RecountComputationError(InvalidCandidateIds(Set(Candidate.Id(99999991), Candidate.Id(99999992)))),
     expectedMessage = """Invalid candidate ids ["invalid1", "invalid2"]"""
   )
 
