@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.api.utils.unfiltered
 
-import argonaut.Argonaut._
-import argonaut.EncodeJson
+import io.circe.Encoder
+import io.circe.syntax.EncoderOps
 import unfiltered.response.{HttpResponse, JsonContent, Responder, ResponseString}
 
-final case class ResponseJson[A : EncodeJson](content: A) extends Responder[Any] {
+final case class ResponseJson[A : Encoder](content: A) extends Responder[Any] {
 
   override def respond(response: HttpResponse[Any]): Unit = {
-    val jsonString = content.asJson.toString
+    val jsonString = content.asJson.noSpaces
 
     ResponseString(jsonString)(response)
 

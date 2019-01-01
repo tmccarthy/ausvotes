@@ -1,36 +1,37 @@
 package au.id.tmm.ausvotes.api.model.recount
 
-import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest.ConstructionException.{InvalidElectionId, InvalidNumVacancies, InvalidRoundingFlag, InvalidStateId}
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
+import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest.ConstructionException._
+import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.utilities.geo.australia.State
+import cats.implicits._
 
 final case class RecountApiRequest(
-                                    election: SenateElection,
-                                    state: State,
+                                    election: SenateElectionForState,
                                     numVacancies: Option[Int],
-                                    ineligibleCandidates: Option[Set[AecCandidateId]],
+                                    ineligibleCandidates: Option[Set[Candidate.Id]],
                                     doRounding: Option[Boolean],
                                   )
 
 object RecountApiRequest {
 
   def buildFrom(
-                 rawElection: String,
+                 rawSenateElectionId: String,
                  rawState: String,
                  rawNumVacancies: Option[String],
                  rawIneligibleCandidates: Option[String],
                  rawDoRounding: Option[String],
                ): Either[ConstructionException, RecountApiRequest] =
     for {
-      election <- SenateElection.forId(rawElection)
-        .toRight(InvalidElectionId(rawElection))
+      senateElection <- SenateElection.from(SenateElection.Id(rawSenateElectionId))
+        .toRight(InvalidElectionId(rawSenateElectionId))
 
       state <- State.fromAbbreviation(rawState)
         .toRight(InvalidStateId(rawState))
 
-      _ <- ensureElectionForState(election, state)
+      election <- SenateElectionForState(senateElection, state)
+        .left.map(_ => ConstructionException.NoElectionForState(senateElection, state))
 
       numVacancies <- rawNumVacancies match {
         case Some(rawNumVacancies) =>
@@ -48,29 +49,35 @@ object RecountApiRequest {
         case None => Right(None)
       }
 
-      ineligibleCandidates = ineligibleCandidatesFrom(rawIneligibleCandidates)
+      ineligibleCandidates <- ineligibleCandidatesFrom(rawIneligibleCandidates)
 
       doRounding <- rawDoRounding match {
         case Some(rawDoRounding) => booleanFrom(rawDoRounding).map(Some(_)).toRight(InvalidRoundingFlag(rawDoRounding))
         case None => Right(None)
       }
 
-    } yield RecountApiRequest(election, state, numVacancies, ineligibleCandidates, doRounding)
+    } yield RecountApiRequest(election, numVacancies, ineligibleCandidates, doRounding)
 
-  private def ensureElectionForState(
-                                      election: SenateElection,
-                                      state: State,
-                                    ): Either[ConstructionException.NoElectionForState, Unit] = {
-    if (election.states contains state) {
-      Right(Unit)
-    } else {
-      Left(ConstructionException.NoElectionForState(election, state))
+  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Either[ConstructionException, Option[Set[Candidate.Id]]] = {
+    rawIneligibleCandidates.traverse { rawIneligibleCandidates =>
+      val candidateIdsAsStrings = rawIneligibleCandidates.split(',').filter(_.nonEmpty)
+
+      val (badIds, goodIds) = candidateIdsAsStrings.foldLeft((Set.empty[String], Set.empty[Candidate.Id])) { case ((badIds, goodIds), nextId) =>
+        try {
+          val goodId = Candidate.Id(nextId.toInt)
+          (badIds, goodIds + goodId)
+        } catch {
+          case e: NumberFormatException => (badIds + nextId, goodIds)
+        }
+      }
+
+      if (badIds.nonEmpty) {
+        Left(InvalidCandidateIds(badIds))
+      } else {
+        Right(goodIds)
+      }
     }
   }
-
-  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Option[Set[AecCandidateId]] =
-    rawIneligibleCandidates
-      .map(_.split(',').filter(_.nonEmpty).toSet.map(AecCandidateId(_)))
 
   private def booleanFrom(string: String): Option[Boolean] =
     try Some(string.toBoolean) catch {
@@ -85,6 +92,7 @@ object RecountApiRequest {
     final case class NoElectionForState(election: SenateElection, state: State) extends ConstructionException
     final case class InvalidNumVacancies(badNumVacancies: String) extends ConstructionException
     final case class InvalidRoundingFlag(badRoundingFlag: String) extends ConstructionException
+    final case class InvalidCandidateIds(badCandidateIds: Set[String]) extends ConstructionException
   }
 
 }

@@ -1,7 +1,8 @@
 package au.id.tmm.ausvotes.api.model
 
-import argonaut.Argonaut._
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class GenericErrorResponseSpec extends ImprovedFlatSpec {
 
@@ -10,7 +11,7 @@ class GenericErrorResponseSpec extends ImprovedFlatSpec {
   }
 
   it can "be encoded to json" in {
-    assert(GenericErrorResponse("hello").asJson === jObjectFields("message" -> jString("hello")))
+    assert(GenericErrorResponse("hello").asJson === Json.obj("message" -> Json.fromString("hello")))
   }
 
 }

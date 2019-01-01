@@ -1,11 +1,9 @@
 package au.id.tmm.ausvotes.api.model
 
-import argonaut.Argonaut._
-import argonaut.EncodeJson
+import io.circe.Encoder
 
 final case class GenericErrorResponse(message: String = "An error occurred")
 
 object GenericErrorResponse {
-  implicit val encodeGenericErrorResponse: EncodeJson[GenericErrorResponse] =
-    jencode1L[GenericErrorResponse, String](_.message)("message")
+  implicit val encodeGenericErrorResponse: Encoder[GenericErrorResponse] = Encoder.forProduct1("message")(_.message)
 }

@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.api.model.recount
 
-import au.id.tmm.ausvotes.core.model.SenateElection
-import au.id.tmm.ausvotes.core.model.parsing.Candidate.AecCandidateId
+import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -20,10 +20,9 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
     val request = actualRecountRequestGiven()
 
     val expectedRecountRequest = RecountApiRequest(
-      SenateElection.`2016`,
-      State.VIC,
+      SenateElection.`2016`.electionsPerState(State.VIC),
       numVacancies = Some(12),
-      ineligibleCandidates = Some(Set(AecCandidateId("123"), AecCandidateId("456"), AecCandidateId("789"))),
+      ineligibleCandidates = Some(Set(Candidate.Id(123), Candidate.Id(456), Candidate.Id(789))),
       doRounding = Some(true),
     )
 
@@ -75,7 +74,13 @@ class RecountApiRequestSpec extends ImprovedFlatSpec {
   it should "suppress empty ineligible candidate ids" in {
     val request = actualRecountRequestGiven(ineligibleCandidateAecIds = Some("123,,456"))
 
-    assert(request.map(_.ineligibleCandidates) === Right(Some(Set(AecCandidateId("123"), AecCandidateId("456")))))
+    assert(request.map(_.ineligibleCandidates) === Right(Some(Set(Candidate.Id(123), Candidate.Id(456)))))
+  }
+
+  it should "reject invalid ineligible candidate ids" in {
+    val request = actualRecountRequestGiven(ineligibleCandidateAecIds = Some("invalid,,invalid2"))
+
+    assert(request.map(_.ineligibleCandidates) === Left(RecountApiRequest.ConstructionException.InvalidCandidateIds(Set("invalid", "invalid2"))))
   }
 
 }

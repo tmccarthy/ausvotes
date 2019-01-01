@@ -1,12 +1,10 @@
 package au.id.tmm.ausvotes.api.controllers
 
-import argonaut.Argonaut._
-import argonaut.Json
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
 import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
@@ -17,6 +15,7 @@ import au.id.tmm.ausvotes.shared.io.test.TestIO._
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
 
 class RecountControllerSpec extends ImprovedFlatSpec {
 
@@ -37,18 +36,16 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
   behaviour of "requesting a recount"
 
-  private val election = SenateElection.`2016`
-  private val state = State.ACT
+  private val election = SenateElection.`2016`.electionsPerState(State.ACT)
 
   it should "return a cached recount if one is present in s3" in {
-    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
+    val request = RecountApiRequest(election, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
 
     val cachedContentKey = RecountLocations.locationOfRecountFor(
       RecountRequest(
         request.election,
-        request.state,
         request.numVacancies.get,
-        Set(CandidateFixture.ACT.katyGallagher.aecId),
+        Set(CandidateFixture.ACT.katyGallagher.candidateDetails.id),
         request.doRounding.getOrElse(true),
       )
     )
@@ -63,12 +60,12 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     val output = resultGiven(request, testData)
 
-    assert(output.result === Right(jEmptyObject))
+    assert(output.result === Right(Json.obj()))
     assert(output.testData.lambdaTestData.invocations === List.empty)
   }
 
   it should "return a performed recount if one is not present in s3" in {
-    val request = RecountApiRequest(election, state, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
+    val request = RecountApiRequest(election, numVacancies = Some(2), ineligibleCandidates = None, doRounding = None)
 
     val testData = AwsTestData(
       lambdaTestData = LambdaTestData(
@@ -83,7 +80,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     val output = resultGiven(request, testData)
 
-    assert(output.result === Right(jEmptyObject))
+    assert(output.result === Right(Json.obj()))
     assert(output.testData.lambdaTestData.invocations === List(
       LambdaInvocation(config.recountFunction, Some("""{"election":"2016","state":"ACT","vacancies":2,"ineligibleCandidates":["28147"],"doRounding":true}"""))
     ))
