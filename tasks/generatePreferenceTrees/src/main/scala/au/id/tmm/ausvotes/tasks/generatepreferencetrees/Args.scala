@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import java.nio.file.{InvalidPathException, Path, Paths}
 
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 
 import scala.reflect.ClassTag
@@ -20,8 +20,8 @@ object Args {
       _ <- if (rawArgs.length == 3) Right(Unit) else Left(new IllegalArgumentException("Incorrect number of arguments"))
       dataStorePath <- parsePath(rawArgs(0))
       s3Bucket = S3BucketName(rawArgs(1))
-      electionId = rawArgs(2)
-      election <- SenateElection.forId(electionId).toRight(new IllegalArgumentException(s"Bad election id $electionId"))
+      electionId = SenateElection.Id(rawArgs(2))
+      election <- SenateElection.from(electionId).toRight(new IllegalArgumentException(s"Bad election id $electionId"))
     } yield Args(
       dataStorePath,
       s3Bucket,

@@ -82,6 +82,9 @@ final case class Group[E] private (
 
 object Group {
 
+  implicit def encoder[E](implicit electionEncoder: Encoder[E]): Encoder[Group[E]] =
+    BallotGroup.encoder(electionEncoder).contramap(g => g: BallotGroup[E])
+
   def apply[E](
                 election: E,
                 code: Code,

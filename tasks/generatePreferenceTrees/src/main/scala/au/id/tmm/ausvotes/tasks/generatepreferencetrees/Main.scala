@@ -17,17 +17,17 @@ object Main extends App {
     for {
       args <- IO.fromEither(Args.from(rawArgs))
 
-      _ <- AecResourcesRetrieval.withElectionResources[Unit](args.dataStorePath, args.election) { case (election, state, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots) =>
+      _ <- AecResourcesRetrieval.withElectionResources[Unit](args.dataStorePath, args.election) { case (election, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots) =>
         for {
           dataBundle <- DataBundleConstruction
-            .constructDataBundle(election, state, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots)
-            .timedLog("CONSTRUCT_DATA_BUNDLE", "election" -> election, "state" -> state)
+            .constructDataBundle(election, groupsAndCandidates, divisionsAndPollingPlaces, countData, ballots)
+            .timedLog("CONSTRUCT_DATA_BUNDLE", "election" -> election.election, "state" -> election.state)
           _ <- DataBundleWriting
             .writeToS3Bucket[IO](args.s3Bucket, dataBundle)
-            .timedLog("WRITE_DATA_BUNDLE", "election" -> election, "state" -> state)
-        } yield Unit
+            .timedLog("WRITE_DATA_BUNDLE", "election" -> election.election, "state" -> election.state)
+        } yield ()
       }
-    } yield Unit
+    } yield ()
   }
 
 }

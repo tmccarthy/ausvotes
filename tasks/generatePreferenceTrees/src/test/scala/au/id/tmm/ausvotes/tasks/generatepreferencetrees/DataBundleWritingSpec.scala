@@ -1,8 +1,7 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import argonaut.Argonaut._
 import au.id.tmm.ausvotes.core.fixtures.{CandidateFixture, DivisionAndPollingPlaceFixture, GroupAndCandidateFixture}
-import au.id.tmm.ausvotes.core.model.SenateElection
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
@@ -16,6 +15,7 @@ import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.syntax.EncoderOps
 
 class DataBundleWritingSpec extends ImprovedFlatSpec {
 
@@ -26,8 +26,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
 
     val recountResult = CountSummary(
       CountSummary.Request(
-        SenateElection.`2016`,
-        State.ACT,
+        SenateElection.`2016`.electionsPerState(State.ACT),
         2,
         ineligibleCandidates = Set(
           zedSeselja,
@@ -52,8 +51,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
     )
 
     val dataBundleToWrite = DataBundleForElection(
-      SenateElection.`2016`,
-      State.ACT,
+      SenateElection.`2016`.electionsPerState(State.ACT),
       GroupAndCandidateFixture.ACT.groupsAndCandidates,
       DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces,
       recountResult,

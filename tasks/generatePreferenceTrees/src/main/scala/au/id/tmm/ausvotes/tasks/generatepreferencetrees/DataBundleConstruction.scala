@@ -1,41 +1,34 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
-import au.id.tmm.ausvotes.core.model.parsing.{Ballot, Candidate, CandidatePosition}
-import au.id.tmm.ausvotes.core.model.{CountData, DivisionsAndPollingPlaces, GroupsAndCandidates, SenateElection}
+import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates}
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.countstv.model.preferences.PreferenceTree
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import scalaz.zio.IO
 
 object DataBundleConstruction {
 
   def constructDataBundle(
-                           election: SenateElection,
-                           state: State,
+                           election: SenateElectionForState,
                            groupsAndCandidates: GroupsAndCandidates,
                            divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                           countData: CountData,
-                           ballots: Iterator[Ballot],
+                           countData: SenateCountData,
+                           ballots: Iterator[SenateBallot],
                          ): IO[Exception, DataBundleForElection] = {
-    val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election, state)
-    val relevantDivisionsAndPollingPlaces = divisionsAndPollingPlaces.findFor(election, state)
+    val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election)
+    val relevantDivisionsAndPollingPlaces = divisionsAndPollingPlaces.findFor(election.election.federalElection, election.state)
 
     val candidates = relevantGroupsAndCandidates.candidates
 
-    val lookupCandidateByPosition: Map[CandidatePosition, Candidate] = candidates.map { candidate =>
-      candidate.btlPosition -> candidate
-    }.toMap
-
-    val ineligibleCandidates = countData.ineligibleCandidates
+    val ineligibleCandidates = countData.completedCount.outcomes.ineligibleCandidates
 
     val candidateStatuses = countData.completedCount.outcomes
 
     val canonicalRecountResult = CountSummary(
       request = CountSummary.Request(
         election,
-        state,
         numVacancies = countData.completedCount.countParams.numVacancies,
         ineligibleCandidates = ineligibleCandidates,
         doRounding = true,
@@ -50,17 +43,16 @@ object DataBundleConstruction {
       )
     )
 
-    val ballotNormaliser = BallotNormaliser(election, state, candidates)
+    val ballotNormaliser = BallotNormaliser(election, candidates)
 
-    val numPapersHint = StateUtils.numBallots(state)
+    val numPapersHint = StateUtils.numBallots(election.state)
 
-    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder.map(lookupCandidateByPosition))
+    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder)
 
     IO.syncException(PreferenceTree.fromIterator(candidates, numPapersHint)(preparedBallots))
       .map { preferenceTree =>
         DataBundleForElection(
           election,
-          state,
           relevantGroupsAndCandidates,
           relevantDivisionsAndPollingPlaces,
           canonicalRecountResult,
@@ -70,12 +62,11 @@ object DataBundleConstruction {
   }
 
   final case class DataBundleForElection(
-                                          election: SenateElection,
-                                          state: State,
+                                          election: SenateElectionForState,
                                           groupsAndCandidates: GroupsAndCandidates,
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                                           canonicalCountResult: CountSummary,
-                                          preferenceTree: PreferenceTree.RootPreferenceTree[Candidate],
+                                          preferenceTree: PreferenceTree.RootPreferenceTree[SenateCandidate],
                                         )
 
 }
