@@ -103,7 +103,7 @@ object CompareRecounts extends zio.App {
       computedCountRequest = RecountRequest(
         election,
         canonicalCount.countParams.numVacancies,
-        canonicalCount.outcomes.ineligibleCandidates.map(_.candidate.id),
+        canonicalCount.outcomes.ineligibleCandidates.map(_.candidateDetails.id),
         doRounding = true,
       )
 

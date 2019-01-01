@@ -7,7 +7,7 @@ object CandidateActualisation {
 
   def actualiseCandidates(allCandidates: Set[SenateCandidate])(idsToActualise: Set[Candidate.Id]): CandidateActualisation.Result = {
 
-    val aecIdToCandidateLookup = allCandidates.groupBy(_.candidate.id).mapValues(_.head)
+    val aecIdToCandidateLookup = allCandidates.groupBy(_.candidateDetails.id).mapValues(_.head)
 
     idsToActualise.foldLeft(Result(Set.empty, Set.empty)) { case (resultSoFar: Result, candidateId: Candidate.Id) =>
       aecIdToCandidateLookup.get(candidateId) match {

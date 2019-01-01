@@ -16,13 +16,13 @@ class StvCandidateSpec extends ImprovedFlatSpec {
   "an stv candidate" can "be encoded to json" in {
     val stvCandidate = StvCandidate(
       election = election,
-      candidate = "candidate",
+      candidateDetails = "candidate",
       position = CandidatePosition(group, 0),
     )
 
     val json = Json.obj(
       "election" -> stvCandidate.election.asJson,
-      "candidate" -> stvCandidate.candidate.asJson,
+      "candidateDetails" -> stvCandidate.candidateDetails.asJson,
       "position" -> stvCandidate.position.asJson,
     )
 
@@ -32,13 +32,13 @@ class StvCandidateSpec extends ImprovedFlatSpec {
   it can "be decoded from json" in {
     val stvCandidate = StvCandidate(
       election = election,
-      candidate = "candidate",
+      candidateDetails = "candidate",
       position = CandidatePosition(group, 0),
     )
 
     val json = Json.obj(
       "election" -> stvCandidate.election.asJson,
-      "candidate" -> stvCandidate.candidate.asJson,
+      "candidateDetails" -> stvCandidate.candidateDetails.asJson,
       "position" -> stvCandidate.position.asJson,
     )
 

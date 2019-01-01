@@ -12,5 +12,5 @@ private[countdata] object ShortCandidateName {
     ShortCandidateName(surname, givenName.charAt(0))
 
   def fromCandidate(candidate: SenateCandidate): ShortCandidateName =
-    fromGivenAndSurname(candidate.candidate.name.givenNames, candidate.candidate.name.surname)
+    fromGivenAndSurname(candidate.candidateDetails.name.givenNames, candidate.candidateDetails.name.surname)
 }

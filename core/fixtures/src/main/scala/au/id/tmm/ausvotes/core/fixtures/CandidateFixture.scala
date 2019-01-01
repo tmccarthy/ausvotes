@@ -17,9 +17,9 @@ object CandidateFixture {
 
     lazy val groupLookup: Map[String, SenateBallotGroup] = groupFixture.groupLookup
 
-    def candidateWithId(aecId: Int): SenateCandidate = candidates.find(_.candidate.id.asInt == aecId).get
+    def candidateWithId(aecId: Int): SenateCandidate = candidates.find(_.candidateDetails.id.asInt == aecId).get
 
-    def candidateWithName(name: Name): SenateCandidate = candidates.find(_.candidate.name equalsIgnoreCase name).get
+    def candidateWithName(name: Name): SenateCandidate = candidates.find(_.candidateDetails.name equalsIgnoreCase name).get
 
     def candidateWithPosition(candidatePosition: SenateCandidatePosition): SenateCandidate = candidates.find(_.position == candidatePosition).get
   }

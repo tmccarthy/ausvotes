@@ -27,7 +27,7 @@ object CountSummary {
         case None => Left(CountSummaryConstructionError.MultipleIneligibleCandidatePossibilities())
       }
 
-      _ <- if (ineligibleCandidates.map(_.candidate.id) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
+      _ <- if (ineligibleCandidates.map(_.candidateDetails.id) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
 
     } yield CountSummary(
       CountSummary.Request(

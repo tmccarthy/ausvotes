@@ -77,7 +77,7 @@ object RenderCountComparison {
   }
 
   private def candidateDescription(candidate: SenateCandidate): String =
-    s"${candidate.candidate.id.asInt} (${candidate.candidate.name.surname}, ${candidate.candidate.name.givenNames})"
+    s"${candidate.candidateDetails.id.asInt} (${candidate.candidateDetails.name.surname}, ${candidate.candidateDetails.name.givenNames})"
 
   private def statusTypeDescription(status: CandidateStatus): String = status match {
     case CandidateStatus.Remaining => "Remaining"

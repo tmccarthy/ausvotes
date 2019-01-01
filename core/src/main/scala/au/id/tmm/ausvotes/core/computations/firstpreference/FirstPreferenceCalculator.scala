@@ -27,6 +27,6 @@ object FirstPreferenceCalculator {
   private def firstPreferenceBtl(normalisedBallot: NormalisedBallot): FirstPreference = {
     val firstPreferencedCandidate = normalisedBallot.canonicalOrder.head
 
-    FirstPreference(firstPreferencedCandidate.position.group, firstPreferencedCandidate.candidate.party)
+    FirstPreference(firstPreferencedCandidate.position.group, firstPreferencedCandidate.candidateDetails.party)
   }
 }

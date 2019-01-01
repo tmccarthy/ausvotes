@@ -102,7 +102,7 @@ class GroupAndCandidateGenerationSpec extends ImprovedFlatSpec {
     val groupsAndCandidates = GroupAndCandidateGeneration.fromFirstPreferencesRows(`2016`, rows)
 
     val laborGroup = groupsAndCandidates.groups.filter(_.party.contains(Party("Australian Labor Party"))).head
-    val laborCandidate = groupsAndCandidates.candidates.filter(_.candidate.party.contains(Party("Australian Labor Party"))).head
+    val laborCandidate = groupsAndCandidates.candidates.filter(_.candidateDetails.party.contains(Party("Australian Labor Party"))).head
 
     assert(laborGroup eq laborCandidate.position.group)
   }
