@@ -17,7 +17,7 @@ class RecountLambdaErrorResponseTransformerSpec extends ImprovedFlatSpec {
 
   errorResponseTest(
     error = RecountComputationError(InvalidCandidateIds(Set(Candidate.Id(99999991), Candidate.Id(99999992)))),
-    expectedMessage = """Invalid candidate ids ["invalid1", "invalid2"]"""
+    expectedMessage = """Invalid candidate ids [99999991, 99999992]"""
   )
 
   errorResponseTest(
