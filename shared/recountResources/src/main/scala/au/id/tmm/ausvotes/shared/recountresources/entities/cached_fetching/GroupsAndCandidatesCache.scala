@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching
 
 import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.stv.CandidatePosition
+import au.id.tmm.ausvotes.model.stv.{CandidatePosition, Ungrouped}
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
@@ -59,7 +59,8 @@ final class GroupsAndCandidatesCache(
             "state" -> election.state,
           ) {
 
-            implicit val candidatePositionDecoder: Decoder[SenateCandidatePosition] = CandidatePosition.decoderUsing(groups)
+            implicit val candidatePositionDecoder: Decoder[SenateCandidatePosition] =
+              CandidatePosition.decoderUsing(groups, Ungrouped(election))
 
             candidatesJson.as[Set[SenateCandidate]].left.map(_.show).map { candidates =>
               GroupsAndCandidates(groups, candidates)

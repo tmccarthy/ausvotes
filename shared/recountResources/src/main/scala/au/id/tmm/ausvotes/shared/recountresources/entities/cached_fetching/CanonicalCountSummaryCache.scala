@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidatePosition, SenateElectionForState}
-import au.id.tmm.ausvotes.model.stv.CandidatePosition
+import au.id.tmm.ausvotes.model.stv.{CandidatePosition, Ungrouped}
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
@@ -48,7 +48,8 @@ final class CanonicalCountSummaryCache(
 
         (fetchJsonLogic par fetchGroupsLogic).map { case (canonicalResultJson, groups) =>
 
-          implicit val candidatePositionDecoder: Decoder[SenateCandidatePosition] = CandidatePosition.decoderUsing(groups)
+          implicit val candidatePositionDecoder: Decoder[SenateCandidatePosition] =
+            CandidatePosition.decoderUsing(groups, Ungrouped(election))
 
           for {
             json <- parse(canonicalResultJson)

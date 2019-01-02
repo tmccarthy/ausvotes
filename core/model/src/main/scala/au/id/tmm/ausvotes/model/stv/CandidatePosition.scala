@@ -18,21 +18,25 @@ object CandidatePosition {
 
   private val positionPattern = "^([A-Z]{1,2})(\\d+)$".r
 
-  def decoderUsing[E](allGroups: Iterable[BallotGroup[E]]): Decoder[CandidatePosition[E]] = {
-    val lookup = allGroups.groupBy(_.code).map { case (code, groups) => code -> groups.headOption }
+  def decoderUsing[E](allGroups: Iterable[Group[E]], ungrouped: => Ungrouped[E]): Decoder[CandidatePosition[E]] = {
+    val lookup = allGroups.groupBy(_.code)
+      .map { case (code, groups) => code -> groups.head }
 
-    decoder(lookup)
+    decoder(lookup.lift, ungrouped)
   }
 
-  def decoder[E](groupFromCode: BallotGroup.Code => Option[BallotGroup[E]]): Decoder[CandidatePosition[E]] =
+  def decoder[E](groupFromCode: BallotGroup.Code => Option[Group[E]], ungrouped: => Ungrouped[E]): Decoder[CandidatePosition[E]] =
     Decoder.decodeString.emap {
       case positionPattern(rawCode, rawIndexInGroup) =>
         for {
           code <- BallotGroup.Code(rawCode)
               .left.map(_ => "Invalid code")
 
-          group <- groupFromCode(code)
+          group <- code match {
+            case Ungrouped.code => Right(ungrouped)
+            case code => groupFromCode(code)
               .toRight(s"""No such group "${code.asString}"""")
+          }
 
           indexInGroup <- Try(rawIndexInGroup.toInt).toEither
               .left.map(_.getMessage)

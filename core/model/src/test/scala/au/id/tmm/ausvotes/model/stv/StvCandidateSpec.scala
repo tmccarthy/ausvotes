@@ -11,7 +11,7 @@ class StvCandidateSpec extends ImprovedFlatSpec {
   private val election = SenateElection.`2016`.electionForState(State.VIC).get
   private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).right.get
   private implicit val candidatePositionDecoder: Decoder[CandidatePosition[SenateElectionForState]] =
-    CandidatePosition.decoderUsing(allGroups = List(group))
+    CandidatePosition.decoderUsing(allGroups = List(group), ungrouped = Ungrouped(election))
 
   "an stv candidate" can "be encoded to json" in {
     val stvCandidate = StvCandidate(

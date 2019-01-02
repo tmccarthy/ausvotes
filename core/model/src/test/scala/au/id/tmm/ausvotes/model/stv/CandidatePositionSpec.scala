@@ -7,8 +7,10 @@ import io.circe.{Decoder, Json}
 class CandidatePositionSpec extends ImprovedFlatSpec {
 
   private val testGroup = Group("election", BallotGroup.Code.unsafeMake("AA"), party = None).right.get
+  private val testUngrouped = Ungrouped("election")
   private val testPosition = CandidatePosition(testGroup, 2)
-  private implicit val candidatePositionDecoder: Decoder[CandidatePosition[String]] = CandidatePosition.decoderUsing(allGroups = List(testGroup))
+  private implicit val candidatePositionDecoder: Decoder[CandidatePosition[String]] =
+    CandidatePosition.decoderUsing(allGroups = List(testGroup), ungrouped = testUngrouped)
 
   "a candidate position" can "be encoded to json" in {
     assert(testPosition.asJson === Json.fromString("AA2"))
@@ -16,6 +18,10 @@ class CandidatePositionSpec extends ImprovedFlatSpec {
 
   it can "be decoded from json" in {
     assert(Json.fromString("AA2").as[CandidatePosition[String]] === Right(testPosition))
+  }
+
+  it can "be decoded from json if it is ungrouped" in {
+    assert(Json.fromString("UG3").as[CandidatePosition[String]] === Right(CandidatePosition(testUngrouped, 3)))
   }
 
   it should "have an ordering" in {
