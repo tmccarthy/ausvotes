@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
+import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch.VoteCountAtCount.VoteCountMisallocationSummary
 import au.id.tmm.countstv.model
 import au.id.tmm.countstv.model.countsteps.DistributionCountStep
 import au.id.tmm.countstv.model.values.Count
@@ -63,7 +64,7 @@ object CountComparison {
     }
 
     final case class VoteCountAtCount(
-                                       misallocatedBallotsPerCount: SortedMap[Count, VoteCount],
+                                       misallocatedBallotsPerCount: SortedMap[Count, VoteCountMisallocationSummary],
                                        firstBadCount: Count,
                                        canonicalCandidateVoteCountsAtFirstBadCount: CandidateVoteCounts[SenateCandidate],
                                        candidateVoteCountsInComputedAtFirstBadCount: CandidateVoteCounts[SenateCandidate],
@@ -73,6 +74,14 @@ object CountComparison {
     }
     object VoteCountAtCount {
       implicit val ordering: Ordering[VoteCountAtCount] = Ordering.by(_.firstBadCount)
+
+      final case class VoteCountMisallocationSummary(
+                                                      totalMisallocation: VoteCount,
+                                                      worstMismatchCandidate: SenateCandidate,
+                                                      mismatchForWorstCandidate: VoteCount,
+                                                      mismatchForExhausted: VoteCount,
+                                                      mismatchForRoundingError: VoteCount,
+                                                    )
     }
 
     def importanceOf(mismatch: Mismatch): Int = mismatch match {

@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch.ActionAtCount.Action
-import au.id.tmm.countstv.model.values.Ordinal
+import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, VoteCount}
 
 object RenderCountComparison {
@@ -71,8 +71,8 @@ object RenderCountComparison {
         indent(
           misallocatedBallotsPerCount
             .toList
-            .filter { case (_, voteCount) => voteCount != VoteCount.zero }
-            .map { case (count, voteCount) => s"${renderVoteCount(voteCount)} at count ${count.asInt}" }
+            .filter { case (_, voteCountMisallocationSummary) => voteCountMisallocationSummary.totalMisallocation != VoteCount.zero }
+            .map { case (count, voteCountMisallocationSummary) => renderVoteCountMismatchSummary(count, voteCountMisallocationSummary) }
         )
   }
 
@@ -105,6 +105,12 @@ object RenderCountComparison {
 
     s"$ordinalOneIndexed$suffix"
   }
+
+  private def renderVoteCountMismatchSummary(count: Count, summary: Mismatch.VoteCountAtCount.VoteCountMisallocationSummary): String =
+    s"${renderVoteCount(summary.totalMisallocation)} at count ${count.asInt} (${renderVoteCount(summary.mismatchForWorstCandidate)} for ${renderCandidate(summary.worstMismatchCandidate)}, ${renderVoteCount(summary.mismatchForExhausted)} for exhausted, ${renderVoteCount(summary.mismatchForRoundingError)} for rounding error)"
+
+  private def renderCandidate(candidate: SenateCandidate): String =
+    s"${candidate.candidateDetails.name.surname}, ${candidate.candidateDetails.name.givenNames}"
 
   private def renderVoteCount(count: VoteCount): String = s"${count.numPapers.asLong} papers, ${count.numVotes.asDouble} votes"
 

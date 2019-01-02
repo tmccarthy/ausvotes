@@ -24,6 +24,7 @@ import au.id.tmm.utilities.collection.CollectionUtils.Sortable
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import cats.Applicative
 import cats.implicits._
+import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio
 import scalaz.zio.IO
 
@@ -50,6 +51,7 @@ object CompareRecounts extends zio.App {
   override def run(rawArgs: List[String]): IO[Nothing, ExitStatus] = {
     val errorOrSuccessCode = for {
       args <- IO.fromEither(argsFrom(rawArgs))
+        .leftMap(new RuntimeException(_))
 
       groupsAndCandidatesCache <- GroupsAndCandidatesCache(args.s3BucketName)
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
@@ -69,7 +71,11 @@ object CompareRecounts extends zio.App {
       }
     } yield ExitStatus.ExitNow(0)
 
-    errorOrSuccessCode.catchAll(_ => IO.point(ExitStatus.ExitNow(1)))
+    errorOrSuccessCode.catchAll { e =>
+      val stackTrace = ExceptionUtils.getStackTrace(e)
+
+      Console.print[IO](stackTrace).map(_ => ExitStatus.ExitNow(1))
+    }
   }
 
   private def generalRun[F[+_, +_] : FetchGroupsAndCandidates : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Console : BME]
@@ -161,7 +167,7 @@ object CompareRecounts extends zio.App {
 
     val finalSpecialVotesMismatches: Set[Mismatch] = Set(
       if (canonicalFinalVoteCounts.roundingError != computedFinalVoteCounts.roundingError) Some(Mismatch.FinalRoundingError(canonicalFinalVoteCounts.roundingError, computedFinalVoteCounts.roundingError)) else None,
-      if (canonicalFinalVoteCounts.exhausted != computedFinalVoteCounts.exhausted) Some(Mismatch.FinalRoundingError(canonicalFinalVoteCounts.exhausted, computedFinalVoteCounts.exhausted)) else None,
+      if (canonicalFinalVoteCounts.exhausted != computedFinalVoteCounts.exhausted) Some(Mismatch.FinalExhausted(canonicalFinalVoteCounts.exhausted, computedFinalVoteCounts.exhausted)) else None,
     ).flatten
 
     val actionMismatches: Set[Mismatch] = zip(canonicalCount.countSteps, computedCount.countSteps) { case (count, canonicalCountStep, computedCountStep) =>
@@ -180,15 +186,19 @@ object CompareRecounts extends zio.App {
     val ballotAndVoteMismatches: Option[Mismatch] = {
       val mismatchesPerCount = zip(canonicalCount.countSteps, computedCount.countSteps) {
         case (count, Some(canonicalCountStep), Some(computedCountStep)) =>
-          count -> numMisallocatedBallotsBetween(allCandidates, canonicalCountStep.candidateVoteCounts, computedCountStep.candidateVoteCounts)
-        case (count, _, _) => count -> VoteCount.zero
-      }
+          val misallocationSummary = misallocatedBallotsBetween(allCandidates, canonicalCountStep.candidateVoteCounts, computedCountStep.candidateVoteCounts)
 
-      val nonZeroMismatchesPerCount = mismatchesPerCount.dropWhile { case (count, numMismatches) => numMismatches == VoteCount.zero }
+          if (misallocationSummary.totalMisallocation != VoteCount(0)) {
+            Some(count -> misallocationSummary)
+          } else {
+            None
+          }
+        case (count, _, _) => None
+      }.flatten
 
-      nonZeroMismatchesPerCount.headOption.map { case (firstBadCount, _) =>
+      mismatchesPerCount.headOption.map { case (firstBadCount, _) =>
         Mismatch.VoteCountAtCount(
-          SortedMap(nonZeroMismatchesPerCount: _*),
+          SortedMap(mismatchesPerCount: _*),
           firstBadCount,
           canonicalCount.countSteps(firstBadCount).candidateVoteCounts,
           computedCount.countSteps(firstBadCount).candidateVoteCounts,
@@ -227,22 +237,24 @@ object CompareRecounts extends zio.App {
     }.toList
   }
 
-  private def numMisallocatedBallotsBetween(
-                                             allCandidates: Set[SenateCandidate],
-                                             left: CandidateVoteCounts[SenateCandidate],
-                                             right: CandidateVoteCounts[SenateCandidate],
-                                           ): VoteCount = {
+  private def misallocatedBallotsBetween(
+                                          allCandidates: Set[SenateCandidate],
+                                          left: CandidateVoteCounts[SenateCandidate],
+                                          right: CandidateVoteCounts[SenateCandidate],
+                                        ): Mismatch.VoteCountAtCount.VoteCountMisallocationSummary = {
     val differencesForCandidates = allCandidates.toList.map { candidate =>
       val votesForCandidateLeft = left.perCandidate(candidate)
       val votesForCandidateRight = right.perCandidate(candidate)
 
-      votesForCandidateRight - votesForCandidateLeft
+      candidate -> (votesForCandidateRight - votesForCandidateLeft)
     }
+
+    val (worstCandidate, worstCandidateDiff) = differencesForCandidates.maxBy { case (candidate, diff) => math.abs(diff.numVotes.asDouble) }
 
     val differenceForRoundingError = right.roundingError - left.roundingError
     val differenceForExhaustedVotes = right.exhausted - left.exhausted
 
-    (differencesForCandidates :+ differenceForRoundingError :+ differenceForExhaustedVotes)
+    val totalMisallocation = (differencesForCandidates.map(_._2) :+ differenceForRoundingError :+ differenceForExhaustedVotes)
       .map { voteCount =>
         VoteCount(
           NumPapers(math.abs(voteCount.numPapers.asLong)),
@@ -250,6 +262,14 @@ object CompareRecounts extends zio.App {
         )
       }
       .reduce(_ + _)
+
+    Mismatch.VoteCountAtCount.VoteCountMisallocationSummary(
+      totalMisallocation,
+      worstCandidate,
+      worstCandidateDiff,
+      differenceForExhaustedVotes,
+      differenceForRoundingError,
+    )
   }
 
   private def compareActions(left: Mismatch.ActionAtCount.Action, right: Mismatch.ActionAtCount.Action): Boolean = {
