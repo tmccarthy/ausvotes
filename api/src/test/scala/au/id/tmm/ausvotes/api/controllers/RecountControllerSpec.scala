@@ -82,7 +82,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     assert(output.result === Right(Json.obj()))
     assert(output.testData.lambdaTestData.invocations === List(
-      LambdaInvocation(config.recountFunction, Some("""{"election":"2016","state":"ACT","vacancies":2,"ineligibleCandidates":["28147"],"doRounding":true}"""))
+      LambdaInvocation(config.recountFunction, Some("""{"election":{"election":"2016","state":"ACT"},"vacancies":2,"ineligibleCandidates":[28147],"doRounding":true}"""))
     ))
   }
 
