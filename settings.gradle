@@ -15,4 +15,5 @@ include 'core',
         'shared:testRecountResources',
         'infrastructure',
         'ui',
-        'api'
+        'api',
+        'blog'
