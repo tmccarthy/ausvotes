@@ -47,3 +47,15 @@ task jekyllServeFuture(type: JRubyExec) {
     workingDir jekyllSite
     scriptArgs 'serve', '--future'
 }
+
+task build(type: JRubyExec) {
+    script 'jekyll'
+    workingDir jekyllSite
+    scriptArgs 'build'
+}
+
+task clean(type: JRubyExec) {
+    script 'jekyll'
+    workingDir jekyllSite
+    scriptArgs 'clean'
+}
