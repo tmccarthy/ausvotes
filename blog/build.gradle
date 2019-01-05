@@ -25,9 +25,9 @@ dependencies {
 def jekyllSite = file('site')
 
 task jekyllNew(type: JRubyExec) {
-    script 'jekyll'
+    script 'bundle'
     workingDir jekyllSite
-    scriptArgs 'new', jekyllSite
+    scriptArgs 'exec', 'jekyll', 'new', jekyllSite
 }
 
 task bundleUpdate(type: JRubyExec) {
@@ -37,25 +37,25 @@ task bundleUpdate(type: JRubyExec) {
 }
 
 task jekyllServe(type: JRubyExec) {
-    script 'jekyll'
+    script 'bundle'
     workingDir jekyllSite
-    scriptArgs 'serve'
+    scriptArgs 'exec', 'jekyll', 'serve'
 }
 
 task jekyllServeFuture(type: JRubyExec) {
-    script 'jekyll'
+    script 'bundle'
     workingDir jekyllSite
-    scriptArgs 'serve', '--future'
+    scriptArgs 'exec', 'jekyll', 'serve', '--future'
 }
 
 task build(type: JRubyExec) {
-    script 'jekyll'
+    script 'bundle'
     workingDir jekyllSite
-    scriptArgs 'build'
+    scriptArgs 'exec', 'jekyll', 'build'
 }
 
 task clean(type: JRubyExec) {
-    script 'jekyll'
+    script 'bundle'
     workingDir jekyllSite
-    scriptArgs 'clean'
+    scriptArgs 'exec', 'jekyll', 'clean'
 }

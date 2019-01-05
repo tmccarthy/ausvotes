@@ -20,7 +20,7 @@ title: "ausvotes.info blog"
 description: "A blog about Australian elections."
 baseurl: # the subpath of your site, e.g. "/blog"
 url: https://blog.ausvotes.info # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
-logo: "/images/logo.png" # path of site logo, e.g. "/assets/images/logo.png"
+logo: # path of site logo, e.g. "/assets/images/logo.png"
 date_format: "%d %B, %Y"
 read_time: false
 words_per_minute: 200
@@ -102,7 +102,7 @@ defaults:
 # Site Author
 author:
   name: Timothy McCarthy
-  picture: /images/timothy-mccarthy.jpg
+  picture: /assets/images/timothy_mccarthy.jpg
   email:
   twitter: tmccarthy_
   links:
