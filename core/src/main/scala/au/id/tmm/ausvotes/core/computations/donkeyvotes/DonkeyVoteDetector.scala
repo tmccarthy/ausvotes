@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.computations.donkeyvotes
 
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate.{AtlPreferences, SenateBallot, SenateBallotGroup}
+import au.id.tmm.countstv.normalisation.Preference
 
 object DonkeyVoteDetector {
   val threshold: Int = 4

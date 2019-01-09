@@ -2,10 +2,10 @@ package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.parsing.RawPreferenceParser.preferenceFromRawValue
-import au.id.tmm.ausvotes.model.Preference
-import au.id.tmm.ausvotes.model.Preference.{Cross, Numbered, Tick}
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.stv.BallotGroup
+import au.id.tmm.countstv.normalisation.Preference
+import au.id.tmm.countstv.normalisation.Preference.{Cross, Numbered, Tick}
 
 class RawPreferenceParser private (election: SenateElectionForState, groupsAndCandidates: GroupsAndCandidates) {
 

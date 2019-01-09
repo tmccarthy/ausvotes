@@ -3,8 +3,8 @@ package au.id.tmm.ausvotes.core.tallies
 import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, NotExhausted}
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate.AtlPreferences
+import au.id.tmm.countstv.normalisation.Preference
 
 trait BallotCounter {
 

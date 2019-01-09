@@ -4,6 +4,7 @@ import au.id.tmm.ausvotes.model.Codecs
 import au.id.tmm.ausvotes.model.Codecs.Codec
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
+import au.id.tmm.countstv.normalisation.Preference
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
@@ -99,5 +100,19 @@ object CountStvCodecs {
       candidate <- c.get[C]("candidate")
       outcome <- c.get[CandidateStatus]("outcome")
     } yield candidate -> outcome
+
+  implicit val preferenceEncoder: Encoder[Preference] = {
+    case Preference.Numbered(asInt) => Json.fromInt(asInt)
+    case Preference.Tick => Json.fromString("✓")
+    case Preference.Cross => Json.fromString("x")
+  }
+
+  implicit val preferenceDecoder: Decoder[Preference] =
+    Decoder.decodeInt.map[Preference](Preference.Numbered) or
+      Decoder.decodeString.emap[Preference] {
+        case "✓" => Right(Preference.Tick)
+        case "x" => Right(Preference.Cross)
+        case x => Left(s"""Invalid preference "$x"""")
+      }
 
 }

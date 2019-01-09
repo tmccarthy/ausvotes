@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.computations.howtovote
 
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate.{AtlPreferences, SenateBallot, SenateGroup, SenateHtv}
+import au.id.tmm.countstv.normalisation.Preference
 import au.id.tmm.utilities.geo.australia.State
 
 // TODO this should be generalised to not be specific to the Senate

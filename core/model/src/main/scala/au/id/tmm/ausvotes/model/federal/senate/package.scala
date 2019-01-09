@@ -5,6 +5,7 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup.Code
 import au.id.tmm.ausvotes.model.stv.Group.InvalidGroupCode
 import au.id.tmm.ausvotes.model.stv._
 import au.id.tmm.countstv.model.CompletedCount
+import au.id.tmm.countstv.normalisation.Preference
 
 package object senate {
 

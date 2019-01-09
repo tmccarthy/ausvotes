@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.model.stv
 
-import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.countstv.normalisation.Preference
 
 final case class Ballot[E, C, J, I](
                                      election: E,

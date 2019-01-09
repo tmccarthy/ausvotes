@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
-import au.id.tmm.ausvotes.model.Preference
+import au.id.tmm.countstv.normalisation.Preference
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RawPreferenceParserSpec extends ImprovedFlatSpec {

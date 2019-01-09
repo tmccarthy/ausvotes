@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.savings
 
 import au.id.tmm.ausvotes.core.model.computation.{NormalisedBallot, SavingsProvision}
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate.SenateBallot
+import au.id.tmm.countstv.normalisation.Preference
 
 object SavingsComputation {
 

@@ -2,10 +2,10 @@ package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture.CandidateFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupFixture.GroupFixture
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction, FederalPollingPlace}
 import au.id.tmm.ausvotes.model.stv.BallotGroup
+import au.id.tmm.countstv.normalisation.Preference
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 

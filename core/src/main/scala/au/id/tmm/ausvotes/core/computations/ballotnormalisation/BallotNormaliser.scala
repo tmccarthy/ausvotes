@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.ballotnormalisation
 
 import au.id.tmm.ausvotes.core.model.computation.NormalisedBallot
-import au.id.tmm.ausvotes.model.Preference
 import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.countstv.normalisation.Preference
 
 class BallotNormaliser private (election: SenateElectionForState,
                                 candidates: Set[SenateCandidate],
