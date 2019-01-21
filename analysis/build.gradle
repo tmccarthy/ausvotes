@@ -1,0 +1,25 @@
+plugins {
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    }
+}
+
+def sparkVersion = '2.4.0'
+
+dependencies {
+    compile project(':core')
+    compile project(':shared:io')
+    compile project(':shared:recountResources')
+
+    compile "org.apache.spark:spark-sql${s}:$sparkVersion"
+
+    testCompile project(':core:fixtures')
+    testCompile project(':shared:testIo')
+    testCompile project(':shared:testRecountResources')
+}

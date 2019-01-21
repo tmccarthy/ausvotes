@@ -38,6 +38,8 @@ gradle-app.setting
 /buildSrc/build/
 /core/build/
 /core/out/
+/analysis/build/
+/analysis/out/
 /build/
 /core/fixtures/build
 /core/fixtures/out
