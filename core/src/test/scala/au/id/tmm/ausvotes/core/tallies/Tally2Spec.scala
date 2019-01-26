@@ -1,6 +1,8 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class Tally2Spec extends ImprovedFlatSpec {
 
@@ -23,4 +25,83 @@ class Tally2Spec extends ImprovedFlatSpec {
 
     assert(tally("!") === Tally1("A" -> 1, "B" -> 2))
   }
+
+  it can "be encoded to json" in {
+    val tally = Tally2(
+      "!" -> Tally1(
+        "A" -> 1,
+        "B" -> 2,
+      ),
+      "@" -> Tally1(
+        "C" -> 4d,
+      ),
+    )
+
+    val expectedJson = Json.arr(
+      Json.obj(
+        "key" -> "!".asJson,
+        "value" -> Json.arr(
+          Json.obj(
+            "key" -> "A".asJson,
+            "value" -> 1.asJson,
+          ),
+          Json.obj(
+            "key" -> "B".asJson,
+            "value" -> 2.asJson,
+          ),
+        )
+      ),
+      Json.obj(
+        "key" -> "@".asJson,
+        "value" -> Json.arr(
+          Json.obj(
+            "key" -> "C".asJson,
+            "value" -> 4.asJson,
+          ),
+        ),
+      ),
+    )
+
+    assert(tally.asJson === expectedJson)
+  }
+
+  it can "be decoded from json" in {
+    val json = Json.arr(
+      Json.obj(
+        "key" -> "!".asJson,
+        "value" -> Json.arr(
+          Json.obj(
+            "key" -> "A".asJson,
+            "value" -> 1.asJson,
+          ),
+          Json.obj(
+            "key" -> "B".asJson,
+            "value" -> 2.asJson,
+          ),
+        )
+      ),
+      Json.obj(
+        "key" -> "@".asJson,
+        "value" -> Json.arr(
+          Json.obj(
+            "key" -> "C".asJson,
+            "value" -> 4.asJson,
+          ),
+        ),
+      ),
+    )
+
+    val expectedTally = Tally2(
+      "!" -> Tally1(
+        "A" -> 1,
+        "B" -> 2,
+      ),
+      "@" -> Tally1(
+        "C" -> 4d,
+      ),
+    )
+
+    assert(json.as[Tally2[String, String]] === Right(expectedTally))
+  }
+
 }

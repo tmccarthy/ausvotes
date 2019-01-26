@@ -1,5 +1,11 @@
 package au.id.tmm.ausvotes.core.tallies
 
+import au.id.tmm.ausvotes.model.Codecs
+import au.id.tmm.ausvotes.model.Codecs.Codec
+import cats.implicits._
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, Json}
+
 trait Tally {
   type SelfType <: Tally
 
@@ -10,6 +16,39 @@ trait Tally {
   def /(denominator: SelfType): SelfType
 
   def accumulated: Tally0
+}
+
+object Tally {
+
+  private[tallies] def generalTallyEncoder[T_TALLY, K: Encoder, V: Encoder](
+                                                                             asKvPairs: T_TALLY => Iterable[(K, V)],
+                                                                           ): Encoder[T_TALLY] =
+    t => {
+      asKvPairs(t)
+        .map { case (key, value) =>
+          Json.obj(
+            "key" -> key.asJson,
+            "value" -> value.asJson,
+          )
+        }.asJson
+    }
+
+  private[tallies] def generalTallyDecoder[T_TALLY, K: Decoder, V: Decoder](
+                                                                             fromMap: Map[K, V] => T_TALLY,
+                                                                           ): Decoder[T_TALLY] =
+    c => c.as[List[Json]].flatMap { jsons =>
+      jsons.traverse { json =>
+        val c = json.hcursor
+
+        for {
+          key <- c.get[K]("key")
+          value <- c.get[V]("value")
+        } yield key -> value
+      }.map { kvPairs =>
+        fromMap(kvPairs.toMap)
+      }
+    }
+
 }
 
 // TODO this was a dumb idea. get rid of it
@@ -39,6 +78,8 @@ object Tally0 {
       .map(_.value)
       .sum
   }
+
+  implicit val encoder: Codec[Tally0] = Codecs.simpleCodec[Tally0, Double](_.value, Tally0.apply)
 }
 
 final case class Tally1[T_GROUP_1](asMap: Map[T_GROUP_1, Tally0]) extends Tally {
@@ -68,9 +109,9 @@ final case class Tally1[T_GROUP_1](asMap: Map[T_GROUP_1, Tally0]) extends Tally 
 
   override lazy val accumulated: Tally0 = Tally0.sum(asMap.values)
 
-  def asStream: Stream[(T_GROUP_1, Double)] = asMap.toStream
+  def asStream: Stream[(T_GROUP_1, Tally0)] = asMap.toStream
     .map { case (key, tally0) =>
-      key -> tally0.value
+      key -> tally0
     }
 
   override def /(denominator: Tally1[T_GROUP_1]): Tally1[T_GROUP_1] = {
@@ -92,6 +133,13 @@ object Tally1 {
       }
       .toMap
   )
+
+  implicit def encoder[T_GROUP_1: Encoder]: Encoder[Tally1[T_GROUP_1]] =
+    Tally.generalTallyEncoder[Tally1[T_GROUP_1], T_GROUP_1, Tally0](_.asStream)
+
+  implicit def decoder[T_GROUP_1: Decoder]: Decoder[Tally1[T_GROUP_1]] =
+    Tally.generalTallyDecoder[Tally1[T_GROUP_1], T_GROUP_1, Tally0](m => Tally1.apply(m))
+
 }
 
 final case class Tally2[T_GROUP_1, T_GROUP_2](asMap: Map[T_GROUP_1, Tally1[T_GROUP_2]]) extends Tally {
@@ -121,7 +169,7 @@ final case class Tally2[T_GROUP_1, T_GROUP_2](asMap: Map[T_GROUP_1, Tally1[T_GRO
 
   override lazy val accumulated: Tally0 = Tally0.sum(asMap.values.map(_.accumulated))
 
-  def asStream: Stream[(T_GROUP_1, T_GROUP_2, Double)] = asMap.toStream
+  def asStream: Stream[(T_GROUP_1, T_GROUP_2, Tally0)] = asMap.toStream
     .flatMap { case (key1, tally1) =>
       tally1.asStream
         .map { case (key2, amount) =>
@@ -143,6 +191,13 @@ object Tally2 {
   def apply[T_GROUP_1, T_GROUP_2](entries: (T_GROUP_1, Tally1[T_GROUP_2])*): Tally2[T_GROUP_1, T_GROUP_2] = Tally2(
     entries.toMap
   )
+
+  implicit def encoder[T_GROUP_1: Encoder, T_GROUP_2: Encoder]: Encoder[Tally2[T_GROUP_1, T_GROUP_2]] =
+    Tally.generalTallyEncoder[Tally2[T_GROUP_1, T_GROUP_2], T_GROUP_1, Tally1[T_GROUP_2]](_.asMap.toStream)
+
+  implicit def decoder[T_GROUP_1: Decoder, T_GROUP_2: Decoder]: Decoder[Tally2[T_GROUP_1, T_GROUP_2]] =
+    Tally.generalTallyDecoder[Tally2[T_GROUP_1, T_GROUP_2], T_GROUP_1, Tally1[T_GROUP_2]](m => Tally2.apply(m))
+
 }
 
 final case class Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3](asMap: Map[T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3]]) extends Tally {
@@ -172,7 +227,7 @@ final case class Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3](asMap: Map[T_GROUP_1, T
 
   override lazy val accumulated: Tally0 = Tally0.sum(asMap.values.map(_.accumulated))
 
-  def asStream: Stream[(T_GROUP_1, T_GROUP_2, T_GROUP_3, Double)] = asMap.toStream
+  def asStream: Stream[(T_GROUP_1, T_GROUP_2, T_GROUP_3, Tally0)] = asMap.toStream
     .flatMap { case (key1, tally1) =>
       tally1.asStream
         .map { case (key2, key3, amount) =>
@@ -194,6 +249,13 @@ object Tally3 {
   def apply[T_GROUP_1, T_GROUP_2, T_GROUP_3](entries: (T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3])*): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = Tally3(
     entries.toMap
   )
+
+  implicit def encoder[T_GROUP_1: Encoder, T_GROUP_2: Encoder, T_GROUP_3: Encoder]: Encoder[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]] =
+    Tally.generalTallyEncoder[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3], T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3]](_.asMap.toStream)
+
+  implicit def decoder[T_GROUP_1: Decoder, T_GROUP_2: Decoder, T_GROUP_3: Decoder]: Decoder[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]] =
+    Tally.generalTallyDecoder[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3], T_GROUP_1, Tally2[T_GROUP_2, T_GROUP_3]](m => Tally3.apply(m))
+
 }
 
 final case class Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](asMap: Map[T_GROUP_1, Tally3[T_GROUP_2, T_GROUP_3, T_GROUP_4]]) extends Tally {
@@ -222,7 +284,7 @@ final case class Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](asMap: Map[T
 
   override lazy val accumulated: Tally0 = Tally0.sum(asMap.values.map(_.accumulated))
 
-  def asStream: Stream[(T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4, Double)] = asMap.toStream
+  def asStream: Stream[(T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4, Tally0)] = asMap.toStream
     .flatMap { case (key1, tally1) =>
       tally1.asStream
         .map { case (key2, key3, key4, amount) =>
@@ -244,4 +306,11 @@ object Tally4 {
   def apply[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](entries: (T_GROUP_1, Tally3[T_GROUP_2, T_GROUP_3, T_GROUP_4])*): Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4] = Tally4(
     entries.toMap
   )
+
+  implicit def encoder[T_GROUP_1: Encoder, T_GROUP_2: Encoder, T_GROUP_3: Encoder, T_GROUP_4: Encoder]: Encoder[Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4]] =
+    Tally.generalTallyEncoder[Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4], T_GROUP_1, Tally3[T_GROUP_2, T_GROUP_3, T_GROUP_4]](_.asMap.toStream)
+
+  implicit def decoder[T_GROUP_1: Decoder, T_GROUP_2: Decoder, T_GROUP_3: Decoder, T_GROUP_4: Decoder]: Decoder[Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4]] =
+    Tally.generalTallyDecoder[Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4], T_GROUP_1, Tally3[T_GROUP_2, T_GROUP_3, T_GROUP_4]](m => Tally4.apply(m))
+
 }

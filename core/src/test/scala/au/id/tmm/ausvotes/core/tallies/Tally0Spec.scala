@@ -1,6 +1,8 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class Tally0Spec extends ImprovedFlatSpec {
 
@@ -35,6 +37,14 @@ class Tally0Spec extends ImprovedFlatSpec {
     ))
 
     assert(actual === Tally0(4 + 5 + 6 + 7))
+  }
+
+  it can "be encoded to json" in {
+    assert(Tally0(4.0).asJson === Json.fromDouble(4.0).get)
+  }
+
+  it can "be decoded from json" in {
+    assert(Json.fromDouble(4.5).get.as[Tally0] === Right(Tally0(4.5)))
   }
 
 }

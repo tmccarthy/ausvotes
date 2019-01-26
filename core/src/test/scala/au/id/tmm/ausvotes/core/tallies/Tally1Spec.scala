@@ -1,6 +1,8 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import io.circe.Json
+import io.circe.syntax.EncoderOps
 
 class Tally1Spec extends ImprovedFlatSpec {
 
@@ -67,4 +69,47 @@ class Tally1Spec extends ImprovedFlatSpec {
 
     assert(tally.accumulated === Tally0(2 + 5 + 7))
   }
+
+  it can "be encoded to json" in {
+    val tally = Tally1("A" -> 2, "B" -> 5, "C" -> 7)
+
+    val expectedObject = Json.arr(
+      Json.obj(
+        "key" -> "A".asJson,
+        "value" -> 2.asJson,
+      ),
+      Json.obj(
+        "key" -> "B".asJson,
+        "value" -> 5.asJson,
+      ),
+      Json.obj(
+        "key" -> "C".asJson,
+        "value" -> 7.asJson,
+      ),
+    )
+
+    assert(tally.asJson === expectedObject)
+  }
+
+  it can "be decoded from json" in {
+    val json = Json.arr(
+      Json.obj(
+        "key" -> "A".asJson,
+        "value" -> 2.asJson,
+      ),
+      Json.obj(
+        "key" -> "B".asJson,
+        "value" -> 5.asJson,
+      ),
+      Json.obj(
+        "key" -> "C".asJson,
+        "value" -> 7.asJson,
+      ),
+    )
+
+    val expectedTally = Tally1("A" -> 2, "B" -> 5, "C" -> 7)
+
+    assert(json.as[Tally1[String]] === Right(expectedTally))
+  }
+
 }
