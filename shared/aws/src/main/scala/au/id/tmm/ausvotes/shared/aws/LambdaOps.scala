@@ -7,7 +7,7 @@ import au.id.tmm.http_constants.HttpResponseCode
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.lambda.model.{InvokeRequest, InvokeResult}
 import com.amazonaws.services.lambda.{AWSLambdaAsync, AWSLambdaAsyncClientBuilder}
-import scalaz.zio.{Callback, ExitResult, IO}
+import scalaz.zio.IO
 
 object LambdaOps {
 
@@ -24,16 +24,16 @@ object LambdaOps {
     } yield resultPayload
   }
 
-  private def lambdaAsyncHandler(ioCallback: Callback[Exception, String]): AsyncHandler[InvokeRequest, InvokeResult] =
+  private def lambdaAsyncHandler(ioCallback: IO[Exception, String] => Unit): AsyncHandler[InvokeRequest, InvokeResult] =
     new AsyncHandler[InvokeRequest, InvokeResult] {
-      override def onError(exception: Exception): Unit = ioCallback(ExitResult.Failed(exception))
+      override def onError(exception: Exception): Unit = ioCallback(IO.fail(exception))
 
       override def onSuccess(request: InvokeRequest, result: InvokeResult): Unit = {
 
         val payload = StandardCharsets.UTF_8.decode(result.getPayload).toString
 
         result.getFunctionError match {
-          case handled @ ("Handled" | "Unhandled") => ioCallback.apply(ExitResult.Failed(
+          case handled @ ("Handled" | "Unhandled") => ioCallback.apply(IO.fail(
             LambdaInvocationException(
               statusCode = HttpResponseCode.fromCode(result.getStatusCode)
                 .getOrElse(HttpResponseCode.InternalServerError),
@@ -41,7 +41,7 @@ object LambdaOps {
               payload = payload,
             )
           ))
-          case _ => ioCallback.apply(ExitResult.Completed(payload))
+          case _ => ioCallback.apply(IO.point(payload))
         }
       }
     }

@@ -71,7 +71,7 @@ object FederalElection {
   final case class Id(asString: String) extends AnyVal
   final case class AecId(asInt: Int) extends AnyVal
 
-  implicit val codec: Codec[FederalElection] = Codecs.partialCodec[FederalElection, String](
+  implicit val codec: Codec[FederalElection] = Codecs.partialLiftedCodec[FederalElection, String](
     encode = _.id.asString,
     decode = rawId => FederalElection.from(Id(rawId)),
   )

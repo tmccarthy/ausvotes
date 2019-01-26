@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, No
 import au.id.tmm.ausvotes.model.federal.senate.AtlPreferences
 import au.id.tmm.countstv.normalisation.Preference
 
-trait BallotCounter {
+sealed trait BallotCounter {
 
   def weigh(ballots: Iterable[BallotWithFacts]): Double
 
@@ -15,7 +15,7 @@ trait BallotCounter {
 }
 
 object BallotCounter {
-  trait PredicateBallotCounter extends BallotCounter {
+  sealed trait PredicateBallotCounter extends BallotCounter {
     override def weigh(ballots: Iterable[BallotWithFacts]): Double = {
       ballots
         .count(isCounted)

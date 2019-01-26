@@ -11,6 +11,8 @@ import unfiltered.netty.Server
 import unfiltered.netty.async.{Plan, Planify}
 import unfiltered.response.ResponseFunction
 
+import scala.annotation.tailrec
+
 object Api {
 
   def main(args: Array[String]): Unit = {
@@ -36,15 +38,25 @@ object Api {
       val io = routes(req)
 
       ioRuntime.unsafeRunAsync(io) { exitResult: ExitResult[Nothing, ResponseFunction[HttpResponse]] =>
-        //noinspection NotImplementedCode
         req.respond(exitResult.fold(
           completed = identity[ResponseFunction[HttpResponse]],
-          failed = (_, _) => ???, // Impossible
-          interrupted = throwables => throw throwables.head,
+          failed = handleFailure,
         ))
       }
     }
   }
+
+  @tailrec
+  private def handleFailure(failureCause: ExitResult.Cause[Nothing]): ResponseFunction[HttpResponse] =
+  //noinspection NotImplementedCode
+    failureCause match {
+      case ExitResult.Cause.Checked(e) => ??? // Impossible
+      case ExitResult.Cause.Unchecked(t) => throw t
+      case ExitResult.Cause.Interruption => throw new InterruptedException()
+      case ExitResult.Cause.Both(left, right) => handleFailure(left)
+      case ExitResult.Cause.Then(left, right) => handleFailure(left)
+    }
+
 
   private val buildStartupResources: IO[Exception, StartupResources] =
     for {

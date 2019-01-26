@@ -65,7 +65,7 @@ object BallotGroup {
 
     final case class InvalidCode(invalidCode: String) extends ExceptionCaseClass
 
-    implicit val codec: Codec[Code] = Codecs.partialCodec[Code, String](
+    implicit val codec: Codec[Code] = Codecs.partialLiftedCodec[Code, String](
       encode = _.asString,
       decode = Code(_).toOption,
     )

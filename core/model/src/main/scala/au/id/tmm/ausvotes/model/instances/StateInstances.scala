@@ -6,7 +6,7 @@ import au.id.tmm.utilities.geo.australia.State
 
 object StateInstances {
 
-  implicit val codec: Codec[State] = Codecs.partialCodec(_.abbreviation, State.fromAbbreviation)
+  implicit val codec: Codec[State] = Codecs.partialLiftedCodec(_.abbreviation, State.fromAbbreviation)
 
   val orderStatesByPopulation: Ordering[State] = new Ordering[State] {
     private def sizeOf(state: State): Int = state match {

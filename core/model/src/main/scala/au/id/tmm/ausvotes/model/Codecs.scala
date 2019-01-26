@@ -16,21 +16,31 @@ object Codecs {
     override def apply(a: A): Json = encode(a).asJson
   }
 
-  def partialCodec[A : ClassTag, A1 : Decoder : Encoder](
-                                                          encode: A => A1,
-                                                          decode: A1 => Option[A],
-                                                        ): Codec[A] = new Decoder[A] with Encoder[A] {
+  def partialDecoder[T_INTERMEDIATE : Decoder, A: ClassTag](pf: PartialFunction[T_INTERMEDIATE, A]): Decoder[A] =
+    partialLiftedDecoder(pf.lift)
 
-    private val completeDecoder: A1 => Either[String, A] = intermediateValue => decode(intermediateValue) match {
-      case Some(value) => Right(value)
-      case None => Left(s"""Unable to parse value "$intermediateValue" to ${implicitly[ClassTag[A]].runtimeClass.getSimpleName}""")
+  def partialLiftedDecoder[T_INTERMEDIATE : Decoder, A: ClassTag](pfLifted: Function[T_INTERMEDIATE, Option[A]]): Decoder[A] =
+    implicitly[Decoder[T_INTERMEDIATE]].emap { asString =>
+      pfLifted.apply(asString) match {
+        case Some(decoded) => Right(decoded)
+        case None => Left(s"""Unable to parse value "$asString" to ${implicitly[ClassTag[A]].runtimeClass.getName}""")
+      }
     }
 
-    override def apply(c: HCursor): Result[A] = c.as[A1].flatMap { intermediateValue =>
-      completeDecoder(intermediateValue).left.map(errorMessage => DecodingFailure(errorMessage, c.history))
-    }
+  def partialLiftedCodec[A : ClassTag, T_INTERMEDIATE : Decoder : Encoder](
+                                                                            encode: A => T_INTERMEDIATE,
+                                                                            decode: T_INTERMEDIATE => Option[A],
+                                                                          ): Codec[A] = new Decoder[A] with Encoder[A] {
+    private val decoder = partialLiftedDecoder(decode)
+
+    override def apply(c: HCursor): Result[A] = decoder.apply(c)
 
     override def apply(a: A): Json = encode(a).asJson
   }
+
+  def partialCodec[A : ClassTag, T_INTERMEDIATE : Decoder : Encoder](
+                                                                      encode: A => T_INTERMEDIATE,
+                                                                      decode: PartialFunction[T_INTERMEDIATE, A],
+                                                                    ): Codec[A] = partialLiftedCodec(encode, decode.lift)
 
 }

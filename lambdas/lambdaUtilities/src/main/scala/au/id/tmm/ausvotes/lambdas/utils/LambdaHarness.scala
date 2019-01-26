@@ -14,27 +14,38 @@ import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio.{ExitResult, IO, RTS}
 
+import scala.annotation.tailrec
+
 abstract class LambdaHarness[T_REQUEST : Decoder, T_RESPONSE : Encoder, T_ERROR](protected val rts: RTS = new RTS {})
   extends RequestStreamHandler {
 
   final override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
     rts.unsafeRunSync(harness(input, output, context)) match {
-      case ExitResult.Completed(_)  => Unit
-      case ExitResult.Terminated(t) => throw t.head
-      case ExitResult.Failed(e, _)  => throw e.exception
+      case ExitResult.Succeeded(_)  => Unit
+      case ExitResult.Failed(cause) => handleFailure(cause)
     }
   }
+
+  @tailrec
+  private def handleFailure(failureCause: ExitResult.Cause[LambdaHarness.ResponseWriteError]): Unit =
+    failureCause match {
+      case ExitResult.Cause.Checked(e) => throw e.exception
+      case ExitResult.Cause.Unchecked(t) => throw t
+      case ExitResult.Cause.Interruption => throw new InterruptedException()
+      case ExitResult.Cause.Both(left, right) => handleFailure(left)
+      case ExitResult.Cause.Then(left, right) => handleFailure(left)
+    }
 
   private def harness(input: InputStream, output: OutputStream, context: Context): IO[ResponseWriteError, Unit] = {
     val computeResponseLogic: IO[HarnessInputError, T_RESPONSE] = for {
       requestAsString <- Closeables.InputStreams.readAsString(IO.point(input), charset)
-          .leftMap(RequestReadError)
+        .leftMap(RequestReadError)
 
       requestJson <- IO.fromEither(parse(requestAsString))
-          .leftMap(f => RequestDecodeError(f.show, requestAsString))
+        .leftMap(f => RequestDecodeError(f.show, requestAsString))
 
       request <- IO.fromEither(requestJson.as[T_REQUEST])
-          .leftMap(f => RequestDecodeError(f.show, requestAsString))
+        .leftMap(f => RequestDecodeError(f.show, requestAsString))
 
       responseOrError <- logic(request, context).attempt
 

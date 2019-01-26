@@ -54,9 +54,9 @@ class Tally1Spec extends ImprovedFlatSpec {
     val tally = Tally1("A" -> 2, "B" -> 5, "C" -> 7)
 
     val expected = Vector(
-      ("A", 2),
-      ("B", 5),
-      ("C", 7),
+      ("A", Tally0(2)),
+      ("B", Tally0(5)),
+      ("C", Tally0(7)),
     )
 
     val actual = tally.asStream.toVector

@@ -1,6 +1,5 @@
 package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.utilities.geo.australia.State
@@ -17,13 +16,7 @@ class PredicateTallierSpec extends ImprovedFlatSpec {
 
   import ballotMaker.group
 
-  private object TestCounter extends BallotCounter.PredicateBallotCounter {
-    override def isCounted(ballotWithFacts: BallotWithFacts): Boolean = ballotWithFacts.ballot == countedBallot
-
-    override def name: String = "counted ballots"
-  }
-
-  private val sut = TallierBuilder.counting(TestCounter)
+  private val sut = TallierBuilder.counting(BallotCounter.VotedAtl)
 
   private val testBallotsWithFacts = factsFor(Vector(countedBallot, notCountedBallot))
 

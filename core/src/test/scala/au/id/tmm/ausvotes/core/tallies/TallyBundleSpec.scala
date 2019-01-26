@@ -1,7 +1,8 @@
 package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TallyBundleSpec extends ImprovedFlatSpec {
@@ -40,21 +41,10 @@ class TallyBundleSpec extends ImprovedFlatSpec {
     assert(actual === expected)
   }
 
-  private val teir1Tallier: Tallier1[String] =
-    TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(StringGrouper)
+  private val teir1Tallier: Tallier1[SenateElection] =
+    TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.SenateElection)
 
-  private val teir2Tallier: Tallier2[String, Int] =
-    TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(StringGrouper, IntGrouper)
+  private val teir2Tallier: Tallier2[SenateElection, State] =
+    TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.SenateElection, BallotGrouping.State)
 
-  private object StringGrouper extends BallotGrouping[String] {
-    override def groupsOf(ballotWithFacts: BallotWithFacts): Set[String] = throw new NotImplementedError()
-
-    override def name: String = "string"
-  }
-
-  private object IntGrouper extends BallotGrouping[Int] {
-    override def groupsOf(ballotWithFacts: BallotWithFacts): Set[Int] = throw new NotImplementedError()
-
-    override def name: String = "int"
-  }
 }

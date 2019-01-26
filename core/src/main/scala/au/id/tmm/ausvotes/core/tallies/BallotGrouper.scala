@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.core.tallies.BallotGrouper.groupBallots
 
 import scala.collection.mutable
 
-trait BallotGrouper {
+sealed trait BallotGrouper {
 
   private[tallies] def subGrouper: BallotGrouper
 
@@ -14,7 +14,7 @@ trait BallotGrouper {
   def name: String
 }
 
-object BallotGrouper0 extends BallotGrouper {
+case object BallotGrouper0 extends BallotGrouper {
 
   private[tallies] override def subGrouper: Nothing = throw new NotImplementedError()
 
