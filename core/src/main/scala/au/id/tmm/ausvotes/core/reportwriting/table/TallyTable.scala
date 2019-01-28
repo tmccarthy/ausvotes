@@ -69,4 +69,6 @@ object TallyTable {
     override def compare(left: DataRow[A], right: DataRow[A]): Int = left.count compare right.count
   }.reverse
 
+  def fractionOrdering[A]: Ordering[DataRow[A]] = Ordering.by[DataRow[A], Double](_.fraction).reverse
+
 }

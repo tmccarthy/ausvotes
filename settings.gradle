@@ -16,4 +16,6 @@ include 'core',
         'infrastructure',
         'ui',
         'api',
-        'analysis'
+        'analysis',
+        'blog',
+        'blog:scripts'

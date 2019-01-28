@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.github.jruby-gradle:jruby-gradle-plugin:+"
+    }
+}
+
+apply plugin: 'com.github.jruby-gradle.base'
+
+import com.github.jrubygradle.JRubyExec
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    jrubyExec 'rubygems:jekyll:3.8.5'
+    jrubyExec 'rubygems:bundler:1.15.4'
+    jrubyExec 'rubygems:jekyll-theme-so-simple:3.1.1'
+    jrubyExec 'rubygems:tzinfo-data:1.2018.9'
+}
+
+def jekyllSite = file('site')
+
+task jekyllNew(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'new', jekyllSite
+}
+
+task bundleUpdate(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'update'
+}
+
+task jekyllServe(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'serve'
+}
+
+task jekyllServeFuture(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'serve', '--future'
+}
+
+task build(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'build'
+}
+
+task clean(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'clean'
+}
