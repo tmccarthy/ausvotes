@@ -4,13 +4,15 @@ import java.nio.file.Paths
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.io_actions.FetchTally
-import au.id.tmm.ausvotes.core.io_actions.implementations.{FetchDivisionsAndPollingPlacesFromParsedDataStore, FetchGroupsAndCandidatesFromParsedDataStore, FetchTallyFromEngine, OnDiskJsonCache}
+import au.id.tmm.ausvotes.core.io_actions.implementations._
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
 import au.id.tmm.ausvotes.core.tallies.{TallierBuilder, _}
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import scalaz.zio.IO
 
 object HtvUsageIn2016 extends SparkAnalysisScript {
 
@@ -24,8 +26,10 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
 
     implicit val fetchGroupsAndCandidates: FetchGroupsAndCandidatesFromParsedDataStore = new FetchGroupsAndCandidatesFromParsedDataStore(parsedDataStore)
     implicit val fetchDivisions: FetchDivisionsAndPollingPlacesFromParsedDataStore = new FetchDivisionsAndPollingPlacesFromParsedDataStore(parsedDataStore)
+    implicit val fetchCountData: FetchSenateCountDataFromParsedDataStore = new FetchSenateCountDataFromParsedDataStore(parsedDataStore)
+    implicit val fetchHtv: FetchSenateHtvFromHardcoded[IO] = new FetchSenateHtvFromHardcoded[IO]
 
-    implicit val fetchTallies: FetchTallyFromEngine = unsafeRun(FetchTallyFromEngine(parsedDataStore))
+    implicit val fetchTallies: FetchTallyAsWithComputation = unsafeRun(FetchTallyAsWithComputation(parsedDataStore))
 
     val (usedHtvTally, votedFormallyTally) = unsafeRun {
       FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)) par
