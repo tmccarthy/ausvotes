@@ -40,6 +40,7 @@ gradle-app.setting
 /core/out/
 /analysis/build/
 /analysis/out/
+/blog/build/
 /build/
 /core/fixtures/build
 /core/fixtures/out

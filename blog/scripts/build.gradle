@@ -1,7 +1,0 @@
-apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
-
-dependencies {
-    compile project(':core')
-
-    testCompile project(':core:fixtures')
-}
