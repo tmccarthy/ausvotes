@@ -18,6 +18,7 @@ dependencies {
     compile project(':shared:recountResources')
 
     compile "org.apache.spark:spark-sql${s}:$sparkVersion"
+    compile "org.plotly-scala:plotly-render${s}:0.5.4"
 
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')

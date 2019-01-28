@@ -8,6 +8,7 @@ import au.id.tmm.ausvotes.core.io_actions.{FetchDivisionsAndPollingPlaces, Fetch
 import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates}
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
 import cats.instances.list._
@@ -26,6 +27,7 @@ final class FetchTallyFromEngine private (
                                            implicit
                                            fetchDivisionsAndPollingPlaces: FetchDivisionsAndPollingPlaces[IO],
                                            fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+                                           logging: Log[IO],
                                            jsonCache: JsonCache[IO],
                                          ) extends FetchTally[IO] {
 
@@ -34,7 +36,7 @@ final class FetchTallyFromEngine private (
   override def fetchTally0(election: SenateElection, tallier: Tallier0): IO[FetchTally.Error, Tally0] = {
     val tallyRequest = TallyRequest(election, tallier)
 
-    jsonCache.get(tallyRequest) {
+    jsonCache.getOrCompute(tallyRequest) {
       getTallyFor(tallyRequest).map(_.asInstanceOf[Tally0])
     }.leftMap(FetchTally.Error)
   }
@@ -42,7 +44,7 @@ final class FetchTallyFromEngine private (
   override def fetchTally1[T_GROUP_1 : Encoder : Decoder](election: SenateElection, tallier: Tallier1[T_GROUP_1]): IO[FetchTally.Error, Tally1[T_GROUP_1]] = {
     val tallyRequest = TallyRequest(election, tallier)
 
-    jsonCache.get(tallyRequest) {
+    jsonCache.getOrCompute(tallyRequest) {
       getTallyFor(tallyRequest).map(_.asInstanceOf[Tally1[T_GROUP_1]])
     }.leftMap(FetchTally.Error)
   }
@@ -50,7 +52,7 @@ final class FetchTallyFromEngine private (
   override def fetchTally2[T_GROUP_1 : Encoder : Decoder, T_GROUP_2 : Encoder : Decoder](election: SenateElection, tallier: Tallier2[T_GROUP_1, T_GROUP_2]): IO[FetchTally.Error, Tally2[T_GROUP_1, T_GROUP_2]] = {
     val tallyRequest = TallyRequest(election, tallier)
 
-    jsonCache.get(tallyRequest) {
+    jsonCache.getOrCompute(tallyRequest) {
       getTallyFor(tallyRequest).map(_.asInstanceOf[Tally2[T_GROUP_1, T_GROUP_2]])
     }.leftMap(FetchTally.Error)
   }
@@ -58,31 +60,24 @@ final class FetchTallyFromEngine private (
   override def fetchTally3[T_GROUP_1 : Encoder : Decoder, T_GROUP_2 : Encoder : Decoder, T_GROUP_3 : Encoder : Decoder](election: SenateElection, tallier: Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3]): IO[FetchTally.Error, Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]] = {
     val tallyRequest = TallyRequest(election, tallier)
 
-    jsonCache.get(tallyRequest) {
+    jsonCache.getOrCompute(tallyRequest) {
       getTallyFor(tallyRequest).map(_.asInstanceOf[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]])
     }.leftMap(FetchTally.Error)
   }
 
-  private def getPromiseFor(tallyRequest: TallyRequest): IO[Nothing, Promise[FetchTally.Error, Tally]] =
-    mutex.withPermit {
-      promisesPerRequest.get(tallyRequest) match {
-        case Some(existingPromise) => IO.point(existingPromise)
-
-        case None =>
-          Promise.make[FetchTally.Error, Tally].map { promise =>
-            promisesPerRequest.update(tallyRequest, promise)
-
-            promise
-          }
-      }
-    }
-
   private def getTallyFor(tallyRequest: TallyRequest): IO[FetchTally.Error, Tally] =
     mutex.withPermit {
       for {
-        promise <- getPromiseFor(tallyRequest)
+        promise <- promisesPerRequest.get(tallyRequest) match {
+          case Some(existingPromise) => IO.point(existingPromise)
 
-        _ <- fulfilPromisesFromTallyEngine.fork
+          case None =>
+            for {
+              promise <- Promise.make[FetchTally.Error, Tally]
+              _ = promisesPerRequest.update(tallyRequest, promise)
+              _ <- fulfilPromisesFromTallyEngine.fork
+            } yield promise
+        }
       } yield promise
     }.flatMap { promise =>
       promise.get
@@ -102,21 +97,25 @@ final class FetchTallyFromEngine private (
         }
       }
 
-      _ = requestsAndPromises
-        .groupBy { case (TallyRequest(election, _), _) => election }
-        .map { case (election, promisesPerTallyRequestsForElection) =>
+      _ <- IO.traverse(requestsAndPromises.groupBy { case (TallyRequest(election, _), _) => election }) {
+        case (election, promisesPerTallyRequestsForElection) =>
           val promisesPerTallier: Map[Tallier, Promise[FetchTally.Error, Tally]] = promisesPerTallyRequestsForElection.map {
             case (TallyRequest(_, tallier), promise) => tallier -> promise
           }
 
+          val tallyBundleIo =
+            for {
+              divisionsAndPollingPlaces <- FetchDivisionsAndPollingPlaces.fetchFor(election.federalElection)
+                .leftMap(FetchTally.Error(_))
+              groupsAndCandidates <- FetchSenateGroupsAndCandidates.fetchFor(election)
+                .leftMap(FetchTally.Error(_))
+
+              tallyBundle <- runWithEngine(election, divisionsAndPollingPlaces, groupsAndCandidates, promisesPerTallier.keySet)
+
+            } yield tallyBundle
+
           for {
-            divisionsAndPollingPlaces <- FetchDivisionsAndPollingPlaces.fetchFor(election.federalElection)
-              .leftMap(FetchTally.Error(_))
-            groupsAndCandidates <- FetchSenateGroupsAndCandidates.fetchFor(election)
-              .leftMap(FetchTally.Error(_))
-
-            tallyBundleOrError <- runWithEngine(election, divisionsAndPollingPlaces, groupsAndCandidates, promisesPerTallier.keySet).attempt
-
+            tallyBundleOrError <- tallyBundleIo.attempt
             _ <- tallyBundleOrError match {
               case Right(tallyBundle) => promisesPerTallier.toList.traverse { case (tallier, promise) =>
                 promise.complete(tallyBundle.tallyProducedBy(tallier))
@@ -128,9 +127,9 @@ final class FetchTallyFromEngine private (
               }
             }
           } yield ()
-        }
+      }
 
-    } yield Unit
+    } yield ()
 
   private def runWithEngine(
                              senateElection: SenateElection,
