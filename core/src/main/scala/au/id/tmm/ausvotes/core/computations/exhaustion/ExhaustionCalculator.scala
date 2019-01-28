@@ -46,8 +46,8 @@ object ExhaustionCalculator {
               trackedBallot.currentPreference.contains(distributionSource.candidate) &&
                 distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)
             ) {
-              val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates diff
-                previousCountStep.candidateStatuses.electedCandidates
+              val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates.toSet diff
+                previousCountStep.candidateStatuses.electedCandidates.toSet
 
               trackedBallot.transferValue = distributionSource.transferValue
               allocateToNextPreference(
@@ -60,6 +60,7 @@ object ExhaustionCalculator {
           }
         }
         case ElectedNoSurplusCountStep(_, _, _, _, _) | ExcludedNoVotesCountStep(_, _, _, _) =>
+          //noinspection NotImplementedCode
           ??? // TODO this needs to be accounted for
       }
     }
@@ -110,7 +111,12 @@ object ExhaustionCalculator {
                                    ) {
     def currentAllocation: Option[Allocation] = currentPreference.map(Allocation(_, allocatedAtCount))
 
-    def currentPreference: Option[SenateCandidate] = normalisedBallot.canonicalOrder.lift(currentPreferenceIndex)
+    def currentPreference: Option[SenateCandidate] =
+      if (currentPreferenceIndex < normalisedBallot.canonicalOrder.size) {
+        Some(normalisedBallot.canonicalOrder.apply(currentPreferenceIndex))
+      } else {
+        None
+      }
 
     def incrementCurrentPreference(currentCount: Count): Unit = {
       currentPreferenceIndex = currentPreferenceIndex + 1

@@ -107,8 +107,17 @@ final class FetchTallyAsWithComputation private(
             case (TallyRequest(_, tallier), promise) => tallier -> promise
           }
 
+          val talliers = promisesPerTallier.keySet
+
           for {
-            tallyBundleOrError <- runForElectionAndTalliers(election, talliers = promisesPerTallier.keySet).attempt
+            tallyBundleOrError <- runForElectionAndTalliers(election, talliers).attempt
+                .timedLog(
+                  eventId = "TALLY_ENGINE_EXECUTION",
+                  "election" -> election,
+                  "states" -> election.allStateElections.map(_.state),
+                  "talliers" -> talliers.map(_.name),
+                )
+
             _ <- tallyBundleOrError match {
               case Right(tallyBundle) => promisesPerTallier.toList.traverse { case (tallier, promise) =>
                 promise.complete(tallyBundle.tallyProducedBy(tallier))
@@ -148,7 +157,7 @@ final class FetchTallyAsWithComputation private(
                                          htvCards: Map[SenateElectionForState, Set[SenateHtv]],
                                          talliers: Set[Tallier],
                                        ): IO[FetchTally.Error, TallyBundle] = {
-    val electionsInSizeOrder = senateElection.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation.reverse)
+    val electionsInSizeOrder = senateElection.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
 
     electionsInSizeOrder.traverse { electionForState =>
       runForState(electionForState, divisionsAndPollingPlaces, groupsAndCandidates, htvCards.getOrElse(electionForState, Set.empty), talliers)
