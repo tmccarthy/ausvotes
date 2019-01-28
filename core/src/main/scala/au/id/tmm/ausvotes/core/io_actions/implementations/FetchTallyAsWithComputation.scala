@@ -107,25 +107,8 @@ final class FetchTallyAsWithComputation private(
             case (TallyRequest(_, tallier), promise) => tallier -> promise
           }
 
-          val tallyBundleIo =
-            for {
-              divisionsPollingPlacesGroupsAndCandidates <- {
-                FetchDivisionsAndPollingPlaces.fetchFor(election.federalElection).leftMap(FetchTally.Error(_)) par
-                  FetchSenateGroupsAndCandidates.fetchFor(election).leftMap(FetchTally.Error(_))
-              }
-
-              divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
-              groupsAndCandidates = divisionsPollingPlacesGroupsAndCandidates._2
-
-              htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
-                .leftMap(FetchTally.Error)
-
-              tallyBundle <- runForAllStatesAtElection(election, divisionsAndPollingPlaces, groupsAndCandidates, htvCards, promisesPerTallier.keySet)
-
-            } yield tallyBundle
-
           for {
-            tallyBundleOrError <- tallyBundleIo.attempt
+            tallyBundleOrError <- runForElectionAndTalliers(election, talliers = promisesPerTallier.keySet).attempt
             _ <- tallyBundleOrError match {
               case Right(tallyBundle) => promisesPerTallier.toList.traverse { case (tallier, promise) =>
                 promise.complete(tallyBundle.tallyProducedBy(tallier))
@@ -140,6 +123,23 @@ final class FetchTallyAsWithComputation private(
       }
 
     } yield ()
+
+  private def runForElectionAndTalliers(election: SenateElection, talliers: Set[Tallier]): IO[FetchTally.Error, TallyBundle] = for {
+    divisionsPollingPlacesGroupsAndCandidates <- {
+      FetchDivisionsAndPollingPlaces.fetchFor(election.federalElection).leftMap(FetchTally.Error(_)) par
+        FetchSenateGroupsAndCandidates.fetchFor(election).leftMap(FetchTally.Error(_))
+    }
+
+    divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
+    groupsAndCandidates = divisionsPollingPlacesGroupsAndCandidates._2
+
+    htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
+      .leftMap(FetchTally.Error)
+
+    tallyBundle <- runForAllStatesAtElection(election, divisionsAndPollingPlaces, groupsAndCandidates, htvCards, talliers)
+
+  } yield tallyBundle
+
 
   private def runForAllStatesAtElection(
                                          senateElection: SenateElection,
