@@ -14,7 +14,7 @@ import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import plotly._
-import plotly.element.Orientation
+import plotly.element.{Color, Marker, OneOrSeq, Orientation}
 import plotly.layout._
 import scalaz.zio.IO
 
@@ -99,7 +99,7 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
       )
 
       Plotly.plot(
-        "/tmp/bar_chart",
+        "/tmp/national_htv_usage",
         //    println(Plotly.jsSnippet(
         //      "national_htv_usage",
         List(usedHtvTrace, totalFormalVotesTrace),
@@ -139,7 +139,7 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
       )
 
       Plotly.plot(
-        "/tmp/bar_chart",
+        "/tmp/national_htv_usage",
         //    println(Plotly.jsSnippet(
         //      "national_htv_usage",
         List(totalFormalVotes, usedHtvTrace),
@@ -168,11 +168,15 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
         .collect {
           case (state, Some(party), Tally0(numUsedHtv)) => (state.abbreviation, partyNameOf(party), numUsedHtv.toInt)
         }.toDF(stateColumn, partyColumn, usedHtvColumn)
+        .groupBy(stateColumn, partyColumn).agg(sum(usedHtvColumn))
+        .withColumnRenamed(sum(usedHtvColumn).toString, usedHtvColumn)
 
       val votedFormallyDf = votedFormally_perState_perParty.asStream
         .collect {
           case (state, Some(party), Tally0(numVotedFormally)) => (state.abbreviation, partyNameOf(party), numVotedFormally.toInt)
         }.toDF(stateColumn, partyColumn, votedFormallyColumn)
+        .groupBy(stateColumn, partyColumn).agg(sum(votedFormallyColumn))
+        .withColumnRenamed(sum(votedFormallyColumn).toString, votedFormallyColumn)
 
       usedHtvDf.join(votedFormallyDf, List(stateColumn, nationalEquivalentPartyColumn))
         .withColumn(percentUsedHtvColumn, round(expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"), scale = 2))
@@ -183,9 +187,47 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
 
     // Bar chart of percentage who followed HTV per state per group
 
-    // Table of percentage who followed HTV per state per division per party, truncated at the top 5 per state
+    {
+      val dfForChart = usedHtvByStateByPartyDf
 
-    // Table of percentage who followed HTV per state per division per party, truncated at the bottom 5 per state
+      val traces = List("Coalition", "Labor" , "Greens", "One Nation", "Other").map { party =>
+        Bar(
+          x = dfForChart.filter(s"$partyColumn = '$party'").select(stateColumn).map(r => r.getString(0)).collect.toList,
+          y = dfForChart.filter(s"$partyColumn = '$party'").select(percentUsedHtvColumn).map(r => r.getDouble(0)).collect.toList,
+          orientation = Orientation.Vertical,
+          name = party,
+          marker = Marker(
+            color = OneOrSeq.One(Color.StringColor(party match {
+              case "Coalition" => "blue"
+              case "Labor" => "red"
+              case "Greens" => "green"
+              case "One Nation" => "orange"
+              case "Other" => "gray"
+            })),
+          )
+        )
+      }
+
+      Plotly.plot(
+        "/tmp/htv_per_state_per_party",
+        //    println(Plotly.jsSnippet(
+        //      "htv_per_state_per_party",
+        traces,
+        Layout(
+          title = "Fraction of voters using a how-to-vote card by state, first-preferenced party",
+          xaxis = Axis(
+            title = "State",
+            automargin = true,
+          ),
+          yaxis = Axis(
+            title = "% using HTV card"
+          ),
+          barmode = BarMode.Group,
+          autosize = true,
+          showlegend = true,
+        ),
+      )
+    }
 
   }
 
