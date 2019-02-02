@@ -38,6 +38,11 @@ object ExhaustionCalculator {
           }
         }
         case countStep: DistributionCountStep[SenateCandidate] => {
+          val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates.toSet diff
+            previousCountStep.candidateStatuses.electedCandidates.toSet
+
+          val candidatesIneligibleForPreferenceFlows = countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep
+
           for {
             trackedBallot <- trackedBallots
           } {
@@ -46,14 +51,12 @@ object ExhaustionCalculator {
               trackedBallot.currentPreference.contains(distributionSource.candidate) &&
                 distributionSource.sourceCounts.contains(trackedBallot.allocatedAtCount)
             ) {
-              val candidatesElectedThisStep = countStep.candidateStatuses.electedCandidates.toSet diff
-                previousCountStep.candidateStatuses.electedCandidates.toSet
 
               trackedBallot.transferValue = distributionSource.transferValue
               allocateToNextPreference(
                 trackedBallot,
                 countStep.count,
-                countStep.candidateStatuses.ineligibleForPreferenceFlows -- candidatesElectedThisStep,
+                candidatesIneligibleForPreferenceFlows,
                 numElectedCandidates = countStep.candidateStatuses.electedCandidates.size,
               )
             }
