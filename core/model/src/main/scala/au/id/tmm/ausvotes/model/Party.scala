@@ -26,6 +26,7 @@ object Party {
     case Pirate.name | "Pirate Party" => Pirate
     case ScienceWithCyclists.name | "Science Party/Cyclists Party" => ScienceWithCyclists
     case SexPartyWithHempParty.name | "Marijuana (HEMP) Party/Australian Sex Party" => SexPartyWithHempParty
+    case OneNation.name => OneNation
     case otherName => Party.Other(otherName)
   }
 
@@ -48,6 +49,7 @@ object Party {
   case object Pirate                   extends Party { override val name: String = "Pirate Party Australia" }
   case object ScienceWithCyclists      extends Party { override val name: String = "Science Party / Cyclists Party" }
   case object SexPartyWithHempParty    extends Party { override val name: String = "Australian Sex Party/Marijuana (HEMP) Party" }
+  case object OneNation                extends Party { override val name: String = "Pauline Hanson's One Nation" }
   final case class Other(override val name: String) extends Party
 
 }

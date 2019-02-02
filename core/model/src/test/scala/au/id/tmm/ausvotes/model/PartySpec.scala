@@ -49,5 +49,6 @@ class PartySpec extends ImprovedFlatSpec {
   constructionSpec("Science Party/Cyclists Party",                       expectedParty = Party.ScienceWithCyclists)
   constructionSpec("Australian Sex Party/Marijuana (HEMP) Party",        expectedParty = Party.SexPartyWithHempParty)
   constructionSpec("Marijuana (HEMP) Party/Australian Sex Party",        expectedParty = Party.SexPartyWithHempParty)
+  constructionSpec("Pauline Hanson's One Nation",                        expectedParty = Party.OneNation)
   constructionSpec("Party Party",                                        expectedParty = Party.Other("Party Party"))
 }
