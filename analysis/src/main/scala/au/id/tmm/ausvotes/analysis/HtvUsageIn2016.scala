@@ -35,7 +35,7 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
 
     implicit val fetchTallies: FetchTallyAsWithComputation = unsafeRun(FetchTallyAsWithComputation(parsedDataStore))
 
-    val (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perGroup, (votedFormally_perState_perGroup, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))) = unsafeRun {
+    val (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))) = unsafeRun {
       FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
         FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
 
@@ -48,15 +48,14 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
     }
 
     val nationalEquivalentPartyColumn = "party"
-    //    val stateColumn = "state"
-    //    val groupColumn = "group"
+    val stateColumn = "state"
+    val partyColumn = "party"
     //    val divisionColumn = "division"
 
     val usedHtvColumn = "votes_used_htv"
     val votedFormallyColumn = "votes_formal"
-    val ratioUsedHtvColumn = "ratio_used_htv"
+    val percentUsedHtvColumn = "ratio_used_htv"
 
-    println("Table of percentage who followed HTV per national-equivalent party")
     val usedHtvByNationalEquivalentPartyDf = {
       val usedHtvDf = usedHtv_perNationalParty.asStream
         .collect {
@@ -69,49 +68,113 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
         }.toDF(nationalEquivalentPartyColumn, votedFormallyColumn)
 
       usedHtvDf.join(votedFormallyDf, nationalEquivalentPartyColumn)
-        .withColumn(ratioUsedHtvColumn, expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"))
-        .sort(desc(ratioUsedHtvColumn))
-        .filter(expr(s"$ratioUsedHtvColumn > 1"))
+        .withColumn(percentUsedHtvColumn, round(expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"), scale = 2))
+        .sort(desc(percentUsedHtvColumn))
     }
 
-    usedHtvByNationalEquivalentPartyDf.show(numRows = 150)
-
     // Bar chart of percentage who followed HTV per national-equivalent party
-    val fractionUsingHtvTrace = Bar(
-      x = usedHtvByNationalEquivalentPartyDf.sort(asc(ratioUsedHtvColumn)).select(ratioUsedHtvColumn).map(r => r.getDouble(0)).collect.toList,
-      y = usedHtvByNationalEquivalentPartyDf.sort(asc(ratioUsedHtvColumn)).select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
-      orientation = Orientation.Horizontal,
-      name = "HTV card used",
-    )
+    {
+      val dfForChart = usedHtvByNationalEquivalentPartyDf
+        .sort(asc(percentUsedHtvColumn))
+        .filter(s"$percentUsedHtvColumn > 1")
 
-    val fractionNotUsingHtvTrace = Bar(
-      x = usedHtvByNationalEquivalentPartyDf.sort(asc(ratioUsedHtvColumn)).select(ratioUsedHtvColumn).map(r => 100 - r.getDouble(0)).collect.toList,
-      y = usedHtvByNationalEquivalentPartyDf.sort(asc(ratioUsedHtvColumn)).select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
-      orientation = Orientation.Horizontal,
-      name = "HTV card unused",
-    )
+      val usedHtvTrace = Bar(
+        x = dfForChart.select(percentUsedHtvColumn).map(r => r.getDouble(0)).collect.toList,
+        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        orientation = Orientation.Horizontal,
+        name = "HTV card used",
+      )
 
-    //    Plotly.plot(
-    //      "/tmp/bar_chart",
-    println(Plotly.jsSnippet(
-      "national_htv_usage",
-      List(fractionUsingHtvTrace, fractionNotUsingHtvTrace),
-      Layout(
-        title = "Fraction of voters using a how-to-vote card by first-preferenced party\n(national equivalent, excluding those less than 1%)",
-        xaxis = Axis(
-          title = "% using how-to-vote card"
+      val totalFormalVotes = Bar(
+        x = dfForChart.select(percentUsedHtvColumn).map(r => 100 - r.getDouble(0)).collect.toList,
+        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        orientation = Orientation.Horizontal,
+        name = "HTV card unused",
+      )
+
+      Plotly.plot(
+        "/tmp/bar_chart",
+        //    println(Plotly.jsSnippet(
+        //      "national_htv_usage",
+        List(usedHtvTrace, totalFormalVotes),
+        Layout(
+          title = "Fraction of voters using a how-to-vote card by first-preferenced party\n(national equivalent, excluding those less than 1%)",
+          xaxis = Axis(
+            title = "% using how-to-vote card"
+          ),
+          yaxis = Axis(
+            title = "Party (national equivalent)",
+            automargin = true,
+          ),
+          barmode = BarMode.Stack,
+          autosize = true,
+          showlegend = false,
         ),
-        yaxis = Axis(
-          title = "Party (national equivalent)",
-          automargin = true,
+      )
+    }
+//    )
+
+    {
+      val dfForChart = usedHtvByNationalEquivalentPartyDf
+        .sort(asc(usedHtvColumn))
+        .filter(s"$usedHtvColumn > 1000")
+
+      val usedHtvTrace = Bar(
+        x = dfForChart.select(usedHtvColumn).map(r => r.getInt(0)).collect.toList,
+        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        orientation = Orientation.Horizontal,
+        name = "HTV card used",
+      )
+
+      val totalFormalVotes = Bar(
+        x = dfForChart.select(votedFormallyColumn).map(r => r.getInt(0)).collect.toList,
+        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        orientation = Orientation.Horizontal,
+        name = "HTV card unused",
+      )
+
+      Plotly.plot(
+        "/tmp/bar_chart",
+        //    println(Plotly.jsSnippet(
+        //      "national_htv_usage",
+        List(totalFormalVotes, usedHtvTrace),
+        Layout(
+          title = "Fraction of voters using a how-to-vote card by first-preferenced party\n(national equivalent, excluding those with less than 1k using htv cards)",
+          xaxis = Axis(
+            title = "Number of votes"
+          ),
+          yaxis = Axis(
+            title = "Party (national equivalent)",
+            automargin = true,
+          ),
+          barmode = BarMode.Overlay,
+          autosize = true,
+          showlegend = false,
         ),
-        barmode = BarMode.Stack,
-        autosize = true,
-        showlegend = false,
-      ),
-    ))
+      )
+    }
+
+    println(DfRendering.asMarkdown(usedHtvByNationalEquivalentPartyDf))
 
     // Table of percentage who followed HTV per state per group
+
+    val usedHtvByStateByPartyDf = {
+      val usedHtvDf = usedHtv_perState_perParty.asStream
+        .collect {
+          case (state, Some(party), Tally0(numUsedHtv)) => (state.abbreviation, party.name, numUsedHtv.toInt)
+        }.toDF(stateColumn, partyColumn, usedHtvColumn)
+
+      val votedFormallyDf = votedFormally_perState_perParty.asStream
+        .collect {
+          case (state, Some(party), Tally0(numVotedFormally)) => (state.abbreviation, party.name, numVotedFormally.toInt)
+        }.toDF(stateColumn, partyColumn, votedFormallyColumn)
+
+      usedHtvDf.join(votedFormallyDf, nationalEquivalentPartyColumn)
+        .withColumn(percentUsedHtvColumn, round(expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"), scale = 2))
+        .sort(asc(stateColumn), desc(usedHtvColumn))
+    }
+
+    println(DfRendering.asMarkdown(usedHtvByStateByPartyDf))
 
     // Bar chart of percentage who followed HTV per state per group
 
