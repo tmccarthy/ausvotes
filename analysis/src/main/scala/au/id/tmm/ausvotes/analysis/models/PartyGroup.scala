@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.analysis
+package au.id.tmm.ausvotes.analysis.models
 
 import au.id.tmm.ausvotes.model.Party
 

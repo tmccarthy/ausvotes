@@ -1,43 +1,36 @@
-package au.id.tmm.ausvotes.analysis
+package au.id.tmm.ausvotes.analysis.scripts
 
-import java.nio.file.Paths
-
-import au.id.tmm.ausvotes.analysis.Aggregations.AggregationOps
-import au.id.tmm.ausvotes.analysis.ValueTypes._
-import au.id.tmm.ausvotes.core.engine.ParsedDataStore
+import au.id.tmm.ausvotes.analysis.TallyingAnalysisScript
+import au.id.tmm.ausvotes.analysis.models.PartyGroup
+import au.id.tmm.ausvotes.analysis.models.ValueTypes.{UsedHtv, VotedFormally}
+import au.id.tmm.ausvotes.analysis.utilities.data_processing.Aggregations.AggregationOps
+import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
+import au.id.tmm.ausvotes.analysis.utilities.rendering.MarkdownRendering
 import au.id.tmm.ausvotes.core.io_actions.FetchTally
 import au.id.tmm.ausvotes.core.io_actions.implementations._
-import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
-import au.id.tmm.ausvotes.core.tallies.{TallierBuilder, _}
+import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.utilities.geo.australia.State
 import cats.Monoid
-import org.apache.spark.sql.SparkSession
-import plotly._
 import plotly.element.{Color, Marker, OneOrSeq, Orientation}
-import plotly.layout._
+import plotly.layout.{Axis, BarMode, Layout}
+import plotly.{Bar, Plotly}
 import scalaz.zio.IO
 
-object HtvUsageIn2016 extends SparkAnalysisScript {
+object HtvUsageIn2016 extends TallyingAnalysisScript {
 
-  override def run(implicit sparkSession: SparkSession): Unit = {
-
-    val dataStorePath = Paths.get("rawData")
-    val jsonCachePath = Paths.get("rawData").resolve("jsonCache")
-
-    val parsedDataStore = ParsedDataStore(RawDataStore(AecResourceStore.at(dataStorePath)))
-    implicit val jsonCache: OnDiskJsonCache = new OnDiskJsonCache(jsonCachePath)
-
-    implicit val fetchGroupsAndCandidates: FetchGroupsAndCandidatesFromParsedDataStore = new FetchGroupsAndCandidatesFromParsedDataStore(parsedDataStore)
-    implicit val fetchDivisions: FetchDivisionsAndPollingPlacesFromParsedDataStore = new FetchDivisionsAndPollingPlacesFromParsedDataStore(parsedDataStore)
-    implicit val fetchCountData: FetchSenateCountDataFromParsedDataStore = new FetchSenateCountDataFromParsedDataStore(parsedDataStore)
-    implicit val fetchHtv: FetchSenateHtvFromHardcoded[IO] = new FetchSenateHtvFromHardcoded[IO]
-
-    implicit val fetchTallies: FetchTallyAsWithComputation = unsafeRun(FetchTallyAsWithComputation(parsedDataStore))
+  override def run()(
+    implicit
+    jsonCache: OnDiskJsonCache,
+    fetchGroupsAndCandidates: FetchGroupsAndCandidatesFromParsedDataStore,
+    fetchDivisions: FetchDivisionsAndPollingPlacesFromParsedDataStore,
+    fetchCountData: FetchSenateCountDataFromParsedDataStore,
+    fetchHtv: FetchSenateHtvFromHardcoded[IO],
+    fetchTallies: FetchTallyAsWithComputation
+  ): Unit = {
 
     val (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))) = unsafeRun {
       FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(

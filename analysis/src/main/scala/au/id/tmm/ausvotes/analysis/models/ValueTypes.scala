@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.analysis
+package au.id.tmm.ausvotes.analysis.models
 
 import cats.instances.double._
 import cats.instances.int._

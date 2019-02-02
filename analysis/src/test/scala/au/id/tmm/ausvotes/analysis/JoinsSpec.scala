@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.analysis
 
+import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class JoinsSpec extends ImprovedFlatSpec {
