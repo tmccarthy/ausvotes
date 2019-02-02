@@ -2,6 +2,8 @@ package au.id.tmm.ausvotes.analysis
 
 import java.nio.file.Paths
 
+import au.id.tmm.ausvotes.analysis.Aggregations.AggregationOps
+import au.id.tmm.ausvotes.analysis.ValueTypes._
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.io_actions.FetchTally
 import au.id.tmm.ausvotes.core.io_actions.implementations._
@@ -9,10 +11,12 @@ import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
 import au.id.tmm.ausvotes.core.tallies.{TallierBuilder, _}
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.StateCodec._
+import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.utilities.geo.australia.State
+import cats.Monoid
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
 import plotly._
 import plotly.element.{Color, Marker, OneOrSeq, Orientation}
 import plotly.layout._
@@ -21,7 +25,6 @@ import scalaz.zio.IO
 object HtvUsageIn2016 extends SparkAnalysisScript {
 
   override def run(implicit sparkSession: SparkSession): Unit = {
-    import sparkSession.implicits._
 
     val dataStorePath = Paths.get("rawData")
     val jsonCachePath = Paths.get("rawData").resolve("jsonCache")
@@ -48,52 +51,41 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
               )))))
     }
 
-    val nationalEquivalentPartyColumn = "party"
-    val stateColumn = "state"
-    val partyColumn = "party"
-    //    val divisionColumn = "division"
+    analysisNationallyByParty(usedHtv_perNationalParty, votedFormally_perNationalParty)
+    analysisByStateByParty(usedHtv_perState_perParty, votedFormally_perState_perParty)
+    analysisByDivision(usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty)
+  }
 
-    val usedHtvColumn = "votes_used_htv"
-    val votedFormallyColumn = "votes_formal"
-    val percentUsedHtvColumn = "ratio_used_htv"
+  private def analysisNationallyByParty(
+                                         usedHtv: Tally1[Option[Party]],
+                                         votedFormally: Tally1[Option[Party]],
+                                       ): Unit = {
+    def prepare[A : Monoid](tally: Tally1[Option[Party]])(makeA: Double => A): List[(PartyGroup, A)] =
+      tally.asStream
+        .map { case (party, Tally0(tallyAsDouble)) => PartyGroup.from(party) -> makeA(tallyAsDouble) }
+        .groupByAndAggregate { case (party, _) => party } { case (_, tally) => tally }
+        .toList
 
-    val usedHtvByNationalEquivalentPartyDf = {
-      val usedHtvDf = usedHtv_perNationalParty.asStream
-        .collect {
-          case (Some(party), Tally0(numUsedHtv)) => partyNameOf(party) -> numUsedHtv.toInt
-        }
-        .toDF(nationalEquivalentPartyColumn, usedHtvColumn)
-        .groupBy(nationalEquivalentPartyColumn).agg(sum(usedHtvColumn))
-        .withColumnRenamed(sum(usedHtvColumn).toString, usedHtvColumn)
+    val preparedTallies: List[(PartyGroup, UsedHtv.Nominal, VotedFormally, UsedHtv.Percentage)] = Joins.innerJoinUsing(
+      left = prepare[UsedHtv.Nominal](usedHtv)(d => UsedHtv.Nominal(d.toInt)),
+      right = prepare[VotedFormally](votedFormally)(d => VotedFormally(d.toInt)),
+    ).map { case (partyGroup, usedHtv, votedFormally) =>
+      (partyGroup, usedHtv, votedFormally, usedHtv / votedFormally)
+    }.sortBy(_._1).reverse
 
-      val votedFormallyDf = votedFormally_perNationalParty.asStream
-        .collect {
-          case (Some(party), Tally0(numVotedFormally)) => partyNameOf(party) -> numVotedFormally.toInt
-        }
-        .toDF(nationalEquivalentPartyColumn, votedFormallyColumn)
-        .groupBy(nationalEquivalentPartyColumn).agg(sum(votedFormallyColumn))
-        .withColumnRenamed(sum(votedFormallyColumn).toString, votedFormallyColumn)
+    println(MarkdownRendering.render(("Party", "Used HTV", "Voted formally", "% used HTV"))(preparedTallies))
 
-      usedHtvDf.join(votedFormallyDf, nationalEquivalentPartyColumn)
-        .withColumn(percentUsedHtvColumn, round(expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"), scale = 2))
-        .sort(desc(percentUsedHtvColumn))
-    }
-
-    // Bar chart of percentage who followed HTV per national-equivalent party
     {
-      val dfForChart = usedHtvByNationalEquivalentPartyDf
-        .sort(asc(percentUsedHtvColumn))
-
       val usedHtvTrace = Bar(
-        x = dfForChart.select(percentUsedHtvColumn).map(r => r.getDouble(0)).collect.toList,
-        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        x = preparedTallies.map { case (_, usedHtv, _, _) => usedHtv.asInt },
+        y = preparedTallies.map { case (party, _, _, _) => party.name },
         orientation = Orientation.Horizontal,
         name = "HTV card used",
       )
 
       val totalFormalVotesTrace = Bar(
-        x = dfForChart.select(percentUsedHtvColumn).map(r => 100 - r.getDouble(0)).collect.toList,
-        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
+        x = preparedTallies.map { case (_, _, votedFormally, _) => votedFormally.asInt },
+        y = preparedTallies.map { case (party, _, _, _) => party.name },
         orientation = Orientation.Horizontal,
         name = "HTV card unused",
       )
@@ -118,92 +110,38 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
         ),
       )
     }
-    //    )
 
-    {
-      val dfForChart = usedHtvByNationalEquivalentPartyDf
-        .sort(asc(percentUsedHtvColumn))
+  }
 
-      val usedHtvTrace = Bar(
-        x = dfForChart.select(usedHtvColumn).map(r => r.getLong(0)).collect.toList,
-        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
-        orientation = Orientation.Horizontal,
-        name = "HTV card used",
-      )
+  private def analysisByStateByParty(usedHtv: Tally2[State, Option[Party]], votedFormally: Tally2[State, Option[Party]]): Unit = {
+    def prepare[A : Monoid](tally: Tally2[State, Option[Party]])(makeA: Double => A): List[(State, PartyGroup, A)] =
+      tally.asStream
+        .map { case (state, party, Tally0(tallyAsDouble)) => (state, PartyGroup.from(party), makeA(tallyAsDouble)) }
+        .groupByAndAggregate { case (state, party, _) => (state, party) } { case (_, _, tally) => tally }
+        .map { case ((state, party), tally) => (state, party, tally) }
+        .toList
 
-      val totalFormalVotes = Bar(
-        x = dfForChart.select(votedFormallyColumn).map(r => r.getLong(0)).collect.toList,
-        y = dfForChart.select(nationalEquivalentPartyColumn).map(r => r.getString(0)).collect.toList,
-        orientation = Orientation.Horizontal,
-        name = "HTV card unused",
-      )
-
-      Plotly.plot(
-        "/tmp/national_htv_usage",
-        //    println(Plotly.jsSnippet(
-        //      "national_htv_usage",
-        List(totalFormalVotes, usedHtvTrace),
-        Layout(
-          title = "Fraction of voters using a how-to-vote card by first-preferenced party",
-          xaxis = Axis(
-            title = "Number of votes"
-          ),
-          yaxis = Axis(
-            title = "Party",
-            automargin = true,
-          ),
-          barmode = BarMode.Overlay,
-          autosize = true,
-          showlegend = true,
-        ),
-      )
+    val preparedTallies: List[(State, PartyGroup, UsedHtv.Nominal, VotedFormally, UsedHtv.Percentage)] = Joins.innerJoin(
+      left = prepare[UsedHtv.Nominal](usedHtv)(d => UsedHtv.Nominal(d.toInt)),
+      right = prepare[VotedFormally](votedFormally)(d => VotedFormally(d.toInt)),
+    )(
+      { case (state, party, _) => (state, party) },
+      { case (state, party, _) => (state, party) },
+    ).map { case ((state, party), (_, _, usedHtv), (_, _, votedFormally)) =>
+      (state, party, usedHtv, votedFormally, usedHtv / votedFormally)
     }
 
-    println(DfRendering.asMarkdown(usedHtvByNationalEquivalentPartyDf))
-
-    // Table of percentage who followed HTV per state per group
-
-    val usedHtvByStateByPartyDf = {
-      val usedHtvDf = usedHtv_perState_perParty.asStream
-        .collect {
-          case (state, Some(party), Tally0(numUsedHtv)) => (state.abbreviation, partyNameOf(party), numUsedHtv.toInt)
-        }.toDF(stateColumn, partyColumn, usedHtvColumn)
-        .groupBy(stateColumn, partyColumn).agg(sum(usedHtvColumn))
-        .withColumnRenamed(sum(usedHtvColumn).toString, usedHtvColumn)
-
-      val votedFormallyDf = votedFormally_perState_perParty.asStream
-        .collect {
-          case (state, Some(party), Tally0(numVotedFormally)) => (state.abbreviation, partyNameOf(party), numVotedFormally.toInt)
-        }.toDF(stateColumn, partyColumn, votedFormallyColumn)
-        .groupBy(stateColumn, partyColumn).agg(sum(votedFormallyColumn))
-        .withColumnRenamed(sum(votedFormallyColumn).toString, votedFormallyColumn)
-
-      usedHtvDf.join(votedFormallyDf, List(stateColumn, nationalEquivalentPartyColumn))
-        .withColumn(percentUsedHtvColumn, round(expr(s"($usedHtvColumn/$votedFormallyColumn) * 100"), scale = 2))
-        .sort(asc(stateColumn), desc(usedHtvColumn))
-    }
-
-    println(DfRendering.asMarkdown(usedHtvByStateByPartyDf))
-
-    // Bar chart of percentage who followed HTV per state per group
+    println(MarkdownRendering.render(("State", "Party", "Used Htv", "Voted formally", "% used HTV"))(preparedTallies))
 
     {
-      val dfForChart = usedHtvByStateByPartyDf
-
-      val traces = List("Coalition", "Labor" , "Greens", "One Nation", "Other").map { party =>
+      val traces: List[Bar] = PartyGroup.all.map { party =>
         Bar(
-          x = dfForChart.filter(s"$partyColumn = '$party'").select(stateColumn).map(r => r.getString(0)).collect.toList,
-          y = dfForChart.filter(s"$partyColumn = '$party'").select(percentUsedHtvColumn).map(r => r.getDouble(0)).collect.toList,
+          x = preparedTallies.filter { case (_, partyForTally, _, _, _) => party == partyForTally }.map(_._1.abbreviation),
+          y = preparedTallies.filter { case (_, partyForTally, _, _, _) => party == partyForTally }.map(_._5.asDouble),
           orientation = Orientation.Vertical,
-          name = party,
+          name = party.name,
           marker = Marker(
-            color = OneOrSeq.One(Color.StringColor(party match {
-              case "Coalition" => "blue"
-              case "Labor" => "red"
-              case "Greens" => "green"
-              case "One Nation" => "orange"
-              case "Other" => "gray"
-            })),
+            color = OneOrSeq.One(Color.StringColor(party.colourName)),
           )
         )
       }
@@ -228,18 +166,11 @@ object HtvUsageIn2016 extends SparkAnalysisScript {
         ),
       )
     }
-
   }
 
-  private def partyNameOf(party: Party): String = {
-    import Party._
-    party match {
-      case ALP    | ALPNTBranch => "Labor"
-      case Greens | GreensWA    => "Greens"
-      case Liberal | CountryLiberalsNT | LNP | LiberalWithNationals | Nationals => "Coalition"
-      case OneNation => "One Nation"
-      case _ => "Other"
-    }
-  }
+  def analysisByDivision(
+                          usedHtv_perState_perDivision_perParty: Tally3[State, Division, Option[Party]],
+                          votedFormally_perState_perDivision_perParty: Tally3[State, Division, Option[Party]],
+                        ): Unit = ???
 
 }
