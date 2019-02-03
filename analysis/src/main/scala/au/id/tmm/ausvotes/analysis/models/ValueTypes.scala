@@ -8,37 +8,45 @@ object ValueTypes {
 
   final case class VotedFormally(asInt: Int) extends AnyVal
 
-  object VotedFormally {
-    implicit val instances: CommutativeGroup[VotedFormally] = commutativeGroupFor(VotedFormally.apply, _.asInt)
-  }
+  object VotedFormally extends IntValueTypeCompanion[VotedFormally](new VotedFormally(_), _.asInt)
 
   object UsedHtv {
 
     final case class Nominal(asInt: Int) extends AnyVal {
       def / (votedFormally: VotedFormally): Percentage =
-        Percentage((this.asInt.toDouble / votedFormally.asInt.toDouble) * 100)
+        Percentage(((this.asInt.toDouble / votedFormally.asInt.toDouble) * 10000).round.toDouble / 100.0)
     }
 
-    object Nominal {
-      implicit val instances: CommutativeGroup[Nominal] = commutativeGroupFor(Nominal.apply, _.asInt)
-    }
+    object Nominal extends IntValueTypeCompanion[Nominal](new Nominal(_), _.asInt)
 
     final case class Percentage(asDouble: Double) extends AnyVal
 
-    object Percentage {
-      implicit val instances: CommutativeGroup[Percentage] = commutativeGroupFor(Percentage.apply, _.asDouble)
-    }
+    object Percentage extends ValueTypeCompanion[Percentage, Double](new Percentage(_), _.asDouble)
 
   }
 
-  private def commutativeGroupFor[A, B : CommutativeGroup](apply: B => A, unapply: A => B): CommutativeGroup[A] =
-    new CommutativeGroup[A] {
-      private val underlying: CommutativeGroup[B] = CommutativeGroup[B]
+  sealed abstract class ValueTypeCompanion[A, T_UNDERLYING : Ordering : CommutativeGroup](
+                                                                                           private val makeValueType: T_UNDERLYING => A,
+                                                                                           private val extractUnderlying: A => T_UNDERLYING,
+                                                                                         ) {
 
-      override def inverse(a: A): A = apply(underlying.inverse(unapply(a)))
-      override def empty: A = apply(underlying.empty)
-      override def combine(x: A, y: A): A = apply(underlying.combine(unapply(x), unapply(y)))
-      override def remove(x: A, y: A): A = apply(underlying.remove(unapply(x), unapply(y)))
+    implicit val monoidInstance: CommutativeGroup[A] = new CommutativeGroup[A] {
+      private val underlying: CommutativeGroup[T_UNDERLYING] = CommutativeGroup[T_UNDERLYING]
+
+      override def inverse(a: A): A = makeValueType(underlying.inverse(extractUnderlying(a)))
+      override def empty: A = makeValueType(underlying.empty)
+      override def combine(x: A, y: A): A = makeValueType(underlying.combine(extractUnderlying(x), extractUnderlying(y)))
+      override def remove(x: A, y: A): A = makeValueType(underlying.remove(extractUnderlying(x), extractUnderlying(y)))
     }
+
+    implicit val ordering: Ordering[A] = Ordering.by(extractUnderlying)
+  }
+
+  sealed abstract class IntValueTypeCompanion[A](
+                                                  private val makeValueType: Int => A,
+                                                  private val extractUnderlying: A => Int,
+                                                ) extends ValueTypeCompanion[A, Int](makeValueType, extractUnderlying) {
+    def apply(asDouble: Double): A = makeValueType(asDouble.toInt)
+  }
 
 }
