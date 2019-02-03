@@ -35,23 +35,36 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
     fetchTallies: FetchTallyAsWithComputation
   ): Unit = {
 
-    val (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))) = unsafeRun {
-      FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
-        FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
+    val (usedHtv_nationally, (votedFormally_nationally, (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))))) = unsafeRun {
+      FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).overall()).par(
+        FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).overall()).par(
 
-          FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
-            FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
+          FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
+            FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
 
-              FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty)).par(
-                FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty))
-              )))))
+              FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
+                FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
+
+                  FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty)).par(
+                    FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty))
+                  )))))))
     }
 
+    analysisNationally(usedHtv_nationally, votedFormally_nationally)
+    println()
     analysisNationallyByParty(usedHtv_perNationalParty, votedFormally_perNationalParty)
     println()
     analysisByStateByParty(usedHtv_perState_perParty, votedFormally_perState_perParty)
     println()
     analysisByDivision(usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty)
+  }
+
+  private def analysisNationally(usedHtv_nationally: Tally0, votedFormally_nationally: Tally0): Unit = {
+    val usedHtv = UsedHtv.Nominal(usedHtv_nationally.value)
+    val votedFormally = VotedFormally(votedFormally_nationally.value)
+    val usedHtvPercentage = usedHtv / votedFormally
+
+    println(MarkdownRendering.render("Used HTV", "Voted formally", "% used HTV")(List((usedHtv, votedFormally, usedHtvPercentage))))
   }
 
   private def analysisNationallyByParty(
@@ -62,6 +75,15 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
       tally.asStream
         .map { case (party, Tally0(tallyAsDouble)) => PartyGroup.from(party) -> makeA(tallyAsDouble) }
         .groupByAndAggregate { case (party, _) => party } { case (_, tally) => tally }
+
+    val preparedTallies: List[(PartyGroup, UsedHtv.Nominal, VotedFormally, UsedHtv.Percentage)] = Joins.innerJoinUsing(
+      left = prepare[UsedHtv.Nominal](usedHtv)(d => UsedHtv.Nominal(d.toInt)),
+      right = prepare[VotedFormally](votedFormally)(d => VotedFormally(d.toInt)),
+    ).map { case (partyGroup, usedHtv, votedFormally) =>
+      (partyGroup, usedHtv, votedFormally, usedHtv / votedFormally)
+    }.sortBy(_._1)
+
+    println(MarkdownRendering.render("Party", "Used HTV", "Voted formally", "% used HTV")(preparedTallies))
 
     val usedHtvTally = prepare(usedHtv)(UsedHtv.Nominal(_)).map { case (party, tally) => (party, ()) -> tally }
     val votedFormallyTally = prepare(votedFormally)(VotedFormally(_)).map { case (party, tally) => (party, ()) -> (tally.asInt - usedHtvTally((party, ())).asInt).toDouble }
@@ -105,7 +127,7 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
       (state, party, usedHtv, votedFormally, usedHtv / votedFormally)
     }.sortBy { case (state, party, _, _, _) => (state, party) }
 
-    println(MarkdownRendering.render(("State", "Party", "Used Htv", "Voted formally", "% used HTV"))(preparedTalliesForTable))
+    println(MarkdownRendering.render("State", "Party", "Used Htv", "Voted formally", "% used HTV")(preparedTalliesForTable))
 
     val talliesForChart = preparedTalliesForTable
       .groupBy { case (state, party, _, _, percentage) => state }
