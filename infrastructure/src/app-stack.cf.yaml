@@ -63,6 +63,16 @@ Resources:
         HostedZoneId: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerHostedZoneId
       Type: A
 
+  AusvotesApiDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref AusvotesHostedZone
+      Name: !Ref AusvotesApiDomainName
+      AliasTarget:
+        DNSName: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerUrl
+        HostedZoneId: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerHostedZoneId
+      Type: A
+
   AusvotesCertificateValidationDnsRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -239,7 +249,8 @@ Resources:
         Image: !Ref AusvotesApiDockerImage
         DesiredCount: 1
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
-        Path: /api/*
+        Path: /*
+        Host: !Ref AusvotesApiDomainName
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
         RecountDataBucketName: !Ref RecountDataBucketName
 
@@ -254,6 +265,7 @@ Resources:
         DesiredCount: 1
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
         Path: /*
+        Host: !Ref AusvotesUiDomainName
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
 
   LifecycleHook:

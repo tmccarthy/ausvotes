@@ -30,6 +30,10 @@ Parameters:
     Type: String
     Default: /
 
+  Host:
+    Description: The host to register with the Application Load Balancer
+    Type: String
+
   Image:
     Description: The location of the Docker image used for the task
     Type: String
@@ -138,6 +142,9 @@ Resources:
       - Field: path-pattern
         Values:
         - !Ref Path
+      - Field: host-header
+        Values:
+        - !Ref Host
       Actions:
       - TargetGroupArn: !Ref TargetGroup
         Type: forward
