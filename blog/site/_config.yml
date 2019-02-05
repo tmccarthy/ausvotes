@@ -16,7 +16,7 @@
 theme: jekyll-theme-so-simple
 # remote_theme: mmistakes/so-simple-theme
 locale: en-AU
-title: "ausvotes.info blog"
+title: "Ausvotes blog"
 description: "A blog about Australian elections."
 baseurl: # the subpath of your site, e.g. "/blog"
 url: https://blog.ausvotes.info # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"

@@ -8,6 +8,7 @@ buildscript {
 }
 
 apply plugin: 'com.github.jruby-gradle.base'
+apply plugin: 'com.bmuschko.docker-remote-api'
 
 import com.github.jrubygradle.JRubyExec
 
@@ -54,8 +55,25 @@ task build(type: JRubyExec) {
     scriptArgs 'exec', 'jekyll', 'build'
 }
 
+task prodBuild(type: JRubyExec) {
+    script 'bundle'
+    workingDir jekyllSite
+    scriptArgs 'exec', 'jekyll', 'build'
+
+    environment("JEKYLL_ENV", "production")
+}
+
 task clean(type: JRubyExec) {
     script 'bundle'
     workingDir jekyllSite
     scriptArgs 'exec', 'jekyll', 'clean'
+}
+
+task dockerBuild(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildImage) {
+    dependsOn tasks.prodBuild
+
+    def tagVersion = version.toString().replace("+", "-")
+
+    inputDir = file('site')
+    tag = "au.id.tmm.ausvotes.blog:$tagVersion".toString()
 }

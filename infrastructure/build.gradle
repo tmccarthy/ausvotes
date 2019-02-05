@@ -21,6 +21,7 @@ ext.awsAccountId = '327455522484'
 EcrConfig.addEcrTasks(project, awsAccountId, awsRegion, [
     project(':ui').getTasksByName('dockerBuild', false).first(),
     project(':api').getTasksByName('dockerBuild', false).first(),
+    project(':blog').getTasksByName('dockerBuild', false).first(),
 ])
 
 aws {
@@ -36,6 +37,7 @@ cloudFormation {
         RecountDataBucketName: recountDataBucketName,
         AusvotesUiDockerImage: "$tasks.pushUiImageToEcr.imageName:$tasks.pushUiImageToEcr.tag",
         AusvotesApiDockerImage: "$tasks.pushApiImageToEcr.imageName:$tasks.pushApiImageToEcr.tag",
+        AusvotesBlogDockerImage: "$tasks.pushBlogImageToEcr.imageName:$tasks.pushBlogImageToEcr.tag",
     ])
 }
 

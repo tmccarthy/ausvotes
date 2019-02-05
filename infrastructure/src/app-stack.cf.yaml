@@ -40,10 +40,17 @@ Parameters:
     Type: String
     Default: ausvotes.info
 
+  AusvotesBlogDomainName:
+    Type: String
+    Default: blog.ausvotes.info
+
   AusvotesUiDockerImage:
     Type: String
 
   AusvotesApiDockerImage:
+    Type: String
+
+  AusvotesBlogDockerImage:
     Type: String
 
 Resources:
@@ -68,6 +75,16 @@ Resources:
     Properties:
       HostedZoneId: !Ref AusvotesHostedZone
       Name: !Ref AusvotesApiDomainName
+      AliasTarget:
+        DNSName: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerUrl
+        HostedZoneId: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerHostedZoneId
+      Type: A
+
+  AusvotesBlogDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref AusvotesHostedZone
+      Name: !Ref AusvotesBlogDomainName
       AliasTarget:
         DNSName: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerUrl
         HostedZoneId: !GetAtt AusvotesUiAlb.Outputs.LoadBalancerHostedZoneId
@@ -266,6 +283,20 @@ Resources:
         Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
         Path: /*
         Host: !Ref AusvotesUiDomainName
+        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
+
+  AusvotesBlogService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-blog-service.yaml'
+      Parameters:
+        VPC: !GetAtt EcsVpc.Outputs.VPC
+        Cluster: !GetAtt Ecs.Outputs.Cluster
+        Image: !Ref AusvotesBlogDockerImage
+        DesiredCount: 1
+        Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
+        Path: /*
+        Host: !Ref AusvotesBlogDomainName
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
 
   LifecycleHook:
