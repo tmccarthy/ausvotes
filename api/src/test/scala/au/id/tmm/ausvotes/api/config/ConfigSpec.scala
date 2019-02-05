@@ -35,7 +35,7 @@ class ConfigSpec extends ImprovedFlatSpec {
       "basePath",
       _.basePath,
       "BASE_PATH",
-      Some(List("api")),
+      Some(List.empty),
       "/" -> Right(List.empty),
       "" -> Right(List.empty),
       "/api" -> Right(List("api")),
