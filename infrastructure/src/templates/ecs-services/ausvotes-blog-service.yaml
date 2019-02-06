@@ -198,7 +198,7 @@ Resources:
   CPUScaleOutAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: CPU utilization greater than 90%
+      AlarmName: !Sub 'CPU utilization greater than 90% - ${ServiceName}'
       AlarmDescription: Alarm if cpu utilization greater than 90% of reserved cpu
       Namespace: AWS/ECS
       MetricName: CPUUtilization
@@ -218,7 +218,7 @@ Resources:
   CPUScaleInAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: CPU utilization less than 70%
+      AlarmName: !Sub 'CPU utilization less than 70% - ${ServiceName}'
       AlarmDescription: Alarm if cpu utilization greater than 70% of reserved cpu
       Namespace: AWS/ECS
       MetricName: CPUUtilization
