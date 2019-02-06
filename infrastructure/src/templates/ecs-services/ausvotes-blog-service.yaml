@@ -59,7 +59,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
       - ContainerName: !Sub '${ServiceName}-service'
-        ContainerPort: 3000
+        ContainerPort: 80
         TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
@@ -72,7 +72,7 @@ Resources:
         Image: !Ref Image
         Memory: 128
         PortMappings:
-        - ContainerPort: 3000
+        - ContainerPort: 80
         LogConfiguration:
           LogDriver: awslogs
           Options:
