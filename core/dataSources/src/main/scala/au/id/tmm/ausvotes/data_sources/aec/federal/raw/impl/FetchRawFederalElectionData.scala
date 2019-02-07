@@ -3,29 +3,33 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 import java.io.IOException
 import java.net.{MalformedURLException, URL}
 import java.nio.file.Path
+import java.util.zip.ZipFile
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchFederalPollingPlaces, FetchFormalSenatePreferences, FetchSenateDistributionOfPreferences, FetchSenateFirstPreferences}
 import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, DownloadToPath}
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.utilities.io.FileUtils.ImprovedPath
-import au.id.tmm.utilities.io.ZipFileUtils.{ImprovedPath, ImprovedZipFile}
+import au.id.tmm.utilities.io.ZipFileUtils.ImprovedZipFile
+import cats.effect.{Sync => CatsSync}
 import fs2.Stream
-import scalaz.zio.IO
-import scalaz.zio.interop.catz.taskEffectInstances
 
 import scala.io.Source
 
-final class FetchRawFederalElectionData private (localStore: Path)(implicit downloadMethod: DownloadToPath[IO])
-  extends FetchSenateFirstPreferences[IO]
-    with FetchSenateDistributionOfPreferences[IO]
-    with FetchFederalPollingPlaces[IO]
-    with FetchFormalSenatePreferences[IO] {
+final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (localStore: Path)(implicit downloadMethod: DownloadToPath[F])
+  extends FetchSenateFirstPreferences[F]
+    with FetchSenateDistributionOfPreferences[F]
+    with FetchFederalPollingPlaces[F]
+    with FetchFormalSenatePreferences[F] {
+
+  private implicit val catsSyncInstance: CatsSync[F[Throwable, +?]] = SyncEffects.catsSyncForSyncEffects[F]
 
   override def senateFirstPreferencesFor(
                                           election: SenateElection,
-                                        ): IO[FetchSenateFirstPreferences.Error, Stream[IO[Throwable, +?], FetchSenateFirstPreferences.Row]] =
+                                        ): F[FetchSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchSenateFirstPreferences.Row]] =
     fetchStream(
       url = s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/Downloads/SenateFirstPrefsByStateByVoteTypeDownload-${election.federalElection.aecId.asInt}.csv".parseUrl,
       targetPath = localStore.resolve(s"SenateFirstPrefsByStateByVoteTypeDownload-${election.federalElection.aecId.asInt}.csv"),
@@ -48,7 +52,7 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
 
   override def federalPollingPlacesForElection(
                                                 election: FederalElection,
-                                              ): IO[FetchFederalPollingPlaces.Error, Stream[IO[Throwable, +?], FetchFederalPollingPlaces.Row]] =
+                                              ): F[FetchFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchFederalPollingPlaces.Row]] =
     fetchStream(
       url = s"https://results.aec.gov.au/${election.aecId.asInt}/Website/Downloads/GeneralPollingPlacesDownload-${election.aecId.asInt}.csv".parseUrl,
       targetPath = localStore.resolve(s"GeneralPollingPlacesDownload-${election.aecId.asInt}.csv"),
@@ -74,7 +78,7 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
 
   override def senateDistributionOfPreferencesFor(
                                                    election: SenateElectionForState,
-                                                 ): IO[FetchSenateDistributionOfPreferences.Error, Stream[IO[Throwable, +?], FetchSenateDistributionOfPreferences.Row]] =
+                                                 ): F[FetchSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchSenateDistributionOfPreferences.Row]] =
     fetchZipBackedStream(
       url = s"https://results.aec.gov.au/${election.election.federalElection.aecId.asInt}/Website/External/SenateDopDownload-${election.election.federalElection.aecId.asInt}.zip".parseUrl,
       targetPath = localStore.resolve(s"SenateDopDownload-${election.election.federalElection.aecId.asInt}"),
@@ -103,7 +107,7 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
 
   override def formalSenatePreferencesFor(
                                            election: SenateElectionForState,
-                                         ): IO[FetchFormalSenatePreferences.Error, Stream[IO[Throwable, +?], FetchFormalSenatePreferences.Row]] =
+                                         ): F[FetchFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchFormalSenatePreferences.Row]] =
     fetchZipBackedStream(
       url = s"https://results.aec.gov.au/${election.election.federalElection.aecId.asInt}/Website/External/aec-senate-formalpreferences-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation}.zip".parseUrl,
       targetPath = localStore.resolve(s"aec-senate-formalpreferences-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation}.zip"),
@@ -124,28 +128,28 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
                                        targetPath: => Path,
                                        zipEntryName: String,
                                        unsafeMakeRow: List[String] => A,
-                                     ): IO[Exception, Stream[IO[Throwable, +?], A]] =
+                                     ): F[Exception, Stream[F[Throwable, +?], A]] =
     for {
-      theUrl <- IO.fromEither(url)
-      theTargetPath <- IO.syncCatch(targetPath) {
+      theUrl <- BME.fromEither(url)
+      theTargetPath <- SyncEffects.syncCatch(targetPath) {
         case e: IOException => e
       }
 
       _ <- DownloadToPath.downloadToPath(theUrl, theTargetPath)
 
-      zipFile <- IO.syncCatch(theTargetPath.asZipFile) {
+      zipFile <- SyncEffects.syncCatch(new ZipFile(theTargetPath.toFile)) {
         case e: IOException => e
       }
 
-      maybeZipEntry <- IO.syncException(zipFile.entryWithName(zipEntryName))
+      maybeZipEntry <- SyncEffects.syncException(zipFile.entryWithName(zipEntryName))
 
       zipEntry <- maybeZipEntry match {
-        case Some(zipEntry) => IO.point(zipEntry)
-        case None => IO.fail(new NoSuchElementException(s"No zip entry called $zipEntryName"))
+        case Some(zipEntry) => BME.pure(zipEntry)
+        case None => BME.leftPure(new NoSuchElementException(s"No zip entry called $zipEntryName"))
       }
 
-      csvRowsStream = CsvStreaming.from[IO[Throwable, +?]] {
-        IO.syncException {
+      csvRowsStream = CsvStreaming.from[F[Throwable, +?]] {
+        SyncEffects.syncException {
           Source.fromInputStream(zipFile.getInputStream(zipEntry), "UTF-8")
         }
       }
@@ -155,16 +159,16 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
                               url: Either[MalformedURLException, URL],
                               targetPath: => Path,
                               makeRow: List[String] => A,
-                            ): IO[Exception, Stream[IO[Throwable, +?], A]] =
+                            ): F[Exception, Stream[F[Throwable, +?], A]] =
     for {
-      theUrl <- IO.fromEither(url)
-      theTargetPath <- IO.syncCatch(targetPath) {
+      theUrl <- BME.fromEither(url)
+      theTargetPath <- SyncEffects.syncCatch(targetPath) {
         case e: IOException => e
       }
 
       _ <- DownloadToPath.downloadToPath(theUrl, theTargetPath)
 
-      csvRowsStream = CsvStreaming.from[IO[Throwable, +?]](IO.syncException(theTargetPath.source()))
+      csvRowsStream = CsvStreaming.from[F[Throwable, +?]](SyncEffects.syncException(theTargetPath.source()))
     } yield csvRowsStream.map(makeRow)
 
   private def parsePossibleDouble(string: String): Option[Double] = {
@@ -185,6 +189,6 @@ final class FetchRawFederalElectionData private (localStore: Path)(implicit down
 }
 
 object FetchRawFederalElectionData {
-  def apply(localStore: Path)(implicit downloadMethod: DownloadToPath[IO]): FetchRawFederalElectionData =
+  def apply[F[+_, +_] : SyncEffects : BME](localStore: Path)(implicit downloadMethod: DownloadToPath[F], catsSync: CatsSync[F[Throwable, +?]]): FetchRawFederalElectionData[F] =
     new FetchRawFederalElectionData(localStore)
 }

@@ -1,7 +1,10 @@
 package au.id.tmm.ausvotes.shared.io.test
 
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
+import cats.effect.ExitCase
+
+import scala.util.control.NonFatal
 
 final case class TestIO[D, +E, +A](run: D => Output[D, E, A]) {
   def map[B](f: A => B): TestIO[D, E, B] = {
@@ -46,7 +49,7 @@ object TestIO {
     }
   }
 
-  implicit def testIOIsABME[D]: BME[TestIO[D, +?, +?]] = new BME[TestIO[D, +?, +?]] {
+  implicit def testIOIsABME[D]: SyncEffects[TestIO[D, +?, +?]] = new SyncEffects[TestIO[D, +?, +?]] {
     override def pure[A](a: A): TestIO[D, Nothing, A] = TestIO.pure(a)
     override def leftPure[E](e: E): TestIO[D, E, Nothing] = TestIO.leftPure(e)
     override def flatten[E1, E2 >: E1, A](io: TestIO[D, E1, TestIO[D, E2, A]]): TestIO[D, E2, A] = io.flatten
@@ -87,24 +90,7 @@ object TestIO {
       case Right(value) => TestIO.pure(value)
       case Left(value) => tailRecM(value)(f)
     }
-  }
 
-  implicit def testIOIsParallel[D]: Parallel[TestIO[D, +?, +?]] = new Parallel[TestIO[D, +?, +?]] {
-    override def par[E1, E2 >: E1, A, B](left: TestIO[D, E1, A], right: TestIO[D, E2, B]): TestIO[D, E2, (A, B)] =
-      for {
-        leftResult <- left
-        rightResult <- right
-      } yield (leftResult, rightResult)
-
-    override def parAll[E, A](as: Iterable[TestIO[D, E, A]]): TestIO[D, E, List[A]] = parTraverse(as)(identity)
-
-    override def parTraverse[E, A, B](as: Iterable[A])(f: A => TestIO[D, E, B]): TestIO[D, E, List[B]] =
-      as.foldRight[TestIO[D, E, List[B]]](TestIO.pure(Nil)) { (a, io) =>
-        par(f(a), io).map { case (b, bs) => b :: bs }
-      }
-  }
-
-  implicit def testIOHasSyncEffects[D]: SyncEffects[TestIO[D, +?, +?]] = new SyncEffects[TestIO[D, +?, +?]] {
     override def sync[A](effect: => A): TestIO[D, Nothing, A] = TestIO { data =>
       TestIO.Output(data, Right(effect))
     }
@@ -122,5 +108,54 @@ object TestIO {
 
       TestIO.Output(data, result)
     }
+
+    override def syncThrowable[A](effect: => A): TestIO[D, Throwable, A] = TestIO { data =>
+      val result = try Right(effect) catch {
+        case e: Throwable => Left(e)
+      }
+
+      TestIO.Output(data, result)
+    }
+
+    override def bracketCase[A, B](
+                                    acquire: TestIO[D, Throwable, A],
+                                  )(
+                                    use: A => TestIO[D, Throwable, B],
+                                  )(
+                                    release: (A, ExitCase[Throwable]) => TestIO[D, Throwable, Unit],
+                                  ): TestIO[D, Throwable, B] = TestIO { data =>
+      val TestIO.Output(dataAfterAcquisition, result) = acquire.run(data)
+
+      val safelyAquired: Either[Throwable, A] = result.left.map {
+        case NonFatal(t) => t
+        case t => throw t
+      }
+
+      safelyAquired match {
+        case Right(aquired) => use(aquired).run(dataAfterAcquisition) match {
+          case TestIO.Output(dataAfterUse, Right(resultAfterUse)) =>
+            release(aquired, ExitCase.Completed).map(_ => resultAfterUse).run(dataAfterUse)
+
+          case TestIO.Output(dataAfterUse, Left(error)) =>
+            release(aquired, ExitCase.Error(error)).flatMap(_ => TestIO.leftPure(error)).run(dataAfterUse)
+        }
+        case Left(acquisitionFailure) => TestIO.Output(dataAfterAcquisition, Left(acquisitionFailure))
+      }
+    }
+  }
+
+  implicit def testIOIsParallel[D]: Parallel[TestIO[D, +?, +?]] = new Parallel[TestIO[D, +?, +?]] {
+    override def par[E1, E2 >: E1, A, B](left: TestIO[D, E1, A], right: TestIO[D, E2, B]): TestIO[D, E2, (A, B)] =
+      for {
+        leftResult <- left
+        rightResult <- right
+      } yield (leftResult, rightResult)
+
+    override def parAll[E, A](as: Iterable[TestIO[D, E, A]]): TestIO[D, E, List[A]] = parTraverse(as)(identity)
+
+    override def parTraverse[E, A, B](as: Iterable[A])(f: A => TestIO[D, E, B]): TestIO[D, E, List[B]] =
+      as.foldRight[TestIO[D, E, List[B]]](TestIO.pure(Nil)) { (a, io) =>
+        par(f(a), io).map { case (b, bs) => b :: bs }
+      }
   }
 }

@@ -4,17 +4,19 @@ import java.time.{Instant, LocalDate, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
+import cats.effect.ExitCase
 import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
-import scalaz.zio.IO
+import scalaz.zio.ExitResult.Cause
+import scalaz.zio.{ExitResult, IO}
 
 import scala.util.Try
 
 object ZIOInstances {
 
-  implicit val zioIsABME: BME[IO] = new BME[IO] {
+  implicit val zioIsABME: SyncEffects[IO] = new SyncEffects[IO] {
 
     override def handleErrorWith[E, A, E1](fea: IO[E, A])(f: E => IO[E1, A]): IO[E1, A] = fea.catchAll(f)
 
@@ -48,8 +50,38 @@ object ZIOInstances {
 
     override def bimap[A, B, C, D](fab: IO[A, B])(f: A => C, g: B => D): IO[C, D] = fab.bimap(f, g)
 
-    override def flatten[E1, E2 >: E1, A](fefa: IO[E1, IO[E2, A]]): IO[E2, A] = fefa.flatMap(identity(_))
+    override def flatten[E1, E2 >: E1, A](fefa: IO[E1, IO[E2, A]]): IO[E2, A] = fefa.flatMap(identity)
 
+    override def sync[A](effect: => A): IO[Nothing, A] = IO.sync(effect)
+
+    override def syncException[A](effect: => A): IO[Exception, A] = IO.syncException(effect)
+
+    override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): IO[E, A] = IO.syncCatch(effect)(f)
+
+    override def syncThrowable[A](effect: => A): IO[Throwable, A] = IO.syncThrowable(effect)
+
+    override def bracketCase[A, B](acquire: IO[Throwable, A])(use: A => IO[Throwable, B])(release: (A, ExitCase[Throwable]) => IO[Throwable, Unit]): IO[Throwable, B] = {
+
+      @scala.annotation.tailrec
+      def convertZioFailureToCatsExitCase(exitResultCause: ExitResult.Cause[Throwable]): ExitCase[Throwable] =
+        exitResultCause match {
+          case Cause.Checked(e) => ExitCase.Error(e)
+          case Cause.Unchecked(e) => ExitCase.Error(e)
+          case Cause.Interruption => ExitCase.Canceled
+          case Cause.Then(left, right) => convertZioFailureToCatsExitCase(left)
+          case Cause.Both(left, right) => convertZioFailureToCatsExitCase(left)
+        }
+
+      def convertZioExitResultToCatsExitCase(exitResult: ExitResult[Throwable, _]): ExitCase[Throwable] =
+        exitResult match {
+          case ExitResult.Succeeded(value) => ExitCase.complete
+          case ExitResult.Failed(cause) => convertZioFailureToCatsExitCase(cause)
+        }
+
+      IO.bracket0[Throwable, A, B](acquire)((a, zioExitResult) => {
+        release(a, convertZioExitResultToCatsExitCase(zioExitResult)).leftMap(t => throw t)
+      })(use)
+    }
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {
@@ -60,14 +92,6 @@ object ZIOInstances {
     override def resource(name: String): IO[Nothing, Option[String]] = IO.sync {
       Option(IOUtils.toString(getClass.getResource(name), "UTF-8"))
     }
-  }
-
-  implicit val ioHasSyncEffects: SyncEffects[IO] = new SyncEffects[IO] {
-    override def sync[A](effect: => A): IO[Nothing, A] = IO.sync(effect)
-
-    override def syncException[A](effect: => A): IO[Exception, A] = IO.syncException(effect)
-
-    override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): IO[E, A] = IO.syncCatch(effect)(f)
   }
 
   implicit val ioCanLog: Log[IO] = new Log[IO] {

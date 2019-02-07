@@ -3,11 +3,10 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import fs2.Stream
-import scalaz.zio.IO
 
 trait FetchSenateDistributionOfPreferences[F[+_, +_]] {
 
-  def senateDistributionOfPreferencesFor(election: SenateElectionForState): F[FetchSenateDistributionOfPreferences.Error, Stream[IO[Throwable, +?], FetchSenateDistributionOfPreferences.Row]]
+  def senateDistributionOfPreferencesFor(election: SenateElectionForState): F[FetchSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchSenateDistributionOfPreferences.Row]]
 
 }
 

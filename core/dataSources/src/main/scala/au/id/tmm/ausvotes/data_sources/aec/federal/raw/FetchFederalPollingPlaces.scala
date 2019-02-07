@@ -3,11 +3,10 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import fs2.Stream
-import scalaz.zio.IO
 
 trait FetchFederalPollingPlaces[F[+_, +_]] {
 
-  def federalPollingPlacesForElection(election: FederalElection): F[FetchFederalPollingPlaces.Error, Stream[IO[Throwable, +?], FetchFederalPollingPlaces.Row]]
+  def federalPollingPlacesForElection(election: FederalElection): F[FetchFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchFederalPollingPlaces.Row]]
 
 }
 
