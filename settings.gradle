@@ -3,6 +3,7 @@ rootProject.name = 'ausvotes'
 include 'core',
         'core:model',
         'core:fixtures',
+        'core:dataSources',
         'tasks:generatePreferenceTrees',
         'tasks:compareRecountsWithCanonical',
         'lambdas:lambdaUtilities',

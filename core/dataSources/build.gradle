@@ -1,0 +1,16 @@
+apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
+
+dependencies {
+    compile project(':core:model')
+    compile project(':shared:io')
+
+    compile "au.id.tmm:countstv${s}:0.1.13"
+
+    compile "io.circe:circe-core${s}:$circeVersion"
+    compile "com.github.tototoshi:scala-csv${s}:1.3.4"
+
+    compile "org.scalaz:scalaz-zio-interop-cats${s}:$scalazZioVersion"
+
+    testCompile project(':core:fixtures')
+    testCompile project(':shared:testIo')
+}
