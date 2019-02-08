@@ -17,6 +17,7 @@ sourceSets {
 
 dependencies {
     compile project(':core:model')
+    compile project(':core:dataSources')
     compile project(':shared:io')
 
     compile "org.scalaz:scalaz-zio-interop-future${s}:$scalazZioVersion"

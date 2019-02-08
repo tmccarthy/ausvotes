@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.core.parsing.countdata
 
 import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.rawdata.model.DistributionOfPreferencesRow
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.DistributionSourceCalculator
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElectionForState}
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, CountSteps, DistributionCountStep, InitialAllocation}
@@ -136,7 +137,10 @@ object CountDataGeneration {
     InitialPositionAndMetadata(
       initialAllocation,
       allocationAfterIneligibles,
-      nextStepDistributionSource,
+      nextStepDistributionSource match {
+        case Right(source) => source
+        case Left(exception) => throw exception
+      },
       parsedCountStepData.numVacancies,
       parsedCountStepData.totalFormalPapers,
       parsedCountStepData.quota,
@@ -187,7 +191,10 @@ object CountDataGeneration {
 
         readDistributionSteps(
           allCountSteps,
-          nextStepDistributionSource,
+          nextStepDistributionSource match {
+            case Right(source) => source
+            case Left(exception) => throw exception
+          },
           candidatePositionLookup,
           distributionSourceCalculator,
           dopRows

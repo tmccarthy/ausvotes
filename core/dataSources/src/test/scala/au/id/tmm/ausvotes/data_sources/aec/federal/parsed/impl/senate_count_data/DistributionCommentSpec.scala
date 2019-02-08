@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.core.parsing.countdata
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -10,7 +10,7 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.Excluded(1, Set(1, 3, 5, 7, 11, 13, 15), 1.0d))
+    assert(comment === Right(DistributionComment.Excluded(1, Set(1, 3, 5, 7, 11, 13, 15), 1.0d)))
   }
 
   it can "not indicate a transfer from multiple excluded candidates" in {
@@ -19,7 +19,7 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.Excluded(2, Set(1), 1.0d))
+    assert(comment === Right(DistributionComment.Excluded(2, Set(1), 1.0d)))
   }
 
   it can "indicate a transfer from a candidate elected with a surplus" in {
@@ -28,8 +28,8 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("GALLAGHER", 'K'),
-      2, Set(1), 0.113066455002141d))
+    assert(comment === Right(DistributionComment.ElectedWithSurplus(ShortCandidateName("GALLAGHER", 'K'),
+      2, Set(1), 0.113066455002141d)))
   }
 
   it can "indicate a transfer from a candidate elected with a surplus where papers come from more than one count" in {
@@ -38,8 +38,8 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("BERNARDI", 'C'),
-      5, Set(1, 2), 0.520945945945945d))
+    assert(comment === Right(DistributionComment.ElectedWithSurplus(ShortCandidateName("BERNARDI", 'C'),
+      5, Set(1, 2), 0.520945945945945d)))
   }
 
   it can "indicate a transfer from a candidate elected with a surplus where the candidate name has an apostrophe" in {
@@ -48,8 +48,8 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("O'NEILL" ,'D'),
-      7, Set(1, 2, 3, 4, 5), 0.251436669074410d))
+    assert(comment === Right(DistributionComment.ElectedWithSurplus(ShortCandidateName("O'NEILL" ,'D'),
+      7, Set(1, 2, 3, 4, 5), 0.251436669074410d)))
   }
 
   it can "indicate a transfer from a candidate elected with a surplus where the candidate name has a hyphen" in {
@@ -58,8 +58,8 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("KAKOSCHKE-MOORE" ,'S'),
-      456, Set(1, 2, 3, 4, 5), 0.040791946031568))
+    assert(comment === Right(DistributionComment.ElectedWithSurplus(ShortCandidateName("KAKOSCHKE-MOORE" ,'S'),
+      456, Set(1, 2, 3, 4, 5), 0.040791946031568)))
   }
 
   it can "indicate a transfer from a candidate elected with a surplus where the candidate name has a space" in {
@@ -68,8 +68,8 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithSurplus(ShortCandidateName("DI NATALE" ,'R'),
-      4, Set(1), 0.283785760836314d))
+    assert(comment === Right(DistributionComment.ElectedWithSurplus(ShortCandidateName("DI NATALE" ,'R'),
+      4, Set(1), 0.283785760836314d)))
   }
 
   it can "indicate a candidate was elected without a surplus" in {
@@ -77,7 +77,7 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedWithQuotaNoSurplus(ShortCandidateName("SESELJA", 'Z')))
+    assert(comment === Right(DistributionComment.ElectedWithQuotaNoSurplus(ShortCandidateName("SESELJA", 'Z'))))
   }
 
   it can "indicate a candidate was elected as the last remaining" in {
@@ -85,11 +85,11 @@ class DistributionCommentSpec extends ImprovedFlatSpec {
 
     val comment = DistributionComment.from(rawComment)
 
-    assert(comment === DistributionComment.ElectedLastRemaining(Set(ShortCandidateName("SCULLION", 'N'), ShortCandidateName("McCARTHY", 'M'))))
+    assert(comment === Right(DistributionComment.ElectedLastRemaining(Set(ShortCandidateName("SCULLION", 'N'), ShortCandidateName("McCARTHY", 'M')))))
   }
 
   "distribution comment parsing" should "throw if an unrecognised comment is provided" in {
-    intercept[IllegalArgumentException](DistributionComment.from("the quick brown fox"))
+    assert(DistributionComment.from("the quick brown fox").left.map(_.getClass) === Left(classOf[IllegalArgumentException]))
   }
 
 }
