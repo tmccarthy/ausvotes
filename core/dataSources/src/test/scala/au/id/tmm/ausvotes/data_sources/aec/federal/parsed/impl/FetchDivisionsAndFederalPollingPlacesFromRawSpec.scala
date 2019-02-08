@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.core.fixtures.{DivisionFixture, PollingPlaceFixture}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFederalPollingPlaces
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData.{BasicTestIO, _}
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
 import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec

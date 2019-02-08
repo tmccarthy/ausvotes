@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection,
 
 trait FetchSenateGroupsAndCandidates[F[+_, +_]] {
 
-  def senateGroupsAndCandidatesFor(senateElection: SenateElection): F[FetchSenateGroupsAndCandidates.Error, FetchSenateGroupsAndCandidates.SenateGroupsAndCandidates]
+  def senateGroupsAndCandidatesFor(election: SenateElection): F[FetchSenateGroupsAndCandidates.Error, FetchSenateGroupsAndCandidates.SenateGroupsAndCandidates]
 
 }
 
