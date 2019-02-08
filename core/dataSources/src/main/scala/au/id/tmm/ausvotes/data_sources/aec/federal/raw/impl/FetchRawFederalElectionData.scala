@@ -5,7 +5,8 @@ import java.net.{MalformedURLException, URL}
 import java.nio.file.Path
 import java.util.zip.ZipFile
 
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchFederalPollingPlaces, FetchFormalSenatePreferences, FetchSenateDistributionOfPreferences, FetchSenateFirstPreferences}
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
+import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, DownloadToPath}
 import au.id.tmm.ausvotes.model.federal.FederalElection
@@ -20,21 +21,19 @@ import fs2.Stream
 import scala.io.Source
 
 final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (localStore: Path)(implicit downloadMethod: DownloadToPath[F])
-  extends FetchSenateFirstPreferences[F]
-    with FetchSenateDistributionOfPreferences[F]
-    with FetchFederalPollingPlaces[F]
-    with FetchFormalSenatePreferences[F] {
-
-  private implicit val catsSyncInstance: CatsSync[F[Throwable, +?]] = SyncEffects.catsSyncForSyncEffects[F]
+  extends FetchRawSenateFirstPreferences[F]
+    with FetchRawSenateDistributionOfPreferences[F]
+    with FetchRawFederalPollingPlaces[F]
+    with FetchRawFormalSenatePreferences[F] {
 
   override def senateFirstPreferencesFor(
                                           election: SenateElection,
-                                        ): F[FetchSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchSenateFirstPreferences.Row]] =
+                                        ): F[FetchRawSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateFirstPreferences.Row]] =
     fetchStream(
       url = s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/Downloads/SenateFirstPrefsByStateByVoteTypeDownload-${election.federalElection.aecId.asInt}.csv".parseUrl,
       targetPath = localStore.resolve(s"SenateFirstPrefsByStateByVoteTypeDownload-${election.federalElection.aecId.asInt}.csv"),
       makeRow = row =>
-        FetchSenateFirstPreferences.Row(
+        FetchRawSenateFirstPreferences.Row(
           state = row(0),
           ticket = row(1),
           candidateId = row(2),
@@ -48,16 +47,16 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (
           postalVotes = row(10).toInt,
           totalVotes = row(10).toInt
         )
-    ).leftMap(FetchSenateFirstPreferences.Error)
+    ).leftMap(FetchRawSenateFirstPreferences.Error)
 
   override def federalPollingPlacesForElection(
                                                 election: FederalElection,
-                                              ): F[FetchFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchFederalPollingPlaces.Row]] =
+                                              ): F[FetchRawFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchRawFederalPollingPlaces.Row]] =
     fetchStream(
       url = s"https://results.aec.gov.au/${election.aecId.asInt}/Website/Downloads/GeneralPollingPlacesDownload-${election.aecId.asInt}.csv".parseUrl,
       targetPath = localStore.resolve(s"GeneralPollingPlacesDownload-${election.aecId.asInt}.csv"),
       makeRow = row =>
-        FetchFederalPollingPlaces.Row(
+        FetchRawFederalPollingPlaces.Row(
           state = row(0),
           divisionId = row(1).toInt,
           divisionName = row(2),
@@ -74,17 +73,17 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (
           latitude = parsePossibleDouble(row(13)),
           longitude = parsePossibleDouble(row(14)),
         )
-    ).leftMap(FetchFederalPollingPlaces.Error)
+    ).leftMap(FetchRawFederalPollingPlaces.Error)
 
   override def senateDistributionOfPreferencesFor(
                                                    election: SenateElectionForState,
-                                                 ): F[FetchSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchSenateDistributionOfPreferences.Row]] =
+                                                 ): F[FetchRawSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateDistributionOfPreferences.Row]] =
     fetchZipBackedStream(
       url = s"https://results.aec.gov.au/${election.election.federalElection.aecId.asInt}/Website/External/SenateDopDownload-${election.election.federalElection.aecId.asInt}.zip".parseUrl,
       targetPath = localStore.resolve(s"SenateDopDownload-${election.election.federalElection.aecId.asInt}"),
       zipEntryName = s"SenateStateDOPDownload-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation.toUpperCase}.csv",
       unsafeMakeRow = row =>
-        FetchSenateDistributionOfPreferences.Row(
+        FetchRawSenateDistributionOfPreferences.Row(
           state = row(0),
           numberOfVacancies = row(1).toInt,
           totalFormalPapers = row(2).toInt,
@@ -103,17 +102,17 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (
           orderElected = row(15).toInt,
           comment = row(16),
         )
-    ).leftMap(FetchSenateDistributionOfPreferences.Error)
+    ).leftMap(FetchRawSenateDistributionOfPreferences.Error)
 
   override def formalSenatePreferencesFor(
                                            election: SenateElectionForState,
-                                         ): F[FetchFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchFormalSenatePreferences.Row]] =
+                                         ): F[FetchRawFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchRawFormalSenatePreferences.Row]] =
     fetchZipBackedStream(
       url = s"https://results.aec.gov.au/${election.election.federalElection.aecId.asInt}/Website/External/aec-senate-formalpreferences-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation}.zip".parseUrl,
       targetPath = localStore.resolve(s"aec-senate-formalpreferences-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation}.zip"),
       zipEntryName = s"aec-senate-formalpreferences-${election.election.federalElection.aecId.asInt}-${election.state.abbreviation}.csv",
       unsafeMakeRow = row =>
-        FetchFormalSenatePreferences.Row(
+        FetchRawFormalSenatePreferences.Row(
           electorateName = row(0),
           voteCollectionPointName = row(1),
           voteCollectionPointId = row(2).toInt,
@@ -121,7 +120,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects : BME] private (
           paperNumber = row(4).toInt,
           preferences = row(5),
         )
-    ).leftMap(FetchFormalSenatePreferences.Error)
+    ).leftMap(FetchRawFormalSenatePreferences.Error)
 
   private def fetchZipBackedStream[A](
                                        url: Either[MalformedURLException, URL],

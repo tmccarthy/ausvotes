@@ -1,0 +1,145 @@
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl
+
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchDivisionsAndFederalPollingPlaces
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.FetchDivisionsAndFederalPollingPlacesFromRaw.{DivisionAndPollingPlace, Error}
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFederalPollingPlaces
+import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
+import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
+import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace}
+import au.id.tmm.ausvotes.model.{Electorate, ExceptionCaseClass}
+import au.id.tmm.ausvotes.shared.io.actions.Log
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.utilities.collection.Flyweight
+import au.id.tmm.utilities.geo.LatLong
+import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
+import org.apache.commons.lang3.StringUtils
+
+final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Log : SyncEffects] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
+
+  private val divisionFlyweight: Flyweight[(FederalElection, State, String, Electorate.Id), Division] = Flyweight { tuple =>
+    Electorate(tuple._1, tuple._2, tuple._3, tuple._4)
+  }
+
+  override def divisionsAndFederalPollingPlacesFor(
+                                                    election: FederalElection,
+                                                  ): F[FetchDivisionsAndFederalPollingPlaces.Error, FetchDivisionsAndFederalPollingPlaces.DivisionsAndPollingPlaces] = {
+    for {
+      pollingPlacesRows <- implicitly[FetchRawFederalPollingPlaces[F]].federalPollingPlacesForElection(election)
+          .leftMap(FetchDivisionsAndFederalPollingPlaces.Error)
+
+      divisionsAndPollingPlacesStream = pollingPlacesRows.evalMap(row => BME.fromEither(parseRawRow(election, row)): F[Throwable, DivisionAndPollingPlace])
+
+      divisionsAndPollingPlaces <- divisionsAndPollingPlacesStream.compile.toVector
+          .swallowThrowablesAndWrapIn(FetchDivisionsAndFederalPollingPlaces.Error)
+    } yield {
+      val divisionsBuilder = Set.newBuilder[Division]
+      val pollingPlacesBuilder = Set.newBuilder[FederalPollingPlace]
+
+      divisionsAndPollingPlaces.foreach { case DivisionAndPollingPlace(division, pollingPlace) =>
+        divisionsBuilder += division
+        pollingPlacesBuilder += pollingPlace
+      }
+
+      FetchDivisionsAndFederalPollingPlaces.DivisionsAndPollingPlaces(
+        divisionsBuilder.result(),
+        pollingPlacesBuilder.result(),
+      )
+    }
+  }
+
+  private[impl] def parseRawRow(election: FederalElection, row: FetchRawFederalPollingPlaces.Row): Either[Error, DivisionAndPollingPlace] = {
+
+    for {
+      state <- parseState(row.state)
+
+      location <- locationFrom(row)
+    } yield {
+      val pollingPlaceType = row.pollingPlaceTypeId match {
+        case 1 => PollingPlaceType.PollingPlace
+        case 2 => PollingPlaceType.SpecialHospitalTeam
+        case 3 => PollingPlaceType.RemoteMobileTeam
+        case 4 => PollingPlaceType.OtherMobileTeam
+        case 5 => PollingPlaceType.PrePollVotingCentre
+      }
+
+      val division = divisionFlyweight((election, state, row.divisionName, Electorate.Id(row.divisionId)))
+
+      val pollingPlace = PollingPlace(
+        election,
+        jurisdiction = au.id.tmm.ausvotes.model.federal.FederalVcpJurisdiction(state, division),
+        PollingPlace.Id(row.pollingPlaceId),
+        pollingPlaceType,
+        row.pollingPlaceName,
+        location,
+      )
+
+      DivisionAndPollingPlace(division, pollingPlace)
+    }
+  }
+
+  private def parseState(rawState: String): Either[Error, State] =
+    State.fromAbbreviation(rawState.trim)
+      .toRight(Error.BadState(rawState))
+
+  private def locationFrom(row: FetchRawFederalPollingPlaces.Row): Either[Error, PollingPlace.Location] = {
+    row.premisesName.trim match {
+      case "Multiple sites" => Right(PollingPlace.Location.Multiple)
+      case premisesName =>
+        premisesAddressFrom(row).map { address =>
+          val possibleLatLong = latLongFrom(row)
+
+          PollingPlace.Location.Premises(premisesName, address, possibleLatLong)
+        }
+    }
+  }
+
+  private def latLongFrom(row: FetchRawFederalPollingPlaces.Row): Option[LatLong] = {
+    for {
+      lat <- row.latitude
+      long <- row.longitude
+      latLong <- Some(LatLong(lat, long))
+    } yield latLong
+  }
+
+  private def premisesAddressFrom(row: FetchRawFederalPollingPlaces.Row): Either[Error, Address] =
+    parseState(row.premisesState).map { state =>
+      Address(
+        lines = addressLinesFrom(row),
+        suburb = row.premisesSuburb.trim,
+        postcode = Postcode(row.premisesPostcode.trim),
+        state = state,
+      )
+    }
+
+  private def addressLinesFrom(row: FetchRawFederalPollingPlaces.Row): Vector[String] = {
+    val addressLines = Stream(row.premisesAddress1, row.premisesAddress2, row.premisesAddress3)
+      .filterNot(StringUtils.isBlank)
+      .map(_.trim)
+      .toVector
+
+    if (addressLines.nonEmpty) {
+      addressLines
+    } else {
+      Vector(row.premisesName.trim)
+    }
+  }
+
+}
+
+object FetchDivisionsAndFederalPollingPlacesFromRaw {
+
+  def apply[F[+_, +_] : FetchRawFederalPollingPlaces : Log : SyncEffects]: FetchDivisionsAndFederalPollingPlacesFromRaw[F] = new FetchDivisionsAndFederalPollingPlacesFromRaw()
+
+  private[impl] final case class DivisionAndPollingPlace(division: Division, pollingPlace: FederalPollingPlace)
+
+  sealed abstract class Error extends ExceptionCaseClass
+
+  object Error {
+
+    final case class BadState(rawState: String) extends Error
+
+  }
+
+}

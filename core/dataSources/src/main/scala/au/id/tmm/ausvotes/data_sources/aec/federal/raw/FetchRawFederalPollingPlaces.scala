@@ -4,13 +4,13 @@ import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import fs2.Stream
 
-trait FetchFederalPollingPlaces[F[+_, +_]] {
+trait FetchRawFederalPollingPlaces[F[+_, +_]] {
 
-  def federalPollingPlacesForElection(election: FederalElection): F[FetchFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchFederalPollingPlaces.Row]]
+  def federalPollingPlacesForElection(election: FederalElection): F[FetchRawFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchRawFederalPollingPlaces.Row]]
 
 }
 
-object FetchFederalPollingPlaces {
+object FetchRawFederalPollingPlaces {
 
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 

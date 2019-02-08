@@ -46,6 +46,8 @@ gradle-app.setting
 /core/fixtures/out
 /core/model/build
 /core/model/out
+/core/dataSources/build
+/core/dataSources/out
 /lambdas/*/build
 /lambdas/*/out
 /tasks/*/build
