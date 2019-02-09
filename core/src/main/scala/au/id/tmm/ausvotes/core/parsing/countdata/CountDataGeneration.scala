@@ -1,9 +1,8 @@
 package au.id.tmm.ausvotes.core.parsing.countdata
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.rawdata.model.DistributionOfPreferencesRow
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.DistributionSourceCalculator
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCandidate, SenateCountData, SenateElectionForState}
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, CountSteps, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
@@ -23,7 +22,7 @@ object CountDataGeneration {
 
   def fromDistributionOfPreferencesRows(
                                          election: SenateElectionForState,
-                                         allGroupsAndCandidates: GroupsAndCandidates,
+                                         allGroupsAndCandidates: SenateGroupsAndCandidates,
                                          distributionOfPreferencesRows: Iterator[DistributionOfPreferencesRow],
                                        ): SenateCountData = {
     val groupsAndCandidates = allGroupsAndCandidates.findFor(election)
@@ -61,7 +60,7 @@ object CountDataGeneration {
     )
   }
 
-  private[countdata] def constructBallotPositionLookup(groupsAndCandidates: GroupsAndCandidates): Map[Int, SenateCandidate] = {
+  private[countdata] def constructBallotPositionLookup(groupsAndCandidates: SenateGroupsAndCandidates): Map[Int, SenateCandidate] = {
     val numGroups = groupsAndCandidates.groups.size
     val candidatesInBallotOrder = groupsAndCandidates.candidates.toStream
       .sorted

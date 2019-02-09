@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model
-import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
+import au.id.tmm.ausvotes.model.federal
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 
@@ -12,13 +12,13 @@ object DivisionAndPollingPlaceFixture {
     def state: State
     def election: SenateElectionForState = senateElection.electionForState(state).get
 
-    def divisionsAndPollingPlaces: au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
+    def divisionsAndPollingPlaces: DivisionsAndPollingPlaces
   }
 
   object ACT extends DivisionsAndPollingPlacesFixture {
     override val state: State = State.ACT
 
-    override val divisionsAndPollingPlaces = model.DivisionsAndPollingPlaces(
+    override val divisionsAndPollingPlaces = federal.DivisionsAndPollingPlaces(
       DivisionFixture.ACT.divisions,
       PollingPlaceFixture.ACT.pollingPlaces,
     )
@@ -27,7 +27,7 @@ object DivisionAndPollingPlaceFixture {
   object WA extends DivisionsAndPollingPlacesFixture {
     override def state: State = State.WA
 
-    override def divisionsAndPollingPlaces: DivisionsAndPollingPlaces = model.DivisionsAndPollingPlaces(
+    override def divisionsAndPollingPlaces: DivisionsAndPollingPlaces = federal.DivisionsAndPollingPlaces(
       DivisionFixture.WA.divisions,
       PollingPlaceFixture.WA.pollingPlaces,
     )

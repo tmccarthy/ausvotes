@@ -1,14 +1,13 @@
 package au.id.tmm.ausvotes.core.io_actions
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCountData, SenateElectionForState}
 
 trait FetchSenateCountData[F[+_, +_]] {
 
   def fetchCountDataFor(
                          election: SenateElectionForState,
-                         groupsAndCandidatesForSenateElectionInState: GroupsAndCandidates,
+                         groupsAndCandidatesForSenateElectionInState: SenateGroupsAndCandidates,
                        ): F[FetchSenateCountData.Error, SenateCountData]
 
 }
@@ -19,7 +18,7 @@ object FetchSenateCountData {
 
   def fetchFor[F[+_, +_] : FetchSenateCountData](
                                                   election: SenateElectionForState,
-                                                  groupsAndCandidatesForSenateElectionInState: GroupsAndCandidates,
+                                                  groupsAndCandidatesForSenateElectionInState: SenateGroupsAndCandidates,
                                                 ): F[FetchSenateCountData.Error, SenateCountData] =
     implicitly[FetchSenateCountData[F]].fetchCountDataFor(election, groupsAndCandidatesForSenateElectionInState)
 

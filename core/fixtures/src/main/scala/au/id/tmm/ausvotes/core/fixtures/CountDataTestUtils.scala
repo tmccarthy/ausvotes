@@ -1,15 +1,14 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCountData, SenateElection, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
 final class CountDataTestUtils private(
                                         val state: State,
-                                        val groupsAndCandidates: GroupsAndCandidates,
+                                        val groupsAndCandidates: SenateGroupsAndCandidates,
                                         val ballotMaker: BallotMaker,
                                       ) {
   private val rawDataStore = RawDataStore(MockAecResourceStore)

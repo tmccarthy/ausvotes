@@ -8,7 +8,7 @@ import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.Electorate
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
-import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace}
+import au.id.tmm.ausvotes.model.federal.{Division, DivisionsAndPollingPlaces, FederalElection, FederalPollingPlace}
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.utilities.collection.Flyweight
@@ -24,7 +24,7 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
 
   override def divisionsAndFederalPollingPlacesFor(
                                                     election: FederalElection,
-                                                  ): F[FetchDivisionsAndFederalPollingPlaces.Error, FetchDivisionsAndFederalPollingPlaces.DivisionsAndPollingPlaces] = {
+                                                  ): F[FetchDivisionsAndFederalPollingPlaces.Error, DivisionsAndPollingPlaces] = {
     for {
       pollingPlacesRows <- implicitly[FetchRawFederalPollingPlaces[F]].federalPollingPlacesForElection(election)
         .leftMap(FetchDivisionsAndFederalPollingPlaces.Error)
@@ -42,7 +42,7 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
         pollingPlacesBuilder += pollingPlace
       }
 
-      FetchDivisionsAndFederalPollingPlaces.DivisionsAndPollingPlaces(
+      DivisionsAndPollingPlaces(
         divisionsBuilder.result(),
         pollingPlacesBuilder.result(),
       )

@@ -1,7 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCandidate, SenateElectionForState, SenateGroup}
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
@@ -43,7 +42,7 @@ object EntitiesTestData {
         val preferenceTree = PreferenceTree.from(candidates)(ballots)
 
         val groupsCandidatesAndPreferences =
-          FetchPreferenceTree.GroupsCandidatesAndPreferences(GroupsAndCandidates(groups, candidates), preferenceTree)
+          FetchPreferenceTree.GroupsCandidatesAndPreferences(SenateGroupsAndCandidates(groups, candidates), preferenceTree)
 
         TestIO.Output(testData, Right(groupsCandidatesAndPreferences))
       }
@@ -63,11 +62,11 @@ object EntitiesTestData {
 
     override def fetchGroupsAndCandidatesFor(
                                               election: SenateElectionForState,
-                                            ): TestIO[D, FetchGroupsAndCandidatesException, GroupsAndCandidates] =
+                                            ): TestIO[D, FetchGroupsAndCandidatesException, SenateGroupsAndCandidates] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
-        val groupsAndCandidates = GroupsAndCandidates(
+        val groupsAndCandidates = SenateGroupsAndCandidates(
           entitiesTestData.groups.getOrElse(election, Set.empty),
           entitiesTestData.candidates.getOrElse(election, Set.empty),
         )

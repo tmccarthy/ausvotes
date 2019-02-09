@@ -1,13 +1,11 @@
-package au.id.tmm.ausvotes.core.model
+package au.id.tmm.ausvotes.model.federal.senate
 
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup}
-
-final case class GroupsAndCandidates(groups: Set[SenateGroup], candidates: Set[SenateCandidate]) {
+final case class SenateGroupsAndCandidates(groups: Set[SenateGroup], candidates: Set[SenateCandidate]) {
   def contains(group: SenateGroup): Boolean = groups.contains(group)
 
   def contains(candidate: SenateCandidate): Boolean = candidates.contains(candidate)
 
-  def findFor(election: SenateElectionForState): GroupsAndCandidates = GroupsAndCandidates(
+  def findFor(election: SenateElectionForState): SenateGroupsAndCandidates = SenateGroupsAndCandidates(
     groups = groups.toStream
       .filter(_.election == election)
       .toSet,

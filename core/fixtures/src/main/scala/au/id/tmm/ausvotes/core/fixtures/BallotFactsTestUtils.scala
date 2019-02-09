@@ -5,9 +5,9 @@ import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculato
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
 import au.id.tmm.ausvotes.core.fixtures.DivisionAndPollingPlaceFixture.DivisionsAndPollingPlacesFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupAndCandidateFixture.GroupsAndCandidatesFixture
-import au.id.tmm.ausvotes.core.model._
 import au.id.tmm.ausvotes.core.model.computation.NormalisedBallot
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.geo.australia.State
 
@@ -17,7 +17,7 @@ final class BallotFactsTestUtils private(val state: State,
                                          val divisionAndPollingPlaceFixture: DivisionsAndPollingPlacesFixture,
                                      ) {
 
-  val groupsAndCandidates: GroupsAndCandidates = groupsAndCandidatesFixture.groupsAndCandidates
+  val groupsAndCandidates: SenateGroupsAndCandidates = groupsAndCandidatesFixture.groupsAndCandidates
   val divisionsAndPollingPlaces: DivisionsAndPollingPlaces = divisionAndPollingPlaceFixture.divisionsAndPollingPlaces
 
   val senateElection: SenateElection = SenateElection.`2016`

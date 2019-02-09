@@ -1,9 +1,8 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
 import au.id.tmm.ausvotes.core.rawdata.model.FirstPreferencesRow
 import au.id.tmm.ausvotes.model.Flyweights.GroupFlyweight
-import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, _}
 import au.id.tmm.ausvotes.model.stv.{BallotGroup, Ungrouped}
 import au.id.tmm.ausvotes.model.{Candidate, Name, Party}
 
@@ -15,7 +14,7 @@ object GroupAndCandidateGeneration {
                                 election: SenateElection,
                                 rows: TraversableOnce[FirstPreferencesRow],
                                 groupFlyweight: GroupFlyweight[SenateElectionForState] = GroupFlyweight[SenateElectionForState](),
-                              ): GroupsAndCandidates = {
+                              ): SenateGroupsAndCandidates = {
     val groupsByCode: mutable.Map[BallotGroup.Code, SenateGroup] = mutable.Map()
 
     val groups: mutable.ArrayBuffer[SenateGroup] = mutable.ArrayBuffer()
@@ -31,7 +30,7 @@ object GroupAndCandidateGeneration {
       groupOrCandidate.right.foreach(candidates.append(_))
     }
 
-    GroupsAndCandidates(groups.toSet, candidates.toSet)
+    SenateGroupsAndCandidates(groups.toSet, candidates.toSet)
   }
 
   private def fromFirstPreferencesRow(groupFlyweight: GroupFlyweight[SenateElectionForState],

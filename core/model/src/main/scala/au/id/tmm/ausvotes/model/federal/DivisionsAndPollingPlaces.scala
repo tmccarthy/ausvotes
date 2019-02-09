@@ -1,6 +1,5 @@
-package au.id.tmm.ausvotes.core.model
+package au.id.tmm.ausvotes.model.federal
 
-import au.id.tmm.ausvotes.model.federal.{Division, FederalElection, FederalPollingPlace}
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable

@@ -20,7 +20,7 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
 
   override def senateGroupsAndCandidatesFor(
                                              election: SenateElection,
-                                           ): F[FetchSenateGroupsAndCandidates.Error, FetchSenateGroupsAndCandidates.SenateGroupsAndCandidates] =
+                                           ): F[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
     for {
       firstPreferencesRows <- implicitly[FetchRawSenateFirstPreferences[F]].senateFirstPreferencesFor(election)
         .leftMap(FetchSenateGroupsAndCandidates.Error)
@@ -48,7 +48,7 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
         case (_, ACandidate(candidate)) => candidatesBuilder += candidate
       }
 
-      FetchSenateGroupsAndCandidates.SenateGroupsAndCandidates(groupsBuilder.result(), candidatesBuilder.result())
+      SenateGroupsAndCandidates(groupsBuilder.result(), candidatesBuilder.result())
     }
 
   private def fromFirstPreferencesRow(

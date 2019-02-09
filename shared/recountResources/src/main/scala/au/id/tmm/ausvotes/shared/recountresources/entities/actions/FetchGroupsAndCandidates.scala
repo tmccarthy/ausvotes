@@ -1,14 +1,13 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
-import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
 import au.id.tmm.ausvotes.shared.recountresources.exceptions
 
 trait FetchGroupsAndCandidates[F[+_, +_]] {
 
-  def fetchGroupsAndCandidatesFor(election: SenateElectionForState): F[FetchGroupsAndCandidatesException, GroupsAndCandidates]
+  def fetchGroupsAndCandidatesFor(election: SenateElectionForState): F[FetchGroupsAndCandidatesException, SenateGroupsAndCandidates]
 
 }
 
@@ -16,7 +15,7 @@ object FetchGroupsAndCandidates {
 
   def fetchGroupsAndCandidatesFor[F[+_, +_] : FetchGroupsAndCandidates](
                                                                          election: SenateElectionForState,
-                                                                       ): F[FetchGroupsAndCandidatesException, GroupsAndCandidates] =
+                                                                       ): F[FetchGroupsAndCandidatesException, SenateGroupsAndCandidates] =
     implicitly[FetchGroupsAndCandidates[F]].fetchGroupsAndCandidatesFor(election)
 
   sealed abstract class FetchGroupsAndCandidatesException extends ExceptionCaseClass

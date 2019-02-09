@@ -1,12 +1,11 @@
 package au.id.tmm.ausvotes.core.engine
 
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates}
 import au.id.tmm.ausvotes.core.parsing._
 import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
 import au.id.tmm.ausvotes.model.Flyweights.{ElectorateFlyweight, GroupFlyweight}
-import au.id.tmm.ausvotes.model.federal.FederalElection
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateCountData, SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.logging.LoggedEvent.TryOps
@@ -14,18 +13,18 @@ import au.id.tmm.utilities.logging.Logger
 import au.id.tmm.utilities.resources.ManagedResourceUtils.ExtractableManagedResourceOps
 
 trait ParsedDataStore {
-  def groupsAndCandidatesFor(election: SenateElection): GroupsAndCandidates
+  def groupsAndCandidatesFor(election: SenateElection): SenateGroupsAndCandidates
 
   def divisionsAndPollingPlacesFor(election: FederalElection): DivisionsAndPollingPlaces
 
   def countDataFor(
                     election: SenateElectionForState,
-                    allGroupsAndCandidates: GroupsAndCandidates,
+                    allGroupsAndCandidates: SenateGroupsAndCandidates,
                   ): SenateCountData
 
   def ballotsFor(
                   election: SenateElectionForState,
-                  groupsAndCandidates: GroupsAndCandidates,
+                  groupsAndCandidates: SenateGroupsAndCandidates,
                   divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                 ): CloseableIterator[SenateBallot]
 }
@@ -40,7 +39,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
   private val groupFlyweight = GroupFlyweight[SenateElectionForState]()
   private val electorateFlyweight = ElectorateFlyweight[FederalElection, State]()
 
-  override def groupsAndCandidatesFor(election: SenateElection): GroupsAndCandidates = {
+  override def groupsAndCandidatesFor(election: SenateElection): SenateGroupsAndCandidates = {
     resource.managed(rawDataStore.firstPreferencesFor(election))
       .map(rows => GroupAndCandidateGeneration.fromFirstPreferencesRows(election, rows, groupFlyweight))
       .toTry
@@ -58,7 +57,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
 
   override def countDataFor(
                              election: SenateElectionForState,
-                             allGroupsAndCandidates: GroupsAndCandidates,
+                             allGroupsAndCandidates: SenateGroupsAndCandidates,
                            ): SenateCountData = {
     resource.managed(rawDataStore.distributionsOfPreferencesFor(election))
       .map(rows => CountDataGeneration.fromDistributionOfPreferencesRows(election, allGroupsAndCandidates, rows))
@@ -69,7 +68,7 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
 
   override def ballotsFor(
                            election: SenateElectionForState,
-                           groupsAndCandidates: GroupsAndCandidates,
+                           groupsAndCandidates: SenateGroupsAndCandidates,
                            divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                          ): CloseableIterator[SenateBallot] = {
 

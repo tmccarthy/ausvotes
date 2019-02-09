@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates}
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.countstv.model.preferences.PreferenceTree
@@ -12,7 +12,7 @@ object DataBundleConstruction {
 
   def constructDataBundle(
                            election: SenateElectionForState,
-                           groupsAndCandidates: GroupsAndCandidates,
+                           groupsAndCandidates: SenateGroupsAndCandidates,
                            divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                            countData: SenateCountData,
                            ballots: Iterator[SenateBallot],
@@ -63,7 +63,7 @@ object DataBundleConstruction {
 
   final case class DataBundleForElection(
                                           election: SenateElectionForState,
-                                          groupsAndCandidates: GroupsAndCandidates,
+                                          groupsAndCandidates: SenateGroupsAndCandidates,
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                                           canonicalCountResult: CountSummary,
                                           preferenceTree: PreferenceTree.RootPreferenceTree[SenateCandidate],

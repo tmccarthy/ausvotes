@@ -1,7 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching
 
-import au.id.tmm.ausvotes.core.model.GroupsAndCandidates
-import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, _}
 import au.id.tmm.ausvotes.model.stv.{CandidatePosition, Ungrouped}
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
@@ -30,11 +29,11 @@ final class GroupsAndCandidatesCache(
   // TODO why bother storing the json?
   private val candidateJsons: CacheMap[FetchGroupsAndCandidatesException, Json] = mutable.Map()
 
-  private val groupsAndCandidates: CacheMap[FetchGroupsAndCandidatesException, GroupsAndCandidates] = mutable.Map()
+  private val groupsAndCandidates: CacheMap[FetchGroupsAndCandidatesException, SenateGroupsAndCandidates] = mutable.Map()
 
   override def fetchGroupsAndCandidatesFor(
                                             election: SenateElectionForState,
-                                          ): IO[FetchGroupsAndCandidatesException, GroupsAndCandidates] =
+                                          ): IO[FetchGroupsAndCandidatesException, SenateGroupsAndCandidates] =
     for {
       promise <- groupsAndCandidatesPromiseFor(election)
       groupsAndCandidates <- promise.get
@@ -42,7 +41,7 @@ final class GroupsAndCandidatesCache(
 
   private[cached_fetching] def groupsAndCandidatesPromiseFor(
                                                               election: SenateElectionForState,
-                                                            ): IO[Nothing, Promise[FetchGroupsAndCandidatesException, GroupsAndCandidates]] =
+                                                            ): IO[Nothing, Promise[FetchGroupsAndCandidatesException, SenateGroupsAndCandidates]] =
     mutex.withPermit {
       getPromiseFor(election, groupsAndCandidates, mutex) {
         for {
@@ -63,7 +62,7 @@ final class GroupsAndCandidatesCache(
               CandidatePosition.decoderUsing(groups, Ungrouped(election))
 
             candidatesJson.as[Set[SenateCandidate]].left.map(_.show).map { candidates =>
-              GroupsAndCandidates(groups, candidates)
+              SenateGroupsAndCandidates(groups, candidates)
             }.left.map(FetchGroupsAndCandidatesException.DecodeCandidatesJsonException)
           }
         } yield groupsAndCandidates

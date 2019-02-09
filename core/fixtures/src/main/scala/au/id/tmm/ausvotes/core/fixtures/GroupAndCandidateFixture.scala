@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.fixtures
 
-import au.id.tmm.ausvotes.core.model
-import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate
+import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState, SenateGroupsAndCandidates}
 import au.id.tmm.utilities.geo.australia.State
 
 object GroupAndCandidateFixture {
@@ -11,19 +11,19 @@ object GroupAndCandidateFixture {
     def state: State
     def election: SenateElectionForState = senateElection.electionForState(state).get
 
-    def groupsAndCandidates: au.id.tmm.ausvotes.core.model.GroupsAndCandidates
+    def groupsAndCandidates: SenateGroupsAndCandidates
   }
 
   object ACT extends GroupsAndCandidatesFixture {
     override val state: State = State.ACT
 
-    val groupsAndCandidates = model.GroupsAndCandidates(GroupFixture.ACT.groups, CandidateFixture.ACT.candidates)
+    val groupsAndCandidates = senate.SenateGroupsAndCandidates(GroupFixture.ACT.groups, CandidateFixture.ACT.candidates)
   }
 
   object WA extends GroupsAndCandidatesFixture {
     override val state: State = State.WA
 
-    val groupsAndCandidates = model.GroupsAndCandidates(GroupFixture.WA.groups, CandidateFixture.WA.candidates)
+    val groupsAndCandidates = senate.SenateGroupsAndCandidates(GroupFixture.WA.groups, CandidateFixture.WA.candidates)
   }
 
 }

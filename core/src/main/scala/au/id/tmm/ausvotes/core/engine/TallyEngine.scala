@@ -3,11 +3,11 @@ package au.id.tmm.ausvotes.core.engine
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
-import au.id.tmm.ausvotes.core.model._
 import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState, SenateHtv}
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.collection.{CloseableIterator, DupelessSeq}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.logging.LoggedEvent.FutureOps
@@ -27,7 +27,7 @@ trait TallyEngine {
              election: SenateElection,
              states: Set[State],
              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-             groupsAndCandidates: GroupsAndCandidates,
+             groupsAndCandidates: SenateGroupsAndCandidates,
              talliers: Set[Tallier])
             (implicit ec: ExecutionContext): Future[TallyBundle]
 }
@@ -67,7 +67,7 @@ object TallyEngine extends TallyEngine {
              election: SenateElection,
              states: Set[State],
              divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-             groupsAndCandidates: GroupsAndCandidates,
+             groupsAndCandidates: SenateGroupsAndCandidates,
              talliers: Set[Tallier])
             (implicit ec: ExecutionContext): Future[TallyBundle] = {
     val howToVoteCards = HowToVoteCardGeneration.from(election, groupsAndCandidates.groups)
@@ -97,7 +97,7 @@ object TallyEngine extends TallyEngine {
   private def talliesForState(parsedDataStore: ParsedDataStore,
                               election: SenateElectionForState,
                               divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                              groupsAndCandidates: GroupsAndCandidates,
+                              groupsAndCandidates: SenateGroupsAndCandidates,
                               howToVoteCards: Set[SenateHtv],
                               talliers: Set[Tallier])
                              (implicit ec: ExecutionContext): Future[TallyBundle] = {
@@ -147,7 +147,7 @@ object TallyEngine extends TallyEngine {
   }
 
   private def buildComputationToolsFor(election: SenateElectionForState,
-                                       groupsAndCandidates: GroupsAndCandidates,
+                                       groupsAndCandidates: SenateGroupsAndCandidates,
                                        howToVoteCards: Set[SenateHtv]): ComputationTools = {
 
     val normaliser = BallotNormaliser(election, groupsAndCandidates.candidates)

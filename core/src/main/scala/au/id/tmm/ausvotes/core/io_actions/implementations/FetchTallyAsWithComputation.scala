@@ -8,9 +8,10 @@ import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithF
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
 import au.id.tmm.ausvotes.core.io_actions._
 import au.id.tmm.ausvotes.core.io_actions.implementations.FetchTallyAsWithComputation.TallyRequest
-import au.id.tmm.ausvotes.core.model.{DivisionsAndPollingPlaces, GroupsAndCandidates, StateInstances}
+import au.id.tmm.ausvotes.core.model.StateInstances
 import au.id.tmm.ausvotes.core.tallies._
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState, SenateHtv}
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
@@ -153,7 +154,7 @@ final class FetchTallyAsWithComputation private(
   private def runForAllStatesAtElection(
                                          senateElection: SenateElection,
                                          divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                         groupsAndCandidates: GroupsAndCandidates,
+                                         groupsAndCandidates: SenateGroupsAndCandidates,
                                          htvCards: Map[SenateElectionForState, Set[SenateHtv]],
                                          talliers: Set[Tallier],
                                        ): IO[FetchTally.Error, TallyBundle] = {
@@ -167,7 +168,7 @@ final class FetchTallyAsWithComputation private(
   private def runForState(
                            election: SenateElectionForState,
                            divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                           groupsAndCandidates: GroupsAndCandidates,
+                           groupsAndCandidates: SenateGroupsAndCandidates,
                            htvCards: Set[SenateHtv],
                            talliers: Set[Tallier],
                          ): IO[FetchTally.Error, TallyBundle] = {
@@ -191,7 +192,7 @@ final class FetchTallyAsWithComputation private(
 
   private def buildComputationToolsFor(
                                         election: SenateElectionForState,
-                                        groupsAndCandidates: GroupsAndCandidates,
+                                        groupsAndCandidates: SenateGroupsAndCandidates,
                                         howToVoteCards: Set[SenateHtv],
                                       ): ComputationTools = {
 
@@ -208,7 +209,7 @@ final class FetchTallyAsWithComputation private(
                                           election: SenateElectionForState,
                                           talliers: Set[Tallier],
                                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                          groupsAndCandidates: GroupsAndCandidates,
+                                          groupsAndCandidates: SenateGroupsAndCandidates,
                                           computationTools: ComputationTools,
                                           computationInputData: ComputationInputData,
                                         ): IO[FetchTally.Error, TallyBundle] =

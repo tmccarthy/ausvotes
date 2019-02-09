@@ -1,13 +1,12 @@
 package au.id.tmm.ausvotes.core.parsing
 
-import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
-import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces.DivisionAndPollingPlace
 import au.id.tmm.ausvotes.core.rawdata.model.PollingPlacesRow
 import au.id.tmm.ausvotes.model.Electorate
 import au.id.tmm.ausvotes.model.Flyweights.ElectorateFlyweight
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
-import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces.DivisionAndPollingPlace
+import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils

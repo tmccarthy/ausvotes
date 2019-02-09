@@ -1,8 +1,7 @@
 package au.id.tmm.ausvotes.core.io_actions
 
-import au.id.tmm.ausvotes.core.model.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.model.federal.FederalElection
+import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 
 trait FetchDivisionsAndPollingPlaces[F[+_, +_]] {
 
