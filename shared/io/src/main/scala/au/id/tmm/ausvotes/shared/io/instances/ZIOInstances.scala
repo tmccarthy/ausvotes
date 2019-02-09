@@ -60,6 +60,8 @@ object ZIOInstances {
 
     override def syncThrowable[A](effect: => A): IO[Throwable, A] = IO.syncThrowable(effect)
 
+    override def bracket[E, A, B](acquire: IO[E, A])(release: A => IO[Nothing, _])(use: A => IO[E, B]): IO[E, B] = IO.bracket(acquire)(release)(use)
+
     override def bracketCase[A, B](acquire: IO[Throwable, A])(use: A => IO[Throwable, B])(release: (A, ExitCase[Throwable]) => IO[Throwable, Unit]): IO[Throwable, B] = {
 
       @scala.annotation.tailrec

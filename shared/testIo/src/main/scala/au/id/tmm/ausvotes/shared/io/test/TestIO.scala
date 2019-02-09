@@ -117,6 +117,28 @@ object TestIO {
       TestIO.Output(data, result)
     }
 
+
+    override def bracket[E, A, B](
+                                   acquire: TestIO[D, E, A],
+                                 )(
+                                   release: A => TestIO[D, Nothing, _],
+                                 )(
+                                   use: A => TestIO[D, E, B],
+                                 ): TestIO[D, E, B] = TestIO { data =>
+      val TestIO.Output(dataAfterAcquisition, acquired) = acquire.run(data)
+
+      acquired match {
+        case Right(aquired) => use(aquired).run(dataAfterAcquisition) match {
+          case TestIO.Output(dataAfterUse, Right(resultAfterUse)) =>
+            release(aquired).map(_ => resultAfterUse).run(dataAfterUse)
+
+          case TestIO.Output(dataAfterUse, Left(error)) =>
+            release(aquired).flatMap(_ => TestIO.leftPure(error)).run(dataAfterUse)
+        }
+        case Left(acquisitionFailure) => TestIO.Output(dataAfterAcquisition, Left(acquisitionFailure))
+      }
+    }
+
     override def bracketCase[A, B](
                                     acquire: TestIO[D, Throwable, A],
                                   )(

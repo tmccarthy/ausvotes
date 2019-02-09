@@ -9,6 +9,8 @@ trait SyncEffects[F[+_, +_]] extends BifunctorMonadError[F] {
   def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): F[E, A]
   def syncThrowable[A](effect: => A): F[Throwable, A]
 
+  def bracket[E, A, B](acquire: F[E, A])(release: A => F[Nothing, _])(use: A => F[E, B]): F[E, B]
+
   def bracketCase[A, B](acquire: F[Throwable, A])(use: A => F[Throwable, B])(release: (A, ExitCase[Throwable]) => F[Throwable, Unit]): F[Throwable, B]
 }
 
