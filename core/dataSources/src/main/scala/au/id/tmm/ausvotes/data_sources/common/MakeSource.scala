@@ -43,6 +43,10 @@ object MakeSource {
     case e: IOException => e
   }
 
+  def never[F[+_, +_] : BifunctorMonadError, A]: MakeSource[F, UnsupportedOperationException, A] = new MakeSource[F, UnsupportedOperationException, A] {
+    override def makeSourceFor(a: A): F[UnsupportedOperationException, Source] = BifunctorMonadError.leftPure(new UnsupportedOperationException)
+  }
+
   def fromFile[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, IOException, Path] =
     new MakeSource[F, IOException, Path] {
       override def makeSourceFor(path: Path): F[IOException, Source] = syncCatchIOException(Source.fromFile(path.toFile, charset.toString))

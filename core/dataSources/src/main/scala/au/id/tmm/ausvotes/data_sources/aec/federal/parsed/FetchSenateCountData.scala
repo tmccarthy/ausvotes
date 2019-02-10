@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElectionForState, SenateGroupsAndCandidates}
 
 trait FetchSenateCountData[F[+_, +_]] {
 
-  def senateCountDataFor(election: SenateElectionForState): F[FetchSenateCountData.Error, SenateCountData]
+  def senateCountDataFor(election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates): F[FetchSenateCountData.Error, SenateCountData]
 
 }
 

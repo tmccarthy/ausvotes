@@ -31,6 +31,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localS
                                         ): F[FetchRawSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateFirstPreferences.Row]] =
     BME.pure {
       fetchStreamFor(SenateFirstPreferencesResource(election))
+        .drop(2)
         .map { row =>
           FetchRawSenateFirstPreferences.Row(
             state = row(0),
@@ -54,6 +55,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localS
                                               ): F[FetchRawFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchRawFederalPollingPlaces.Row]] =
     BME.pure {
       fetchStreamFor(FederalPollingPlacesResource(election))
+        .drop(2)
         .map { row =>
           FetchRawFederalPollingPlaces.Row(
             state = row(0),
@@ -80,6 +82,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localS
                                                  ): F[FetchRawSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateDistributionOfPreferences.Row]] =
     BME.pure {
       fetchStreamFor(SenateDistributionOfPreferencesResource(election))
+        .drop(1)
         .map { row =>
           FetchRawSenateDistributionOfPreferences.Row(
             state = row(0),
@@ -108,6 +111,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localS
                                          ): F[FetchRawFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchRawFormalSenatePreferences.Row]] =
     BME.pure {
       fetchStreamFor(FormalSenatePreferencesResource(election))
+        .drop(2)
         .map { row =>
           FetchRawFormalSenatePreferences.Row(
             electorateName = row(0),
