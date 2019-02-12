@@ -4,11 +4,13 @@ import java.time.{Instant, LocalDate, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
+import au.id.tmm.ausvotes.shared.io.typeclasses.Concurrent.Fibre
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Concurrent, Parallel}
 import cats.effect.ExitCase
 import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
+import scalaz.zio
 import scalaz.zio.ExitResult.Cause
 import scalaz.zio.{ExitResult, IO}
 
@@ -16,7 +18,7 @@ import scala.util.Try
 
 object ZIOInstances {
 
-  implicit val zioIsABME: SyncEffects[IO] = new SyncEffects[IO] {
+  implicit val zioIsABME: Concurrent[IO] = new Concurrent[IO] {
 
     override def handleErrorWith[E, A, E1](fea: IO[E, A])(f: E => IO[E1, A]): IO[E1, A] = fea.catchAll(f)
 
@@ -84,6 +86,20 @@ object ZIOInstances {
         release(a, convertZioExitResultToCatsExitCase(zioExitResult)).leftMap(t => throw t)
       })(use)
     }
+
+    private def convertToMyFibre[E, A](zioFiber: zio.Fiber[E, A]): Fibre[IO, E, A] = new Fibre[IO, E, A] {
+      override def cancel: IO[Nothing, ExitResult[E, A]] = zioFiber.interrupt
+
+      override def join: IO[E, A] = zioFiber.join
+    }
+
+    override def start[E, A](fea: IO[E, A]): IO[Nothing, Concurrent.Fibre[IO, E, A]] = fea.fork.map(convertToMyFibre)
+
+    override def racePair[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, Either[A, B]] = left raceBoth right
+
+    override def async[E, A](k: (IO[E, A] => Unit) => Unit): IO[E, A] = IO.async(k)
+
+    override def asyncF[E, A](k: (IO[E, A] => Unit) => IO[Nothing, Unit]): IO[E, A] = IO.asyncPure(k)
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {
