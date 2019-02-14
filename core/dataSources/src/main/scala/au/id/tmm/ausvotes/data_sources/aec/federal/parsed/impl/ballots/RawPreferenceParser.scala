@@ -1,11 +1,12 @@
-package au.id.tmm.ausvotes.core.parsing
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
-import au.id.tmm.ausvotes.core.parsing.RawPreferenceParser.preferenceFromRawValue
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots.RawPreferenceParser._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, _}
 import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.countstv.normalisation.Preference
 import au.id.tmm.countstv.normalisation.Preference.{Cross, Numbered, Tick}
 
+// TODO make package-private
 class RawPreferenceParser private (election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates) {
 
   private val relevantGroups = groupsAndCandidates.groups
@@ -84,7 +85,7 @@ object RawPreferenceParser {
            ): RawPreferenceParser =
     new RawPreferenceParser(election, groupsAndCandidates)
 
-  private[parsing] def preferenceFromRawValue(rawValue: String): Option[Preference] = {
+  private[ballots] def preferenceFromRawValue(rawValue: String): Option[Preference] = {
     val trimmedRawValue = rawValue.trim
 
     if (trimmedRawValue.isEmpty) {

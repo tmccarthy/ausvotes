@@ -3,5 +3,5 @@ ext.noScoverage = true
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencies {
-    compile project(':core')
+    compile project(':core') // TODO depend on the model
 }

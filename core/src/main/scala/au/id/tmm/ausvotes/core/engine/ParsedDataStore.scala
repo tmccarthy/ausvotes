@@ -3,9 +3,11 @@ package au.id.tmm.ausvotes.core.engine
 import au.id.tmm.ausvotes.core.parsing._
 import au.id.tmm.ausvotes.core.parsing.countdata.CountDataGeneration
 import au.id.tmm.ausvotes.core.rawdata.RawDataStore
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots.{BallotGeneration, RawPreferenceParser}
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
 import au.id.tmm.ausvotes.model.Flyweights.{ElectorateFlyweight, GroupFlyweight}
-import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.utilities.collection.CloseableIterator
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.logging.LoggedEvent.TryOps
@@ -81,7 +83,15 @@ private final class ParsedRawDataStore (rawDataStore: RawDataStore) extends Pars
           rawPreferenceParser,
           divisionsAndPollingPlaces.lookupDivisionByName,
           (state, name) => divisionsAndPollingPlaces.lookupPollingPlaceByName(state, name),
-          row)
+          FetchRawFormalSenatePreferences.Row(
+            row.electorateName,
+            row.voteCollectionPointName,
+            row.voteCollectionPointId,
+            row.batchNumber,
+            row.paperNumber,
+            row.preferences,
+          ),
+        )
       })
   }
 }

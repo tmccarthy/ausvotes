@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.core.parsing
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
 import au.id.tmm.countstv.normalisation.Preference

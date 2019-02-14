@@ -1,12 +1,17 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElectionForState, SenateGroupsAndCandidates}
 import fs2.Stream
 
 trait FetchSenateBallots[F[+_, +_]] {
 
-  def senateBallotsFor(election: SenateElectionForState): F[FetchSenateBallots.Error, Stream[F[Throwable, +?], SenateBallot]]
+  def senateBallotsFor(
+                        election: SenateElectionForState,
+                        allGroupsAndCandidates: SenateGroupsAndCandidates,
+                        divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                      ): F[FetchSenateBallots.Error, Stream[F[Throwable, +?], SenateBallot]]
 
 }
 

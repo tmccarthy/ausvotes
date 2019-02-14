@@ -1,12 +1,13 @@
-package au.id.tmm.ausvotes.core.parsing
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
-import au.id.tmm.ausvotes.core.rawdata.model.FormalPreferencesRow
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
 import au.id.tmm.ausvotes.model.VoteCollectionPoint
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateBallotId, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
 
+// TODO make package-private
 object BallotGeneration {
 
   private val absentee = "ABSENT (\\d+)".r("number")
@@ -19,7 +20,7 @@ object BallotGeneration {
                                 rawPreferenceParser: RawPreferenceParser,
                                 divisionNameLookup: String => Division,
                                 pollingPlaceNameLookup: (State, String) => FederalPollingPlace,
-                                row: FormalPreferencesRow,
+                                row: FetchRawFormalSenatePreferences.Row,
                               ): SenateBallot = {
     val division = divisionNameLookup(row.electorateName)
     val state = election.state

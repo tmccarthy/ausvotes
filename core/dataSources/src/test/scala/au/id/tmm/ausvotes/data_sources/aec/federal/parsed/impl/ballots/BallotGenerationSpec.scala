@@ -1,7 +1,7 @@
-package au.id.tmm.ausvotes.core.parsing
+package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.rawdata.model.FormalPreferencesRow
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
 import au.id.tmm.ausvotes.model.VoteCollectionPoint
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal.senate._
@@ -20,7 +20,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
   "the ballot generator" should "generate a ballot" in {
-    val testCsvRow = FormalPreferencesRow("Canberra", "Barton", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
+    val testCsvRow = FetchRawFormalSenatePreferences.Row("Canberra", "Barton", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
     val actualBallot = generateBallotFrom(testCsvRow)
 
@@ -43,7 +43,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a ballot from a postal vote collection point" in {
-    val testCsvRow = FormalPreferencesRow("Canberra", "POSTAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
+    val testCsvRow = FetchRawFormalSenatePreferences.Row("Canberra", "POSTAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
     val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
@@ -65,7 +65,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a ballot from an absentee vote collection point" in {
-    val testCsvRow = FormalPreferencesRow("Canberra", "ABSENT 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
+    val testCsvRow = FetchRawFormalSenatePreferences.Row("Canberra", "ABSENT 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
     val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
@@ -87,7 +87,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a ballot from an pre-poll vote collection point" in {
-    val testCsvRow = FormalPreferencesRow("Canberra", "PRE_POLL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
+    val testCsvRow = FetchRawFormalSenatePreferences.Row("Canberra", "PRE_POLL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
     val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
@@ -109,7 +109,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
   }
 
   it should "generate a ballot from an provisional vote collection point" in {
-    val testCsvRow = FormalPreferencesRow("Canberra", "PROVISIONAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
+    val testCsvRow = FetchRawFormalSenatePreferences.Row("Canberra", "PROVISIONAL 2", 1, 1, 1, "4,,3,,,1,5,2,6,,,,,,,,,,,,,,,,,,,,,,,")
 
     val actualBallot: SenateBallot = generateBallotFrom(testCsvRow)
 
@@ -130,7 +130,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
     assert(expectedBallot === actualBallot)
   }
 
-  def generateBallotFrom(testCsvRow: FormalPreferencesRow): SenateBallot = {
+  def generateBallotFrom(testCsvRow: FetchRawFormalSenatePreferences.Row): SenateBallot = {
     val actualBallot = BallotGeneration.fromFormalPreferencesRow(
       CandidateFixture.ACT.election,
       rawPreferenceParser,
