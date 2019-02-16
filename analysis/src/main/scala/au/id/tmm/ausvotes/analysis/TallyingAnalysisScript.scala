@@ -2,7 +2,6 @@ package au.id.tmm.ausvotes.analysis
 
 import java.nio.file.Paths
 
-import au.id.tmm.ausvotes.core.io_actions.implementations._
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl
 import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
 import au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv.FetchSenateHtvFromHardcoded
@@ -11,7 +10,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.{FetchDivisionsAndFederalPollingPlacesFromRaw, FetchSenateGroupsAndCandidatesFromRaw}
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
-import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
+import au.id.tmm.ausvotes.data_sources.common.{DownloadToPath, JsonCache}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances.zioIsABME
 import scalaz.zio.{IO, RTS}
 
@@ -21,7 +20,7 @@ abstract class TallyingAnalysisScript extends RTS {
     val dataStorePath = Paths.get("rawData")
     val jsonCachePath = Paths.get("rawData").resolve("jsonCache")
 
-    implicit val jsonCache: OnDiskJsonCache = new OnDiskJsonCache(jsonCachePath)
+    implicit val jsonCache: JsonCache[IO] = JsonCache.OnDisk(jsonCachePath)
     implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
 
     implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(dataStorePath)
@@ -43,7 +42,7 @@ abstract class TallyingAnalysisScript extends RTS {
 
   def run()(
     implicit
-    jsonCache: OnDiskJsonCache,
+    jsonCache: JsonCache[IO],
     fetchRawFederalElectionData: FetchRawFederalElectionData[IO],
     fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
     fetchDivisions: FetchDivisionsAndFederalPollingPlaces[IO],
