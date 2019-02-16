@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.core.savings
 
 import au.id.tmm.ausvotes.core.computations.savings.SavingsComputation
-import au.id.tmm.ausvotes.core.fixtures.{BallotFactsTestUtils, BallotFixture}
+import au.id.tmm.ausvotes.core.fixtures.BallotFixture
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision._
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class SavingsComputationSpec extends ImprovedFlatSpec {
 
-  import BallotFactsTestUtils.ACT._
+  import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils.ACT._
 
   "the saved ballots computation" should "identify ballots that use ticks" in {
     val ballot = BallotFixture.ACT.tickedAtl

@@ -7,7 +7,7 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PredicateTallierSpec extends ImprovedFlatSpec {
 
-  import BallotFactsTestUtils.ACT._
+  import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils.ACT._
 
   private val countedBallot = BallotFixture.ACT.formalAtl
   private val notCountedBallot = BallotFixture.ACT.formalBtl

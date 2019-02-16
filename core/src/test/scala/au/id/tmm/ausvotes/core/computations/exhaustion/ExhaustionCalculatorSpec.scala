@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.core.computations.exhaustion
 
+import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.model.federal.senate.SenateBallot

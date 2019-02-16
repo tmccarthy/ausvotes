@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.fixtures.{BallotFactsTestUtils, BallotFixture}
+import au.id.tmm.ausvotes.core.fixtures.BallotFixture
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class CountAtlSpec extends ImprovedFlatSpec {
 
-  import BallotFactsTestUtils.ACT._
+  import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils.ACT._
 
   val sut = BallotCounter.VotedAtl
 

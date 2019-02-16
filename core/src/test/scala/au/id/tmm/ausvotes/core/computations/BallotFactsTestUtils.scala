@@ -1,10 +1,10 @@
-package au.id.tmm.ausvotes.core.fixtures
+package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
 import au.id.tmm.ausvotes.core.fixtures.DivisionAndPollingPlaceFixture.DivisionsAndPollingPlacesFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupAndCandidateFixture.GroupsAndCandidatesFixture
+import au.id.tmm.ausvotes.core.fixtures.{DivisionAndPollingPlaceFixture, GroupAndCandidateFixture, MockFetchFederalElectionData}
 import au.id.tmm.ausvotes.core.model.computation.NormalisedBallot
 import au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
