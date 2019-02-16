@@ -1,10 +1,12 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.actions
 
-import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCandidate, SenateElectionForState, SenateGroup}
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateGroupsAndCandidates
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState, SenateGroup, SenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.{FetchPreferenceTreeException, GroupsCandidatesAndPreferences}
 import au.id.tmm.countstv.model.preferences.PreferenceTree.RootPreferenceTree
 
+// TODO move this to the data_sources package
 trait FetchPreferenceTree[F[+_, +_]] {
 
   def fetchGroupsCandidatesAndPreferencesFor(
@@ -42,7 +44,7 @@ object FetchPreferenceTree {
   sealed abstract class FetchPreferenceTreeException extends ExceptionCaseClass
 
   object FetchPreferenceTreeException {
-    final case class FetchGroupsAndCandidatesException(cause: FetchGroupsAndCandidates.FetchGroupsAndCandidatesException) extends FetchPreferenceTreeException with ExceptionCaseClass.WithCause
+    final case class FetchGroupsAndCandidatesException(cause: FetchSenateGroupsAndCandidates.Error) extends FetchPreferenceTreeException with ExceptionCaseClass.WithCause
     final case class LoadBytesExceptionFetch(cause: Exception) extends FetchPreferenceTreeException with ExceptionCaseClass.WithCause
     final case class DeserialisationFetchPreferenceTreeException(cause: Exception) extends FetchPreferenceTreeException with ExceptionCaseClass.WithCause
   }

@@ -11,6 +11,7 @@ import scala.collection.concurrent.TrieMap
 import scala.io.Source
 import scala.util.Try
 
+// TODO remove this
 trait AecResourceStore {
   def distributionOfPreferencesFor(election: SenateElectionForState): Try[Source]
   def firstPreferencesFor(election: SenateElection): Try[Source]

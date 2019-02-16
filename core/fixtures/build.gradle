@@ -4,4 +4,5 @@ apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencies {
     compile project(':core') // TODO depend on the model
+    compile project(':shared:testIo')
 }

@@ -2,8 +2,10 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 
 import java.nio.file.{InvalidPathException, Path, Paths}
 
-import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.FetchSenateCountDataFromRaw
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchSenateCountData, FetchSenateGroupsAndCandidates}
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
+import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
@@ -12,9 +14,8 @@ import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountResult, FetchGroupsAndCandidates, FetchPreferenceTree}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
-import au.id.tmm.ausvotes.shared.recountresources.entities.core_fetching.CanonicalRecountComputation
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.countstv.model.countsteps._
@@ -57,15 +58,16 @@ object CompareRecounts extends zio.App {
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
 
       _ <- {
-        implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
-        implicit val fetchGroupsAndCandidates: FetchGroupsAndCandidates[IO] = groupsAndCandidatesCache
-        implicit val fetchCanonicalCountResult: FetchCanonicalCountResult[IO] = {
-          val aecResourceStore = AecResourceStore.at(args.aecResourceStorePath)
-          val rawDataStore = RawDataStore(aecResourceStore)
-          val parsedDataStore = ParsedDataStore(rawDataStore)
+        implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
 
-          new CanonicalRecountComputation(parsedDataStore, groupsAndCandidatesCache)
-        }
+        implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(args.aecResourceStorePath)
+        import aecResourceStore._
+
+        implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
+
+        implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
+        implicit val fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO] = groupsAndCandidatesCache
+        implicit val fetchCanonicalCountResult: FetchSenateCountData[IO] = FetchSenateCountDataFromRaw[IO]
 
         generalRun[IO](args.election)
       }
@@ -78,7 +80,7 @@ object CompareRecounts extends zio.App {
     }
   }
 
-  private def generalRun[F[+_, +_] : FetchGroupsAndCandidates : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : Console : BME]
+  private def generalRun[F[+_, +_] : FetchSenateGroupsAndCandidates : FetchPreferenceTree : FetchSenateCountData : Parallel : SyncEffects : Log : Now : Console : BME]
   (
     senateElection: SenateElection,
   ): F[Exception, Unit] = {
@@ -99,23 +101,24 @@ object CompareRecounts extends zio.App {
     } yield ()
   }
 
-  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchCanonicalCountResult : Parallel : SyncEffects : Log : Now : BME]
+  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchSenateCountData : FetchSenateGroupsAndCandidates : Parallel : SyncEffects : Log : Now : BME]
   (
     election: SenateElectionForState,
   ): F[Exception, CountComparison] = {
     for {
-      canonicalCount <- FetchCanonicalCountResult.fetchCanonicalCountResultFor(election)
+      groupsAndCandidates <- FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election)
+      canonicalCount <- FetchSenateCountData.senateCountDataFor(election, groupsAndCandidates)
 
       computedCountRequest = RecountRequest(
         election,
-        canonicalCount.countParams.numVacancies,
-        canonicalCount.outcomes.ineligibleCandidates.map(_.candidateDetails.id),
+        canonicalCount.completedCount.countParams.numVacancies,
+        canonicalCount.completedCount.outcomes.ineligibleCandidates.map(_.candidateDetails.id),
         doRounding = true,
       )
 
       computedCountPossibilities <- RunRecount.runRecountRequest(computedCountRequest)
 
-    } yield findBestComparisonBetween(election)(canonicalCount, computedCountPossibilities)
+    } yield findBestComparisonBetween(election)(canonicalCount.completedCount, computedCountPossibilities)
   }
 
   private def findBestComparisonBetween(election: SenateElectionForState)

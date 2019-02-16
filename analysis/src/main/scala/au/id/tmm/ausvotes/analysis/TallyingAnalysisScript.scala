@@ -27,7 +27,7 @@ abstract class TallyingAnalysisScript extends RTS {
 
     import aecResourceStore._
 
-    implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData(dataStorePath)
+    implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
 
     implicit val fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO] = FetchSenateGroupsAndCandidatesFromRaw[IO]
     implicit val fetchDivisions: FetchDivisionsAndFederalPollingPlaces[IO] = FetchDivisionsAndFederalPollingPlacesFromRaw[IO]

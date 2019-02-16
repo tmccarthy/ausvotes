@@ -40,6 +40,8 @@ trait BifunctorMonadError[F[+_, +_]] extends BifunctorMonad[F] {
 
 object BifunctorMonadError {
 
+  def apply[F[+_, +_] : BifunctorMonadError]: BifunctorMonadError[F] = implicitly[BifunctorMonadError[F]]
+
   def pure[F[+_, +_] : BifunctorMonadError, A](a: A): F[Nothing, A] = implicitly[BifunctorMonadError[F]].pure(a)
   def leftPure[F[+_, +_] : BifunctorMonadError, E](e: E): F[E, Nothing] = implicitly[BifunctorMonadError[F]].leftPure(e)
 

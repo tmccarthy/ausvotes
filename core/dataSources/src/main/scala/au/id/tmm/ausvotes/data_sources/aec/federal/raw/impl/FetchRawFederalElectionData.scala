@@ -1,7 +1,5 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 
-import java.nio.file.Path
-
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
 import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
@@ -11,7 +9,7 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionFo
 import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import fs2.Stream
 
-final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localStore: Path)(
+final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private ()(
   implicit
   makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
   makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],
@@ -142,12 +140,12 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private (localS
 }
 
 object FetchRawFederalElectionData {
-  def apply[F[+_, +_] : SyncEffects](localStore: Path)(
+  def apply[F[+_, +_] : SyncEffects]()(
     implicit
     makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
     makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],
     makeSenateDistributionOfPreferencesResourceSource: MakeSource[F, Exception, SenateDistributionOfPreferencesResource],
     makeSenateFirstPreferencesResourceSource: MakeSource[F, Exception, SenateFirstPreferencesResource],
   ): FetchRawFederalElectionData[F] =
-    new FetchRawFederalElectionData(localStore)
+    new FetchRawFederalElectionData()
 }

@@ -1,11 +1,14 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
+import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import fs2.Stream
 import scalaz.zio.IO
 
 object DataBundleConstruction {
@@ -15,7 +18,7 @@ object DataBundleConstruction {
                            groupsAndCandidates: SenateGroupsAndCandidates,
                            divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                            countData: SenateCountData,
-                           ballots: Iterator[SenateBallot],
+                           ballots: Stream[IO[Throwable, +?], SenateBallot],
                          ): IO[Exception, DataBundleForElection] = {
     val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election)
     val relevantDivisionsAndPollingPlaces = divisionsAndPollingPlaces.findFor(election.election.federalElection, election.state)
@@ -49,16 +52,15 @@ object DataBundleConstruction {
 
     val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder)
 
-    IO.syncException(PreferenceTree.fromIterator(candidates, numPapersHint)(preparedBallots))
-      .map { preferenceTree =>
-        DataBundleForElection(
-          election,
-          relevantGroupsAndCandidates,
-          relevantDivisionsAndPollingPlaces,
-          canonicalRecountResult,
-          preferenceTree,
-        )
-      }
+    preparedBallots.compile.toChunk.map { ballotsChunk =>
+      DataBundleForElection(
+        election,
+        relevantGroupsAndCandidates,
+        relevantDivisionsAndPollingPlaces,
+        canonicalRecountResult,
+        PreferenceTree.fromIterator(candidates, numPapersHint)(ballotsChunk.iterator),
+      )
+    }.swallowThrowables
   }
 
   final case class DataBundleForElection(

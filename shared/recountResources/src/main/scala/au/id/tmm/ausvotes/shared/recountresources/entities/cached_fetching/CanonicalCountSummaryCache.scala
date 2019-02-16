@@ -43,7 +43,7 @@ final class CanonicalCountSummaryCache(
         val fetchJsonLogic = ReadsS3.readAsString(baseBucket, objectKey)
           .leftMap(FetchCanonicalCountSummaryException.LoadCanonicalRecountJsonException)
 
-        val fetchGroupsLogic = groupsAndCandidatesCache.fetchGroupsAndCandidatesFor(election).map(_.groups)
+        val fetchGroupsLogic = groupsAndCandidatesCache.senateGroupsAndCandidatesFor(election).map(_.groups)
           .leftMap(FetchCanonicalCountSummaryException.FetchGroupsAndCandidatesException)
 
         (fetchJsonLogic par fetchGroupsLogic).map { case (canonicalResultJson, groups) =>

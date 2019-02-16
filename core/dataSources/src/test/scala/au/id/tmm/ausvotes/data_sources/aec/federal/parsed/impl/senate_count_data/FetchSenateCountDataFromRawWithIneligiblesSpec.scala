@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 
-import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, GroupAndCandidateFixture}
+import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, MockFetchRawFederalElectionData, GroupAndCandidateFixture}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributionOfPreferences
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
@@ -18,7 +18,7 @@ class FetchSenateCountDataFromRawWithIneligiblesSpec extends ImprovedFlatSpec wi
 
   private val groupsAndCandidates = GroupAndCandidateFixture.WA.groupsAndCandidates
 
-  private implicit val fetchRawDopRows: FetchRawSenateDistributionOfPreferences[BasicTestIO] = new FetchMockSenateDistributionOfPreferences(cleanDirectory)
+  private implicit val fetchRawDopRows: FetchRawSenateDistributionOfPreferences[BasicTestIO] = MockFetchRawFederalElectionData
 
   private implicit val fetcherUnderTest: FetchSenateCountDataFromRaw[BasicTestIO] = FetchSenateCountDataFromRaw[BasicTestIO]
 

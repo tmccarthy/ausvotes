@@ -1,68 +1,66 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import java.nio.file.Path
-
-import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.instances.StateInstances
-import au.id.tmm.ausvotes.shared.io.Closeables
 import au.id.tmm.utilities.geo.australia.State
+import fs2.Stream
 import scalaz.zio.IO
 
 object AecResourcesRetrieval {
 
-  type AecResourcesUse[A] = (SenateElectionForState, SenateGroupsAndCandidates, DivisionsAndPollingPlaces, SenateCountData, Iterator[SenateBallot]) => IO[Exception, A]
+  type AecResourcesUse[A] = (SenateElectionForState, SenateGroupsAndCandidates, DivisionsAndPollingPlaces, SenateCountData, Stream[IO[Throwable, +?], SenateBallot]) => IO[Exception, A]
 
-  def withElectionResources[A](dataStorePath: Path, election: SenateElection)(resourcesUse: AecResourcesUse[A]): IO[Exception, Map[State, A]] = {
+  def withElectionResources[A](election: SenateElection)(resourcesUse: AecResourcesUse[A])(
+    implicit
+    fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
+    fetchCountData: FetchSenateCountData[IO],
+    fetchBallots: FetchSenateBallots[IO],
+  ): IO[Exception, Map[State, A]] = {
     val stateElectionsInOrder = election.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
 
     for {
-      dataStore <- IO.syncException(ParsedDataStore(RawDataStore(AecResourceStore.at(dataStorePath))))
-
-      valueResources <- retrieveValueResources(dataStore, election)
+      valueResources <- retrieveValueResources(election)
 
       finalResultsPerState <- IO.parTraverse(stateElectionsInOrder) { election =>
-        processResourcesForState(election, dataStore, valueResources)(resourcesUse)
+        processResourcesForState(election, valueResources)(resourcesUse)
           .map(election.state -> _)
       }
     } yield finalResultsPerState.toMap
   }
 
-  private def retrieveValueResources(dataStore: ParsedDataStore, election: SenateElection): IO[Exception, ValueResources] = {
-    (
-      IO.syncException(dataStore.groupsAndCandidatesFor(election)) par
-        IO.syncException(dataStore.divisionsAndPollingPlacesFor(election.federalElection))
-      )
+  private def retrieveValueResources(election: SenateElection)(
+    implicit
+    fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
+  ): IO[Exception, ValueResources] =
+    (fetchGroupsAndCandidates.senateGroupsAndCandidatesFor(election) par fetchDivisionsAndPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection))
       .map { case (groupsAndCandidates, divisionsAndPollingPlaces) =>
         ValueResources(groupsAndCandidates, divisionsAndPollingPlaces)
       }
-  }
 
   private def processResourcesForState[A](
                                            election: SenateElectionForState,
-                                           dataStore: ParsedDataStore,
                                            valueResources: ValueResources,
                                          )(
                                            resourceUse: AecResourcesUse[A],
+                                         )(
+                                           implicit
+                                           fetchCountData: FetchSenateCountData[IO],
+                                           fetchBallots: FetchSenateBallots[IO],
                                          ): IO[Exception, A] = {
     val relevantGroupsAndCandidates = valueResources.groupsAndCandidates.findFor(election)
     val relevantDivisionsAndPollingPlaces = valueResources.divisionsAndPollingPlaces.findFor(election.election.federalElection, election.state)
 
-    val openBallotsLogic = IO.syncException {
-      dataStore.ballotsFor(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces)
-    }
+    for {
+      countData <- fetchCountData.senateCountDataFor(election, valueResources.groupsAndCandidates)
 
-    val computeCountDataLogic = IO.syncException {
-      dataStore.countDataFor(election, valueResources.groupsAndCandidates)
-    }
+      ballotsStream <- fetchBallots.senateBallotsFor(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces)
 
-    computeCountDataLogic.flatMap { countData =>
-      Closeables.bracketCloseable(openBallotsLogic) { ballots =>
-        resourceUse(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, countData, ballots)
-      }
-    }
+      result <- resourceUse.apply(election, relevantGroupsAndCandidates, relevantDivisionsAndPollingPlaces, countData, ballotsStream)
+    } yield result
   }
 
   private final case class ValueResources(

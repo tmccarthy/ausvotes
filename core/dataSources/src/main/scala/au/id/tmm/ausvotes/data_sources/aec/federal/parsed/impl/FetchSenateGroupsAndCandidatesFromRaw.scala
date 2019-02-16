@@ -19,6 +19,11 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
   }
 
   override def senateGroupsAndCandidatesFor(
+                                             electionForState: SenateElectionForState,
+                                           ): F[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
+    senateGroupsAndCandidatesFor(electionForState.election).map(_.findFor(electionForState))
+
+  override def senateGroupsAndCandidatesFor(
                                              election: SenateElection,
                                            ): F[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
     for {
@@ -26,18 +31,18 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
         .leftMap(FetchSenateGroupsAndCandidates.Error)
 
       streamOfGroupsAndCandidatesWithBallotGroupMap = firstPreferencesRows.evalMapAccumulate(Map.empty[BallotGroup.Code, SenateGroup]) { case (groupsByCode, firstPreferencesRow) =>
-          for {
-            groupOrCandidate <- BME.fromEither(fromFirstPreferencesRow(groupsByCode, election, firstPreferencesRow))
-          } yield {
-            groupOrCandidate match {
-              case AGroup(group) => (groupsByCode + (group.code -> group), groupOrCandidate)
-              case ACandidate(_) => (groupsByCode, groupOrCandidate)
-            }
+        for {
+          groupOrCandidate <- BME.fromEither(fromFirstPreferencesRow(groupsByCode, election, firstPreferencesRow))
+        } yield {
+          groupOrCandidate match {
+            case AGroup(group) => (groupsByCode + (group.code -> group), groupOrCandidate)
+            case ACandidate(_) => (groupsByCode, groupOrCandidate)
           }
+        }
       }
 
       groupsAndCandidatesWithBallotGroupMap <- streamOfGroupsAndCandidatesWithBallotGroupMap.compile.toVector
-          .swallowThrowablesAndWrapIn(FetchSenateGroupsAndCandidates.Error)
+        .swallowThrowablesAndWrapIn(FetchSenateGroupsAndCandidates.Error)
 
     } yield {
       val candidatesBuilder = Set.newBuilder[SenateCandidate]

@@ -22,7 +22,7 @@ final class BallotFactsTestUtils private(val state: State,
 
   val senateElection: SenateElection = SenateElection.`2016`
   val election: SenateElectionForState = senateElection.electionForState(state).get
-  val countData: SenateCountData = MockParsedDataStore.countDataFor(election, groupsAndCandidates)
+  val countData: SenateCountData = MockFetchFederalElectionData.senateCountDataFor(election, groupsAndCandidates).runUnsafe
   val howToVoteCards: Set[SenateHtv] = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
   val computationInputData = ComputationInputData(
     ComputationInputData.ElectionLevelData(divisionsAndPollingPlaces, groupsAndCandidates, howToVoteCards),

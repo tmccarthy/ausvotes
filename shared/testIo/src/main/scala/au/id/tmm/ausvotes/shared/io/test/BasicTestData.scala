@@ -13,6 +13,14 @@ object BasicTestData {
 
   type BasicTestIO[+E, +A] = TestIO[BasicTestData, E, A]
 
+  implicit class Ops[+E, +A](basicTestIO: BasicTestIO[E, A]) {
+    def runUnsafe: A = basicTestIO.run(BasicTestData()).result match {
+      case Right(value) => value
+      case Left(e: Throwable) => throw e
+      case Left(e) => throw new RuntimeException(e.toString)
+    }
+  }
+
   trait TestIOInstance[D]
     extends CurrentTimeTestData.TestIOInstance[D]
       with LoggingTestData.TestIOInstance[D]

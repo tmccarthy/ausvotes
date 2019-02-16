@@ -1,11 +1,15 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 
-import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCandidate, SenateElectionForState, SenateGroup}
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateGroupsAndCandidates
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchGroupsAndCandidates.FetchGroupsAndCandidatesException
-import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchGroupsAndCandidates, FetchPreferenceTree}
+import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchPreferenceTree}
 import au.id.tmm.countstv.model.preferences.PreferenceTree
+import cats.instances.list._
+import cats.syntax.traverse._
+import cats.kernel.Monoid
 
 final case class EntitiesTestData(
                                    basicTestData: BasicTestData = BasicTestData(),
@@ -21,7 +25,7 @@ object EntitiesTestData {
   val empty = EntitiesTestData(groups = Map.empty, candidates = Map.empty, canonicalCountResults = Map.empty, ballots = Map.empty)
 
   trait TestIOInstance[D]
-    extends FetchGroupsAndCandidates[TestIO[D, +?, +?]]
+    extends FetchSenateGroupsAndCandidates[TestIO[D, +?, +?]]
       with FetchCanonicalCountSummary[TestIO[D, +?, +?]]
       with FetchPreferenceTree[TestIO[D, +?, +?]]
       with BasicTestData.TestIOInstance[D] {
@@ -60,9 +64,9 @@ object EntitiesTestData {
       ???
     }
 
-    override def fetchGroupsAndCandidatesFor(
-                                              election: SenateElectionForState,
-                                            ): TestIO[D, FetchGroupsAndCandidatesException, SenateGroupsAndCandidates] =
+    override def senateGroupsAndCandidatesFor(
+                                               election: SenateElectionForState,
+                                             ): TestIO[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
@@ -74,9 +78,16 @@ object EntitiesTestData {
         TestIO.Output(testData, Right(groupsAndCandidates))
       }
 
+    override def senateGroupsAndCandidatesFor(
+                                               election: SenateElection,
+                                             ): TestIO[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
+      election.allStateElections.toList
+        .traverse(senateGroupsAndCandidatesFor)(BifunctorMonadError.bifunctorMonadErrorIsAMonadError(TestIO.testIOIsABME[D]))
+        .map(Monoid[SenateGroupsAndCandidates].combineAll)
+
     override def fetchCanonicalCountSummaryFor(
                                                 election: SenateElectionForState,
-                                             ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
+                                              ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
       TestIO { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
