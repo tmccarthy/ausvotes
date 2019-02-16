@@ -23,6 +23,7 @@ import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.ausvotes.shared.io.typeclasses.Concurrent
 import au.id.tmm.utilities.geo.australia.State
 import cats.Monoid
 import cats.instances.double._
@@ -43,7 +44,7 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
   ): Unit = {
 
     val (usedHtv_nationally, votedFormally_nationally, usedHtv_perNationalParty, votedFormally_perNationalParty, usedHtv_perState_perParty, votedFormally_perState_perParty, usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty) = unsafeRun {
-      FetchTally.fetch8Tallies(
+      Concurrent.par8(
         FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).overall()),
         FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).overall()),
 
