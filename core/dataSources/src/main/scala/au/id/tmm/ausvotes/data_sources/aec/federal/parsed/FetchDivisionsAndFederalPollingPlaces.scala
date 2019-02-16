@@ -11,6 +11,9 @@ trait FetchDivisionsAndFederalPollingPlaces[F[+_, +_]] {
 
 object FetchDivisionsAndFederalPollingPlaces {
 
+  def divisionsAndFederalPollingPlacesFor[F[+_, +_] : FetchDivisionsAndFederalPollingPlaces](election: FederalElection): F[FetchDivisionsAndFederalPollingPlaces.Error, DivisionsAndPollingPlaces] =
+    implicitly[FetchDivisionsAndFederalPollingPlaces[F]].divisionsAndFederalPollingPlacesFor(election)
+
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
 }

@@ -11,6 +11,9 @@ trait FetchSenateGroupsAndCandidates[F[+_, +_]] {
 
 object FetchSenateGroupsAndCandidates {
 
+  def senateGroupsAndCandidatesFor[F[+_, +_] : FetchSenateGroupsAndCandidates](election: SenateElection): F[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
+    implicitly[FetchSenateGroupsAndCandidates[F]].senateGroupsAndCandidatesFor(election)
+
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
 }

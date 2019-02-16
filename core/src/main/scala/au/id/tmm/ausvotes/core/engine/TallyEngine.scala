@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.core.engine
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
-import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.core.tallies.TallyBundle.TraversableOps
 import au.id.tmm.ausvotes.core.tallies.{Tallier, TallyBundle}
+import au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.collection.{CloseableIterator, DupelessSeq}

@@ -2,11 +2,11 @@ package au.id.tmm.ausvotes.core.io_actions
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import io.circe.{Decoder, Encoder}
-import scalaz.zio.IO
 
+// TODO move this to shared io project
 trait JsonCache[F[+_, +_]] {
 
-  def getOrCompute[K : Encoder, V : Encoder : Decoder, E](key: K)(compute: IO[Exception, V]): F[JsonCache.Error, V]
+  def getOrCompute[K : Encoder, V : Encoder : Decoder, E](key: K)(compute: F[Exception, V]): F[JsonCache.Error, V]
 
   def get[K : Encoder, V : Decoder](key: K): F[JsonCache.Error, Option[V]]
 
@@ -16,7 +16,7 @@ trait JsonCache[F[+_, +_]] {
 
 object JsonCache {
 
-  def getOrCompute[F[+_, +_] : JsonCache, K : Encoder, V : Encoder : Decoder, E](key: K)(compute: IO[Exception, V]): F[JsonCache.Error, V] =
+  def getOrCompute[F[+_, +_] : JsonCache, K : Encoder, V : Encoder : Decoder, E](key: K)(compute: F[Exception, V]): F[JsonCache.Error, V] =
     implicitly[JsonCache[F]].getOrCompute[K, V, E](key)(compute)
 
   def get[F[+_, +_] : JsonCache, K : Encoder, V : Decoder](key: K): F[JsonCache.Error, Option[V]] =

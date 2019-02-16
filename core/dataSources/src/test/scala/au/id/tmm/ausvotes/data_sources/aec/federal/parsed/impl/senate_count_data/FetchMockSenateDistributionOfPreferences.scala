@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributionOfPreferences
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.FetchRawFederalElectionData
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
+import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.common.MakeSource
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO

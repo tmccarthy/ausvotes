@@ -5,14 +5,13 @@ import java.time.{Instant, LocalDate, ZonedDateTime}
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Concurrent.Fibre
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Concurrent, Parallel}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{CatsInterop, Concurrent, Parallel}
 import cats.effect.ExitCase
 import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
 import scalaz.zio
-import scalaz.zio.ExitResult.Cause
-import scalaz.zio.{ExitResult, IO}
+import scalaz.zio.{ExitResult, IO, Fiber => ZioFibre}
 
 import scala.util.Try
 
@@ -65,25 +64,8 @@ object ZIOInstances {
     override def bracket[E, A, B](acquire: IO[E, A])(release: A => IO[Nothing, _])(use: A => IO[E, B]): IO[E, B] = IO.bracket(acquire)(release)(use)
 
     override def bracketCase[A, B](acquire: IO[Throwable, A])(use: A => IO[Throwable, B])(release: (A, ExitCase[Throwable]) => IO[Throwable, Unit]): IO[Throwable, B] = {
-
-      @scala.annotation.tailrec
-      def convertZioFailureToCatsExitCase(exitResultCause: ExitResult.Cause[Throwable]): ExitCase[Throwable] =
-        exitResultCause match {
-          case Cause.Checked(e) => ExitCase.Error(e)
-          case Cause.Unchecked(e) => ExitCase.Error(e)
-          case Cause.Interruption => ExitCase.Canceled
-          case Cause.Then(left, right) => convertZioFailureToCatsExitCase(left)
-          case Cause.Both(left, right) => convertZioFailureToCatsExitCase(left)
-        }
-
-      def convertZioExitResultToCatsExitCase(exitResult: ExitResult[Throwable, _]): ExitCase[Throwable] =
-        exitResult match {
-          case ExitResult.Succeeded(value) => ExitCase.complete
-          case ExitResult.Failed(cause) => convertZioFailureToCatsExitCase(cause)
-        }
-
       IO.bracket0[Throwable, A, B](acquire)((a, zioExitResult) => {
-        release(a, convertZioExitResultToCatsExitCase(zioExitResult)).leftMap(t => throw t)
+        release(a, CatsInterop.convertZioExitResultToCatsExitCase(zioExitResult)).leftMap(t => throw t)
       })(use)
     }
 
@@ -95,7 +77,16 @@ object ZIOInstances {
 
     override def start[E, A](fea: IO[E, A]): IO[Nothing, Concurrent.Fibre[IO, E, A]] = fea.fork.map(convertToMyFibre)
 
-    override def racePair[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, Either[A, B]] = left raceBoth right
+    private def toMyFibre[E, A](zioFibre: ZioFibre[E, A]): Fibre[IO, E, A] = new Fibre[IO, E, A] {
+      override def cancel: IO[Nothing, ExitResult[E, A]] = zioFibre.interrupt
+      override def join: IO[E, A] = zioFibre.join
+    }
+
+    override def racePair[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, Either[(A, Fibre[IO, E1, B]), (Fibre[IO, E, A], B)]] =
+      (left raceWith right)(
+        { case (l, f) => l.fold(f.interrupt *> IO.fail0(_), IO.now).map(lv => Left((lv, toMyFibre(f)))): IO[E, Left[(A, Fibre[IO, E1, B]), Nothing]] },
+        { case (r, f) => r.fold(f.interrupt *> IO.fail0(_), IO.now).map(rv => Right((toMyFibre(f), rv))): IO[E1, Right[Nothing, (Fibre[IO, E, A], B)]] },
+      )
 
     override def async[E, A](k: (IO[E, A] => Unit) => Unit): IO[E, A] = IO.async(k)
 

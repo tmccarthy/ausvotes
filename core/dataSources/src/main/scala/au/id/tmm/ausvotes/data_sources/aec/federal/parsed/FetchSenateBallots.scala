@@ -17,6 +17,13 @@ trait FetchSenateBallots[F[+_, +_]] {
 
 object FetchSenateBallots {
 
+  def senateBallotsFor[F[+_, +_] : FetchSenateBallots](
+                                                        election: SenateElectionForState,
+                                                        allGroupsAndCandidates: SenateGroupsAndCandidates,
+                                                        divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
+                                                      ): F[FetchSenateBallots.Error, Stream[F[Throwable, +?], SenateBallot]] =
+    implicitly[FetchSenateBallots[F]].senateBallotsFor(election, allGroupsAndCandidates, divisionsAndPollingPlaces)
+
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
 }

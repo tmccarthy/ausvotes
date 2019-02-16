@@ -10,10 +10,14 @@ import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
 import au.id.tmm.ausvotes.analysis.utilities.rendering.MarkdownRendering
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme._
-import au.id.tmm.ausvotes.core.io_actions.FetchTally
 import au.id.tmm.ausvotes.core.io_actions.implementations._
 import au.id.tmm.ausvotes.core.model.StateInstances
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.core.tallying.FetchTally
+import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl
+import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
+import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.FetchRawFederalElectionData
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.Division
@@ -28,11 +32,13 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
   override def run()(
     implicit
     jsonCache: OnDiskJsonCache,
-    fetchGroupsAndCandidates: FetchGroupsAndCandidatesFromParsedDataStore,
-    fetchDivisions: FetchDivisionsAndPollingPlacesFromParsedDataStore,
-    fetchCountData: FetchSenateCountDataFromParsedDataStore,
-    fetchHtv: FetchSenateHtvFromHardcoded[IO],
-    fetchTallies: FetchTallyAsWithComputation
+    fetchRawFederalElectionData: FetchRawFederalElectionData[IO],
+    fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+    fetchDivisions: FetchDivisionsAndFederalPollingPlaces[IO],
+    fetchCountData: FetchSenateCountData[IO],
+    fetchSenateBallots: FetchSenateBallots[IO],
+    fetchHtv: FetchSenateHtv[IO],
+    fetchTallies: FetchTallyImpl,
   ): Unit = {
 
     val (usedHtv_nationally, (votedFormally_nationally, (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))))) = unsafeRun {

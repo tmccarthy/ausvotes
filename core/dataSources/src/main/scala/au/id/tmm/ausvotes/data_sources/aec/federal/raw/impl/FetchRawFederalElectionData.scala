@@ -2,8 +2,8 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 
 import java.nio.file.Path
 
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
+import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
 import au.id.tmm.ausvotes.model.federal.FederalElection

@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.core.io_actions
+package au.id.tmm.ausvotes.core.tallying
 
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.model.ExceptionCaseClass

@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.core.parsing
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupFixture}
+import au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateHtv}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

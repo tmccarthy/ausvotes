@@ -2,14 +2,14 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 
 import java.nio.file.Path
 
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
+import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.{DownloadToPath, MakeSource}
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, SyncEffects}
 
-final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects](resourceStoreLocation: Path) {
+final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (resourceStoreLocation: Path) {
 
   implicit val makeSourceForFederalPollingPlaceResource: MakeSource[F, Exception, FederalPollingPlacesResource] =
     MakeSource.fromDownloadedFile(pathForDownloads = resourceStoreLocation).butFirst {
@@ -46,5 +46,12 @@ final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects](resourceS
           zipEntryName = MakeSource.FromZipFile.ZipEntryName(s"aec-senate-formalpreferences-${election.federalElection.aecId.asInt}-${state.abbreviation}.csv")
         } yield (url, zipEntryName)
     }
+
+}
+
+object AecResourceStore {
+
+  def apply[F[+_, +_] : DownloadToPath : SyncEffects](resourceStoreLocation: Path): AecResourceStore[F] =
+    new AecResourceStore(resourceStoreLocation)
 
 }

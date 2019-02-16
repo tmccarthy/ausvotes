@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.core.parsing
+package au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateGroup, SenateHtv}
 import au.id.tmm.utilities.geo.australia.State

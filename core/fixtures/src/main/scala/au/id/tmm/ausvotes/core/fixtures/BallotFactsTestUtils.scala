@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithF
 import au.id.tmm.ausvotes.core.fixtures.DivisionAndPollingPlaceFixture.DivisionsAndPollingPlacesFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupAndCandidateFixture.GroupsAndCandidatesFixture
 import au.id.tmm.ausvotes.core.model.computation.NormalisedBallot
-import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
+import au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.geo.australia.State

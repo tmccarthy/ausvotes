@@ -1,12 +1,11 @@
-package au.id.tmm.ausvotes.core.io_actions.implementations
+package au.id.tmm.ausvotes.data_sources.aec.federal.impl.htv
 
-import au.id.tmm.ausvotes.core.io_actions.FetchSenateHtv
-import au.id.tmm.ausvotes.core.parsing.HowToVoteCardGeneration
+import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState, SenateGroup, SenateHtv}
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
 
-final class FetchSenateHtvFromHardcoded[F[+_, +_] : BifunctorMonadError] extends FetchSenateHtv[F] {
+final class FetchSenateHtvFromHardcoded[F[+_, +_] : BifunctorMonadError] private () extends FetchSenateHtv[F] {
 
   override def fetchHtvCardsFor(election: SenateElection, groupsForElection: Set[SenateGroup]): F[Nothing, Map[SenateElectionForState, Set[SenateHtv]]] =
     try {
@@ -16,5 +15,11 @@ final class FetchSenateHtvFromHardcoded[F[+_, +_] : BifunctorMonadError] extends
     } catch {
       case e: IllegalArgumentException => pure(Map.empty)
     }
+
+}
+
+object FetchSenateHtvFromHardcoded {
+
+  def apply[F[+_, +_] : BifunctorMonadError]: FetchSenateHtvFromHardcoded[F] = new FetchSenateHtvFromHardcoded()
 
 }

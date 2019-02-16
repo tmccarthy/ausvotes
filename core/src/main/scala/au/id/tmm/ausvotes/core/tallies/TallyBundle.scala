@@ -1,5 +1,7 @@
 package au.id.tmm.ausvotes.core.tallies
 
+import cats.kernel.CommutativeMonoid
+
 final case class TallyBundle(asMap: Map[Tallier, Tally]) {
 
   require {
@@ -39,4 +41,11 @@ object TallyBundle {
   final implicit class TraversableOps(talliesPerTallier: TraversableOnce[(Tallier, Tally)]) {
     def toTallyBundle: TallyBundle = TallyBundle(talliesPerTallier.toMap)
   }
+
+  implicit val tallyBundleIsAMonoid: CommutativeMonoid[TallyBundle] = new CommutativeMonoid[TallyBundle] {
+    override def empty: TallyBundle = TallyBundle()
+
+    override def combine(left: TallyBundle, right: TallyBundle): TallyBundle = left + right
+  }
+
 }

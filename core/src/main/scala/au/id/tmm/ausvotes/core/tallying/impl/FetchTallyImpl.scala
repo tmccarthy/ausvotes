@@ -1,19 +1,21 @@
-package au.id.tmm.ausvotes.core.io_actions.implementations
+package au.id.tmm.ausvotes.core.tallying.impl
 
 import java.util.concurrent.TimeUnit
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
-import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.io_actions._
-import au.id.tmm.ausvotes.core.io_actions.implementations.FetchTallyAsWithComputation.TallyRequest
+import au.id.tmm.ausvotes.core.io_actions.JsonCache
 import au.id.tmm.ausvotes.core.model.StateInstances
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.core.tallying.FetchTally
+import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyRequest
+import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
+import au.id.tmm.ausvotes.data_sources.aec.federal.parsed._
+import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
 import cats.instances.list._
@@ -24,17 +26,17 @@ import scalaz.zio.duration.Duration
 
 import scala.collection.mutable
 
-final class FetchTallyAsWithComputation private(
-                                                 parsedDataStore: ParsedDataStore, // TODO we should really abstract this away as well
-                                                 mutex: Semaphore,
-                                               )(
-                                                 implicit
-                                                 fetchDivisionsAndPollingPlaces: FetchDivisionsAndPollingPlaces[IO],
-                                                 fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
-                                                 fetchSenateCountData: FetchSenateCountData[IO],
-                                                 fetchSenateHtv: FetchSenateHtv[IO],
-                                                 jsonCache: JsonCache[IO],
-                                               ) extends FetchTally[IO] {
+final class FetchTallyImpl private(
+                                    mutex: Semaphore,
+                                  )(
+                                    implicit
+                                    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
+                                    fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+                                    fetchSenateCountData: FetchSenateCountData[IO],
+                                    fetchSenateBallots: FetchSenateBallots[IO],
+                                    fetchSenateHtv: FetchSenateHtv[IO],
+                                    jsonCache: JsonCache[IO],
+                                  ) extends FetchTally[IO] {
 
   private val promisesPerRequest: mutable.Map[TallyRequest, Promise[FetchTally.Error, Tally]] = mutable.Map.empty
 
@@ -112,12 +114,12 @@ final class FetchTallyAsWithComputation private(
 
           for {
             tallyBundleOrError <- runForElectionAndTalliers(election, talliers).attempt
-                .timedLog(
-                  eventId = "TALLY_ENGINE_EXECUTION",
-                  "election" -> election,
-                  "states" -> election.allStateElections.map(_.state),
-                  "talliers" -> talliers.map(_.name),
-                )
+              .timedLog(
+                eventId = "TALLY_ENGINE_EXECUTION",
+                "election" -> election,
+                "states" -> election.allStateElections.map(_.state),
+                "talliers" -> talliers.map(_.name),
+              )
 
             _ <- tallyBundleOrError match {
               case Right(tallyBundle) => promisesPerTallier.toList.traverse { case (tallier, promise) =>
@@ -136,8 +138,8 @@ final class FetchTallyAsWithComputation private(
 
   private def runForElectionAndTalliers(election: SenateElection, talliers: Set[Tallier]): IO[FetchTally.Error, TallyBundle] = for {
     divisionsPollingPlacesGroupsAndCandidates <- {
-      FetchDivisionsAndPollingPlaces.fetchFor(election.federalElection).leftMap(FetchTally.Error(_)) par
-        FetchSenateGroupsAndCandidates.fetchFor(election).leftMap(FetchTally.Error(_))
+      FetchDivisionsAndFederalPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection).leftMap(FetchTally.Error(_)) par
+        FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election).leftMap(FetchTally.Error(_))
     }
 
     divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
@@ -176,7 +178,7 @@ final class FetchTallyAsWithComputation private(
     val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election)
 
     for {
-      countData <- FetchSenateCountData.fetchFor(election, groupsAndCandidates)
+      countData <- FetchSenateCountData.senateCountDataFor(election, groupsAndCandidates)
         .leftMap(FetchTally.Error)
 
       computationTools = buildComputationToolsFor(election, relevantGroupsAndCandidates, htvCards)
@@ -213,70 +215,96 @@ final class FetchTallyAsWithComputation private(
                                           computationTools: ComputationTools,
                                           computationInputData: ComputationInputData,
                                         ): IO[FetchTally.Error, TallyBundle] =
-    IO.bracket(
-      acquire = IO.syncException(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces)),
-    )(
-      release = resource => IO.sync(resource.close()),
-    ) { ballots =>
 
-      val numComputationForks = 4
-      val ballotsProcessedPerFork = 5000
+    for {
+      ballotsStream <- FetchSenateBallots.senateBallotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces)
+        .leftMap(FetchTally.Error)
 
-      val groupedBallots = ballots.grouped(ballotsProcessedPerFork)
-
-      for {
-        finalTallyBundleRef <- Ref(TallyBundle())
-
-        readBallotsMutex <- Semaphore(permits = 1)
-        computationSemaphore <- Semaphore(permits = numComputationForks)
-
-        processChunksOp: IO[Nothing, Boolean] = computationSemaphore.withPermit {
-          readBallotsMutex.withPermit {
-            IO.sync { if (groupedBallots.hasNext) groupedBallots.next() else Nil }
-          }.flatMap { ballotChunk =>
-
-            if (ballotChunk.nonEmpty) {
-              IO.sync {
-                makeTallyBundleForBallots(election, talliers, computationTools, computationInputData, ballotChunk.toVector)
-              }.flatMap { tallyBundleForChunk =>
-                finalTallyBundleRef.update(_ + tallyBundleForChunk)
-              }.map { _ =>
-                true
-              }.timedLog(
-                eventId = "FORK_COMPUTED_TALLIES",
-                "election" -> election.election,
-                "state" -> election.state.abbreviation,
-                "ballots_processed" -> ballotChunk.size,
-              ): IO[Nothing, Boolean]
-            } else {
-              IO.point(false)
-            }
+      tallyStream = ballotsStream.chunkN(5000)
+        .parEvalMap(maxConcurrent = 4) { chunk =>
+          if (chunk.nonEmpty) {
+            IO.sync {
+              makeTallyBundleForBallots(election, talliers, computationTools, computationInputData, chunk.toVector)
+            }.timedLog(
+              eventId = "FORK_COMPUTED_TALLIES",
+              "election" -> election.election,
+              "state" -> election.state.abbreviation,
+              "ballots_processed" -> chunk.size,
+            ): IO[Nothing, TallyBundle]
+          } else {
+            IO.point(TallyBundle())
           }
-        }
+        }(scalaz.zio.interop.catz.taskEffectInstances)
+        .foldMonoid
 
-        _ <- repeatedOp[Nothing, Boolean](processChunksOp, finishesWhen = shouldFinish => shouldFinish, numFibres = numComputationForks * 2)
+      tallyBundle <- tallyStream.compile.lastOrError
+        .swallowThrowablesAndWrapIn(FetchTally.Error)
+    } yield tallyBundle
 
-        finalTallyBundle <- finalTallyBundleRef.get
-
-        _ <- Log.logInfo(
-          "COMPUTE_TALLIES_FOR_STATE",
-          "election" -> election.election,
-          "state" -> election.state.abbreviation,
-          "talliers" -> talliers.map(_.name),
-        )
-
-      } yield finalTallyBundle
-
-    }.leftMap {
-      case e: FetchTally.Error => e
-      case e: Exception => FetchTally.Error(e)
-    }
-
-  private def repeatedOp[E, A](op: IO[E, A], finishesWhen: A => Boolean, numFibres: Int): IO[E, Unit] = {
-    val workerTasks: List[IO[E, Unit]] = List.fill(numFibres)(op.repeat(Schedule.doWhile(finishesWhen)).map(_ => ()))
-
-    IO.parAll(workerTasks).map(_ => ())
-  }
+  //    IO.bracket(
+  //      acquire = IO.syncException(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces)),
+  //    )(
+  //      release = resource => IO.sync(resource.close()),
+  //    ) { ballots =>
+  //
+  //      val numComputationForks = 4
+  //      val ballotsProcessedPerFork = 5000
+  //
+  //      val groupedBallots = ballots.grouped(ballotsProcessedPerFork)
+  //
+  //      for {
+  //        finalTallyBundleRef <- Ref(TallyBundle())
+  //
+  //        readBallotsMutex <- Semaphore(permits = 1)
+  //        computationSemaphore <- Semaphore(permits = numComputationForks)
+  //
+  //        processChunksOp: IO[Nothing, Boolean] = computationSemaphore.withPermit {
+  //          readBallotsMutex.withPermit {
+  //            IO.sync { if (groupedBallots.hasNext) groupedBallots.next() else Nil }
+  //          }.flatMap { ballotChunk =>
+  //
+  //            if (ballotChunk.nonEmpty) {
+  //              IO.sync {
+  //                makeTallyBundleForBallots(election, talliers, computationTools, computationInputData, ballotChunk.toVector)
+  //              }.flatMap { tallyBundleForChunk =>
+  //                finalTallyBundleRef.update(_ + tallyBundleForChunk)
+  //              }.map { _ =>
+  //                true
+  //              }.timedLog(
+  //                eventId = "FORK_COMPUTED_TALLIES",
+  //                "election" -> election.election,
+  //                "state" -> election.state.abbreviation,
+  //                "ballots_processed" -> ballotChunk.size,
+  //              ): IO[Nothing, Boolean]
+  //            } else {
+  //              IO.point(false)
+  //            }
+  //          }
+  //        }
+  //
+  //        _ <- repeatedOp[Nothing, Boolean](processChunksOp, finishesWhen = shouldFinish => shouldFinish, numFibres = numComputationForks * 2)
+  //
+  //        finalTallyBundle <- finalTallyBundleRef.get
+  //
+  //        _ <- Log.logInfo(
+  //          "COMPUTE_TALLIES_FOR_STATE",
+  //          "election" -> election.election,
+  //          "state" -> election.state.abbreviation,
+  //          "talliers" -> talliers.map(_.name),
+  //        )
+  //
+  //      } yield finalTallyBundle
+  //
+  //    }.leftMap {
+  //      case e: FetchTally.Error => e
+  //      case e: Exception => FetchTally.Error(e)
+  //    }
+  //
+  //  private def repeatedOp[E, A](op: IO[E, A], finishesWhen: A => Boolean, numFibres: Int): IO[E, Unit] = {
+  //    val workerTasks: List[IO[E, Unit]] = List.fill(numFibres)(op.repeat(Schedule.doWhile(finishesWhen)).map(_ => ()))
+  //
+  //    IO.parAll(workerTasks).map(_ => ())
+  //  }
 
   private def makeTallyBundleForBallots(
                                          election: SenateElectionForState,
@@ -302,19 +330,18 @@ final class FetchTallyAsWithComputation private(
 
 }
 
-object FetchTallyAsWithComputation {
+object FetchTallyImpl {
 
-  def apply(
-             parsedDataStore: ParsedDataStore,
-           )(
-             implicit
-             fetchDivisionsAndPollingPlaces: FetchDivisionsAndPollingPlaces[IO],
-             fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
-             fetchSenateCountData: FetchSenateCountData[IO],
-             fetchSenateHtv: FetchSenateHtv[IO],
-             jsonCache: JsonCache[IO],
-           ): IO[Nothing, FetchTallyAsWithComputation] =
-    Semaphore(permits = 1).map(mutex => new FetchTallyAsWithComputation(parsedDataStore, mutex))
+  def apply()(
+    implicit
+    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
+    fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
+    fetchSenateCountData: FetchSenateCountData[IO],
+    fetchSenateBallots: FetchSenateBallots[IO],
+    fetchSenateHtv: FetchSenateHtv[IO],
+    jsonCache: JsonCache[IO],
+  ): IO[Nothing, FetchTallyImpl] =
+    Semaphore(permits = 1).map(mutex => new FetchTallyImpl(mutex))
 
   private final case class TallyRequest(election: SenateElection, tallier: Tallier)
 

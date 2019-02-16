@@ -7,7 +7,7 @@ trait Concurrent[F[+_, +_]] extends SyncEffects[F] {
 
   def start[E, A](fea: F[E, A]): F[Nothing, Fibre[F, E, A]]
 
-  def racePair[E, E1 >: E, A, B](left: F[E, A], right: F[E1, B]): F[E1, Either[A, B]]
+  def racePair[E, E1 >: E, A, B](left: F[E, A], right: F[E1, B]): F[E1, Either[(A, Fibre[F, E1, B]), (Fibre[F, E, A], B)]]
 
   def async[E, A](k: (F[E, A] => Unit) => Unit): F[E, A]
 

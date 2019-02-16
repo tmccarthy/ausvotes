@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.resources
+package au.id.tmm.ausvotes.data_sources.aec.federal.resources
 
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 
