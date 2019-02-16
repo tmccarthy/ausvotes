@@ -91,6 +91,8 @@ object ZIOInstances {
     override def async[E, A](k: (IO[E, A] => Unit) => Unit): IO[E, A] = IO.async(k)
 
     override def asyncF[E, A](k: (IO[E, A] => Unit) => IO[Nothing, Unit]): IO[E, A] = IO.asyncPure(k)
+
+    override def par[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, (A, B)] = left par right
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {

@@ -22,6 +22,7 @@ import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.utilities.geo.australia.State
 import cats.Monoid
 import cats.instances.double._
@@ -41,19 +42,20 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
     fetchTallies: FetchTallyImpl,
   ): Unit = {
 
-    val (usedHtv_nationally, (votedFormally_nationally, (usedHtv_perNationalParty, (votedFormally_perNationalParty, (usedHtv_perState_perParty, (votedFormally_perState_perParty, (usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty))))))) = unsafeRun {
-      FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).overall()).par(
-        FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).overall()).par(
+    val (usedHtv_nationally, votedFormally_nationally, usedHtv_perNationalParty, votedFormally_perNationalParty, usedHtv_perState_perParty, votedFormally_perState_perParty, usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty) = unsafeRun {
+      FetchTally.fetch8Tallies(
+        FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).overall()),
+        FetchTally.fetchTally0(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).overall()),
 
-          FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
-            FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)).par(
+        FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)),
+        FetchTally.fetchTally1(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.FirstPreferencedPartyNationalEquivalent)),
 
-              FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
-                FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)).par(
+        FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)),
+        FetchTally.fetchTally2(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.FirstPreferencedParty)),
 
-                  FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty)).par(
-                    FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty))
-                  )))))))
+        FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.UsedHowToVoteCard).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty)),
+        FetchTally.fetchTally3(SenateElection.`2016`, TallierBuilder.counting(BallotCounter.FormalBallots).groupedBy(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty)),
+      )
     }
 
     analysisNationally(usedHtv_nationally, votedFormally_nationally)
