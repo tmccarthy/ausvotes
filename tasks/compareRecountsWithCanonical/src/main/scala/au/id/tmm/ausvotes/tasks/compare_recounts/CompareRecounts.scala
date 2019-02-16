@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 import java.nio.file.{InvalidPathException, Path, Paths}
 
 import au.id.tmm.ausvotes.core.engine.ParsedDataStore
-import au.id.tmm.ausvotes.core.model.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.core.rawdata.{AecResourceStore, RawDataStore}
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.{Console, Log, Now}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._

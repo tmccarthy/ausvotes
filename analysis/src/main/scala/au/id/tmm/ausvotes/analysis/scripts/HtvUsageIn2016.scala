@@ -10,7 +10,6 @@ import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
 import au.id.tmm.ausvotes.analysis.utilities.rendering.MarkdownRendering
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme._
-import au.id.tmm.ausvotes.core.model.StateInstances
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl
@@ -22,6 +21,7 @@ import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.Division
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.io.typeclasses.Concurrent
 import au.id.tmm.utilities.geo.australia.State
