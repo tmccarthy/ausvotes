@@ -1,33 +1,17 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 
-import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, MockFetchRawFederalElectionData, GroupAndCandidateFixture}
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributionOfPreferences
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElection, SenateElectionForState}
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
+import au.id.tmm.ausvotes.core.fixtures.BallotFixture
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.countstv.model.CandidateStatus._
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
 class FetchSenateCountDataFromRawWithIneligiblesSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
   private val ballotMaker = BallotFixture.WA.ballotMaker
   import ballotMaker.candidateWithPosition
-
-  private val groupsAndCandidates = GroupAndCandidateFixture.WA.groupsAndCandidates
-
-  private implicit val fetchRawDopRows: FetchRawSenateDistributionOfPreferences[BasicTestIO] = MockFetchRawFederalElectionData
-
-  private implicit val fetcherUnderTest: FetchSenateCountDataFromRaw[BasicTestIO] = FetchSenateCountDataFromRaw[BasicTestIO]
-
-  private def actualCountData: SenateCountData = fetcherUnderTest.senateCountDataFor(SenateElectionForState(SenateElection.`2016`, State.WA).right.get, groupsAndCandidates)
-    .run(BasicTestData())
-    .result match {
-    case Right(countData) => countData
-    case Left(exception) => throw exception
-  }
+  import CountDataTestUtils.WA._
 
   it should "have the correct candidate outcomes" in {
     val expectedOutcomes = CandidateStatuses[SenateCandidate](

@@ -12,6 +12,9 @@ trait FetchRawSenateDistributionOfPreferences[F[+_, +_]] {
 
 object FetchRawSenateDistributionOfPreferences {
 
+  def senateDistributionOfPreferencesFor[F[+_, +_] : FetchRawSenateDistributionOfPreferences](election: SenateElectionForState): F[FetchRawSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateDistributionOfPreferences.Row]] =
+    implicitly[FetchRawSenateDistributionOfPreferences[F]].senateDistributionOfPreferencesFor(election)
+
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
   final case class Row(

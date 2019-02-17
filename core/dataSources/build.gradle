@@ -1,5 +1,20 @@
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
+configurations {
+    testOutput
+}
+
+sourceSets {
+    integrationTest {
+        scala {
+            srcDirs = ['src/integration-test/scala']
+        }
+        resources {
+            srcDirs = ['src/integration-test/resources']
+        }
+    }
+}
+
 dependencies {
     compile project(':core:model')
     compile project(':shared:io')
@@ -14,4 +29,20 @@ dependencies {
 
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')
+
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+
+    testOutput sourceSets.test.output
 }
+
+task integrationTest(type: Test) {
+    shouldRunAfter tasks.test
+    testClassesDirs = sourceSets.integrationTest.output
+    classpath = files(sourceSets.integrationTest.runtimeClasspath, sourceSets.test.runtimeClasspath)
+}
+
+check.dependsOn integrationTest
+

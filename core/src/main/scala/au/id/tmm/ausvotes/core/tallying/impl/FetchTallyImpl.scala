@@ -8,7 +8,7 @@ import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithF
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyRequest
-import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
+import au.id.tmm.ausvotes.data_sources.aec.federal.extras.FetchSenateHtv
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed._
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.data_sources.common.JsonCache

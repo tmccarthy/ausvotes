@@ -13,7 +13,7 @@ import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme._
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl
-import au.id.tmm.ausvotes.data_sources.aec.federal.FetchSenateHtv
+import au.id.tmm.ausvotes.data_sources.aec.federal.extras.FetchSenateHtv
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.FetchRawFederalElectionData
 import au.id.tmm.ausvotes.data_sources.common.JsonCache

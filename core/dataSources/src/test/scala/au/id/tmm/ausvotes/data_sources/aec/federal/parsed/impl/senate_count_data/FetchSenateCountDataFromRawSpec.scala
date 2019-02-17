@@ -1,38 +1,19 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 
-import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture, MockFetchRawFederalElectionData, GroupAndCandidateFixture}
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributionOfPreferences
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElection, SenateElectionForState}
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData
-import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
+import au.id.tmm.ausvotes.core.fixtures.BallotFixture
+import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.countstv.model.CandidateDistributionReason._
 import au.id.tmm.countstv.model.CandidateStatus._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values._
 import au.id.tmm.countstv.model.{CandidateStatuses, CandidateVoteCounts, VoteCount}
-import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
 class FetchSenateCountDataFromRawSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
 
   private val ballotMaker = BallotFixture.ACT.ballotMaker
   import ballotMaker.candidateWithPosition
-
-  private val groupsAndCandidates = GroupAndCandidateFixture.ACT.groupsAndCandidates
-
-  private val statusesAllRemaining =
-    CandidateStatuses(CandidateFixture.ACT.candidates.map(_ -> Remaining).toMap)
-
-  private implicit val fetchRawDopRows: FetchRawSenateDistributionOfPreferences[BasicTestIO] = MockFetchRawFederalElectionData
-
-  private implicit val fetcherUnderTest: FetchSenateCountDataFromRaw[BasicTestIO] = FetchSenateCountDataFromRaw[BasicTestIO]
-
-  private def actualCountData: SenateCountData = fetcherUnderTest.senateCountDataFor(SenateElectionForState(SenateElection.`2016`, State.ACT).right.get, groupsAndCandidates)
-    .run(BasicTestData())
-    .result match {
-    case Right(countData) => countData
-    case Left(exception) => throw exception
-  }
+  import CountDataTestUtils.ACT._
 
   "the generated count data" should "have the correct initial allocation" in {
     val expectedInitialAllocation = InitialAllocation[SenateCandidate](
