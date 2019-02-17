@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.parties
 
 import au.id.tmm.ausvotes.model.Party
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import au.id.tmm.ausvotes.model.PartySignificance._
+import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class PartySignificanceComputationSpec extends ImprovedFlatSpec {
 

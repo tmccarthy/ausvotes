@@ -18,7 +18,7 @@ configurations {
 }
 
 dependencies {
-    compile project(':core')
+    compile project(':core:dataSources')
     compile project(':lambdas:lambdaUtilities')
     compile project(':shared:aws')
     compile project(':shared:io')

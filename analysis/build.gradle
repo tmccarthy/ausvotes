@@ -11,7 +11,7 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':core')
+    compile project(':core:tallying')
     compile project(':shared:io')
     compile project(':shared:recountResources')
 

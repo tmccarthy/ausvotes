@@ -1,6 +1,6 @@
 rootProject.name = 'ausvotes'
 
-include 'core',
+include 'core:tallying',
         'core:model',
         'core:fixtures',
         'core:dataSources',

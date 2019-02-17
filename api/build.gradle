@@ -29,7 +29,7 @@ configurations {
 dependencies {
     compile sourceSets.generated.output
 
-    compile project(':core')
+    compile project(':core:tallying')
     compile project(':shared:io')
     compile project(':shared:recountResources')
     compile project(':shared:testAws')

@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.computations.ComputationInputData.{ElectionLevelData, StateLevelData}
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
-import au.id.tmm.ausvotes.model.federal.senate.{SenateGroupsAndCandidates, SenateCountData, SenateHtv}
+import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateGroupsAndCandidates, SenateHtv}
 
 final case class ComputationInputData(electionLevel: ElectionLevelData, stateLevel: StateLevelData)
 
