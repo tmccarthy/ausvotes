@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.core.computations.ballotnormalisation
 
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection}
+import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -12,7 +13,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   private val candidates = CandidateFixture.ACT.candidates
 
-  private val sut = BallotNormaliser(SenateElection.`2016`.electionForState(State.ACT).get, candidates)
+  private val sut = BallotNormaliser.forSenate(SenateElection.`2016`.electionForState(State.ACT).get, candidates)
 
   import ballots._
   import ballots.ballotMaker._
@@ -43,7 +44,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1)(b)
@@ -53,7 +54,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1A)(a)
@@ -63,7 +64,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1A)(a)
@@ -73,7 +74,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1A)(b)
@@ -83,7 +84,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1A)(b)
@@ -93,7 +94,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 269(1A)(b)
@@ -102,7 +103,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.isInformal)
+    assert(normalisedBallot.canonicalOrder.isEmpty)
   }
 
   it should "correctly count formal preferences when the ballot contains a counting error" in {
@@ -110,7 +111,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.atlFormalPreferenceCount === 1)
+    assert(normalisedBallot.atl.normalisedBallotIfFormal.map(_.size).getOrElse(0) === 1)
   }
 
   "normalising btl preferences" should "reproduce the preferences expressed below the line" in {
@@ -119,7 +120,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "B1", "B0", "J0", "UG0", "UG1", "A1", "I0", "C1", "D0", "D1", "E0", "E1", "F1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 268A(1)(b)
@@ -129,7 +130,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 268A(1)(b)
@@ -138,7 +139,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.isInformal)
+    assert(normalisedBallot.canonicalOrder.isEmpty)
   }
 
   // Section 268A(1)(b)
@@ -147,7 +148,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.isInformal)
+    assert(normalisedBallot.canonicalOrder.isEmpty)
   }
 
   // Section 268A(2)(a)
@@ -157,7 +158,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 268A(2)(a)
@@ -167,7 +168,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 268A(2)(b)
@@ -177,7 +178,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   // Section 268A(2)(b)
@@ -187,7 +188,7 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
     val expectedOrder = candidateOrder("A0", "A1", "B0", "B1", "C0", "C1")
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.canonicalOrder === expectedOrder)
+    assert(normalisedBallot.canonicalOrder === Some(expectedOrder))
   }
 
   it should "correctly count formal preferences when the ballot contains a counting error" in {
@@ -195,6 +196,6 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
     val normalisedBallot = sut.normalise(ballot)
 
-    assert(normalisedBallot.btlFormalPreferenceCount === 6)
+    assert(normalisedBallot.btl.normalisedBallotIfFormal.map(_.size).getOrElse(0) === 6)
   }
 }

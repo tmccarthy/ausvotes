@@ -4,6 +4,7 @@ import au.id.tmm.ausvotes.core.computations.BallotWithFacts
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, NotExhausted}
 import au.id.tmm.ausvotes.model.federal.senate.AtlPreferences
+import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.countstv.normalisation.Preference
 
 sealed trait BallotCounter {
@@ -26,7 +27,7 @@ object BallotCounter {
   }
 
   case object FormalBallots extends PredicateBallotCounter {
-    override def isCounted(ballot: BallotWithFacts): Boolean = ballot.normalisedBallot.isFormal
+    override def isCounted(ballot: BallotWithFacts): Boolean = ballot.normalisedBallot.canonicalOrder.isDefined
 
     override val name: String = "formal ballots"
   }
@@ -39,7 +40,7 @@ object BallotCounter {
 
   case object VotedAtlAndBtl extends PredicateBallotCounter {
     override def isCounted(ballot: BallotWithFacts): Boolean =
-      ballot.normalisedBallot.isFormalAtl && ballot.normalisedBallot.isFormalBtl
+      ballot.normalisedBallot.atl.isSavedOrFormal && ballot.normalisedBallot.btl.isSavedOrFormal
 
     override val name: String = "votes atl and btl"
   }

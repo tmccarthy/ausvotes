@@ -9,13 +9,7 @@ object SavingsProvision {
   case object UsedTick extends UsedMark
   case object UsedCross extends UsedMark
 
-  sealed trait CountingError extends SavingsProvision
+  case object CountingError extends SavingsProvision
 
-  case object CountingErrorAtl extends CountingError
-  case object CountingErrorBtl extends CountingError
-
-  sealed trait InsufficientPreferences extends SavingsProvision
-
-  case object InsufficientPreferencesAtl extends InsufficientPreferences
-  case object InsufficientPreferencesBtl extends InsufficientPreferences
+  case object InsufficientPreferences extends SavingsProvision
 }

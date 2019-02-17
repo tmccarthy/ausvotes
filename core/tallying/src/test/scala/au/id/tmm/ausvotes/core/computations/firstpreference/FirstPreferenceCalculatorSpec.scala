@@ -14,13 +14,13 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
   private val election = SenateElection.`2016`.electionForState(State.ACT).get
   private val candidates = CandidateFixture.ACT.candidates
 
-  private val normaliser = BallotNormaliser(election, candidates)
+  private val normaliser = BallotNormaliser.forSenate(election, candidates)
 
   import BallotFixture.ACT._
   import normaliser._
 
   "the first preference calculator" should "reject informal ballots" in {
-    intercept[IllegalArgumentException] {
+    intercept[IllegalStateException] {
       FirstPreferenceCalculator.firstPreferenceOf(normalise(btlMissedNumberBelow6))
     }
   }
@@ -37,7 +37,7 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
     // Have to run this test in the NT cos all of the ACT candidates had parties
     val ntCandidates = CandidateFixture.NT.candidates
     val election = SenateElection.`2016`.electionForState(State.NT).get
-    val ntNormaliser = BallotNormaliser(election, ntCandidates)
+    val ntNormaliser = BallotNormaliser.forSenate(election, ntCandidates)
 
     assert(FirstPreferenceCalculator.firstPreferenceOf(ntNormaliser.normalise(BallotFixture.NT.firstPreferenceUngroupedIndy)) ===
       FirstPreference(Ungrouped(election), None))

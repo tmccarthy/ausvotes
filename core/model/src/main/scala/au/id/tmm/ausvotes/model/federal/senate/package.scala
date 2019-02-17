@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup.Code
 import au.id.tmm.ausvotes.model.stv.Group.InvalidGroupCode
 import au.id.tmm.ausvotes.model.stv._
 import au.id.tmm.countstv.model.CompletedCount
-import au.id.tmm.countstv.normalisation.Preference
+import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
 
 package object senate {
 
@@ -38,6 +38,16 @@ package object senate {
                     groupPreferences: Map[SenateGroup, Preference],
                     candidatePreferences: Map[SenateCandidate, Preference],
                   ): SenateBallot = Ballot(election, jurisdiction, id, groupPreferences, candidatePreferences)
+
+  type NormalisedSenateBallot = NormalisedBallot[SenateElectionForState, SenateCandidate]
+  def NormalisedSenateBallot(
+                              atl: BallotNormalisation.Result[Group[SenateElectionForState]],
+                              atlCandidateOrder: Option[Vector[SenateCandidate]],
+
+                              btl: BallotNormalisation.Result[SenateCandidate],
+
+                              canonicalOrder: Option[Vector[SenateCandidate]],
+                            ): NormalisedSenateBallot = NormalisedBallot(atl, atlCandidateOrder, btl, canonicalOrder)
 
   type SenateBallotGroup = BallotGroup[SenateElectionForState]
 

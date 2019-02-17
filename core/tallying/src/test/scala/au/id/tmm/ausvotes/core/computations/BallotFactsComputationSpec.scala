@@ -1,8 +1,10 @@
 package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot}
+import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference}
 import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.federal.senate.NormalisedSenateBallot
+import au.id.tmm.countstv.normalisation.{BallotNormalisation, BallotNormalisationRule}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class BallotFactsComputationSpec extends ImprovedFlatSpec {
@@ -24,13 +26,15 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
     val expectedNormalisedAtl =
       ballotMaker.candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
 
-    val expectedNormalisedBallot = NormalisedBallot(
-      atlGroupOrder = ballotMaker.groupOrder("A", "B", "C", "D", "E", "F"),
-      atlCandidateOrder = expectedNormalisedAtl,
-      atlFormalPreferenceCount = 6,
-      btlCandidateOrder = Vector.empty,
-      btlFormalPreferenceCount = 0,
-      canonicalOrder = expectedNormalisedAtl
+    val expectedNormalisedBallot = NormalisedSenateBallot(
+      atl = BallotNormalisation.Result.Formal(ballotMaker.groupOrder("A", "B", "C", "D", "E", "F")),
+      atlCandidateOrder = Some(expectedNormalisedAtl),
+      btl = BallotNormalisation.Result.Informal(
+        normalisedBallot = Vector.empty,
+        optionalRulesViolated = Set(BallotNormalisationRule.MinimumPreferences(12)),
+        mandatoryRulesViolated = Set(BallotNormalisationRule.MinimumPreferences(6)),
+      ),
+      canonicalOrder = Some(expectedNormalisedAtl),
     )
 
     assert(ballotWithFacts.normalisedBallot === expectedNormalisedBallot)

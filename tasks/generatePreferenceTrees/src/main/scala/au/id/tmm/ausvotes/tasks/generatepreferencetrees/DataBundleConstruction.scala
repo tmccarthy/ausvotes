@@ -46,11 +46,11 @@ object DataBundleConstruction {
       )
     )
 
-    val ballotNormaliser = BallotNormaliser(election, candidates)
+    val ballotNormaliser = BallotNormaliser.forSenate(election, candidates)
 
     val numPapersHint = StateUtils.numBallots(election.state)
 
-    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder)
+    val preparedBallots = ballots.map(ballotNormaliser.normalise(_).canonicalOrder.getOrElse(Vector.empty))
 
     preparedBallots.compile.toChunk.map { ballotsChunk =>
       DataBundleForElection(

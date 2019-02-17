@@ -27,42 +27,42 @@ class SavingsComputationSpec extends ImprovedFlatSpec {
     val ballot = BallotFixture.ACT.atlWithRepeatedNumbers
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingErrorAtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingError)
   }
 
   it should "identify a ballot with a repeated number BTL after 6" in {
     val ballot = BallotFixture.ACT.btlRepeatedNumberAfter6
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingErrorBtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingError)
   }
 
   it should "identify a ballot with a missed number ATL" in {
     val ballot = BallotFixture.ACT.atlMissedNumbers
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingErrorAtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingError)
   }
 
   it should "identify a ballot with a missed number BTL" in {
     val ballot = BallotFixture.ACT.btlMissedNumberAfter6
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingErrorBtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains CountingError)
   }
 
   it should "identify a ballot with at least one but less than 6 formal preferences above the line" in {
     val ballot = BallotFixture.ACT.oneAtl
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains InsufficientPreferencesAtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains InsufficientPreferences)
   }
 
   it should "identify a ballot with at least 6 but less than 12 formal preferences below the line" in {
     val ballot = BallotFixture.ACT.sixNumberedBtl
     val normalised = normalise(ballot)
 
-    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains InsufficientPreferencesBtl)
+    assert(SavingsComputation.savingsProvisionsUsedBy(ballot, normalised) contains InsufficientPreferences)
   }
 
   it should "not count a normal ballot atl" in {

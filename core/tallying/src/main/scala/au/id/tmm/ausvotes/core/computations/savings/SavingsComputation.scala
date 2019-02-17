@@ -1,73 +1,34 @@
 package au.id.tmm.ausvotes.core.computations.savings
 
-import au.id.tmm.ausvotes.core.model.computation.{NormalisedBallot, SavingsProvision}
-import au.id.tmm.ausvotes.model.federal.senate.SenateBallot
-import au.id.tmm.countstv.normalisation.Preference
+import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
+import au.id.tmm.ausvotes.model.federal.senate.{NormalisedSenateBallot, SenateBallot}
+import au.id.tmm.countstv.normalisation.BallotNormalisation.Result
+import au.id.tmm.countstv.normalisation.BallotNormalisationRule
 
 object SavingsComputation {
 
-  def savingsProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedBallot): Set[SavingsProvision] = {
-    Stream(
-      markUsageProvisionsUsedBy(ballot, normalised),
-      insufficientSquaresProvisionsUsedBy(ballot, normalised),
-      countErrorSavingsProvisionsUsedBy(ballot, normalised)
-    )
-      .flatten
-      .toSet
-  }
-
-  private def markUsageProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedBallot): Option[SavingsProvision.UsedMark] = {
-
-    if (normalised.isNormalisedToAtl) {
-      markUsageOf(ballot.groupPreferences.values)
-    } else {
-      markUsageOf(ballot.candidatePreferences.values)
-    }
-  }
-
-  private def markUsageOf(preferences: Iterable[Preference]): Option[SavingsProvision.UsedMark] = {
-    for (preference <- preferences) {
-      if (preference == Preference.Tick) {
-        return Some(SavingsProvision.UsedTick)
-      } else if (preference == Preference.Cross) {
-        return Some(SavingsProvision.UsedCross)
+  def savingsProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedSenateBallot): Set[SavingsProvision] = {
+    val rulesViolated =
+      if (normalised.isNormalisedToBtl) {
+        normalised.btl match {
+          case Result.Formal(_) | Result.Informal(_, _, _) => Set.empty
+          case Result.Saved(_, rulesViolated) => rulesViolated
+        }
+      } else if (normalised.isNormalisedToAtl) {
+        normalised.atl match {
+          case Result.Formal(_) | Result.Informal(_, _, _) => Set.empty
+          case Result.Saved(_, rulesViolated) => rulesViolated
+        }
+      } else {
+        Set.empty
       }
-    }
 
-    None
-  }
-
-  private def countErrorSavingsProvisionsUsedBy(ballot: SenateBallot,
-                                                normalised: NormalisedBallot
-                                               ): Option[SavingsProvision.CountingError] = {
-    def hasCountErrorAtl = ballot.groupPreferences.size > normalised.atlFormalPreferenceCount
-    def hasCountErrorBtl = ballot.candidatePreferences.size > normalised.btlFormalPreferenceCount
-
-    if (normalised.isNormalisedToAtl && hasCountErrorAtl) {
-      Some(SavingsProvision.CountingErrorAtl)
-
-    } else if (normalised.isNormalisedToBtl && hasCountErrorBtl) {
-      Some(SavingsProvision.CountingErrorBtl)
-
-    } else {
-      None
+    rulesViolated.map {
+      case BallotNormalisationRule.MinimumPreferences(_) => SavingsProvision.InsufficientPreferences
+      case BallotNormalisationRule.TicksForbidden => SavingsProvision.UsedTick
+      case BallotNormalisationRule.CrossesForbidden => SavingsProvision.UsedCross
+      case BallotNormalisationRule.CountingErrorsForbidden => SavingsProvision.CountingError
     }
   }
 
-  private def insufficientSquaresProvisionsUsedBy(ballot: SenateBallot,
-                                                  normalised: NormalisedBallot
-                                                 ): Option[SavingsProvision.InsufficientPreferences] = {
-    def markedInsufficientSquaresAtl = normalised.atlFormalPreferenceCount < 6
-    def markedInsufficientSquaresBtl = normalised.btlFormalPreferenceCount < 12
-
-    if (normalised.isNormalisedToAtl && markedInsufficientSquaresAtl) {
-      Some(SavingsProvision.InsufficientPreferencesAtl)
-
-    } else if (normalised.isNormalisedToBtl && markedInsufficientSquaresBtl) {
-      Some(SavingsProvision.InsufficientPreferencesBtl)
-
-    } else {
-      None
-    }
-  }
 }

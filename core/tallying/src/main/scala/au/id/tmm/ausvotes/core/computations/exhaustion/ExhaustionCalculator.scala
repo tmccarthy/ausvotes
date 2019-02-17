@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.exhaustion
 
+import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.NotExhausted
-import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, NormalisedBallot}
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateCandidate, SenateCountData}
+import au.id.tmm.ausvotes.model.federal.senate.{NormalisedSenateBallot, SenateBallot, SenateCandidate, SenateCountData}
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
 
@@ -12,7 +12,7 @@ object ExhaustionCalculator {
 
   def exhaustionsOf(
                      countData: SenateCountData,
-                     ballots: Vector[(SenateBallot, NormalisedBallot)],
+                     ballots: Vector[(SenateBallot, NormalisedSenateBallot)],
                    ): Map[SenateBallot, BallotExhaustion] = {
 
     val trackedBallots = ballots.map { case (ballot, normalisedBallot) => new TrackedBallot(ballot, normalisedBallot) }
@@ -103,7 +103,7 @@ object ExhaustionCalculator {
   private final case class Allocation(candidatePosition: SenateCandidate, fromCount: Count)
 
   private final class TrackedBallot(val ballot: SenateBallot,
-                                    val normalisedBallot: NormalisedBallot,
+                                    val normalisedBallot: NormalisedSenateBallot,
 
                                     var currentPreferenceIndex: Int = 0,
                                     var allocatedAtCount: Count = Count.ofIneligibleCandidateHandling,
@@ -112,11 +112,13 @@ object ExhaustionCalculator {
 
                                     var exhaustion: BallotExhaustion = BallotExhaustion.NotExhausted,
                                    ) {
+    private val canonicalOrder = normalisedBallot.canonicalOrder.getOrElse(Vector.empty)
+
     def currentAllocation: Option[Allocation] = currentPreference.map(Allocation(_, allocatedAtCount))
 
     def currentPreference: Option[SenateCandidate] =
-      if (currentPreferenceIndex < normalisedBallot.canonicalOrder.size) {
-        Some(normalisedBallot.canonicalOrder.apply(currentPreferenceIndex))
+      if (currentPreferenceIndex < canonicalOrder.size) {
+        Some(canonicalOrder.apply(currentPreferenceIndex))
       } else {
         None
       }

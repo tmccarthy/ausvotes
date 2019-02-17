@@ -198,7 +198,7 @@ final class FetchTallyImpl private(
                                         howToVoteCards: Set[SenateHtv],
                                       ): ComputationTools = {
 
-    val normaliser = BallotNormaliser(election, groupsAndCandidates.candidates)
+    val normaliser = BallotNormaliser.forSenate(election, groupsAndCandidates.candidates)
     val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
 
     ComputationTools(

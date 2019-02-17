@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.core.computations
 
-import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference, NormalisedBallot, SavingsProvision}
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateHtv}
+import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference, SavingsProvision}
+import au.id.tmm.ausvotes.model.federal.senate.{NormalisedSenateBallot, SenateBallot, SenateHtv}
 
 final case class BallotWithFacts(
                                   ballot: SenateBallot,
-                                  normalisedBallot: NormalisedBallot,
+                                  normalisedBallot: NormalisedSenateBallot,
                                   isDonkeyVote: Boolean,
                                   firstPreference: FirstPreference,
                                   matchingHowToVote: Option[SenateHtv],
