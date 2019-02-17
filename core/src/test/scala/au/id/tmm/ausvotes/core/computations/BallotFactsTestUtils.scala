@@ -11,7 +11,6 @@ import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.utilities.geo.australia.State
 
-// TODO move to the core tests
 final class BallotFactsTestUtils private(val state: State,
                                          val groupsAndCandidatesFixture: GroupsAndCandidatesFixture,
                                          val divisionAndPollingPlaceFixture: DivisionsAndPollingPlacesFixture,
