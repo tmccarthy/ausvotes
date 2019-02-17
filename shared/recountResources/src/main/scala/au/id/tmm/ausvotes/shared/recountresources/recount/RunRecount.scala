@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources.recount
 
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
@@ -61,7 +61,7 @@ object RunRecount {
 
   object Error {
     final case class FetchEntitiesException(cause: FetchPreferenceTreeException) extends Error with ExceptionCaseClass.WithCause
-    final case class InvalidCandidateIds(invalidCandidateIds: Set[Candidate.Id]) extends Error
+    final case class InvalidCandidateIds(invalidCandidateIds: Set[CandidateDetails.Id]) extends Error
     final case class PerformRecountException(cause: Exception) extends Error with ExceptionCaseClass.WithCause
   }
 

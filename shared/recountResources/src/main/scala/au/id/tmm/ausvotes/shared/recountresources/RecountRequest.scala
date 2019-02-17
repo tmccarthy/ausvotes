@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import io.circe.{Decoder, Encoder}
 
 final case class RecountRequest(
                                  election: SenateElectionForState,
                                  vacancies: Int,
-                                 ineligibleCandidateAecIds: Set[Candidate.Id],
+                                 ineligibleCandidateAecIds: Set[CandidateDetails.Id],
                                  doRounding: Boolean,
                                )
 

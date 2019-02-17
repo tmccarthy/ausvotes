@@ -5,6 +5,7 @@ import au.id.tmm.ausvotes.core.computations.exhaustion.ExhaustionCalculator
 import au.id.tmm.ausvotes.core.computations.firstpreference.FirstPreferenceCalculator
 import au.id.tmm.ausvotes.core.computations.savings.SavingsComputation
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElectionForState}
+import au.id.tmm.ausvotes.model.stv.NormalisedBallot
 
 object BallotFactsComputation {
 
@@ -15,7 +16,7 @@ object BallotFactsComputation {
 
     val ballotNormaliser = computationTools.stateLevel.ballotNormaliser
 
-    val ballotsWithNormalised = ballots.map(ballot => ballot -> ballotNormaliser.normalise(ballot)).toVector
+    val ballotsWithNormalised: Vector[(SenateBallot, NormalisedBallot[SenateElectionForState])] = ballots.map(ballot => ballot -> ballotNormaliser.normalise(ballot)).toVector
 
     val exhaustionsPerBallot = ExhaustionCalculator
       .exhaustionsOf(computationInputData.stateLevel.countData, ballotsWithNormalised)

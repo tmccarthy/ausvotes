@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateFirstPrefer
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.`2016`
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.stv.BallotGroup
-import au.id.tmm.ausvotes.model.{Candidate, Name, Party}
+import au.id.tmm.ausvotes.model.{CandidateDetails, Name, Party}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
@@ -115,7 +115,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
         election,
         name = Name("David", "COLLYER"),
         party = None,
-        id = Candidate.Id(29589),
+        id = CandidateDetails.Id(29589),
       ),
       position = SenateCandidatePosition(SenateGroup(election, BallotGroup.Code("B").right.get, None).right.get, 0),
     )

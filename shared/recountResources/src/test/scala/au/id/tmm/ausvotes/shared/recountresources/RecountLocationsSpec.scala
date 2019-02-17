@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.utilities.geo.australia.State
@@ -33,7 +33,7 @@ class RecountLocationsSpec extends ImprovedFlatSpec {
     val recountLocation = RecountLocations.locationOfRecountFor(RecountRequest(
       SenateElection.`2014 WA`.electionForState(State.WA).get,
       6,
-      Set(Candidate.Id(123), Candidate.Id(456)),
+      Set(CandidateDetails.Id(123), CandidateDetails.Id(456)),
       doRounding = false,
     ))
 

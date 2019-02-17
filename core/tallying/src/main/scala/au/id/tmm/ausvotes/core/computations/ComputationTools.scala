@@ -3,12 +3,12 @@ package au.id.tmm.ausvotes.core.computations
 import au.id.tmm.ausvotes.core.computations.ComputationTools.{ElectionLevelTools, StateLevelTools}
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 
 final case class ComputationTools(electionLevel: ElectionLevelTools, stateLevel: StateLevelTools)
 
 object ComputationTools {
   final case class ElectionLevelTools(matchingHowToVoteCalculator: MatchingHowToVoteCalculator)
 
-  final case class StateLevelTools(ballotNormaliser: BallotNormaliser[SenateElectionForState, SenateCandidate])
+  final case class StateLevelTools(ballotNormaliser: BallotNormaliser[SenateElectionForState])
 }

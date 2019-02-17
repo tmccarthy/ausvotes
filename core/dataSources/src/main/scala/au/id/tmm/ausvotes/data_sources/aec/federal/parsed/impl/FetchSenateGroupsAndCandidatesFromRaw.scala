@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateFirstPrefer
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.stv.{BallotGroup, Group, Ungrouped}
-import au.id.tmm.ausvotes.model.{Candidate, ExceptionCaseClass, Name, Party}
+import au.id.tmm.ausvotes.model.{CandidateDetails, ExceptionCaseClass, Name, Party}
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.utilities.collection.Flyweight
@@ -117,7 +117,7 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
       position <- candidatePositionFrom(election, groupsByCode, rawRow)
       name = candidateNameFrom(rawRow)
       party = partyFrom(rawRow)
-    } yield SenateCandidate(election, SenateCandidateDetails(election, name, party, Candidate.Id(rawRow.candidateId.trim.toInt)), position)
+    } yield SenateCandidate(election, SenateCandidateDetails(election, name, party, CandidateDetails.Id(rawRow.candidateId.trim.toInt)), position)
 
   private def candidateNameFrom(rawRow: FetchRawSenateFirstPreferences.Row): Name = {
     val commaSeparatedName = rawRow.candidateDetails

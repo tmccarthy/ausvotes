@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.api.model.recount
 
 import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest.ConstructionException._
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.utilities.geo.australia.State
@@ -10,7 +10,7 @@ import cats.implicits._
 final case class RecountApiRequest(
                                     election: SenateElectionForState,
                                     numVacancies: Option[Int],
-                                    ineligibleCandidates: Option[Set[Candidate.Id]],
+                                    ineligibleCandidates: Option[Set[CandidateDetails.Id]],
                                     doRounding: Option[Boolean],
                                   )
 
@@ -58,13 +58,13 @@ object RecountApiRequest {
 
     } yield RecountApiRequest(election, numVacancies, ineligibleCandidates, doRounding)
 
-  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Either[ConstructionException, Option[Set[Candidate.Id]]] = {
+  private def ineligibleCandidatesFrom(rawIneligibleCandidates: Option[String]): Either[ConstructionException, Option[Set[CandidateDetails.Id]]] = {
     rawIneligibleCandidates.traverse { rawIneligibleCandidates =>
       val candidateIdsAsStrings = rawIneligibleCandidates.split(',').filter(_.nonEmpty)
 
-      val (badIds, goodIds) = candidateIdsAsStrings.foldLeft((Set.empty[String], Set.empty[Candidate.Id])) { case ((badIds, goodIds), nextId) =>
+      val (badIds, goodIds) = candidateIdsAsStrings.foldLeft((Set.empty[String], Set.empty[CandidateDetails.Id])) { case ((badIds, goodIds), nextId) =>
         try {
-          val goodId = Candidate.Id(nextId.toInt)
+          val goodId = CandidateDetails.Id(nextId.toInt)
           (badIds, goodIds + goodId)
         } catch {
           case e: NumberFormatException => (badIds + nextId, goodIds)

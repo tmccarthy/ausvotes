@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -21,7 +21,7 @@ class RecountResponseSpec extends ImprovedFlatSpec {
   }
 
   it can "encode a failure due to invalid candidate ids" in {
-    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set(Candidate.Id(123), Candidate.Id(456)))
+    val failure: RecountResponse = RecountResponse.Failure.InvalidCandidateIds(Set(CandidateDetails.Id(123), CandidateDetails.Id(456)))
 
     val expectedJson = Json.obj(
       "success" -> false.asJson,

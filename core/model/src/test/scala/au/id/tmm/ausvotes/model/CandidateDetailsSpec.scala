@@ -6,14 +6,14 @@ import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class CandidateSpec extends ImprovedFlatSpec {
+class CandidateDetailsSpec extends ImprovedFlatSpec {
 
   "a candidate" can "be encoded to json" in {
-    val candidate = Candidate(
+    val candidate = CandidateDetails(
       election = SenateElection.`2016`.electionForState(State.VIC).get,
       name = Name("Jane", "Doe"),
       party = None,
-      id = Candidate.Id(42),
+      id = CandidateDetails.Id(42),
     )
 
     val json = Json.obj(
@@ -27,11 +27,11 @@ class CandidateSpec extends ImprovedFlatSpec {
   }
 
   it can "be decoded from json" in {
-    val candidate = Candidate(
+    val candidate = CandidateDetails(
       election = SenateElection.`2016`.electionForState(State.VIC).get,
       name = Name("Jane", "Doe"),
       party = None,
-      id = Candidate.Id(42),
+      id = CandidateDetails.Id(42),
     )
 
     val json = Json.obj(
@@ -41,7 +41,7 @@ class CandidateSpec extends ImprovedFlatSpec {
       "id" -> candidate.id.asJson,
     )
 
-    assert(json.as[Candidate[SenateElectionForState]] === Right(candidate))
+    assert(json.as[CandidateDetails[SenateElectionForState]] === Right(candidate))
   }
 
 }

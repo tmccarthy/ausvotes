@@ -9,15 +9,15 @@ import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
 
 package object senate {
 
-  type SenateCandidateDetails = Candidate[SenateElectionForState]
+  type SenateCandidateDetails = CandidateDetails[SenateElectionForState]
   def SenateCandidateDetails(
                               election: SenateElectionForState,
                               name: Name,
                               party: Option[Party],
-                              id: Candidate.Id,
-                            ): SenateCandidateDetails = Candidate(election, name, party, id)
+                              id: CandidateDetails.Id,
+                            ): SenateCandidateDetails = CandidateDetails(election, name, party, id)
 
-  type SenateCandidate = StvCandidate[SenateElectionForState, SenateCandidateDetails]
+  type SenateCandidate = StvCandidate[SenateElectionForState]
   def SenateCandidate(
                        election: SenateElectionForState,
                        candidate: SenateCandidateDetails,
@@ -30,7 +30,7 @@ package object senate {
                                indexInGroup: Int,
                              ): SenateCandidatePosition = CandidatePosition(ballotGroup, indexInGroup)
 
-  type SenateBallot = Ballot[SenateElectionForState, SenateCandidate, FederalBallotJurisdiction, SenateBallotId]
+  type SenateBallot = Ballot[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]
   def SenateBallot(
                     election: SenateElectionForState,
                     jurisdiction: FederalBallotJurisdiction,
@@ -39,7 +39,7 @@ package object senate {
                     candidatePreferences: Map[SenateCandidate, Preference],
                   ): SenateBallot = Ballot(election, jurisdiction, id, groupPreferences, candidatePreferences)
 
-  type NormalisedSenateBallot = NormalisedBallot[SenateElectionForState, SenateCandidate]
+  type NormalisedSenateBallot = NormalisedBallot[SenateElectionForState]
   def NormalisedSenateBallot(
                               atl: BallotNormalisation.Result[Group[SenateElectionForState]],
                               atlCandidateOrder: Option[Vector[SenateCandidate]],

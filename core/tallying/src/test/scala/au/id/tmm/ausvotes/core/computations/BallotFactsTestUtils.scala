@@ -27,7 +27,7 @@ final class BallotFactsTestUtils private(val state: State,
     ComputationInputData.StateLevelData(countData)
   )
 
-  val normaliser: BallotNormaliser[SenateElectionForState, SenateCandidate] = BallotNormaliser.forSenate(election, groupsAndCandidates.candidates)
+  val normaliser: BallotNormaliser[SenateElectionForState] = BallotNormaliser.forSenate(election, groupsAndCandidates.candidates)
   val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
   val computationTools = ComputationTools(
     ComputationTools.ElectionLevelTools(matchingHowToVoteCalculator),

@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.model.stv
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.syntax.EncoderOps
@@ -16,7 +17,12 @@ class StvCandidateSpec extends ImprovedFlatSpec {
   "an stv candidate" can "be encoded to json" in {
     val stvCandidate = StvCandidate(
       election = election,
-      candidateDetails = "candidate",
+      candidateDetails = CandidateDetails[SenateElectionForState](
+        election,
+        Name("Jane", "Doe"),
+        party = None,
+        id = CandidateDetails.Id(1),
+      ),
       position = CandidatePosition(group, 0),
     )
 
@@ -32,7 +38,12 @@ class StvCandidateSpec extends ImprovedFlatSpec {
   it can "be decoded from json" in {
     val stvCandidate = StvCandidate(
       election = election,
-      candidateDetails = "candidate",
+      candidateDetails = CandidateDetails[SenateElectionForState](
+        election,
+        Name("Jane", "Doe"),
+        party = None,
+        id = CandidateDetails.Id(1),
+      ),
       position = CandidatePosition(group, 0),
     )
 
@@ -42,9 +53,7 @@ class StvCandidateSpec extends ImprovedFlatSpec {
       "position" -> stvCandidate.position.asJson,
     )
 
-    assert(json.as[StvCandidate[SenateElectionForState, String]] === Right(stvCandidate))
+    assert(json.as[StvCandidate[SenateElectionForState]] === Right(stvCandidate))
   }
-
-  it can ""
 
 }

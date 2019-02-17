@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.api.routes
 
 import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -22,7 +22,7 @@ class RecountRoutesSpec extends ImprovedFlatSpec {
     val expectedRecountRequest = RecountApiRequest(
       SenateElection.`2016`.electionForState(State.VIC).get,
       numVacancies = Some(6),
-      ineligibleCandidates = Some(Set(Candidate.Id(1234))),
+      ineligibleCandidates = Some(Set(CandidateDetails.Id(1234))),
       doRounding = Some(true),
     )
 

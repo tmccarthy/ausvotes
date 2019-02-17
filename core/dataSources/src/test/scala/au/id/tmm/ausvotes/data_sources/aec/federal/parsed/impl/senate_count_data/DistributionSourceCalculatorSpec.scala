@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_dat
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture}
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.{Candidate, Name}
+import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.countstv.model.values.Count
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -43,7 +43,7 @@ class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
           CandidateFixture.ACT.election,
           Name("Keith", "GALLAGHER"),
           party = None,
-          Candidate.Id(42),
+          CandidateDetails.Id(42),
         ),
         candidatePosition("UG2"),
       )

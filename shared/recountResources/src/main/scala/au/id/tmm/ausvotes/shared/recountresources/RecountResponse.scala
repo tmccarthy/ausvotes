@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
-import au.id.tmm.ausvotes.model.Candidate
+import au.id.tmm.ausvotes.model.CandidateDetails
 import io.circe.syntax.EncoderOps
 import io.circe.{Encoder, Json}
 
@@ -12,7 +12,7 @@ object RecountResponse {
 
   object Failure {
     final case class RequestDecodeError(message: String, request: String) extends Failure
-    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[Candidate.Id]) extends Failure
+    final case class InvalidCandidateIds(invalidCandidateAecIds: Set[CandidateDetails.Id]) extends Failure
     case object InternalError extends Failure
   }
 
