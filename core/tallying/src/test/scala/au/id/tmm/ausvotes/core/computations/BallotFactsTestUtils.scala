@@ -36,11 +36,11 @@ final class BallotFactsTestUtils private(val state: State,
 
   def normalise(ballot: SenateBallot): NormalisedSenateBallot = normaliser.normalise(ballot)
 
-  def factsFor(ballot: SenateBallot): BallotWithFacts = {
+  def factsFor(ballot: SenateBallot): StvBallotWithFacts = {
     factsFor(Iterable(ballot)).head
   }
 
-  def factsFor(ballots: Iterable[SenateBallot]): Vector[BallotWithFacts] = {
+  def factsFor(ballots: Iterable[SenateBallot]): Vector[StvBallotWithFacts] = {
     BallotFactsComputation.computeFactsFor(
       election,
       computationInputData,

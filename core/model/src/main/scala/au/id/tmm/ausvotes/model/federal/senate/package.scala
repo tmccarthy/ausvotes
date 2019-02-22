@@ -6,6 +6,7 @@ import au.id.tmm.ausvotes.model.stv.Group.InvalidGroupCode
 import au.id.tmm.ausvotes.model.stv._
 import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
+import cats.data.NonEmptyVector
 
 package object senate {
 
@@ -65,10 +66,10 @@ package object senate {
   def SenateHtv(
                  election: SenateElectionForState,
                  issuer: SenateGroup,
-                 suggestedOrder: Vector[SenateGroup],
+                 suggestedOrder: NonEmptyVector[SenateGroup],
                ): SenateHtv = HowToVoteCard(election, issuer, suggestedOrder)
 
-  type SenateCountData = CountData[SenateElectionForState, SenateCandidate]
+  type SenateCountData = CountData[SenateElectionForState]
   def SenateCountData(
                        election: SenateElectionForState,
                        completedCount: CompletedCount[SenateCandidate],

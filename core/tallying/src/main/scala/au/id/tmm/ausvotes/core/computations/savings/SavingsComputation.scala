@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.core.computations.savings
 
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision
-import au.id.tmm.ausvotes.model.federal.senate.{NormalisedSenateBallot, SenateBallot}
+import au.id.tmm.ausvotes.model.stv.NormalisedBallot
 import au.id.tmm.countstv.normalisation.BallotNormalisation.Result
 import au.id.tmm.countstv.normalisation.BallotNormalisationRule
 
 object SavingsComputation {
 
-  def savingsProvisionsUsedBy(ballot: SenateBallot, normalised: NormalisedSenateBallot): Set[SavingsProvision] = {
+  def savingsProvisionsUsedBy[E](normalised: NormalisedBallot[E]): Set[SavingsProvision] = {
     val rulesViolated =
       if (normalised.isNormalisedToBtl) {
         normalised.btl match {

@@ -1,12 +1,11 @@
 package au.id.tmm.ausvotes.core.computations.firstpreference
 
-import au.id.tmm.ausvotes.core.model.computation.FirstPreference
-import au.id.tmm.ausvotes.model.federal.senate.{NormalisedSenateBallot, SenateCandidate, SenateGroup}
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
+import au.id.tmm.ausvotes.model.stv.{FirstPreference, Group, NormalisedBallot, StvCandidate}
 
 object FirstPreferenceCalculator {
 
-  def firstPreferenceOf(normalisedBallot: NormalisedSenateBallot): FirstPreference = {
+  def firstPreferenceOf[E](normalisedBallot: NormalisedBallot[E]): FirstPreference[E] = {
     val maybeFirstPreference = if (normalisedBallot.isNormalisedToBtl) {
       normalisedBallot.btl.normalisedBallotIfFormal.flatMap(firstPreferenceBtl)
     } else if (normalisedBallot.isNormalisedToAtl) {
@@ -21,11 +20,11 @@ object FirstPreferenceCalculator {
     }
   }
 
-  private def firstPreferenceAtl(atlOrder: Vector[SenateGroup]): Option[FirstPreference] = atlOrder.headOption.map {
-    g: SenateGroup => FirstPreference(g, g.party)
+  private def firstPreferenceAtl[E](atlOrder: Vector[Group[E]]): Option[FirstPreference[E]] = atlOrder.headOption.map {
+    g => FirstPreference(g, g.party)
   }
 
-  private def firstPreferenceBtl(btlOrder: Vector[SenateCandidate]): Option[FirstPreference] = btlOrder.headOption.map {
+  private def firstPreferenceBtl[E](btlOrder: Vector[StvCandidate[E]]): Option[FirstPreference[E]] = btlOrder.headOption.map {
     c => FirstPreference(c.position.group, c.candidateDetails.party)
   }
 

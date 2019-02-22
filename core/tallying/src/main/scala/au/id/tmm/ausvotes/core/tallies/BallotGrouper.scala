@@ -1,33 +1,31 @@
 package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.computations.BallotWithFacts
+import au.id.tmm.ausvotes.core.computations.StvBallotWithFacts
 import au.id.tmm.ausvotes.core.tallies.BallotGrouper.groupBallots
 
 import scala.collection.mutable
 
 sealed trait BallotGrouper {
 
-  private[tallies] def subGrouper: BallotGrouper
-
-  def intoGroups(ballots: Iterable[BallotWithFacts]): Any
+  def intoGroups(ballots: Iterable[StvBallotWithFacts]): Any
 
   def name: String
 }
 
 case object BallotGrouper0 extends BallotGrouper {
 
-  private[tallies] override def subGrouper: Nothing = throw new NotImplementedError()
+  private[tallies] def subGrouper: Nothing = throw new NotImplementedError()
 
-  override def intoGroups(ballots: Iterable[BallotWithFacts]): Iterable[BallotWithFacts] = ballots
+  override def intoGroups(ballots: Iterable[StvBallotWithFacts]): Iterable[StvBallotWithFacts] = ballots
 
   override val name: String = "none"
 }
 
 final case class BallotGrouper1[T_GROUP_1] (grouping1: BallotGrouping[T_GROUP_1]) extends BallotGrouper {
 
-  private[tallies] override val subGrouper: BallotGrouper0.type = BallotGrouper0
+  private[tallies] val subGrouper: BallotGrouper0.type = BallotGrouper0
 
-  override def intoGroups(ballots: Iterable[BallotWithFacts]): Map[T_GROUP_1, Iterable[BallotWithFacts]] =
+  override def intoGroups(ballots: Iterable[StvBallotWithFacts]): Map[T_GROUP_1, Iterable[StvBallotWithFacts]] =
     groupBallots(ballots, grouping1)
       .mapValues(subGrouper.intoGroups)
 
@@ -37,9 +35,9 @@ final case class BallotGrouper1[T_GROUP_1] (grouping1: BallotGrouping[T_GROUP_1]
 final case class BallotGrouper2[T_GROUP_1, T_GROUP_2] (grouping1: BallotGrouping[T_GROUP_1],
                                                        grouping2: BallotGrouping[T_GROUP_2]) extends BallotGrouper {
 
-  private[tallies] override val subGrouper: BallotGrouper1[T_GROUP_2] = new BallotGrouper1[T_GROUP_2](grouping2)
+  private[tallies] val subGrouper: BallotGrouper1[T_GROUP_2] = new BallotGrouper1[T_GROUP_2](grouping2)
 
-  override def intoGroups(ballots: Iterable[BallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Iterable[BallotWithFacts]]] =
+  override def intoGroups(ballots: Iterable[StvBallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Iterable[StvBallotWithFacts]]] =
     groupBallots(ballots, grouping1)
       .mapValues(subGrouper.intoGroups)
 
@@ -50,9 +48,9 @@ final case class BallotGrouper3[T_GROUP_1, T_GROUP_2, T_GROUP_3] (grouping1: Bal
                                                                   grouping2: BallotGrouping[T_GROUP_2],
                                                                   grouping3: BallotGrouping[T_GROUP_3]) extends BallotGrouper {
 
-  private[tallies] override val subGrouper: BallotGrouper2[T_GROUP_2, T_GROUP_3] = new BallotGrouper2[T_GROUP_2, T_GROUP_3](grouping2, grouping3)
+  private[tallies] val subGrouper: BallotGrouper2[T_GROUP_2, T_GROUP_3] = new BallotGrouper2[T_GROUP_2, T_GROUP_3](grouping2, grouping3)
 
-  override def intoGroups(ballots: Iterable[BallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Iterable[BallotWithFacts]]]] =
+  override def intoGroups(ballots: Iterable[StvBallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Iterable[StvBallotWithFacts]]]] =
     groupBallots(ballots, grouping1)
       .mapValues(subGrouper.intoGroups)
 
@@ -65,7 +63,7 @@ final case class BallotGrouper4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4] (gro
                                                                              grouping4: BallotGrouping[T_GROUP_4]) extends BallotGrouper {
   private [tallies] override val subGrouper: BallotGrouper3[T_GROUP_2, T_GROUP_3, T_GROUP_4] = new BallotGrouper3[T_GROUP_2, T_GROUP_3, T_GROUP_4](grouping2, grouping3, grouping4)
 
-  override def intoGroups(ballots: Iterable[BallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Map[T_GROUP_4, Iterable[BallotWithFacts]]]]] =
+  override def intoGroups(ballots: Iterable[StvBallotWithFacts]): Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Map[T_GROUP_4, Iterable[StvBallotWithFacts]]]]] =
     groupBallots(ballots, grouping1)
       .mapValues(subGrouper.intoGroups)
 
@@ -73,8 +71,8 @@ final case class BallotGrouper4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4] (gro
 }
 
 object BallotGrouper {
-  def groupBallots[A](ballots: Iterable[BallotWithFacts], grouping: BallotGrouping[A]): Map[A, Iterable[BallotWithFacts]] = {
-    val builder = mutable.Map.empty[A, mutable.Builder[BallotWithFacts, Iterable[BallotWithFacts]]]
+  private def groupBallots[A](ballots: Iterable[StvBallotWithFacts], grouping: BallotGrouping[A]): Map[A, Iterable[StvBallotWithFacts]] = {
+    val builder = mutable.Map.empty[A, mutable.Builder[StvBallotWithFacts, Iterable[StvBallotWithFacts]]]
 
     for (ballot <- ballots) {
       for (group <- grouping.groupsOf(ballot)) {
@@ -83,7 +81,7 @@ object BallotGrouper {
       }
     }
 
-    val resultBuilder = Map.newBuilder[A, Iterable[BallotWithFacts]]
+    val resultBuilder = Map.newBuilder[A, Iterable[StvBallotWithFacts]]
 
     for ((group, ballotsBuilder) <- builder) {
       resultBuilder += ((group, ballotsBuilder.result()))

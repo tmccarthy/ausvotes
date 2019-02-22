@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateGroup, SenateHtv}
 import au.id.tmm.utilities.geo.australia.State
+import cats.data.NonEmptyVector
 
 object HowToVoteCardGeneration {
 
@@ -143,7 +144,7 @@ object HowToVoteCardGeneration {
   private def htvIn2016For(group: SenateGroup, groupCodeLookup: Map[(State, String), SenateGroup]): Option[SenateHtv] =
     for {
       htvGroupCodes <- htvsFor2016.get((group.election.state, group.code.asString))
-      htvGroupOrder = htvGroupCodes.map(groupCode => groupCodeLookup(group.election.state, groupCode))
+      htvGroupOrder <- NonEmptyVector.fromVector(htvGroupCodes.map(groupCode => groupCodeLookup(group.election.state, groupCode)))
       electionForState <- SenateElection.`2016`.electionForState(group.election.state)
     } yield SenateHtv(electionForState, group, htvGroupOrder)
 }

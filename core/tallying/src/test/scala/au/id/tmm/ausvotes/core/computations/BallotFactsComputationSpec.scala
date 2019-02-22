@@ -1,9 +1,10 @@
 package au.id.tmm.ausvotes.core.computations
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, FirstPreference}
+import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.NormalisedSenateBallot
+import au.id.tmm.ausvotes.model.stv.FirstPreference
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, BallotNormalisationRule}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

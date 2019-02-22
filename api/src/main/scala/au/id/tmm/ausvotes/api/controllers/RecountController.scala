@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.api.controllers
 import au.id.tmm.ausvotes.api.config.Config
 import au.id.tmm.ausvotes.api.errors.recount.RecountException
 import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
-import au.id.tmm.ausvotes.core.computations.numvacancies.NumVacanciesComputation
 import au.id.tmm.ausvotes.core.model.IneligibleCandidates
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3

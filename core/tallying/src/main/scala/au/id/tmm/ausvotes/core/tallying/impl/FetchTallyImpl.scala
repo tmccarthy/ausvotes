@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, BallotWithFacts, ComputationInputData, ComputationTools}
+import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, StvBallotWithFacts}
 import au.id.tmm.ausvotes.core.tallies._
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyRequest
@@ -313,7 +313,7 @@ final class FetchTallyImpl private(
                                          computationInputData: ComputationInputData,
                                          ballots: Vector[SenateBallot],
                                        ): TallyBundle = {
-    val ballotsWithFacts: Iterable[BallotWithFacts] = BallotFactsComputation.computeFactsFor(
+    val ballotsWithFacts: Iterable[StvBallotWithFacts] = BallotFactsComputation.computeFactsFor(
       election,
       computationInputData,
       computationTools,

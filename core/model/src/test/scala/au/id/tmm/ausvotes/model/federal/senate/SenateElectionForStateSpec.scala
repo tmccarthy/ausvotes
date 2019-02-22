@@ -62,4 +62,21 @@ class SenateElectionForStateSpec extends ImprovedFlatSpec {
     assert(list.sorted === expectedOrdered)
   }
 
+  "the numVacancies computation" should "indicate the number of vacancies for a state at a normal election" in {
+    assert(SenateElection.`2013`.electionForState(State.SA).get.numVacancies === 6)
+  }
+
+  it should "indicate the number of vacancies for a territory at a normal election" in {
+    assert(SenateElection.`2013`.electionForState(State.NT).get.numVacancies === 2)
+  }
+
+  it should "indicate the number of vacancies for a state at a double dissolution election" in {
+    assert(SenateElection.`2016`.electionForState(State.WA).get.numVacancies === 12)
+  }
+
+  it should "indicate the number of vacancies for a territory at a double dissolution election" in {
+    assert(SenateElection.`2016`.electionForState(State.ACT).get.numVacancies === 2)
+  }
+
+
 }

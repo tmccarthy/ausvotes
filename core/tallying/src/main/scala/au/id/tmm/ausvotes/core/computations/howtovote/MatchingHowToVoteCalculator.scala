@@ -1,47 +1,35 @@
 package au.id.tmm.ausvotes.core.computations.howtovote
 
-import au.id.tmm.ausvotes.model.federal.senate.{AtlPreferences, SenateBallot, SenateGroup, SenateHtv}
-import au.id.tmm.countstv.normalisation.Preference
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator.QuickLookupKey
+import au.id.tmm.ausvotes.model.HowToVoteCard
 
-// TODO this should be generalised to not be specific to the Senate
-final class MatchingHowToVoteCalculator private(howToVoteCards: Set[SenateHtv]) {
+final class MatchingHowToVoteCalculator[E, C] private (howToVoteCards: Set[HowToVoteCard[E, C]]) {
 
-  private val quickCandidateCardLookup: Map[(State, SenateGroup), Set[SenateHtv]] = {
-    howToVoteCards.groupBy(htvCard => (htvCard.election.state, htvCard.issuer))
-  }.withDefaultValue(Set())
+  private val quickCandidateCardLookup: QuickLookupKey[E, C] => Set[HowToVoteCard[E, C]] =
+    howToVoteCards
+      .groupBy(htvCard => QuickLookupKey(htvCard.election, htvCard.suggestedOrder.head))
+      .withDefaultValue(Set())
 
-  private val atlPrefsFor: Map[SenateHtv, AtlPreferences] = {
-    def computeAtlPrefsFor(howToVoteCard: SenateHtv): AtlPreferences = {
-      howToVoteCard.suggestedOrder.zipWithIndex.map {
-        case (group, index) => group -> Preference.Numbered(index + 1)
-      }.toMap
+  def findMatchingHowToVoteCard(ballot: Vector[C], electionForBallot: E): Option[HowToVoteCard[E, C]] =
+    ballot.headOption.flatMap { firstPreferencedCandidate =>
+      val quickLookupKey = QuickLookupKey(electionForBallot, firstPreferencedCandidate)
+
+      val candidateHtvCards = quickCandidateCardLookup(quickLookupKey)
+
+      candidateHtvCards.find(htvCard => matches(ballot, electionForBallot, htvCard))
     }
 
-    howToVoteCards.map(card => card -> computeAtlPrefsFor(card)).toMap
-  }
-
-  def findMatchingHowToVoteCard(ballot: SenateBallot): Option[SenateHtv] = {
-    if (ballot.candidatePreferences.nonEmpty) {
-      return None
-    }
-
-    val firstPreferencedGroup = ballot.groupPreferences.find {
-      case (group, preference) => preference == Preference.Numbered(1)
-    } map {
-      case (group, preference) => group
-    }
-
-    val candidateHtvCards = firstPreferencedGroup.map(quickCandidateCardLookup(ballot.election.state, _))
-      .getOrElse(Set())
-
-    candidateHtvCards.find(matches(ballot, _))
-  }
-
-  private def matches(ballot: SenateBallot, card: SenateHtv): Boolean = ballot.groupPreferences == atlPrefsFor(card)
+  private def matches(
+                       ballot: Vector[C],
+                       electionForBallot: E,
+                       card: HowToVoteCard[E, C],
+                     ): Boolean = electionForBallot == card.election && ballot == card.suggestedOrder
 }
 
 object MatchingHowToVoteCalculator {
-  def apply(howToVoteCards: Set[SenateHtv]): MatchingHowToVoteCalculator
-  = new MatchingHowToVoteCalculator(howToVoteCards)
+
+  def apply[E, C](howToVoteCards: Set[HowToVoteCard[E, C]]): MatchingHowToVoteCalculator[E, C] =
+    new MatchingHowToVoteCalculator(howToVoteCards)
+
+  private final case class QuickLookupKey[E, C](election: E, firstPreferencedCandidate: C)
 }

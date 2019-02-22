@@ -2,10 +2,9 @@ package au.id.tmm.ausvotes.core.computations.firstpreference
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture}
-import au.id.tmm.ausvotes.core.model.computation.FirstPreference
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
-import au.id.tmm.ausvotes.model.stv.Ungrouped
+import au.id.tmm.ausvotes.model.stv.{FirstPreference, Ungrouped}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

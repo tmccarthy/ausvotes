@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.computations.BallotWithFacts
+import au.id.tmm.ausvotes.core.computations.StvBallotWithFacts
 
 // TODO visibility
 
@@ -9,7 +9,7 @@ sealed trait Tallier {
 
   private[tallies] def subTallier: Tallier
 
-  def tally(ballots: Iterable[BallotWithFacts]): ProducedTallyType
+  def tally(ballots: Iterable[StvBallotWithFacts]): ProducedTallyType
 
   def isOfProducedTallyType(tally: Tally): Boolean
 
@@ -22,7 +22,7 @@ final case class Tallier0(ballotCounter: BallotCounter) extends Tallier {
 
   private[tallies] override def subTallier: Nothing = throw new NotImplementedError()
 
-  override def tally(ballots: Iterable[BallotWithFacts]): Tally0 = {
+  override def tally(ballots: Iterable[StvBallotWithFacts]): Tally0 = {
     val groupedBallots = BallotGrouper0.intoGroups(ballots)
 
     val rawTally = ballotCounter.weigh(groupedBallots)
@@ -41,11 +41,11 @@ final case class Tallier1[T_GROUP_1](ballotGrouper: BallotGrouper1[T_GROUP_1], b
 
   private[tallies] override val subTallier: Tallier0 = Tallier0(ballotCounter)
 
-  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Iterable[BallotWithFacts]]): Tally1[T_GROUP_1] = {
+  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Iterable[StvBallotWithFacts]]): Tally1[T_GROUP_1] = {
     Tally1(groupedBallots.mapValues(subTallier.tally))
   }
 
-  override def tally(ballots: Iterable[BallotWithFacts]): Tally1[T_GROUP_1] = {
+  override def tally(ballots: Iterable[StvBallotWithFacts]): Tally1[T_GROUP_1] = {
 
     val groupedBallots = ballotGrouper.intoGroups(ballots)
 
@@ -63,11 +63,11 @@ final case class Tallier2[T_GROUP_1, T_GROUP_2](ballotGrouper: BallotGrouper2[T_
 
   private[tallies] override val subTallier: Tallier1[T_GROUP_2] = Tallier1(ballotGrouper.subGrouper, ballotCounter)
 
-  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Map[T_GROUP_2, Iterable[BallotWithFacts]]]): Tally2[T_GROUP_1, T_GROUP_2] = {
+  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Map[T_GROUP_2, Iterable[StvBallotWithFacts]]]): Tally2[T_GROUP_1, T_GROUP_2] = {
     Tally2(groupedBallots.mapValues(subTallier.tallyGrouped))
   }
 
-  override def tally(ballots: Iterable[BallotWithFacts]): Tally2[T_GROUP_1, T_GROUP_2] = {
+  override def tally(ballots: Iterable[StvBallotWithFacts]): Tally2[T_GROUP_1, T_GROUP_2] = {
 
     val groupedBallots = ballotGrouper.intoGroups(ballots)
 
@@ -85,11 +85,11 @@ final case class Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3](ballotGrouper: Ballot
 
   private[tallies] override val subTallier: Tallier2[T_GROUP_2, T_GROUP_3] = Tallier2(ballotGrouper.subGrouper, ballotCounter)
 
-  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Iterable[BallotWithFacts]]]]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
+  private[tallies] def tallyGrouped(groupedBallots: Map[T_GROUP_1, Map[T_GROUP_2, Map[T_GROUP_3, Iterable[StvBallotWithFacts]]]]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
     Tally3(groupedBallots.mapValues(subTallier.tallyGrouped))
   }
 
-  override def tally(ballots: Iterable[BallotWithFacts]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
+  override def tally(ballots: Iterable[StvBallotWithFacts]): Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3] = {
 
     val groupedBallots = ballotGrouper.intoGroups(ballots)
 
@@ -106,7 +106,7 @@ final case class Tallier4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4](ballotGrou
 
   private[tallies] override val subTallier: Tallier3[T_GROUP_2, T_GROUP_3, T_GROUP_4] = Tallier3(ballotGrouper.subGrouper, ballotCounter)
 
-  override def tally(ballots: Iterable[BallotWithFacts]): Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4] = {
+  override def tally(ballots: Iterable[StvBallotWithFacts]): Tally4[T_GROUP_1, T_GROUP_2, T_GROUP_3, T_GROUP_4] = {
 
     val groupedBallots = ballotGrouper.intoGroups(ballots)
 

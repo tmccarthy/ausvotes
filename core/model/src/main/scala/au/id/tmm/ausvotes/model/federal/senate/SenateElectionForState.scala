@@ -2,14 +2,22 @@ package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.StateCodec.codec
+import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType.{FullSenate, HalfSenate}
 import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.utilities.geo.australia.State.{StateProper, Territory}
 import io.circe.{Decoder, DecodingFailure, Encoder}
 
 final case class SenateElectionForState private (
                                                   election: SenateElection,
                                                   state: State,
-                                                )
+                                                ) {
+  def numVacancies: Int = (election.senateElectionType, state) match {
+    case (FullSenate, _: StateProper) => 12
+    case (HalfSenate, _: StateProper) => 6
+    case (_,          _: Territory  ) => 2
+  }
+}
 
 object SenateElectionForState {
 
