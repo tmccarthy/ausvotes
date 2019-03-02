@@ -116,7 +116,7 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent](chunkSize: Int = 5000) extend
     }
 
   private def fetchTalliesUnsafe[B](ballots: fs2.Stream[F[Throwable, +?], B], tallyRequests: TallyRequests[B]): F[FetchTally.Error, TallyBundle[B]] =
-    ballots.chunkN(5000)
+    ballots.chunkN(chunkSize)
       .parEvalMapUnordered(maxConcurrent = Runtime.getRuntime.availableProcessors()) { chunk =>
         if (chunk.nonEmpty) {
           BifunctorMonadError.pure(applyTallyRequests[B](tallyRequests, chunk.toVector))

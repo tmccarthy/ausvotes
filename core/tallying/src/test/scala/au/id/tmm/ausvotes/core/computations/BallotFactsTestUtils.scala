@@ -5,6 +5,7 @@ import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculato
 import au.id.tmm.ausvotes.core.fixtures.DivisionAndPollingPlaceFixture.DivisionsAndPollingPlacesFixture
 import au.id.tmm.ausvotes.core.fixtures.GroupAndCandidateFixture.GroupsAndCandidatesFixture
 import au.id.tmm.ausvotes.core.fixtures.{DivisionAndPollingPlaceFixture, GroupAndCandidateFixture, MockFetchFederalElectionData}
+import au.id.tmm.ausvotes.core.tallying.FetchTallyForSenate
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
@@ -23,7 +24,7 @@ final class BallotFactsTestUtils private (val state: State,
   val countData: SenateCountData = MockFetchFederalElectionData.senateCountDataFor(election, groupsAndCandidates).runUnsafe
   val howToVoteCards: Set[SenateHtv] = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
 
-  val normaliser: BallotNormaliser[SenateElectionForState] = BallotNormaliser.forSenate(election, groupsAndCandidates.candidates)
+  val normaliser: BallotNormaliser[SenateElectionForState] = FetchTallyForSenate.makeBallotNormaliser(election, groupsAndCandidates.candidates)
   val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
 
   def normalise(ballot: SenateBallot): NormalisedSenateBallot = normaliser.normalise(ballot)

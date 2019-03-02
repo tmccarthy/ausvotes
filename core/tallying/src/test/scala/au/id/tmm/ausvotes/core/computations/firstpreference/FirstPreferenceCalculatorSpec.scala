@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.computations.firstpreference
 
-import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture}
+import au.id.tmm.ausvotes.core.tallying.FetchTallyForSenate
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.model.stv.{FirstPreference, Ungrouped}
@@ -13,7 +13,7 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
   private val election = SenateElection.`2016`.electionForState(State.ACT).get
   private val candidates = CandidateFixture.ACT.candidates
 
-  private val normaliser = BallotNormaliser.forSenate(election, candidates)
+  private val normaliser = FetchTallyForSenate.makeBallotNormaliser(election, candidates)
 
   import BallotFixture.ACT._
   import normaliser._
@@ -36,7 +36,7 @@ class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
     // Have to run this test in the NT cos all of the ACT candidates had parties
     val ntCandidates = CandidateFixture.NT.candidates
     val election = SenateElection.`2016`.electionForState(State.NT).get
-    val ntNormaliser = BallotNormaliser.forSenate(election, ntCandidates)
+    val ntNormaliser = FetchTallyForSenate.makeBallotNormaliser(election, ntCandidates)
 
     assert(FirstPreferenceCalculator.firstPreferenceOf(ntNormaliser.normalise(BallotFixture.NT.firstPreferenceUngroupedIndy)) ===
       FirstPreference(Ungrouped(election), None))

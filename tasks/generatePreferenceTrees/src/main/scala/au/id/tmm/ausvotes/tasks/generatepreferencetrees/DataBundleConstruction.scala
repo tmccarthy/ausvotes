@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
+import au.id.tmm.ausvotes.core.tallying.FetchTallyForSenate
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
@@ -46,7 +46,7 @@ object DataBundleConstruction {
       )
     )
 
-    val ballotNormaliser = BallotNormaliser.forSenate(election, candidates)
+    val ballotNormaliser = FetchTallyForSenate.makeBallotNormaliser(election, candidates)
 
     val numPapersHint = StateUtils.numBallots(election.state)
 
