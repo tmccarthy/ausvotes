@@ -88,7 +88,7 @@ object FetchTallyForSenate {
 
       countData <- FetchSenateCountData.senateCountDataFor(electionForState, groupsAndCandidates)
 
-      ballotNormaliser = makeBallotNormaliser(electionForState, groupsAndCandidates.candidates)
+      ballotNormaliser = BallotNormaliser(CountRules.normalisationRulesFor(electionForState.election), electionForState, groupsAndCandidates.candidates)
       matchingHowToVoteCalculator = MatchingHowToVoteCalculator(htvCards)
 
       ballotsWithFactsStream = senateBallotsStream.chunkN(5000)
@@ -115,22 +115,5 @@ object FetchTallyForSenate {
       }
 
     } yield ballotsWithFactsStream
-
-  def makeBallotNormaliser(
-                            election: SenateElectionForState,
-                            candidates: Set[SenateCandidate],
-                          ): BallotNormaliser[SenateElectionForState] = {
-    val relevantCandidates = candidates.toStream
-      .filter(_.election == election)
-
-    val candidatesPerGroup: Map[SenateBallotGroup, Vector[SenateCandidate]] =
-      relevantCandidates
-        .sorted
-        .toVector
-        .groupBy(_.position.group)
-
-    BallotNormaliser(CountRules.normalisationRulesFor(election.election), election, candidatesPerGroup)
-  }
-
 
 }

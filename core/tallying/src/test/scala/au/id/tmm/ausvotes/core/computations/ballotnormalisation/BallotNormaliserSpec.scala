@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.core.computations.ballotnormalisation
 
 import au.id.tmm.ausvotes.core.fixtures._
-import au.id.tmm.ausvotes.core.tallying.FetchTallyForSenate
-import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection}
+import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
+import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -14,7 +14,8 @@ class BallotNormaliserSpec extends ImprovedFlatSpec {
 
   private val candidates = CandidateFixture.ACT.candidates
 
-  private val sut = FetchTallyForSenate.makeBallotNormaliser(SenateElection.`2016`.electionForState(State.ACT).get, candidates)
+  private val election: SenateElectionForState = SenateElection.`2016`.electionForState(State.ACT).get
+  private val sut = BallotNormaliser(CountRules.normalisationRulesFor(election.election), election, candidates)
 
   import ballots._
   import ballots.ballotMaker._

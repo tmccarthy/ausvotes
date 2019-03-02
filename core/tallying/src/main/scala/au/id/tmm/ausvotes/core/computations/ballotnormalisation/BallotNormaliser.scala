@@ -29,4 +29,15 @@ object BallotNormaliser {
   def apply[E](rules: StvNormalisationRules, election: E, candidatesPerGroup: Group[E] => Vector[StvCandidate[E]]): BallotNormaliser[E] =
     new BallotNormaliser(rules, election, candidatesPerGroup)
 
+  def apply[E : Ordering](rules: StvNormalisationRules, election: E, candidates: Set[StvCandidate[E]]): BallotNormaliser[E] = {
+    val relevantCandidates = candidates.filter(_.candidateDetails.election == election).toVector
+
+    val candidatesPerGroup: Map[BallotGroup[E], Vector[StvCandidate[E]]] =
+      relevantCandidates
+      .sorted
+      .groupBy(_.position.group)
+
+    BallotNormaliser(rules, election, candidatesPerGroup)
+  }
+
 }
