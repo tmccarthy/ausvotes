@@ -20,7 +20,7 @@ class PredicateTallierSpec extends ImprovedFlatSpec {
   import ballotMaker.group
 
   private def groupsFor[G](ballotGrouper: BallotGrouping[G])(ballotWithFacts: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[G] =
-    SenateElectionTalliers.BallotGrouping.senateElectionBallotGroupingIsABallotGrouping[G].groupsOf(ballotGrouper)(ballotWithFacts)
+    ballotGrouper.groupsOf(ballotWithFacts)
 
   "the national count per first preference" should "produce the right tally per party" in {
     assert(groupsFor(BallotGrouping.FirstPreferencedPartyNationalEquivalent)(testBallot) === Set(Some(Party("Liberal Democratic Party"))))

@@ -4,7 +4,6 @@ import au.id.tmm.ausvotes.core.computations.StvBallotWithFacts
 import au.id.tmm.ausvotes.core.computations.parties.PartyEquivalenceComputation
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion.{Exhausted, NotExhausted}
 import au.id.tmm.ausvotes.core.model.computation.{BallotExhaustion, SavingsProvision}
-import au.id.tmm.ausvotes.core.tallies.typeclasses.{Grouper, Tallier}
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotGroup, SenateBallotId, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction, FederalVcp}
@@ -19,17 +18,40 @@ import io.circe.syntax.EncoderOps
 
 object SenateElectionTalliers {
 
-  sealed trait BallotGrouping[G]
+  sealed trait BallotGrouping[G] extends Grouper[G, StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]
 
   object BallotGrouping {
-    case object SenateElection extends BallotGrouping[SenateElection]
-    case object State extends BallotGrouping[State]
-    case object Division extends BallotGrouping[Division]
-    case object VoteCollectionPoint extends BallotGrouping[FederalVcp]
-    case object FirstPreferencedPartyNationalEquivalent extends BallotGrouping[Option[Party]]
-    case object FirstPreferencedParty extends BallotGrouping[Option[Party]]
-    case object FirstPreferencedGroup extends BallotGrouping[SenateBallotGroup]
-    case object UsedSavingsProvision extends BallotGrouping[SavingsProvision]
+    case object SenateElection extends BallotGrouping[SenateElection] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[SenateElection] = Set(ballot.ballot.election.election)
+    }
+
+    case object State extends BallotGrouping[State] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[State] = Set(ballot.ballot.jurisdiction.state)
+    }
+
+    case object Division extends BallotGrouping[Division] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[Division] = Set(ballot.ballot.jurisdiction.electorate)
+    }
+
+    case object VoteCollectionPoint extends BallotGrouping[FederalVcp] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[FederalVcp] = Set(ballot.ballot.jurisdiction.voteCollectionPoint)
+    }
+
+    case object FirstPreferencedPartyNationalEquivalent extends BallotGrouping[Option[Party]] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[Option[Party]] = Set(ballot.firstPreference.party.map(PartyEquivalenceComputation.nationalEquivalentOf))
+    }
+
+    case object FirstPreferencedParty extends BallotGrouping[Option[Party]] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[Option[Party]] = Set(ballot.firstPreference.party)
+    }
+
+    case object FirstPreferencedGroup extends BallotGrouping[SenateBallotGroup] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[SenateBallotGroup] = Set(ballot.firstPreference.group)
+    }
+
+    case object UsedSavingsProvision extends BallotGrouping[SavingsProvision] {
+      override def groupsOf(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[SavingsProvision] = ballot.savingsProvisionsUsed
+    }
 
     implicit def encoder[G]: Encoder[BallotGrouping[G]] = {
       case SenateElection => "senate_election".asJson
@@ -42,35 +64,68 @@ object SenateElectionTalliers {
       case UsedSavingsProvision => "used_savings_provision".asJson
     }
 
-    implicit def senateElectionBallotGroupingIsABallotGrouping[G]: Grouper[BallotGrouping[G], G, StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]] =
-      new Grouper[BallotGrouping[G], G, StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]] {
-        override def groupsOf(grouper: BallotGrouping[G])(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Set[G] = grouper match {
-          case BallotGrouping.SenateElection => Set(ballot.ballot.election.election)
-          case BallotGrouping.State => Set(ballot.ballot.jurisdiction.state)
-          case BallotGrouping.Division => Set(ballot.ballot.jurisdiction.electorate)
-          case BallotGrouping.VoteCollectionPoint => Set(ballot.ballot.jurisdiction.voteCollectionPoint)
-          case BallotGrouping.FirstPreferencedPartyNationalEquivalent => Set(ballot.firstPreference.party.map(PartyEquivalenceComputation.nationalEquivalentOf))
-          case BallotGrouping.FirstPreferencedParty => Set(ballot.firstPreference.party)
-          case BallotGrouping.FirstPreferencedGroup => Set(ballot.firstPreference.group)
-          case BallotGrouping.UsedSavingsProvision => ballot.savingsProvisionsUsed
-        }
-      }
-
   }
 
-  sealed abstract class BallotTallier[A : Monoid]
+  sealed abstract class BallotTallier[A : Monoid] extends Tallier[StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId], A] {
+    override def tallyAll(ballots: Iterable[StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]): A = ballots.foldLeft(Monoid[A].empty) { case (sumSoFar, ballotWithFacts) => Monoid.combine(sumSoFar, tally(ballotWithFacts)) }
+  }
 
   object BallotTallier {
-    case object FormalBallots extends BallotTallier[Long]
-    case object VotedAtl extends BallotTallier[Long]
-    case object VotedAtlAndBtl extends BallotTallier[Long]
-    case object VotedBtl extends BallotTallier[Long]
-    case object DonkeyVotes extends BallotTallier[Long]
-    case object ExhaustedBallots extends BallotTallier[Long]
-    case object ExhaustedVotes extends BallotTallier[Double]
-    case object UsedHowToVoteCard extends BallotTallier[Long]
-    case object Voted1Atl extends BallotTallier[Long]
-    case object UsedSavingsProvision extends BallotTallier[Long]
+    case object FormalBallots extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.normalisedBallot.canonicalOrder.isDefined) 1 else 0
+    }
+
+    case object VotedAtl extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.normalisedBallot.isNormalisedToAtl) 1 else 0
+    }
+
+    case object VotedAtlAndBtl extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.normalisedBallot.atl.isSavedOrFormal && ballot.normalisedBallot.btl.isSavedOrFormal) 1 else 0
+    }
+
+    case object VotedBtl extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.normalisedBallot.isNormalisedToBtl) 1 else 0
+    }
+
+    case object DonkeyVotes extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.isDonkeyVote) 1 else 0
+    }
+
+    case object ExhaustedBallots extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        ballot.exhaustion match {
+          case _: Exhausted => 1
+          case NotExhausted => 0
+        }
+    }
+
+    case object ExhaustedVotes extends BallotTallier[Double] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Double =
+        ballot.exhaustion match {
+          case BallotExhaustion.Exhausted(_, value, _) => value.factor.toDouble
+          case BallotExhaustion.NotExhausted => 0d
+        }
+    }
+
+    case object UsedHowToVoteCard extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.matchingHowToVote.isDefined) 1 else 0
+    }
+
+    case object Voted1Atl extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.ballot.candidatePreferences.isEmpty && ballot.ballot.groupPreferences.size == 1 && (ballot.ballot.groupPreferences.head._2 == Preference.Numbered(1) || ballot.ballot.groupPreferences.head._2 == Preference.Tick || ballot.ballot.groupPreferences.head._2 == Preference.Cross)) 1 else 0
+    }
+
+    case object UsedSavingsProvision extends BallotTallier[Long] {
+      override def tally(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): Long =
+        if (ballot.savingsProvisionsUsed.nonEmpty) 1 else 0
+    }
 
     implicit def encoder[A]: Encoder[BallotTallier[A]] = {
       case FormalBallots => "formal_ballots".asJson
@@ -85,32 +140,6 @@ object SenateElectionTalliers {
       case UsedSavingsProvision => "used_savings_provision".asJson
     }
 
-    implicit def senateElectionBallotTallierIsATallier[A : Monoid]: Tallier[BallotTallier[A], StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId], A] =
-      new Tallier[BallotTallier[A], StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId], A] {
-        override def tallyAll(t: BallotTallier[A])(ballots: Iterable[StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]): A =
-          ballots.foldLeft(Monoid[A].empty) {
-            case (sumSoFar, ballotWithFacts) => Monoid[A].combine(sumSoFar, tally(t)(ballotWithFacts))
-          }
-
-        override def tally(t: BallotTallier[A])(ballot: StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]): A = t match {
-          case BallotTallier.FormalBallots => if (ballot.normalisedBallot.canonicalOrder.isDefined) 1 else 0
-          case BallotTallier.VotedAtl => if (ballot.normalisedBallot.isNormalisedToAtl) 1 else 0
-          case BallotTallier.VotedAtlAndBtl => if (ballot.normalisedBallot.atl.isSavedOrFormal && ballot.normalisedBallot.btl.isSavedOrFormal) 1 else 0
-          case BallotTallier.VotedBtl => if (ballot.normalisedBallot.isNormalisedToBtl) 1 else 0
-          case BallotTallier.DonkeyVotes => if (ballot.isDonkeyVote) 1 else 0
-          case BallotTallier.ExhaustedBallots => ballot.exhaustion match {
-            case _: Exhausted => 1
-            case NotExhausted => 0
-          }
-          case BallotTallier.ExhaustedVotes => ballot.exhaustion match {
-            case BallotExhaustion.Exhausted(_, value, _) => value.factor.toDouble
-            case BallotExhaustion.NotExhausted => 0d
-          }
-          case BallotTallier.UsedHowToVoteCard => if (ballot.matchingHowToVote.isDefined) 1 else 0
-          case BallotTallier.Voted1Atl => if (ballot.ballot.candidatePreferences.isEmpty && ballot.ballot.groupPreferences.size == 1 && (ballot.ballot.groupPreferences.head._2 == Preference.Numbered(1) || ballot.ballot.groupPreferences.head._2 == Preference.Tick || ballot.ballot.groupPreferences.head._2 == Preference.Cross)) 1 else 0
-          case BallotTallier.UsedSavingsProvision => if (ballot.savingsProvisionsUsed.nonEmpty) 1 else 0
-        }
-      }
   }
 
 }
