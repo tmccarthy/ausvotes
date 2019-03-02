@@ -28,7 +28,7 @@ class BallotFactsComputationSpec extends ImprovedFlatSpec {
       ballotMaker.candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
 
     val expectedNormalisedBallot = NormalisedSenateBallot(
-      atl = BallotNormalisation.Result.Formal(ballotMaker.groupOrder("A", "B", "C", "D", "E", "F")),
+      atl = BallotNormalisation.Result.Formal(ballotMaker.groupOrder("A", "B", "C", "D", "E", "F").toVector),
       atlCandidateOrder = Some(expectedNormalisedAtl),
       btl = BallotNormalisation.Result.Informal(
         normalisedBallot = Vector.empty,

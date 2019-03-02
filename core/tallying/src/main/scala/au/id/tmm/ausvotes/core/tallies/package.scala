@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.core
 
-package object tallies2 {
+package object tallies {
 
   type Tally0[A] = A
   type Tally1[G1, A] = Tally[G1, A]

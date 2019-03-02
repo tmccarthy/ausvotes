@@ -34,7 +34,7 @@ class RecountController(config: Config) {
   private def buildFullRecountRequest(apiRequest: RecountApiRequest): RecountRequest = {
     val election = apiRequest.election
 
-    def defaultNumVacancies = NumVacanciesComputation.numVacanciesFor(election)
+    def defaultNumVacancies = election.numVacancies
 
     RecountRequest(
       election,

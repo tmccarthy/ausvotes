@@ -23,7 +23,7 @@ final class MatchingHowToVoteCalculator[E, C] private (howToVoteCards: Set[HowTo
                        ballot: Vector[C],
                        electionForBallot: E,
                        card: HowToVoteCard[E, C],
-                     ): Boolean = electionForBallot == card.election && ballot == card.suggestedOrder
+                     ): Boolean = electionForBallot == card.election && ballot == card.suggestedOrder.toVector
 }
 
 object MatchingHowToVoteCalculator {

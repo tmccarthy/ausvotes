@@ -1,354 +1,249 @@
 package au.id.tmm.ausvotes.core.tallying.impl
 
-import java.util.concurrent.TimeUnit
-
-import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
-import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, StvBallotWithFacts}
-import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.core.tallies.typeclasses.Tallier
 import au.id.tmm.ausvotes.core.tallying.FetchTally
-import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyRequest
-import au.id.tmm.ausvotes.data_sources.aec.federal.extras.FetchSenateHtv
-import au.id.tmm.ausvotes.data_sources.aec.federal.parsed._
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
-import au.id.tmm.ausvotes.data_sources.common.JsonCache
-import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
-import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.instances.StateInstances
-import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
-import cats.instances.list._
-import cats.syntax.traverse._
-import io.circe.{Decoder, Encoder}
-import scalaz.zio._
-import scalaz.zio.duration.Duration
+import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.{TallyBundle, TallyRequest, TallyRequests}
+import au.id.tmm.ausvotes.data_sources.common.Fs2Interop.ThrowableEOps
+import au.id.tmm.ausvotes.model.ExceptionCaseClass
+import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent}
+import cats.Monoid
 
-import scala.collection.mutable
+import scala.reflect.runtime.universe.{TypeTag, WeakTypeTag}
 
-final class FetchTallyImpl private(
-                                    mutex: Semaphore,
-                                  )(
-                                    implicit
-                                    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
-                                    fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
-                                    fetchSenateCountData: FetchSenateCountData[IO],
-                                    fetchSenateBallots: FetchSenateBallots[IO],
-                                    fetchSenateHtv: FetchSenateHtv[IO],
-                                    jsonCache: JsonCache[IO],
-                                  ) extends FetchTally[IO] {
-
-  private val promisesPerRequest: mutable.Map[TallyRequest, Promise[FetchTally.Error, Tally]] = mutable.Map.empty
-
-  override def fetchTally0(election: SenateElection, tallier: Tallier0): IO[FetchTally.Error, Tally0] = {
-    val tallyRequest = TallyRequest(election, tallier)
-
-    jsonCache.getOrCompute(tallyRequest) {
-      getTallyFor(tallyRequest).map(_.asInstanceOf[Tally0])
-    }.leftMap(FetchTally.Error)
-  }
-
-  override def fetchTally1[T_GROUP_1 : Encoder : Decoder](election: SenateElection, tallier: Tallier1[T_GROUP_1]): IO[FetchTally.Error, Tally1[T_GROUP_1]] = {
-    val tallyRequest = TallyRequest(election, tallier)
-
-    jsonCache.getOrCompute(tallyRequest) {
-      getTallyFor(tallyRequest).map(_.asInstanceOf[Tally1[T_GROUP_1]])
-    }.leftMap(FetchTally.Error)
-  }
-
-  override def fetchTally2[T_GROUP_1 : Encoder : Decoder, T_GROUP_2 : Encoder : Decoder](election: SenateElection, tallier: Tallier2[T_GROUP_1, T_GROUP_2]): IO[FetchTally.Error, Tally2[T_GROUP_1, T_GROUP_2]] = {
-    val tallyRequest = TallyRequest(election, tallier)
-
-    jsonCache.getOrCompute(tallyRequest) {
-      getTallyFor(tallyRequest).map(_.asInstanceOf[Tally2[T_GROUP_1, T_GROUP_2]])
-    }.leftMap(FetchTally.Error)
-  }
-
-  override def fetchTally3[T_GROUP_1 : Encoder : Decoder, T_GROUP_2 : Encoder : Decoder, T_GROUP_3 : Encoder : Decoder](election: SenateElection, tallier: Tallier3[T_GROUP_1, T_GROUP_2, T_GROUP_3]): IO[FetchTally.Error, Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]] = {
-    val tallyRequest = TallyRequest(election, tallier)
-
-    jsonCache.getOrCompute(tallyRequest) {
-      getTallyFor(tallyRequest).map(_.asInstanceOf[Tally3[T_GROUP_1, T_GROUP_2, T_GROUP_3]])
-    }.leftMap(FetchTally.Error)
-  }
-
-  private def getTallyFor(tallyRequest: TallyRequest): IO[FetchTally.Error, Tally] =
-    mutex.withPermit {
-      for {
-        promise <- promisesPerRequest.get(tallyRequest) match {
-          case Some(existingPromise) => IO.point(existingPromise)
-
-          case None =>
-            for {
-              promise <- Promise.make[FetchTally.Error, Tally]
-              _ = promisesPerRequest.update(tallyRequest, promise)
-              _ <- fulfilPromisesFromTallyEngine.fork
-            } yield promise
-        }
-      } yield promise
-    }.flatMap { promise =>
-      promise.get
+final class FetchTallyImpl[F[+_, +_] : Concurrent](chunkSize: Int = 5000) extends FetchTally[F] {
+  override def fetchTally1[B, T_TALLIER_1, A_1 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1)(implicit t1: Tallier[T_TALLIER_1, B, A_1]): F[FetchTally.Error, A_1] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+        } yield tally1
+      }.leftMap(FetchTally.Error)
     }
 
-  private val fulfilPromisesFromTallyEngine: IO[Nothing, Unit] =
-    for {
-      _ <- IO.sleep(Duration(5, TimeUnit.SECONDS))
+  override def fetchTally2[B, T_TALLIER_1, T_TALLIER_2, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2]): F[FetchTally.Error, (A_1, A_2)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+        } yield (tally1, tally2)
+      }.leftMap(FetchTally.Error)
+    }
 
-      requestsAndPromises <- mutex.withPermit {
-        IO.sync {
-          val requestsAndPromises = promisesPerRequest.toMap
+  override def fetchTally3[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3]): F[FetchTally.Error, (A_1, A_2, A_3)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+        } yield (tally1, tally2, tally3)
+      }.leftMap(FetchTally.Error)
+    }
 
-          promisesPerRequest.clear()
+  override def fetchTally4[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4]): F[FetchTally.Error, (A_1, A_2, A_3, A_4)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+        } yield (tally1, tally2, tally3, tally4)
+      }.leftMap(FetchTally.Error)
+    }
 
-          requestsAndPromises
+  override def fetchTally5[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+        } yield (tally1, tally2, tally3, tally4, tally5)
+      }.leftMap(FetchTally.Error)
+    }
+
+  override def fetchTally6[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, T_TALLIER_6, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag, A_6 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5, tallier6: T_TALLIER_6)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5], t6: Tallier[T_TALLIER_6, B, A_6]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5, A_6)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5), TallyRequest[T_TALLIER_6, B, A_6](tallier6))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+          tally6 <- bundle.getTallySafe[T_TALLIER_6, A_6](tallier6)(t6)
+        } yield (tally1, tally2, tally3, tally4, tally5, tally6)
+      }.leftMap(FetchTally.Error)
+    }
+
+  override def fetchTally7[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, T_TALLIER_6, T_TALLIER_7, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag, A_6 : Monoid : TypeTag, A_7 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5, tallier6: T_TALLIER_6, tallier7: T_TALLIER_7)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5], t6: Tallier[T_TALLIER_6, B, A_6], t7: Tallier[T_TALLIER_7, B, A_7]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5, A_6, A_7)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5), TallyRequest[T_TALLIER_6, B, A_6](tallier6), TallyRequest[T_TALLIER_7, B, A_7](tallier7))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+          tally6 <- bundle.getTallySafe[T_TALLIER_6, A_6](tallier6)(t6)
+          tally7 <- bundle.getTallySafe[T_TALLIER_7, A_7](tallier7)(t7)
+        } yield (tally1, tally2, tally3, tally4, tally5, tally6, tally7)
+      }.leftMap(FetchTally.Error)
+    }
+
+  override def fetchTally8[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, T_TALLIER_6, T_TALLIER_7, T_TALLIER_8, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag, A_6 : Monoid : TypeTag, A_7 : Monoid : TypeTag, A_8 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5, tallier6: T_TALLIER_6, tallier7: T_TALLIER_7, tallier8: T_TALLIER_8)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5], t6: Tallier[T_TALLIER_6, B, A_6], t7: Tallier[T_TALLIER_7, B, A_7], t8: Tallier[T_TALLIER_8, B, A_8]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5), TallyRequest[T_TALLIER_6, B, A_6](tallier6), TallyRequest[T_TALLIER_7, B, A_7](tallier7), TallyRequest[T_TALLIER_8, B, A_8](tallier8))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+          tally6 <- bundle.getTallySafe[T_TALLIER_6, A_6](tallier6)(t6)
+          tally7 <- bundle.getTallySafe[T_TALLIER_7, A_7](tallier7)(t7)
+          tally8 <- bundle.getTallySafe[T_TALLIER_8, A_8](tallier8)(t8)
+        } yield (tally1, tally2, tally3, tally4, tally5, tally6, tally7, tally8)
+      }.leftMap(FetchTally.Error)
+    }
+
+  override def fetchTally9[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, T_TALLIER_6, T_TALLIER_7, T_TALLIER_8, T_TALLIER_9, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag, A_6 : Monoid : TypeTag, A_7 : Monoid : TypeTag, A_8 : Monoid : TypeTag, A_9 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5, tallier6: T_TALLIER_6, tallier7: T_TALLIER_7, tallier8: T_TALLIER_8, tallier9: T_TALLIER_9)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5], t6: Tallier[T_TALLIER_6, B, A_6], t7: Tallier[T_TALLIER_7, B, A_7], t8: Tallier[T_TALLIER_8, B, A_8], t9: Tallier[T_TALLIER_9, B, A_9]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5), TallyRequest[T_TALLIER_6, B, A_6](tallier6), TallyRequest[T_TALLIER_7, B, A_7](tallier7), TallyRequest[T_TALLIER_8, B, A_8](tallier8), TallyRequest[T_TALLIER_9, B, A_9](tallier9))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+          tally6 <- bundle.getTallySafe[T_TALLIER_6, A_6](tallier6)(t6)
+          tally7 <- bundle.getTallySafe[T_TALLIER_7, A_7](tallier7)(t7)
+          tally8 <- bundle.getTallySafe[T_TALLIER_8, A_8](tallier8)(t8)
+          tally9 <- bundle.getTallySafe[T_TALLIER_9, A_9](tallier9)(t9)
+        } yield (tally1, tally2, tally3, tally4, tally5, tally6, tally7, tally8, tally9)
+      }.leftMap(FetchTally.Error)
+    }
+
+  override def fetchTally10[B, T_TALLIER_1, T_TALLIER_2, T_TALLIER_3, T_TALLIER_4, T_TALLIER_5, T_TALLIER_6, T_TALLIER_7, T_TALLIER_8, T_TALLIER_9, T_TALLIER_10, A_1 : Monoid : TypeTag, A_2 : Monoid : TypeTag, A_3 : Monoid : TypeTag, A_4 : Monoid : TypeTag, A_5 : Monoid : TypeTag, A_6 : Monoid : TypeTag, A_7 : Monoid : TypeTag, A_8 : Monoid : TypeTag, A_9 : Monoid : TypeTag, A_10 : Monoid : TypeTag](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T_TALLIER_1, tallier2: T_TALLIER_2, tallier3: T_TALLIER_3, tallier4: T_TALLIER_4, tallier5: T_TALLIER_5, tallier6: T_TALLIER_6, tallier7: T_TALLIER_7, tallier8: T_TALLIER_8, tallier9: T_TALLIER_9, tallier10: T_TALLIER_10)(implicit t1: Tallier[T_TALLIER_1, B, A_1], t2: Tallier[T_TALLIER_2, B, A_2], t3: Tallier[T_TALLIER_3, B, A_3], t4: Tallier[T_TALLIER_4, B, A_4], t5: Tallier[T_TALLIER_5, B, A_5], t6: Tallier[T_TALLIER_6, B, A_6], t7: Tallier[T_TALLIER_7, B, A_7], t8: Tallier[T_TALLIER_8, B, A_8], t9: Tallier[T_TALLIER_9, B, A_9], t10: Tallier[T_TALLIER_10, B, A_10]): F[FetchTally.Error, (A_1, A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10)] =
+    fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T_TALLIER_1, B, A_1](tallier1), TallyRequest[T_TALLIER_2, B, A_2](tallier2), TallyRequest[T_TALLIER_3, B, A_3](tallier3), TallyRequest[T_TALLIER_4, B, A_4](tallier4), TallyRequest[T_TALLIER_5, B, A_5](tallier5), TallyRequest[T_TALLIER_6, B, A_6](tallier6), TallyRequest[T_TALLIER_7, B, A_7](tallier7), TallyRequest[T_TALLIER_8, B, A_8](tallier8), TallyRequest[T_TALLIER_9, B, A_9](tallier9), TallyRequest[T_TALLIER_10, B, A_10](tallier10))).flatMap { bundle =>
+      BifunctorMonadError.fromEither {
+        for {
+          tally1 <- bundle.getTallySafe[T_TALLIER_1, A_1](tallier1)(t1)
+          tally2 <- bundle.getTallySafe[T_TALLIER_2, A_2](tallier2)(t2)
+          tally3 <- bundle.getTallySafe[T_TALLIER_3, A_3](tallier3)(t3)
+          tally4 <- bundle.getTallySafe[T_TALLIER_4, A_4](tallier4)(t4)
+          tally5 <- bundle.getTallySafe[T_TALLIER_5, A_5](tallier5)(t5)
+          tally6 <- bundle.getTallySafe[T_TALLIER_6, A_6](tallier6)(t6)
+          tally7 <- bundle.getTallySafe[T_TALLIER_7, A_7](tallier7)(t7)
+          tally8 <- bundle.getTallySafe[T_TALLIER_8, A_8](tallier8)(t8)
+          tally9 <- bundle.getTallySafe[T_TALLIER_9, A_9](tallier9)(t9)
+          tally10 <- bundle.getTallySafe[T_TALLIER_10, A_10](tallier10)(t10)
+        } yield (tally1, tally2, tally3, tally4, tally5, tally6, tally7, tally8, tally9, tally10)
+      }.leftMap(FetchTally.Error)
+    }
+
+  private def fetchTalliesUnsafe[B](ballots: fs2.Stream[F[Throwable, +?], B], tallyRequests: TallyRequests[B]): F[FetchTally.Error, TallyBundle[B]] =
+    ballots.chunkN(5000)
+      .parEvalMapUnordered(maxConcurrent = Runtime.getRuntime.availableProcessors()) { chunk =>
+        if (chunk.nonEmpty) {
+          BifunctorMonadError.pure(applyTallyRequests[B](tallyRequests, chunk.toVector))
+        } else {
+          BifunctorMonadError.pure(TallyBundle.empty[B])
         }
       }
+      .foldMonoid
+      .compile
+      .lastOrError
+      .swallowThrowablesAndWrapIn(FetchTally.Error)
 
-      _ <- IO.traverse(requestsAndPromises.groupBy { case (TallyRequest(election, _), _) => election }) {
-        case (election, promisesPerTallyRequestsForElection) =>
-          val promisesPerTallier: Map[Tallier, Promise[FetchTally.Error, Tally]] = promisesPerTallyRequestsForElection.map {
-            case (TallyRequest(_, tallier), promise) => tallier -> promise
-          }
+  private def applyTallyRequests[B](tallyRequests: TallyRequests[B], ballots: Vector[B]): TallyBundle[B] = TallyBundle {
+    tallyRequests.requests.map { case TallyRequest(tallier, tallierInstance, valueTypeTag, valueMonoid) =>
+      val tallyValue = tallierInstance.tallyAll(tallier)(ballots)
 
-          val talliers = promisesPerTallier.keySet
-
-          for {
-            tallyBundleOrError <- runForElectionAndTalliers(election, talliers).attempt
-              .timedLog(
-                eventId = "TALLY_ENGINE_EXECUTION",
-                "election" -> election,
-                "states" -> election.allStateElections.map(_.state),
-                "talliers" -> talliers.map(_.name),
-              )
-
-            _ <- tallyBundleOrError match {
-              case Right(tallyBundle) => promisesPerTallier.toList.traverse { case (tallier, promise) =>
-                promise.complete(tallyBundle.tallyProducedBy(tallier))
-              }
-
-              case Left(error) => {
-                promisesPerTallier.values.toList
-                  .traverse(_.error(error))
-              }
-            }
-          } yield ()
-      }
-
-    } yield ()
-
-  private def runForElectionAndTalliers(election: SenateElection, talliers: Set[Tallier]): IO[FetchTally.Error, TallyBundle] = for {
-    divisionsPollingPlacesGroupsAndCandidates <- {
-      FetchDivisionsAndFederalPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection).leftMap(FetchTally.Error(_)) par
-        FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election).leftMap(FetchTally.Error(_))
-    }
-
-    divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
-    groupsAndCandidates = divisionsPollingPlacesGroupsAndCandidates._2
-
-    htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
-      .leftMap(FetchTally.Error)
-
-    tallyBundle <- runForAllStatesAtElection(election, divisionsAndPollingPlaces, groupsAndCandidates, htvCards, talliers)
-
-  } yield tallyBundle
-
-
-  private def runForAllStatesAtElection(
-                                         senateElection: SenateElection,
-                                         divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                         groupsAndCandidates: SenateGroupsAndCandidates,
-                                         htvCards: Map[SenateElectionForState, Set[SenateHtv]],
-                                         talliers: Set[Tallier],
-                                       ): IO[FetchTally.Error, TallyBundle] = {
-    val electionsInSizeOrder = senateElection.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
-
-    electionsInSizeOrder.traverse { electionForState =>
-      runForState(electionForState, divisionsAndPollingPlaces, groupsAndCandidates, htvCards.getOrElse(electionForState, Set.empty), talliers)
-    }.map(_.foldLeft(TallyBundle())(_ + _))
+      tallier -> TallyBundle.Value(tallyValue, valueTypeTag, valueMonoid)
+    }.toMap
   }
-
-  private def runForState(
-                           election: SenateElectionForState,
-                           divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                           groupsAndCandidates: SenateGroupsAndCandidates,
-                           htvCards: Set[SenateHtv],
-                           talliers: Set[Tallier],
-                         ): IO[FetchTally.Error, TallyBundle] = {
-    val relevantDivisionsAndPollingPlaces = divisionsAndPollingPlaces.findFor(election.election.federalElection, election.state)
-    val relevantGroupsAndCandidates = groupsAndCandidates.findFor(election)
-
-    for {
-      countData <- FetchSenateCountData.senateCountDataFor(election, groupsAndCandidates)
-        .leftMap(FetchTally.Error)
-
-      computationTools = buildComputationToolsFor(election, relevantGroupsAndCandidates, htvCards)
-      computationInputData = ComputationInputData(
-        ComputationInputData.ElectionLevelData(relevantDivisionsAndPollingPlaces, groupsAndCandidates, htvCards),
-        ComputationInputData.StateLevelData(countData)
-      )
-
-      tallyBundle <- makeTallyBundleForElection(election, talliers, relevantDivisionsAndPollingPlaces, groupsAndCandidates, computationTools, computationInputData)
-
-    } yield tallyBundle
-  }
-
-  private def buildComputationToolsFor(
-                                        election: SenateElectionForState,
-                                        groupsAndCandidates: SenateGroupsAndCandidates,
-                                        howToVoteCards: Set[SenateHtv],
-                                      ): ComputationTools = {
-
-    val normaliser = BallotNormaliser.forSenate(election, groupsAndCandidates.candidates)
-    val matchingHowToVoteCalculator = MatchingHowToVoteCalculator(howToVoteCards)
-
-    ComputationTools(
-      ComputationTools.ElectionLevelTools(matchingHowToVoteCalculator),
-      ComputationTools.StateLevelTools(normaliser)
-    )
-  }
-
-  private def makeTallyBundleForElection(
-                                          election: SenateElectionForState,
-                                          talliers: Set[Tallier],
-                                          divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
-                                          groupsAndCandidates: SenateGroupsAndCandidates,
-                                          computationTools: ComputationTools,
-                                          computationInputData: ComputationInputData,
-                                        ): IO[FetchTally.Error, TallyBundle] =
-
-    for {
-      ballotsStream <- FetchSenateBallots.senateBallotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces)
-        .leftMap(FetchTally.Error)
-
-      tallyStream = ballotsStream.chunkN(5000)
-        .parEvalMap(maxConcurrent = 4) { chunk =>
-          if (chunk.nonEmpty) {
-            IO.sync {
-              makeTallyBundleForBallots(election, talliers, computationTools, computationInputData, chunk.toVector)
-            }.timedLog(
-              eventId = "FORK_COMPUTED_TALLIES",
-              "election" -> election.election,
-              "state" -> election.state.abbreviation,
-              "ballots_processed" -> chunk.size,
-            ): IO[Nothing, TallyBundle]
-          } else {
-            IO.point(TallyBundle())
-          }
-        }(scalaz.zio.interop.catz.taskEffectInstances)
-        .foldMonoid
-
-      tallyBundle <- tallyStream.compile.lastOrError
-        .swallowThrowablesAndWrapIn(FetchTally.Error)
-    } yield tallyBundle
-
-  //    IO.bracket(
-  //      acquire = IO.syncException(parsedDataStore.ballotsFor(election, groupsAndCandidates, divisionsAndPollingPlaces)),
-  //    )(
-  //      release = resource => IO.sync(resource.close()),
-  //    ) { ballots =>
-  //
-  //      val numComputationForks = 4
-  //      val ballotsProcessedPerFork = 5000
-  //
-  //      val groupedBallots = ballots.grouped(ballotsProcessedPerFork)
-  //
-  //      for {
-  //        finalTallyBundleRef <- Ref(TallyBundle())
-  //
-  //        readBallotsMutex <- Semaphore(permits = 1)
-  //        computationSemaphore <- Semaphore(permits = numComputationForks)
-  //
-  //        processChunksOp: IO[Nothing, Boolean] = computationSemaphore.withPermit {
-  //          readBallotsMutex.withPermit {
-  //            IO.sync { if (groupedBallots.hasNext) groupedBallots.next() else Nil }
-  //          }.flatMap { ballotChunk =>
-  //
-  //            if (ballotChunk.nonEmpty) {
-  //              IO.sync {
-  //                makeTallyBundleForBallots(election, talliers, computationTools, computationInputData, ballotChunk.toVector)
-  //              }.flatMap { tallyBundleForChunk =>
-  //                finalTallyBundleRef.update(_ + tallyBundleForChunk)
-  //              }.map { _ =>
-  //                true
-  //              }.timedLog(
-  //                eventId = "FORK_COMPUTED_TALLIES",
-  //                "election" -> election.election,
-  //                "state" -> election.state.abbreviation,
-  //                "ballots_processed" -> ballotChunk.size,
-  //              ): IO[Nothing, Boolean]
-  //            } else {
-  //              IO.point(false)
-  //            }
-  //          }
-  //        }
-  //
-  //        _ <- repeatedOp[Nothing, Boolean](processChunksOp, finishesWhen = shouldFinish => shouldFinish, numFibres = numComputationForks * 2)
-  //
-  //        finalTallyBundle <- finalTallyBundleRef.get
-  //
-  //        _ <- Log.logInfo(
-  //          "COMPUTE_TALLIES_FOR_STATE",
-  //          "election" -> election.election,
-  //          "state" -> election.state.abbreviation,
-  //          "talliers" -> talliers.map(_.name),
-  //        )
-  //
-  //      } yield finalTallyBundle
-  //
-  //    }.leftMap {
-  //      case e: FetchTally.Error => e
-  //      case e: Exception => FetchTally.Error(e)
-  //    }
-  //
-  //  private def repeatedOp[E, A](op: IO[E, A], finishesWhen: A => Boolean, numFibres: Int): IO[E, Unit] = {
-  //    val workerTasks: List[IO[E, Unit]] = List.fill(numFibres)(op.repeat(Schedule.doWhile(finishesWhen)).map(_ => ()))
-  //
-  //    IO.parAll(workerTasks).map(_ => ())
-  //  }
-
-  private def makeTallyBundleForBallots(
-                                         election: SenateElectionForState,
-                                         talliers: Set[Tallier],
-                                         computationTools: ComputationTools,
-                                         computationInputData: ComputationInputData,
-                                         ballots: Vector[SenateBallot],
-                                       ): TallyBundle = {
-    val ballotsWithFacts: Iterable[StvBallotWithFacts] = BallotFactsComputation.computeFactsFor(
-      election,
-      computationInputData,
-      computationTools,
-      ballots,
-    )
-
-    TallyBundle {
-      talliers.map { tallier =>
-        tallier -> tallier.tally(ballotsWithFacts)
-      }.toMap
-    }
-  }
-
 
 }
 
 object FetchTallyImpl {
 
-  def apply()(
-    implicit
-    fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
-    fetchSenateGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
-    fetchSenateCountData: FetchSenateCountData[IO],
-    fetchSenateBallots: FetchSenateBallots[IO],
-    fetchSenateHtv: FetchSenateHtv[IO],
-    jsonCache: JsonCache[IO],
-  ): IO[Nothing, FetchTallyImpl] =
-    Semaphore(permits = 1).map(mutex => new FetchTallyImpl(mutex))
+  import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyBundle.UnknownTallier
 
-  private final case class TallyRequest(election: SenateElection, tallier: Tallier)
+  private final case class TallyRequest[T_TALLIER, B, A](tallier: T_TALLIER, tallierInstance: Tallier[T_TALLIER, B, A], valueTypeTag: TypeTag[A], valueMonoid: Monoid[A])
 
   private object TallyRequest {
-    import TallierCodec._
+    def apply[T_TALLIER, B, A : Monoid : TypeTag](tallier: T_TALLIER)(implicit tallierInstance: Tallier[T_TALLIER, B, A]): TallyRequest[T_TALLIER, B, A] = TallyRequest(tallier, tallierInstance, implicitly[TypeTag[A]], implicitly[Monoid[A]])
+  }
 
-    implicit val encoder: Encoder[TallyRequest] = Encoder.forProduct2("election", "tallier")(t => (t.election, t.tallier))
+  private final case class TallyRequests[B](requests: List[TallyRequest[_, B, _]])
+
+  private object TallyRequests {
+    def apply[B](requests: TallyRequest[_, B, _]*): TallyRequests[B] = TallyRequests(requests.toList)
+  }
+
+  private final case class TallyBundle[B](underlying: Map[UnknownTallier, TallyBundle.Value[_]]) {
+    def getTallySafe[T_TALLIER, A : WeakTypeTag](tallier: T_TALLIER)(tallierInstance: Tallier[T_TALLIER, B, A]): Either[TallyBundle.GetTallyError, A] =
+      for {
+        value <- underlying.get(tallier)
+          .toRight(TallyBundle.GetTallyError.NoTallyForKey)
+
+        expectedTypeTag = implicitly[WeakTypeTag[A]]
+        actualTypeTag = value.valueTag
+
+        _ <- if (actualTypeTag.tpe.<:<(expectedTypeTag.tpe)) Right(Unit) else Left(TallyBundle.GetTallyError.TypeError(expectedTypeTag, actualTypeTag))
+      } yield value.value.asInstanceOf[A]
+  }
+
+  private object TallyBundle {
+    def empty[B]: TallyBundle[B] = TallyBundle(Map.empty)
+
+    type UnknownTallier = Any
+
+    implicit def monoid[B]: Monoid[TallyBundle[B]] = new Monoid[TallyBundle[B]] {
+      override def empty: TallyBundle[B] = TallyBundle.empty
+      override def combine(left: TallyBundle[B], right: TallyBundle[B]): TallyBundle[B] = {
+        val talliers = left.underlying.keySet ++ right.underlying.keySet
+
+        val newUnderlyingMap = talliers.flatMap { tallier =>
+          val leftTallyBundleValue = left.underlying.get(tallier)
+          val rightTallyBundleValue = right.underlying.get(tallier)
+
+          val maybeMonoid = leftTallyBundleValue.map(_.monoidForValueType) orElse rightTallyBundleValue.map(_.monoidForValueType)
+
+          maybeMonoid.map { monoid =>
+            tallier -> monoid.asInstanceOf[Monoid[Value[Any]]]
+              .combine(leftTallyBundleValue.getOrElse(monoid.empty).asInstanceOf[Value[Any]], rightTallyBundleValue.getOrElse(monoid.empty).asInstanceOf[Value[Any]])
+          }
+        }.toMap
+
+        TallyBundle(newUnderlyingMap)
+      }
+    }
+
+    final case class Value[A](value: A, valueTag: TypeTag[A], monoidForValueType: Monoid[A])
+
+    object Value {
+      implicit def isAMonoid[A : Monoid : TypeTag]: Monoid[Value[A]] = new Monoid[Value[A]] {
+        override def empty: Value[A] = Value(Monoid[A].empty, implicitly[TypeTag[A]], Monoid[A])
+
+        override def combine(left: Value[A], right: Value[A]): Value[A] =
+          Value(Monoid.combine(left.value, right.value), implicitly[TypeTag[A]], Monoid[A])
+      }
+    }
+
+    sealed abstract class GetTallyError extends ExceptionCaseClass
+
+    object GetTallyError {
+      final case class TypeError(expectedTypeTag: WeakTypeTag[_], actualTypeTag: TypeTag[_]) extends GetTallyError
+      final case object NoTallyForKey extends GetTallyError
+    }
   }
 
 }

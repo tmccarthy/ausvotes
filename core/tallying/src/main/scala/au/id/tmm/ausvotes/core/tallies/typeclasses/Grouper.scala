@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.core.tallies2.typeclasses
+package au.id.tmm.ausvotes.core.tallies.typeclasses
 
 trait Grouper[F, G, B] {
   def groupsOf(grouper: F)(ballot: B): Set[G]

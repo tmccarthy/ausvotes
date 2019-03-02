@@ -1,6 +1,6 @@
-package au.id.tmm.ausvotes.core.tallies2
+package au.id.tmm.ausvotes.core.tallies
 
-import au.id.tmm.ausvotes.core.tallies2.typeclasses.{Grouper, Tallier}
+import au.id.tmm.ausvotes.core.tallies.typeclasses.{Grouper, Tallier}
 import cats.Monoid
 import io.circe.{Decoder, Encoder}
 

@@ -6,6 +6,7 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction, FederalPollingPlace}
 import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.countstv.normalisation.Preference
+import cats.data.NonEmptyVector
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 
@@ -75,9 +76,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     candidatesInOrder.map(candidateWithPosition).toVector
   }
 
-  def groupOrder(groupsInOrder: String*): Vector[SenateGroup] = {
-    groupsInOrder.map(group).toVector
-  }
+  def groupOrder(firstGroup: String, otherGroupsInOrder: String*): NonEmptyVector[SenateGroup] =
+    NonEmptyVector.apply(firstGroup, otherGroupsInOrder.toVector).map(group)
 }
 
 object BallotMaker {
