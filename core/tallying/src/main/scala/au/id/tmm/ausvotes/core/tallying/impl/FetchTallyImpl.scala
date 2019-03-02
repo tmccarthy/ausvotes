@@ -9,7 +9,7 @@ import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
 import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent}
 import cats.Monoid
 
-final class FetchTallyImpl[F[+_, +_] : Concurrent](chunkSize: Int = 5000) extends FetchTally[F] {
+final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 5000) extends FetchTally[F] {
   override def fetchTally1[B, T1, A1 : Monoid](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: T1)(implicit t1: Tallier[T1, B, A1]): F[FetchTally.Error, A1] =
     fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[T1, B, A1](tallier1))).map { bundle =>
       val tally1 = bundle.getTallySafe[T1, A1](tallier1)(t1)
@@ -140,6 +140,8 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent](chunkSize: Int = 5000) extend
 }
 
 object FetchTallyImpl {
+
+  def apply[F[+_, +_] : Concurrent]: FetchTallyImpl[F] = new FetchTallyImpl()
 
   import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.TallyBundle.UnknownTallier
 

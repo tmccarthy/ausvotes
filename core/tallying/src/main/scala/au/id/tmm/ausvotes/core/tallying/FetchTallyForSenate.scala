@@ -18,18 +18,16 @@ import cats.syntax.traverse._
 
 object FetchTallyForSenate {
 
-  def apply[F[+_, +_]](
-                        election: SenateElection,
-                      )(implicit
-                        concurrent: Concurrent[F],
-                        jsonCache: JsonCache[F],
-                        log: Log[F],
-                        fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[F],
-                        fetchDivisions: FetchDivisionsAndFederalPollingPlaces[F],
-                        fetchCountData: FetchSenateCountData[F],
-                        fetchSenateBallots: FetchSenateBallots[F],
-                        fetchHtv: FetchSenateHtv[F],
-                        fetchTally: FetchTally[F],
+  def apply[F[+_, +_]](implicit
+                       concurrent: Concurrent[F],
+                       jsonCache: JsonCache[F],
+                       log: Log[F],
+                       fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[F],
+                       fetchDivisions: FetchDivisionsAndFederalPollingPlaces[F],
+                       fetchCountData: FetchSenateCountData[F],
+                       fetchSenateBallots: FetchSenateBallots[F],
+                       fetchHtv: FetchSenateHtv[F],
+                       fetchTally: FetchTally[F],
                       ): FetchTallyForElection[F, SenateElection, StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]] =
     FetchTallyForElection(ballotStreamFor(_))
 
