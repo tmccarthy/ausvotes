@@ -5,13 +5,16 @@ import au.id.tmm.ausvotes.analysis.models.PartyGroup
 import au.id.tmm.ausvotes.analysis.models.ValueTypes.{UsedHtv, VotedFormally}
 import au.id.tmm.ausvotes.analysis.utilities.charts.HorizontalStackedBar.XAxisOrdering
 import au.id.tmm.ausvotes.analysis.utilities.charts.{HorizontalStackedBar, VerticalGroupedBar}
+import au.id.tmm.ausvotes.analysis.utilities.data_processing.Aggregations.AggregationOps
 import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
 import au.id.tmm.ausvotes.analysis.utilities.rendering.MarkdownRendering
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme
 import au.id.tmm.ausvotes.analysis.utilities.themes.PlotlyTheme._
 import au.id.tmm.ausvotes.core.computations.StvBallotWithFacts
-import au.id.tmm.ausvotes.core.tallies.SenateElectionTalliers._
+import au.id.tmm.ausvotes.core.tallies.Tally.Ops._
 import au.id.tmm.ausvotes.core.tallies._
+import au.id.tmm.ausvotes.core.tallies.redo.BallotGrouper.SenateBallotGrouper
+import au.id.tmm.ausvotes.core.tallies.redo.BallotTallier.SenateBallotTallier
 import au.id.tmm.ausvotes.core.tallying.FetchTallyForElection
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.FetchSenateHtv
@@ -26,6 +29,7 @@ import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.utilities.geo.australia.State
 import cats.Monoid
 import cats.instances.double._
+import cats.instances.long._
 import scalaz.zio.IO
 
 object HtvUsageIn2016 extends TallyingAnalysisScript {
@@ -45,17 +49,17 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
 
     val (usedHtv_nationally, votedFormally_nationally, usedHtv_perNationalParty, votedFormally_perNationalParty, usedHtv_perState_perParty, votedFormally_perState_perParty, usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty) = unsafeRun {
       fetchTalliesForElection.fetchTally8(SenateElection.`2016`)(
-        BallotTallier.UsedHowToVoteCard,
-        BallotTallier.FormalBallots,
+        SenateBallotTallier.UsedHowToVoteCard,
+        SenateBallotTallier.FormalBallots,
 
-        GroupAndCountTallier.with1Tier(BallotGrouping.FirstPreferencedPartyNationalEquivalent, BallotTallier.UsedHowToVoteCard),
-        GroupAndCountTallier.with1Tier(BallotGrouping.FirstPreferencedPartyNationalEquivalent, BallotTallier.FormalBallots),
+        SenateBallotTallier.UsedHowToVoteCard.groupingBy(SenateBallotGrouper.FirstPreferencedPartyNationalEquivalent),
+        SenateBallotTallier.FormalBallots.groupingBy(SenateBallotGrouper.FirstPreferencedPartyNationalEquivalent),
 
-        GroupAndCountTallier.with2Tier(BallotGrouping.State, BallotGrouping.FirstPreferencedParty, BallotTallier.UsedHowToVoteCard),
-        GroupAndCountTallier.with2Tier(BallotGrouping.State, BallotGrouping.FirstPreferencedParty, BallotTallier.FormalBallots),
+        SenateBallotTallier.UsedHowToVoteCard.groupingBy(SenateBallotGrouper.FirstPreferencedParty).groupingBy(SenateBallotGrouper.State),
+        SenateBallotTallier.FormalBallots.groupingBy(SenateBallotGrouper.FirstPreferencedParty).groupingBy(SenateBallotGrouper.State),
 
-        GroupAndCountTallier.with3Tier(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty, BallotTallier.UsedHowToVoteCard),
-        GroupAndCountTallier.with3Tier(BallotGrouping.State, BallotGrouping.Division, BallotGrouping.FirstPreferencedParty, BallotTallier.FormalBallots),
+        SenateBallotTallier.UsedHowToVoteCard.groupingBy(SenateBallotGrouper.FirstPreferencedParty).groupingBy(SenateBallotGrouper.Division).groupingBy(SenateBallotGrouper.State),
+        SenateBallotTallier.FormalBallots.groupingBy(SenateBallotGrouper.FirstPreferencedParty).groupingBy(SenateBallotGrouper.Division).groupingBy(SenateBallotGrouper.State),
       )
     }
 
@@ -68,21 +72,21 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
     analysisByDivision(usedHtv_perState_perDivision_perParty, votedFormally_perState_perDivision_perParty)
   }
 
-  private def analysisNationally(usedHtv_nationally: Tally0, votedFormally_nationally: Tally0): Unit = {
-    val usedHtv = UsedHtv.Nominal(usedHtv_nationally.value)
-    val votedFormally = VotedFormally(votedFormally_nationally.value)
+  private def analysisNationally(usedHtv_nationally: Long, votedFormally_nationally: Long): Unit = {
+    val usedHtv = UsedHtv.Nominal(usedHtv_nationally)
+    val votedFormally = VotedFormally(votedFormally_nationally)
     val usedHtvPercentage = usedHtv / votedFormally
 
     println(MarkdownRendering.render("Used HTV", "Voted formally", "% used HTV")(List((usedHtv, votedFormally, usedHtvPercentage))))
   }
 
   private def analysisNationallyByParty(
-                                         usedHtv: Tally1[Option[Party]],
-                                         votedFormally: Tally1[Option[Party]],
+                                         usedHtv: Tally1[Option[Party], Long],
+                                         votedFormally: Tally1[Option[Party], Long],
                                        ): Unit = {
-    def prepare[A : Monoid](tally: Tally1[Option[Party]])(makeA: Double => A): Map[PartyGroup, A] =
-      tally.asStream
-        .map { case (party, Tally0(tallyAsDouble)) => PartyGroup.from(party) -> makeA(tallyAsDouble) }
+    def prepare[A : Monoid](tally: Tally1[Option[Party], Long])(makeA: Double => A): Map[PartyGroup, A] =
+      tally.toVector
+        .map { case (party, tally) => PartyGroup.from(party) -> makeA(tally) }
         .groupByAndAggregate { case (party, _) => party } { case (_, tally) => tally }
 
     val preparedTallies: List[(PartyGroup, UsedHtv.Nominal, VotedFormally, UsedHtv.Percentage)] = Joins.innerJoinUsing(
@@ -118,10 +122,10 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
 
   }
 
-  private def analysisByStateByParty(usedHtv: Tally2[State, Option[Party]], votedFormally: Tally2[State, Option[Party]]): Unit = {
-    def prepare[A : Monoid](tally: Tally2[State, Option[Party]])(makeA: Double => A): List[(State, PartyGroup, A)] =
-      tally.asStream
-        .map { case (state, party, Tally0(tallyAsDouble)) => (state, PartyGroup.from(party), makeA(tallyAsDouble)) }
+  private def analysisByStateByParty(usedHtv: Tally2[State, Option[Party], Long], votedFormally: Tally2[State, Option[Party], Long]): Unit = {
+    def prepare[A : Monoid](tally: Tally2[State, Option[Party], Long])(makeA: Double => A): List[(State, PartyGroup, A)] =
+      tally.toVector
+        .map { case (state, party, tally) => (state, PartyGroup.from(party), makeA(tally)) }
         .groupByAndAggregate { case (state, party, _) => (state, party) } { case (_, _, tally) => tally }
         .map { case ((state, party), tally) => (state, party, tally) }
         .toList
@@ -159,12 +163,12 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
   }
 
   def analysisByDivision(
-                          usedHtv_perState_perDivision_perParty: Tally3[State, Division, Option[Party]],
-                          votedFormally_perState_perDivision_perParty: Tally3[State, Division, Option[Party]],
+                          usedHtv_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
+                          votedFormally_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
                         ): Unit = {
-    def prepare[A : Monoid](tally: Tally3[State, Division, Option[Party]])(makeA: Double => A): Map[(Division, PartyGroup), A] =
-      tally.asStream
-        .map { case (state, division, party, Tally0(tallyAsDouble)) => (division, PartyGroup.from(party), makeA(tallyAsDouble)) }
+    def prepare[A : Monoid](tally: Tally3[State, Division, Option[Party], Long])(makeA: Double => A): Map[(Division, PartyGroup), A] =
+      tally.toVector
+        .map { case (state, division, party, tally) => (division, PartyGroup.from(party), makeA(tally)) }
         .groupByAndAggregate { case (division, party, _) => (division, party) } { case (_, _, tally) => tally }
 
     val nominalHtvUsageTallies = prepare(usedHtv_perState_perDivision_perParty)(UsedHtv.Nominal(_))

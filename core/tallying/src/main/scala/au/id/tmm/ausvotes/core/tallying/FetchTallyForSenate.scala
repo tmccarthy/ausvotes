@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.core.tallying
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
-import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, StvBallotWithFacts}
+import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, SenateBallotWithFacts}
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.{CountRules, FetchSenateHtv}
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
@@ -28,7 +28,7 @@ object FetchTallyForSenate {
                        fetchSenateBallots: FetchSenateBallots[F],
                        fetchHtv: FetchSenateHtv[F],
                        fetchTally: FetchTally[F],
-                      ): FetchTallyForElection[F, SenateElection, StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]] =
+                      ): FetchTallyForElection[F, SenateElection, SenateBallotWithFacts] =
     FetchTallyForElection(ballotStreamFor(_))
 
   private def ballotStreamFor[F[+_, +_]](
@@ -43,7 +43,7 @@ object FetchTallyForSenate {
                                           fetchSenateBallots: FetchSenateBallots[F],
                                           fetchHtv: FetchSenateHtv[F],
                                           fetchTally: FetchTally[F],
-                                        ): F[Exception, fs2.Stream[F[Throwable, +?], StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]] =
+                                        ): F[Exception, fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]] =
     for {
       divisionsPollingPlacesGroupsAndCandidates <- Concurrent.par2(
         FetchDivisionsAndFederalPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection).leftMap(FetchTally.Error(_)),
@@ -67,7 +67,7 @@ object FetchTallyForSenate {
 
       ballotStream = ballotWithFactsStreamsInSizeOrder
         .reduceOption(_ ++ _)
-        .getOrElse[fs2.Stream[F[Throwable, +?], StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]](fs2.Stream.empty)
+        .getOrElse[fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]](fs2.Stream.empty)
     } yield ballotStream
 
   private def ballotsWithFactsFor[F[+_, +_]](
@@ -80,7 +80,7 @@ object FetchTallyForSenate {
                                               log: Log[F],
                                               fetchCountData: FetchSenateCountData[F],
                                               fetchSenateBallots: FetchSenateBallots[F],
-                                            ): F[Exception, fs2.Stream[F[Throwable, +?], StvBallotWithFacts[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId]]] =
+                                            ): F[Exception, fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]] =
     for {
       senateBallotsStream <- FetchSenateBallots.senateBallotsFor(electionForState, groupsAndCandidates, divisionsAndPollingPlaces)
 
