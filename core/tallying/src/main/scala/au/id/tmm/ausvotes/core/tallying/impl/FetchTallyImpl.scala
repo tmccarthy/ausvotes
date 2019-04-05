@@ -143,6 +143,8 @@ object FetchTallyImpl {
 
   def apply[F[+_, +_] : Concurrent]: FetchTallyImpl[F] = new FetchTallyImpl()
 
+
+
   private final case class TallyRequest[B, A](tallier: BallotTallier[B, A])(implicit val valueMonoid: Monoid[A])
 
   private final case class TallyRequests[B](requests: List[TallyRequest[B, _]])
@@ -153,7 +155,7 @@ object FetchTallyImpl {
 
   private final case class TallyBundle[B](underlying: Map[BallotTallier[B, _], TallyBundle.Value[_]]) {
     def getTallySafe[A](tallier: BallotTallier[B, A]): A =
-      underlying(tallier).asInstanceOf[A]
+      underlying(tallier).value.asInstanceOf[A]
   }
 
   private object TallyBundle {
@@ -165,14 +167,19 @@ object FetchTallyImpl {
         val talliers = left.underlying.keySet ++ right.underlying.keySet
 
         val newUnderlyingMap: Map[BallotTallier[B, _], Value[_]] = talliers.flatMap { tallier =>
-          val leftTallyBundleValue = left.underlying.get(tallier)
-          val rightTallyBundleValue = right.underlying.get(tallier)
+          val leftTallyBundleValue: Option[Value[_]] = left.underlying.get(tallier)
+          val rightTallyBundleValue: Option[Value[_]] = right.underlying.get(tallier)
 
           val maybeMonoid = leftTallyBundleValue.map(_.monoidForValueType) orElse rightTallyBundleValue.map(_.monoidForValueType)
 
           maybeMonoid.map { monoid =>
-            tallier -> monoid.asInstanceOf[Monoid[Value[Any]]]
-              .combine(leftTallyBundleValue.getOrElse(monoid.empty).asInstanceOf[Value[Any]], rightTallyBundleValue.getOrElse(monoid.empty).asInstanceOf[Value[Any]])
+            val left = leftTallyBundleValue.map(_.value).getOrElse(monoid.empty)
+            val right = rightTallyBundleValue.map(_.value).getOrElse(monoid.empty)
+
+            tallier -> Value(
+              value = monoid.asInstanceOf[Monoid[Any]].combine(left, right),
+              monoid.asInstanceOf[Monoid[Any]],
+            )
           }
         }.toMap
 
@@ -181,15 +188,6 @@ object FetchTallyImpl {
     }
 
     final case class Value[A](value: A, monoidForValueType: Monoid[A])
-
-    object Value {
-      implicit def isAMonoid[A : Monoid]: Monoid[Value[A]] = new Monoid[Value[A]] {
-        override def empty: Value[A] = Value(Monoid[A].empty, Monoid[A])
-
-        override def combine(left: Value[A], right: Value[A]): Value[A] =
-          Value(Monoid.combine(left.value, right.value), Monoid[A])
-      }
-    }
   }
 
 }
