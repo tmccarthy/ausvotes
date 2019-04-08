@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.{TallyBundle, TallyR
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop.ThrowableEOps
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
 import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent, SyncEffects}
 import cats.Monoid
 
 final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 5000) extends FetchTally[F] {
@@ -119,7 +119,7 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 500
     ballots.chunkN(chunkSize)
       .parEvalMapUnordered(maxConcurrent = Runtime.getRuntime.availableProcessors()) { chunk =>
         if (chunk.nonEmpty) {
-          BifunctorMonadError.pure(applyTallyRequests[B](tallyRequests, chunk.toVector))
+          SyncEffects.syncThrowable(applyTallyRequests[B](tallyRequests, chunk.toVector))
         } else {
           BifunctorMonadError.pure(TallyBundle.empty[B])
         }
@@ -142,8 +142,6 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 500
 object FetchTallyImpl {
 
   def apply[F[+_, +_] : Concurrent]: FetchTallyImpl[F] = new FetchTallyImpl()
-
-
 
   private final case class TallyRequest[B, A](tallier: BallotTallier[B, A])(implicit val valueMonoid: Monoid[A])
 
