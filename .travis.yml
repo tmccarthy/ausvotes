@@ -10,7 +10,7 @@ before_install:
 - sudo apt-get install -y npm
 - npm install mocha chai ts-node -g
 
-script: "./gradlew :ui:check build scoverage :infrastructure:deployIfMaster --info --stacktrace"
+script: "./gradlew :ui:check build scoverage --info --stacktrace"
 
 env:
   global:
