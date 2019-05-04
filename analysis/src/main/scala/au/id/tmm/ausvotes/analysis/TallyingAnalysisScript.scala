@@ -13,9 +13,16 @@ import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.federal.FederalBallotJurisdiction
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotId, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import scalaz.zio.ExitResult.Cause
+import scalaz.zio.internal.Env
 import scalaz.zio.{IO, RTS}
 
 abstract class TallyingAnalysisScript extends RTS {
+
+  override lazy val env: Env = Env.newDefaultEnv {
+    case Cause.Interruption => IO.unit // We do this because otherwise we get heaps of println("Interruption") TODO remove this later
+    case cause => IO.sync(println(cause.toString))
+  }
 
   def main(args: Array[String]): Unit = {
     val dataStorePath = Paths.get("rawData")

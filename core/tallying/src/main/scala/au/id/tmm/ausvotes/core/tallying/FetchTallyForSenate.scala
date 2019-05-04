@@ -12,7 +12,7 @@ import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.{Ops, _}
 import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent}
+import au.id.tmm.ausvotes.shared.io.typeclasses.{Concurrent, SyncEffects}
 import cats.instances.list._
 import cats.syntax.traverse._
 
@@ -90,27 +90,26 @@ object FetchTallyForSenate {
       matchingHowToVoteCalculator = MatchingHowToVoteCalculator(htvCards)
 
       ballotsWithFactsStream = senateBallotsStream.chunkN(5000)
-        .parEvalMapUnordered(Runtime.getRuntime.availableProcessors()) { chunk =>
-          BifunctorMonadError.pure(
-            fs2.Stream.emits(
-              BallotFactsComputation.computeFactsFor[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId](
-                electionForState,
-                htvCards,
-                countData,
-                matchingHowToVoteCalculator,
-                ballotNormaliser,
-                chunk.toVector,
+        .parEvalMapUnordered(Runtime.getRuntime.availableProcessors() * 2) { chunk =>
+          for {
+            stream <- SyncEffects.sync(
+              fs2.Stream.emits(
+                BallotFactsComputation.computeFactsFor[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId](
+                  electionForState,
+                  htvCards,
+                  countData,
+                  matchingHowToVoteCalculator,
+                  ballotNormaliser,
+                  chunk.toVector,
+                )
               )
             )
-          )
+
+            _ <- Log.logInfo("PROCESS_CHUNK", "election" -> electionForState, "num_ballots" -> chunk.size)
+
+          } yield stream
         }
         .flatten
-        .onFinalize[F[Throwable, +?]] {
-        Log.logInfo(
-          id = "PROCESS_BALLOTS",
-          "election" -> electionForState,
-        )
-      }
 
     } yield ballotsWithFactsStream
 
