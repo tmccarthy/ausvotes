@@ -16,6 +16,10 @@ trait Concurrent[F[+_, +_]] extends SyncEffects[F] {
 
   def asyncF[E, A](k: (F[E, A] => Unit) => F[Nothing, Unit]): F[E, A]
 
+  def cancelable[E, A](k: (Either[E, A] => Unit) => F[Nothing, Unit]): F[E, A]
+
+  def race[E, A, B](fa: F[E, A], fb: F[E, B]): F[E, Either[A, B]]
+
 }
 
 object Concurrent {

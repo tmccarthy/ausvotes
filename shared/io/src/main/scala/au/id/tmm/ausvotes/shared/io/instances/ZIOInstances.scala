@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDate, ZonedDateTime}
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions._
+import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.io.typeclasses.Concurrent.Fibre
 import au.id.tmm.ausvotes.shared.io.typeclasses.{CatsInterop, Concurrent, Parallel}
 import cats.effect.ExitCase
@@ -11,7 +12,7 @@ import org.apache.commons.io.IOUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
 import scalaz.zio
-import scalaz.zio.{ExitResult, IO, Fiber => ZioFibre}
+import scalaz.zio.{ExitResult, IO}
 
 import scala.util.Try
 
@@ -77,15 +78,10 @@ object ZIOInstances {
 
     override def start[E, A](fea: IO[E, A]): IO[Nothing, Concurrent.Fibre[IO, E, A]] = fea.fork.map(convertToMyFibre)
 
-    private def toMyFibre[E, A](zioFibre: ZioFibre[E, A]): Fibre[IO, E, A] = new Fibre[IO, E, A] {
-      override def cancel: IO[Nothing, ExitResult[E, A]] = zioFibre.interrupt
-      override def join: IO[E, A] = zioFibre.join
-    }
-
     override def racePair[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, Either[(A, Fibre[IO, E1, B]), (Fibre[IO, E, A], B)]] =
       (left raceWith right)(
-        { case (l, f) => l.fold(f.interrupt *> IO.fail0(_), IO.now).map(lv => Left((lv, toMyFibre(f)))): IO[E, Left[(A, Fibre[IO, E1, B]), Nothing]] },
-        { case (r, f) => r.fold(f.interrupt *> IO.fail0(_), IO.now).map(rv => Right((toMyFibre(f), rv))): IO[E1, Right[Nothing, (Fibre[IO, E, A], B)]] },
+        { case (l, f) => l.fold(f.interrupt *> IO.fail0(_), IO.now).map(lv => Left((lv, convertToMyFibre(f)))): IO[E, Left[(A, Fibre[IO, E1, B]), Nothing]] },
+        { case (r, f) => r.fold(f.interrupt *> IO.fail0(_), IO.now).map(rv => Right((convertToMyFibre(f), rv))): IO[E1, Right[Nothing, (Fibre[IO, E, A], B)]] },
       )
 
     override def async[E, A](k: (IO[E, A] => Unit) => Unit): IO[E, A] = IO.async(k)
@@ -93,6 +89,26 @@ object ZIOInstances {
     override def asyncF[E, A](k: (IO[E, A] => Unit) => IO[Nothing, Unit]): IO[E, A] = IO.asyncPure(k)
 
     override def par[E, E1 >: E, A, B](left: IO[E, A], right: IO[E1, B]): IO[E1, (A, B)] = left par right
+
+    override def cancelable[E, A](k: (Either[E, A] => Unit) => IO[Nothing, Unit]): IO[E, A] = {
+      case class CancelException[E2](e: E2) extends ExceptionCaseClass
+
+      IO.asyncInterrupt { (kk: IO[E, A] => Unit) =>
+        Left(k(e => kk(IO.fromEither(e).leftMap {
+          case t: Throwable => t
+          case x => CancelException(x): Throwable
+        }.catchAll(IO.terminate(_)): IO[Nothing, A]))): Either[IO[Nothing, Unit], IO[E, A]]
+      }
+    }
+
+    override def race[E, A, B](fa: IO[E, A], fb: IO[E, B]): IO[E, Either[A, B]] =
+      racePair(fa, fb).flatMap {
+        case Left((a, fiberB)) =>
+          fiberB.cancel.const(Left(a))
+        case Right((fiberA, b)) =>
+          fiberA.cancel.const(Right(b))
+      }
+
   }
 
   implicit val ioAccessesEnvVars: EnvVars[IO] = new EnvVars[IO] {

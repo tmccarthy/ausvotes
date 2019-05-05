@@ -75,6 +75,15 @@ object CatsInterop {
           implicitly[Concurrent[F]].sync(throw t)
         }
       }
+
+    override def cancelable[A](k: (Either[Throwable, A] => Unit) => CancelToken[F[Throwable, +?]]): F[Throwable, A] =
+      implicitly[Concurrent[F]].cancelable[Throwable, A] { kk: (Either[Throwable, A] => Unit) =>
+        k(e => kk(e)).leftMap(t => throw t)
+      }
+
+    override def race[A, B](fa: F[Throwable, A], fb: F[Throwable, B]): F[Throwable, Either[A, B]] =
+      implicitly[Concurrent[F]].race(fa, fb)
+
   }
 
 }
