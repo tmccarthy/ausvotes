@@ -1,4 +1,4 @@
-package au.id.tmm.ausvotes.model.nsw.legass
+package au.id.tmm.ausvotes.model.nsw.legco
 
 import au.id.tmm.ausvotes.model.nsw
 
