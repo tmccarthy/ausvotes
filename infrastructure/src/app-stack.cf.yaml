@@ -271,20 +271,6 @@ Resources:
         ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
         RecountDataBucketName: !Ref RecountDataBucketName
 
-  AusvotesUiService:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub 'https://s3-${AWS::Region}.amazonaws.com/${DeploymentArtefactBucket}/au.id.tmm/ausvotes/cf/templates/ecs-services/ausvotes-ui-service.yaml'
-      Parameters:
-        VPC: !GetAtt EcsVpc.Outputs.VPC
-        Cluster: !GetAtt Ecs.Outputs.Cluster
-        Image: !Ref AusvotesUiDockerImage
-        DesiredCount: 1
-        Listener: !GetAtt AusvotesUiAlb.Outputs.Listener
-        Path: /*
-        Host: !Ref AusvotesUiDomainName
-        ECSServiceAutoScalingRoleARN: !GetAtt Ecs.Outputs.ECSServiceAutoScalingRole
-
   AusvotesBlogService:
     Type: AWS::CloudFormation::Stack
     Properties:
