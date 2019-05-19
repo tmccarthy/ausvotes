@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.io.actions
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
 
 trait EnvVars[F[+_, +_]] {
   def envVars: F[Nothing, Map[String, String]]

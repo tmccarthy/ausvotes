@@ -4,7 +4,7 @@ import java.io.IOException
 
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.bfect.BME._
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class TestIOSpec extends ImprovedFlatSpec {

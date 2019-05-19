@@ -1,10 +1,9 @@
 package au.id.tmm.ausvotes.shared.io.test
 
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects}
-import cats.effect.ExitCase
-
-import scala.util.control.NonFatal
+import au.id.tmm.bfect
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.{ExitCase, Failure}
 
 final case class TestIO[D, +E, +A](run: D => Output[D, E, A]) {
   def map[B](f: A => B): TestIO[D, E, B] = {
@@ -49,32 +48,38 @@ object TestIO {
     }
   }
 
-  implicit def testIOIsABME[D]: SyncEffects[TestIO[D, +?, +?]] = new SyncEffects[TestIO[D, +?, +?]] {
-    override def pure[A](a: A): TestIO[D, Nothing, A] = TestIO.pure(a)
+  implicit def testIOIsABME[D]: Sync[TestIO[D, +?, +?]] = new Sync[TestIO[D, +?, +?]] {
+
+    override def rightPure[A](a: A): TestIO[D, Nothing, A] = TestIO.pure(a)
+
     override def leftPure[E](e: E): TestIO[D, E, Nothing] = TestIO.leftPure(e)
-    override def flatten[E1, E2 >: E1, A](io: TestIO[D, E1, TestIO[D, E2, A]]): TestIO[D, E2, A] = io.flatten
-    override def flatMap[E1, E2 >: E1, A, B](io: TestIO[D, E1, A])(fafe2b: A => TestIO[D, E2, B]): TestIO[D, E2, B] = io.flatMap(fafe2b)
-    override def map[E, A, B](io: TestIO[D, E, A])(fab: A => B): TestIO[D, E, B] = io.map(fab)
-    override def bimap[A, B, C, X](fab: TestIO[D, A, B])(f: A => C, g: B => X): TestIO[D, C, X] = fab.map(g).leftMap(f)
 
-    override def attempt[E, A](io: TestIO[D, E, A]): TestIO[D, Nothing, Either[E, A]] = {
-      val newRun = io.run andThen {
-        case Output(data, result: Either[E, A]) => Output(data, Right(result))
+    override def flatMap[E1, E2 >: E1, A, B](fe1a: TestIO[D, E1, A])(fafe2b: A => TestIO[D, E2, B]): TestIO[D, E2, B] = fe1a.flatMap(fafe2b)
+
+    override def biMap[L1, R1, L2, R2](f: TestIO[D, L1, R1])(leftF: L1 => L2, rightF: R1 => R2): TestIO[D, L2, R2] = f.map(rightF).leftMap(leftF)
+
+    override def suspend[E, A](effect: => TestIO[D, E, A]): TestIO[D, E, A] = TestIO[D, E, A](data => effect.run(data))
+
+    override def bracketCase[R, E, A](acquire: TestIO[D, E, R])(release: (R, bfect.ExitCase[E, A]) => TestIO[D, Nothing, _])(use: R => TestIO[D, E, A]): TestIO[D, E, A] = TestIO { data =>
+      val TestIO.Output(dataAfterAcquisition, result) = acquire.run(data)
+
+      result match {
+        case Right(aquired) => use(aquired).run(dataAfterAcquisition) match {
+          case TestIO.Output(dataAfterUse, Right(resultAfterUse)) =>
+            release(aquired, ExitCase.Succeeded(resultAfterUse)).map(_ => resultAfterUse).run(dataAfterUse)
+
+          case TestIO.Output(dataAfterUse, Left(error)) =>
+            release(aquired, ExitCase.Failed(Failure.Checked(error))).flatMap(_ => TestIO.leftPure(error)).run(dataAfterUse)
+        }
+        case Left(acquisitionFailure) => TestIO.Output(dataAfterAcquisition, Left(acquisitionFailure))
       }
-
-      TestIO(newRun)
     }
 
-    override def absolve[E, A](io: TestIO[D, E, Either[E, A]]): TestIO[D, E, A] = io.flatMap {
-      case Right(success) => TestIO.pure(success)
-      case Left(error) => TestIO.leftPure(error)
-    }
-
-    override def handleErrorWith[E, A, E1](fea: TestIO[D, E, A])(f: E => TestIO[D, E1, A]): TestIO[D, E1, A] = {
-      val newRun: D => Output[D, E1, A] = fea.run andThen {
+    override def handleErrorWith[E1, A, E2](fea: TestIO[D, E1, A])(f: E1 => TestIO[D, E2, A]): TestIO[D, E2, A] = {
+      val newRun: D => Output[D, E2, A] = fea.run andThen {
         case Output(data, result) => {
           result match {
-            case Right(value) => Output[D, E1, A](data, Right(value))
+            case Right(value) => Output[D, E2, A](data, Right(value))
             case Left(failure) => f(failure).run(data)
           }
         }
@@ -83,101 +88,9 @@ object TestIO {
       TestIO(newRun)
     }
 
-    /**
-      * Keeps calling `f` until a `scala.util.Right[B]` is returned.
-      */
-    override def tailRecM[E, A, B](a: A)(f: A => TestIO[D, E, Either[A, B]]): TestIO[D, E, B] = f(a).flatMap {
+    override def tailRecM[E, A, A1](a: A)(f: A => TestIO[D, E, Either[A, A1]]): TestIO[D, E, A1] = f(a).flatMap {
       case Right(value) => TestIO.pure(value)
       case Left(value) => tailRecM(value)(f)
     }
-
-    override def sync[A](effect: => A): TestIO[D, Nothing, A] = TestIO { data =>
-      TestIO.Output(data, Right(effect))
-    }
-
-    override def syncException[A](effect: => A): TestIO[D, Exception, A] = TestIO { data =>
-      val result = try Right(effect) catch {
-        case e: Exception => Left(e)
-      }
-
-      TestIO.Output(data, result)
-    }
-
-    override def syncCatch[E, A](effect: => A)(f: PartialFunction[Throwable, E]): TestIO[D, E, A] = TestIO { data =>
-      val result: Either[E, A] = try Right(effect) catch f andThen (e => Left(e))
-
-      TestIO.Output(data, result)
-    }
-
-    override def syncThrowable[A](effect: => A): TestIO[D, Throwable, A] = TestIO { data =>
-      val result = try Right(effect) catch {
-        case e: Throwable => Left(e)
-      }
-
-      TestIO.Output(data, result)
-    }
-
-
-    override def bracket[E, A, B](
-                                   acquire: TestIO[D, E, A],
-                                 )(
-                                   release: A => TestIO[D, Nothing, _],
-                                 )(
-                                   use: A => TestIO[D, E, B],
-                                 ): TestIO[D, E, B] = TestIO { data =>
-      val TestIO.Output(dataAfterAcquisition, acquired) = acquire.run(data)
-
-      acquired match {
-        case Right(aquired) => use(aquired).run(dataAfterAcquisition) match {
-          case TestIO.Output(dataAfterUse, Right(resultAfterUse)) =>
-            release(aquired).map(_ => resultAfterUse).run(dataAfterUse)
-
-          case TestIO.Output(dataAfterUse, Left(error)) =>
-            release(aquired).flatMap(_ => TestIO.leftPure(error)).run(dataAfterUse)
-        }
-        case Left(acquisitionFailure) => TestIO.Output(dataAfterAcquisition, Left(acquisitionFailure))
-      }
-    }
-
-    override def bracketCase[A, B](
-                                    acquire: TestIO[D, Throwable, A],
-                                  )(
-                                    use: A => TestIO[D, Throwable, B],
-                                  )(
-                                    release: (A, ExitCase[Throwable]) => TestIO[D, Throwable, Unit],
-                                  ): TestIO[D, Throwable, B] = TestIO { data =>
-      val TestIO.Output(dataAfterAcquisition, result) = acquire.run(data)
-
-      val safelyAquired: Either[Throwable, A] = result.left.map {
-        case NonFatal(t) => t
-        case t => throw t
-      }
-
-      safelyAquired match {
-        case Right(aquired) => use(aquired).run(dataAfterAcquisition) match {
-          case TestIO.Output(dataAfterUse, Right(resultAfterUse)) =>
-            release(aquired, ExitCase.Completed).map(_ => resultAfterUse).run(dataAfterUse)
-
-          case TestIO.Output(dataAfterUse, Left(error)) =>
-            release(aquired, ExitCase.Error(error)).flatMap(_ => TestIO.leftPure(error)).run(dataAfterUse)
-        }
-        case Left(acquisitionFailure) => TestIO.Output(dataAfterAcquisition, Left(acquisitionFailure))
-      }
-    }
-  }
-
-  implicit def testIOIsParallel[D]: Parallel[TestIO[D, +?, +?]] = new Parallel[TestIO[D, +?, +?]] {
-    override def par[E1, E2 >: E1, A, B](left: TestIO[D, E1, A], right: TestIO[D, E2, B]): TestIO[D, E2, (A, B)] =
-      for {
-        leftResult <- left
-        rightResult <- right
-      } yield (leftResult, rightResult)
-
-    override def parAll[E, A](as: Iterable[TestIO[D, E, A]]): TestIO[D, E, List[A]] = parTraverse(as)(identity)
-
-    override def parTraverse[E, A, B](as: Iterable[A])(f: A => TestIO[D, E, B]): TestIO[D, E, List[B]] =
-      as.foldRight[TestIO[D, E, List[B]]](TestIO.pure(Nil)) { (a, io) =>
-        par(f(a), io).map { case (b, bs) => b :: bs }
-      }
   }
 }

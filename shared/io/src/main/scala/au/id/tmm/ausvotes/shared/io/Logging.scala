@@ -4,8 +4,8 @@ import java.time.Duration
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
 
 object Logging {
 
