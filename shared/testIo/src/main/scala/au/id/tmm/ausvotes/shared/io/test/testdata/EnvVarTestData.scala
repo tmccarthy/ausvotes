@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.shared.io.test.testdata
 
-import au.id.tmm.ausvotes.shared.io.actions.EnvVars
 import au.id.tmm.ausvotes.shared.io.test.TestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
+import au.id.tmm.bfect.extraeffects.EnvVars
 
 final case class EnvVarTestData(
                                  envVars: Map[String, String],

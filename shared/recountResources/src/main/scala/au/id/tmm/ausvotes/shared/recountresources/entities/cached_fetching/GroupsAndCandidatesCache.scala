@@ -11,6 +11,8 @@ import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.ziointerop._
 import cats.kernel.Monoid
 import cats.syntax.show.toShow
 import io.circe.parser._
@@ -34,7 +36,7 @@ final class GroupsAndCandidatesCache(
   override def senateGroupsAndCandidatesFor(
                                              election: SenateElection,
                                            ): IO[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
-    IO.parTraverse(election.allStateElections.toList)(senateGroupsAndCandidatesFor).map {
+    IO.foreachPar(election.allStateElections.toList)(senateGroupsAndCandidatesFor).map {
       Monoid[SenateGroupsAndCandidates].combineAll
     }
 
@@ -43,7 +45,7 @@ final class GroupsAndCandidatesCache(
                                            ): IO[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
     for {
       promise <- groupsAndCandidatesPromiseFor(election)
-      groupsAndCandidates <- promise.get
+      groupsAndCandidates <- promise.await
     } yield groupsAndCandidates
 
   private[cached_fetching] def groupsAndCandidatesPromiseFor(
@@ -55,8 +57,8 @@ final class GroupsAndCandidatesCache(
           groupsPromise <- groupsPromiseFor(election)
           candidateJsonPromise <- getCandidatesJsonPromise(election)
 
-          groups <- groupsPromise.get
-          candidatesJson <- candidateJsonPromise.get
+          groups <- groupsPromise.await
+          candidatesJson <- candidateJsonPromise.await
 
           groupsAndCandidates <- Logging.timedLog(
             "COMPLETE_ENTITY_CACHE_PROMISE",
@@ -134,6 +136,6 @@ final class GroupsAndCandidatesCache(
 object GroupsAndCandidatesCache {
 
   def apply(baseBucket: S3BucketName): IO[Nothing, GroupsAndCandidatesCache] =
-    Semaphore(permits = 1).map(new GroupsAndCandidatesCache(baseBucket, _))
+    Semaphore.make(permits = 1).map(new GroupsAndCandidatesCache(baseBucket, _))
 
 }

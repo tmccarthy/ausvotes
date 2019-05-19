@@ -20,13 +20,13 @@ object DownloadToPath {
   object Always extends DownloadToPath[IO] {
     override def downloadToPath(url: URL, target: Path): IO[IOException, Unit] =
       IO.bracket {
-        IO.syncCatch(url.openStream()) {
+        IO.effect(url.openStream()).refineOrDie {
           case e: IOException => e
         }
       } { stream =>
-        IO.sync(stream.close())
+        IO.effectTotal(stream.close())
       } { stream =>
-        IO.syncCatch(Files.copy(stream, target)) {
+        IO.effect(Files.copy(stream, target)).refineOrDie {
           case e: IOException => e
         }.map(_ => Unit)
       }
@@ -35,7 +35,7 @@ object DownloadToPath {
   object IfTargetMissing extends DownloadToPath[IO] {
     override def downloadToPath(url: URL, target: Path): IO[IOException, Unit] =
       for {
-        fileAlreadyThere <- IO.syncCatch(Files.exists(target)) {
+        fileAlreadyThere <- IO.effect(Files.exists(target)).refineOrDie {
           case e: IOException => e
         }
         done <- if (fileAlreadyThere) IO.unit else DownloadToPath.Always.downloadToPath(url, target)

@@ -4,11 +4,11 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidatePosition, SenateE
 import au.id.tmm.ausvotes.model.stv.{CandidatePosition, Ungrouped}
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.EitherOps
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchCanonicalCountSummary.FetchCanonicalCountSummaryException
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, EntityLocations}
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.ziointerop._
 import cats.syntax.show.toShow
 import io.circe.Decoder
 import io.circe.parser._
@@ -30,7 +30,7 @@ final class CanonicalCountSummaryCache(
                                             ): IO[FetchCanonicalCountSummaryException, CountSummary] =
     for {
       promise <- canonicalCountPromiseFor(election)
-      canonicalCount <- promise.get
+      canonicalCount <- promise.await
     } yield canonicalCount
 
   private def canonicalCountPromiseFor(
@@ -46,7 +46,7 @@ final class CanonicalCountSummaryCache(
         val fetchGroupsLogic = groupsAndCandidatesCache.senateGroupsAndCandidatesFor(election).map(_.groups)
           .leftMap(FetchCanonicalCountSummaryException.FetchGroupsAndCandidatesException)
 
-        (fetchJsonLogic par fetchGroupsLogic).map { case (canonicalResultJson, groups) =>
+        (fetchJsonLogic zipPar fetchGroupsLogic).map { case (canonicalResultJson, groups) =>
 
           implicit val candidatePositionDecoder: Decoder[SenateCandidatePosition] =
             CandidatePosition.decoderUsing(groups, Ungrouped(election))
@@ -66,5 +66,5 @@ final class CanonicalCountSummaryCache(
 
 object CanonicalCountSummaryCache {
   def apply(groupsAndCandidatesCache: GroupsAndCandidatesCache): IO[Nothing, CanonicalCountSummaryCache] =
-    Semaphore(permits = 1).map(new CanonicalCountSummaryCache(groupsAndCandidatesCache, _))
+    Semaphore.make(permits = 1).map(new CanonicalCountSummaryCache(groupsAndCandidatesCache, _))
 }

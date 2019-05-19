@@ -1,14 +1,15 @@
 package au.id.tmm.ausvotes.data_sources.nswec.raw.impl
 
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
 import au.id.tmm.ausvotes.data_sources.nswec.raw.FetchRawLegCoPreferences
 import au.id.tmm.ausvotes.data_sources.nswec.resources.LegCoPreferencesResource
 import au.id.tmm.ausvotes.model.nsw.legco.NswLegCoElection
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
 import org.apache.commons.lang3.StringUtils
 
-final class FetchRawNswecDataImpl[F[+_, +_] : SyncEffects] private()(
+final class FetchRawNswecDataImpl[F[+_, +_] : Sync] private()(
   implicit
   makeSourceForLegCoPreferencesResource: MakeSource[F, Exception, LegCoPreferencesResource],
 ) extends FetchRawLegCoPreferences[F] {
@@ -40,5 +41,5 @@ final class FetchRawNswecDataImpl[F[+_, +_] : SyncEffects] private()(
 }
 
 object FetchRawNswecDataImpl {
-  def apply[F[+_, +_] : SyncEffects](implicit makeSourceForLegCoPreferencesResource: MakeSource[F, Exception, LegCoPreferencesResource]) = new FetchRawNswecDataImpl[F]()
+  def apply[F[+_, +_] : Sync](implicit makeSourceForLegCoPreferencesResource: MakeSource[F, Exception, LegCoPreferencesResource]) = new FetchRawNswecDataImpl[F]()
 }

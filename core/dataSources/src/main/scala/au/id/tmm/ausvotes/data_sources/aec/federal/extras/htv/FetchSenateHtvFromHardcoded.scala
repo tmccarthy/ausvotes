@@ -2,10 +2,10 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.FetchSenateHtv
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState, SenateGroup, SenateHtv}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
 
-final class FetchSenateHtvFromHardcoded[F[+_, +_] : BifunctorMonadError] private () extends FetchSenateHtv[F] {
+final class FetchSenateHtvFromHardcoded[F[+_, +_] : BME] private () extends FetchSenateHtv[F] {
 
   override def fetchHtvCardsFor(election: SenateElection, groupsForElection: Set[SenateGroup]): F[Nothing, Map[SenateElectionForState, Set[SenateHtv]]] =
     try {
@@ -20,6 +20,6 @@ final class FetchSenateHtvFromHardcoded[F[+_, +_] : BifunctorMonadError] private
 
 object FetchSenateHtvFromHardcoded {
 
-  def apply[F[+_, +_] : BifunctorMonadError]: FetchSenateHtvFromHardcoded[F] = new FetchSenateHtvFromHardcoded()
+  def apply[F[+_, +_] : BME]: FetchSenateHtvFromHardcoded[F] = new FetchSenateHtvFromHardcoded()
 
 }

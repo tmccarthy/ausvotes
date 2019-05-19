@@ -3,13 +3,13 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateGroupsAndCandidates
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchPreferenceTree}
+import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import cats.instances.list._
-import cats.syntax.traverse._
 import cats.kernel.Monoid
+import cats.syntax.traverse._
 
 final case class EntitiesTestData(
                                    basicTestData: BasicTestData = BasicTestData(),
@@ -82,7 +82,7 @@ object EntitiesTestData {
                                                election: SenateElection,
                                              ): TestIO[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
       election.allStateElections.toList
-        .traverse(senateGroupsAndCandidatesFor)(BifunctorMonadError.bifunctorMonadErrorIsAMonadError(TestIO.testIOIsABME[D]))
+        .traverse(senateGroupsAndCandidatesFor)
         .map(Monoid[SenateGroupsAndCandidates].combineAll)
 
     override def fetchCanonicalCountSummaryFor(

@@ -8,10 +8,11 @@ import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.{DownloadToPath, MakeSource}
 import au.id.tmm.ausvotes.data_sources.nswec.resources.LegCoPreferencesResource
 import au.id.tmm.ausvotes.model.nsw.NswElection
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Sync
 
-final class NswecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (resourceStoreLocation: Path) {
+final class NswecResourceStore[F[+_, +_] : DownloadToPath : Sync] private (resourceStoreLocation: Path) {
 
   implicit val makeSourceForLegCoPreferencesResource: MakeSource[F, Exception, LegCoPreferencesResource] =
     MakeSource.fromDownloadedZipFile(pathForDownloads = resourceStoreLocation.resolve("nsw")).butFirst { resource =>
@@ -27,5 +28,5 @@ final class NswecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private
 }
 
 object NswecResourceStore {
-  def apply[F[+_, +_] : DownloadToPath : SyncEffects](resourceStoreLocation: Path): NswecResourceStore[F] = new NswecResourceStore(resourceStoreLocation)
+  def apply[F[+_, +_] : DownloadToPath : Sync](resourceStoreLocation: Path): NswecResourceStore[F] = new NswecResourceStore(resourceStoreLocation)
 }

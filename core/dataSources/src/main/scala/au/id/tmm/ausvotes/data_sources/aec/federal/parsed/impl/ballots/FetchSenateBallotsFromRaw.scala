@@ -4,11 +4,11 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateBallots
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElectionForState, SenateGroupsAndCandidates}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
 import fs2.Stream
 
-class FetchSenateBallotsFromRaw[F[+_, +_] : BifunctorMonadError : FetchRawFormalSenatePreferences] extends FetchSenateBallots[F] {
+class FetchSenateBallotsFromRaw[F[+_, +_] : BME : FetchRawFormalSenatePreferences] extends FetchSenateBallots[F] {
 
   def senateBallotsFor(
                         election: SenateElectionForState,
@@ -38,7 +38,7 @@ class FetchSenateBallotsFromRaw[F[+_, +_] : BifunctorMonadError : FetchRawFormal
 
 object FetchSenateBallotsFromRaw {
 
-  def apply[F[+_, +_] : BifunctorMonadError : FetchRawFormalSenatePreferences]: FetchSenateBallotsFromRaw[F] =
+  def apply[F[+_, +_] : BME : FetchRawFormalSenatePreferences]: FetchSenateBallotsFromRaw[F] =
     new FetchSenateBallotsFromRaw[F]
 
 }

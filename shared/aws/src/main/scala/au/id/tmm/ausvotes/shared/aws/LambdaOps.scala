@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.shared.aws
 import java.nio.charset.StandardCharsets
 
 import au.id.tmm.ausvotes.shared.aws.data.LambdaFunctionName
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.http_constants.HttpResponseCode
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.lambda.model.{InvokeRequest, InvokeResult}
@@ -11,7 +13,7 @@ import scalaz.zio.IO
 
 object LambdaOps {
 
-  private def lambdaClient: IO[Exception, AWSLambdaAsync] = IO.sync(AWSLambdaAsyncClientBuilder.defaultClient())
+  private def lambdaClient: IO[Exception, AWSLambdaAsync] = Sync[IO].syncException(AWSLambdaAsyncClientBuilder.defaultClient())
 
   def invokeLambda(functionName: LambdaFunctionName, payload: Option[String]): IO[Exception, String] = {
     val request = new InvokeRequest()
@@ -20,7 +22,7 @@ object LambdaOps {
 
     for {
       client <- lambdaClient
-      resultPayload <- IO.async[Exception, String](callback => client.invokeAsync(request, lambdaAsyncHandler(callback)))
+      resultPayload <- IO.effectAsync[Exception, String](callback => client.invokeAsync(request, lambdaAsyncHandler(callback)))
     } yield resultPayload
   }
 
@@ -41,7 +43,7 @@ object LambdaOps {
               payload = payload,
             )
           ))
-          case _ => ioCallback.apply(IO.point(payload))
+          case _ => ioCallback.apply(IO.succeed(payload))
         }
       }
     }

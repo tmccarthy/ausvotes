@@ -4,6 +4,8 @@ import java.io._
 import java.nio.charset.Charset
 
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.ziointerop._
 import com.amazonaws.services.s3.model.{ObjectMetadata, S3Object}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import org.apache.commons.io.IOUtils
@@ -13,11 +15,11 @@ object S3Ops {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  private def s3Client: IO[Exception, AmazonS3] = IO.syncException(AmazonS3ClientBuilder.defaultClient())
+  private def s3Client: IO[Exception, AmazonS3] = Sync[IO].syncException(AmazonS3ClientBuilder.defaultClient())
 
   def retrieveString(bucketName: S3BucketName, objectKey: S3ObjectKey): IO[Exception, String] =
     useInputStream(bucketName, objectKey) { inputStream =>
-      IO.syncException {
+      Sync[IO].syncException {
         IOUtils.toString(inputStream, charset)
       }
     }
@@ -28,11 +30,11 @@ object S3Ops {
     }
 
   def useObject[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: S3Object => IO[Exception, A]): IO[Exception, A] = {
-    val acquireS3Object = s3Client.flatMap { client =>
-      IO.syncException(client.getObject(bucketName.asString, objectKey.asString))
+    val acquireS3Object = s3Client.flatMap[Any, Exception, S3Object] { client =>
+      Sync[IO].syncException(client.getObject(bucketName.asString, objectKey.asString))
     }
 
-    val closeS3Object: S3Object => IO[Nothing, Unit] = s3Object => IO.sync(s3Object.close())
+    val closeS3Object: S3Object => IO[Nothing, Unit] = s3Object => IO.effectTotal(s3Object.close())
 
     IO.bracket(acquireS3Object)(closeS3Object)(use)
   }
@@ -43,7 +45,7 @@ object S3Ops {
                  content: String,
                  contentType: ContentType,
                ): IO[Exception, Unit] = s3Client.flatMap { client =>
-    IO.syncException {
+    Sync[IO].syncException {
       val bytes = content.getBytes(charset)
       val stream = new ByteArrayInputStream(bytes)
 
@@ -66,20 +68,20 @@ object S3Ops {
     val pipeSource = new PipedOutputStream()
     val pipeSink = new PipedInputStream(pipeSource)
 
-    val writeToSource = IO.bracket(IO.syncException(pipeSource))(os => IO.sync(os.close()))(writeToOutputStream)
+    val writeToSource = IO.bracket(Sync[IO].syncException(pipeSource))(os => IO.effectTotal(os.close()))(writeToOutputStream)
 
-    val readFromSink = IO.bracket(IO.syncException(pipeSink))(is => IO.sync(is.close())) { inputStream =>
-      IO.syncException {
+    val readFromSink = IO.bracket(Sync[IO].syncException(pipeSink))(is => IO.effectTotal(is.close())) { inputStream =>
+      Sync[IO].syncException {
         client.putObject(bucketName.asString, objectKey.asString, inputStream, new ObjectMetadata())
       }
     }
 
-    (readFromSink par writeToSource).map(_ => Unit)
+    readFromSink.zipPar(writeToSource).map(_ => Unit)
   }
 
   def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): IO[Exception, Boolean] =
     s3Client.flatMap { client =>
-      IO.syncException {
+      Sync[IO].syncException {
         client.doesObjectExist(bucketName.asString, objectKey.asString)
       }
     }

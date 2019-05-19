@@ -7,12 +7,13 @@ import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.stv.{BallotGroup, Group, Ungrouped}
 import au.id.tmm.ausvotes.model.{CandidateDetails, ExceptionCaseClass, Name, Party}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.utilities.collection.Flyweight
 import au.id.tmm.utilities.geo.australia.State
 
-final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirstPreferences : SyncEffects] private() extends FetchSenateGroupsAndCandidates[F] {
+final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirstPreferences : Sync] private() extends FetchSenateGroupsAndCandidates[F] {
 
   private val groupFlyweight: Flyweight[(SenateElectionForState, BallotGroup.Code, Option[Party]), Either[Group.InvalidGroupCode.type, SenateGroup]] = Flyweight { tuple =>
     SenateGroup(tuple._1, tuple._2, tuple._3)
@@ -163,7 +164,7 @@ final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirs
 
 object FetchSenateGroupsAndCandidatesFromRaw {
 
-  def apply[F[+_, +_] : FetchRawSenateFirstPreferences : SyncEffects]: FetchSenateGroupsAndCandidatesFromRaw[F] = new FetchSenateGroupsAndCandidatesFromRaw()
+  def apply[F[+_, +_] : FetchRawSenateFirstPreferences : Sync]: FetchSenateGroupsAndCandidatesFromRaw[F] = new FetchSenateGroupsAndCandidatesFromRaw()
 
   final case class UnrecognisedGroup(code: BallotGroup.Code) extends ExceptionCaseClass
 

@@ -6,8 +6,10 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributio
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElectionForState, SenateGroupsAndCandidates}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
@@ -16,7 +18,7 @@ import au.id.tmm.utilities.collection.DupelessSeq
 import cats.instances.int._
 import fs2.Stream
 
-final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOfPreferences : SyncEffects] extends FetchSenateCountData[F] {
+final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Sync] extends FetchSenateCountData[F] {
 
   override def senateCountDataFor(election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates): F[FetchSenateCountData.Error, SenateCountData] =
     for {
@@ -86,7 +88,7 @@ final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOf
 
 object FetchSenateCountDataFromRaw {
 
-  def apply[F[+_, +_] : FetchRawSenateDistributionOfPreferences : SyncEffects]: FetchSenateCountDataFromRaw[F] = new FetchSenateCountDataFromRaw
+  def apply[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Sync]: FetchSenateCountDataFromRaw[F] = new FetchSenateCountDataFromRaw
 
   sealed abstract class CountError extends ExceptionCaseClass
 

@@ -10,6 +10,8 @@ import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.EntityLocations
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.{FetchPreferenceTreeException, GroupsCandidatesAndPreferences}
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTreeSerialisation
 import org.apache.commons.io.IOUtils
 import scalaz.zio.{Fiber, IO, Promise, Semaphore}
@@ -37,7 +39,7 @@ final class PreferenceTreeCache(
 
     val resultForkIO: IO[Nothing, Fiber[E, A]] =
       fetchGroupsCandidatesAndPreferencesFor(election)
-        .attempt
+        .either
         .flatMap {
           case Right(entities) => action(entities)
           case Left(entityFetchError) => handleEntityFetchError(entityFetchError)
@@ -46,7 +48,7 @@ final class PreferenceTreeCache(
 
     val populateCacheForkIO: IO[Nothing, Fiber[E, Unit]] =
       populateFor(election.election)
-        .attempt
+        .either
         .flatMap {
           case Right(_) => IO.unit
           case Left(cachePopulationError) => handleCachePopulationError(cachePopulationError)
@@ -62,7 +64,7 @@ final class PreferenceTreeCache(
   }
 
   private def populateFor(election: SenateElection): IO[FetchPreferenceTreeException, Unit] = {
-    IO.parAll {
+    IO.collectAllPar {
       election.allStateElections.map { election =>
         fetchGroupsCandidatesAndPreferencesFor(election)
       }
@@ -74,7 +76,7 @@ final class PreferenceTreeCache(
                                                      ): IO[FetchPreferenceTreeException, FetchPreferenceTree.GroupsCandidatesAndPreferences] =
     for {
       promise <- groupsCandidatesAndPreferencesPromiseFor(election)
-      groupsCandidatesAndPreferences <- promise.get
+      groupsCandidatesAndPreferences <- promise.await
     } yield groupsCandidatesAndPreferences
 
   private def groupsCandidatesAndPreferencesPromiseFor(
@@ -86,11 +88,11 @@ final class PreferenceTreeCache(
           groupsAndCandidatesPromise <- groupsAndCandidatesCache.groupsAndCandidatesPromiseFor(election)
           preferenceTreeBytesPromise <- getPreferenceTreeBytesPromise(election)
 
-          groupsAndCandidates <- groupsAndCandidatesPromise.get
-            .leftMap(FetchPreferenceTreeException.FetchGroupsAndCandidatesException)
-          preferenceTreeBytes <- preferenceTreeBytesPromise.get
+          groupsAndCandidates <- groupsAndCandidatesPromise.await
+            .mapError(FetchPreferenceTreeException.FetchGroupsAndCandidatesException)
+          preferenceTreeBytes <- preferenceTreeBytesPromise.await
 
-          preferenceTree <- IO.syncException {
+          preferenceTree <- Sync[IO].syncException {
             val inputStream = new ByteArrayInputStream(preferenceTreeBytes)
 
             PreferenceTreeSerialisation.deserialise[SenateCandidate](groupsAndCandidates.candidates, inputStream)
@@ -99,7 +101,7 @@ final class PreferenceTreeCache(
             "entity_name" -> "preference_tree",
             "election" -> election.election,
             "state" -> election.state,
-          ).leftMap(FetchPreferenceTreeException.DeserialisationFetchPreferenceTreeException)
+          ).mapError(FetchPreferenceTreeException.DeserialisationFetchPreferenceTreeException)
         } yield GroupsCandidatesAndPreferences(groupsAndCandidates, preferenceTree)
       }
     }
@@ -111,18 +113,18 @@ final class PreferenceTreeCache(
       val objectKey = EntityLocations.locationOfPreferenceTree(election)
 
       ReadsS3.useInputStream[IO, Array[Byte]](baseBucket, objectKey) { inputStream =>
-        IO.syncException(IOUtils.toByteArray(inputStream))
+        Sync[IO].syncException(IOUtils.toByteArray(inputStream))
       }.timedLog(
         "COMPLETE_ENTITY_CACHE_PROMISE",
         "entity_name" -> "preference_tree_bytes",
         "election" -> election.election,
         "state" -> election.state,
-      ).leftMap(FetchPreferenceTreeException.LoadBytesExceptionFetch)
+      ).mapError(FetchPreferenceTreeException.LoadBytesExceptionFetch)
     }
 
 }
 
 object PreferenceTreeCache {
   def apply(groupsAndCandidatesCache: GroupsAndCandidatesCache): IO[Nothing, PreferenceTreeCache] =
-    Semaphore(permits = 1).map(new PreferenceTreeCache(groupsAndCandidatesCache, _))
+    Semaphore.make(permits = 1).map(new PreferenceTreeCache(groupsAndCandidatesCache, _))
 }

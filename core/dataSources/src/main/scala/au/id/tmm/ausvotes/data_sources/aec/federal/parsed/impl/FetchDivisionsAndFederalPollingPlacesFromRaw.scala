@@ -9,14 +9,15 @@ import au.id.tmm.ausvotes.model.Electorate
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
 import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
 import au.id.tmm.ausvotes.model.federal.{Division, DivisionsAndPollingPlaces, FederalElection, FederalPollingPlace}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.utilities.collection.Flyweight
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils
 
-final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : SyncEffects] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
+final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Sync] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
 
   private val divisionFlyweight: Flyweight[(FederalElection, State, String, Electorate.Id), Division] = Flyweight { tuple =>
     Electorate(tuple._1, tuple._2, tuple._3, tuple._4)
@@ -127,7 +128,7 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
 
 object FetchDivisionsAndFederalPollingPlacesFromRaw {
 
-  def apply[F[+_, +_] : FetchRawFederalPollingPlaces : SyncEffects]: FetchDivisionsAndFederalPollingPlacesFromRaw[F] = new FetchDivisionsAndFederalPollingPlacesFromRaw()
+  def apply[F[+_, +_] : FetchRawFederalPollingPlaces : Sync]: FetchDivisionsAndFederalPollingPlacesFromRaw[F] = new FetchDivisionsAndFederalPollingPlacesFromRaw()
 
   private[impl] final case class DivisionAndPollingPlace(division: Division, pollingPlace: FederalPollingPlace)
 

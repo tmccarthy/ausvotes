@@ -11,19 +11,19 @@ import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.{Console, Log, Now}
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Parallel, SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.CollectionUtils.Sortable
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
-import cats.Applicative
 import cats.implicits._
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio
@@ -49,10 +49,10 @@ object CompareRecounts extends zio.App {
       election <- SenateElection.from(rawElection).toRight(s"Bad election $rawElection")
     } yield Args(aecResourcePath, s3BucketName, election)
 
-  override def run(rawArgs: List[String]): IO[Nothing, ExitStatus] = {
+  override def run(rawArgs: List[String]): IO[Nothing, Int] = {
     val errorOrSuccessCode = for {
       args <- IO.fromEither(argsFrom(rawArgs))
-        .leftMap(new RuntimeException(_))
+        .mapError(new RuntimeException(_))
 
       groupsAndCandidatesCache <- GroupsAndCandidatesCache(args.s3BucketName)
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
@@ -60,7 +60,7 @@ object CompareRecounts extends zio.App {
       _ <- {
         implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
 
-        implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(args.aecResourceStorePath)
+        implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore[IO](args.aecResourceStorePath)
         import aecResourceStore._
 
         implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
@@ -71,22 +71,20 @@ object CompareRecounts extends zio.App {
 
         generalRun[IO](args.election)
       }
-    } yield ExitStatus.ExitNow(0)
+    } yield 0
 
     errorOrSuccessCode.catchAll { e =>
       val stackTrace = ExceptionUtils.getStackTrace(e)
 
-      Console.print[IO](stackTrace).map(_ => ExitStatus.ExitNow(1))
+      Console.print[IO](stackTrace).map(_ => 1)
     }
   }
 
-  private def generalRun[F[+_, +_] : FetchSenateGroupsAndCandidates : FetchPreferenceTree : FetchSenateCountData : Parallel : SyncEffects : Log : Now : Console : BME]
+  private def generalRun[F[+_, +_] : FetchSenateGroupsAndCandidates : FetchPreferenceTree : FetchSenateCountData : Sync : Log : Now : Console]
   (
     senateElection: SenateElection,
   ): F[Exception, Unit] = {
     val elections: Set[SenateElectionForState] = senateElection.allStateElections
-
-    implicit def applicative[E]: Applicative[F[E, +?]] = BME.bifunctorMonadErrorIsAMonadError[E, F]
 
     for {
       /*_*/
@@ -101,7 +99,7 @@ object CompareRecounts extends zio.App {
     } yield ()
   }
 
-  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchSenateCountData : FetchSenateGroupsAndCandidates : Parallel : SyncEffects : Log : Now : BME]
+  private def compareFor[F[+_, +_] : FetchPreferenceTree : FetchSenateCountData : FetchSenateGroupsAndCandidates : Sync : Log : Now]
   (
     election: SenateElectionForState,
   ): F[Exception, CountComparison] = {

@@ -7,13 +7,14 @@ import java.nio.file.Path
 import java.util.zip.{GZIPInputStream, ZipEntry, ZipFile}
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, SyncEffects}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync._
 import org.apache.commons.io.FilenameUtils
 
 import scala.io.Source
 
-abstract class MakeSource[F[+_, +_] : BifunctorMonadError, +E <: Exception, -A] {
+abstract class MakeSource[F[+_, +_] : Sync, +E <: Exception, -A] {
 
   def makeSourceFor(a: A): F[E, Source]
 
@@ -39,43 +40,43 @@ object MakeSource {
 
   private val defaultCharset: Charset = Charset.forName("UTF-8")
 
-  private def syncCatchIOException[F[+_, +_] : SyncEffects, A](effect: => A) = SyncEffects.syncCatch(effect) {
+  private def syncCatchIOException[F[+_, +_] : Sync, A](effect: => A) = Sync.syncCatch(effect) {
     case e: IOException => e
   }
 
-  def never[F[+_, +_] : BifunctorMonadError, A]: MakeSource[F, UnsupportedOperationException, A] = new MakeSource[F, UnsupportedOperationException, A] {
-    override def makeSourceFor(a: A): F[UnsupportedOperationException, Source] = BifunctorMonadError.leftPure(new UnsupportedOperationException)
+  def never[F[+_, +_] : Sync, A]: MakeSource[F, UnsupportedOperationException, A] = new MakeSource[F, UnsupportedOperationException, A] {
+    override def makeSourceFor(a: A): F[UnsupportedOperationException, Source] = BME.leftPure(new UnsupportedOperationException)
   }
 
-  def fromFile[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, IOException, Path] =
+  def fromFile[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, IOException, Path] =
     new MakeSource[F, IOException, Path] {
       override def makeSourceFor(path: Path): F[IOException, Source] = syncCatchIOException(Source.fromFile(path.toFile, charset.toString))
     }
 
-  private def downloadUrlTo[F[+_, +_] : SyncEffects : DownloadToPath](pathForDownloads: Path)(url: URL): F[IOException, Path] =
+  private def downloadUrlTo[F[+_, +_] : Sync : DownloadToPath](pathForDownloads: Path)(url: URL): F[IOException, Path] =
     for {
       targetPath <- syncCatchIOException(pathForDownloads.resolve(FilenameUtils.getName(url.getPath)))
       _ <- DownloadToPath.downloadToPath(url, targetPath)
     } yield targetPath
 
-  def fromDownloadedFile[F[+_, +_] : SyncEffects : DownloadToPath](pathForDownloads: Path, charset: Charset = defaultCharset): MakeSource[F, IOException, URL] =
+  def fromDownloadedFile[F[+_, +_] : Sync : DownloadToPath](pathForDownloads: Path, charset: Charset = defaultCharset): MakeSource[F, IOException, URL] =
     fromFile[F](charset).butFirst(downloadUrlTo(pathForDownloads)(_))
 
-  def fromInputStream[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, IOException, InputStream] =
+  def fromInputStream[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, IOException, InputStream] =
     new MakeSource[F, IOException, InputStream] {
       override def makeSourceFor(inputStream: InputStream): F[IOException, Source] = syncCatchIOException(Source.fromInputStream(inputStream, charset.toString))
     }
 
-  def fromGzipStream[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, IOException, InputStream] =
+  def fromGzipStream[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, IOException, InputStream] =
     fromInputStream[F](charset).butFirst(inputStream => syncCatchIOException(new GZIPInputStream(inputStream)))
 
-  private def openResource[F[+_, +_] : SyncEffects](resourceName: String): F[FromResource.Error, InputStream] =
+  private def openResource[F[+_, +_] : Sync](resourceName: String): F[FromResource.Error, InputStream] =
     for {
-      maybeInputStream <- SyncEffects.sync(Option(getClass.getResourceAsStream(resourceName))): F[FromResource.Error, Option[InputStream]]
+      maybeInputStream <- Sync.sync(Option(getClass.getResourceAsStream(resourceName))): F[FromResource.Error, Option[InputStream]]
 
       inputStream <- maybeInputStream match {
-        case Some(inputStream) => BifunctorMonadError.pure(inputStream)
-        case None => BifunctorMonadError.leftPure(FromResource.Error.NoResourceFound)
+        case Some(inputStream) => BME.pure(inputStream)
+        case None => BME.leftPure(FromResource.Error.NoResourceFound)
       }
     } yield inputStream
 
@@ -88,30 +89,30 @@ object MakeSource {
     }
   }
 
-  def fromResource[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, FromResource.Error, String] =
+  def fromResource[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, FromResource.Error, String] =
     fromInputStream[F](charset)
       .mappingErrors(FromResource.Error.AnIOException)
       .butFirst(openResource(_))
 
-  def fromGzipResource[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, FromResource.Error, String] =
+  def fromGzipResource[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, FromResource.Error, String] =
     fromGzipStream[F](charset)
       .mappingErrors(FromResource.Error.AnIOException)
       .butFirst(openResource(_))
 
-  private def openZipEntry[F[+_, +_] : SyncEffects](args: (Path, FromZipFile.ZipEntryName)): F[FromZipFile.Error, InputStream] = {
+  private def openZipEntry[F[+_, +_] : Sync](args: (Path, FromZipFile.ZipEntryName)): F[FromZipFile.Error, InputStream] = {
     val (zipFilePath, zipEntryName) = args
 
     for {
       zipFile <- syncCatchIOException(new ZipFile(zipFilePath.toFile))
         .leftMap(FromZipFile.Error.AnIOException)
 
-      maybeZipEntry <- SyncEffects.syncCatch(Option(zipFile.getEntry(zipEntryName.asString))) {
+      maybeZipEntry <- Sync.syncCatch(Option(zipFile.getEntry(zipEntryName.asString))) {
         case e: IllegalStateException => FromZipFile.Error.ZipFileUnexpectedlyClosed(e)
       }
 
       zipEntry <- maybeZipEntry match {
-        case Some(zipEntry) => BifunctorMonadError.pure(zipEntry): F[FromZipFile.Error, ZipEntry]
-        case None => BifunctorMonadError.leftPure(FromZipFile.Error.ZipEntryNotFound(zipEntryName)): F[FromZipFile.Error, ZipEntry]
+        case Some(zipEntry) => BME.pure(zipEntry): F[FromZipFile.Error, ZipEntry]
+        case None => BME.leftPure(FromZipFile.Error.ZipEntryNotFound(zipEntryName)): F[FromZipFile.Error, ZipEntry]
       }
 
       inputStream <- syncCatchIOException(zipFile.getInputStream(zipEntry))
@@ -134,7 +135,7 @@ object MakeSource {
 
   }
 
-  def fromZipFile[F[+_, +_] : SyncEffects](charset: Charset = defaultCharset): MakeSource[F, FromZipFile.Error, (Path, FromZipFile.ZipEntryName)] =
+  def fromZipFile[F[+_, +_] : Sync](charset: Charset = defaultCharset): MakeSource[F, FromZipFile.Error, (Path, FromZipFile.ZipEntryName)] =
     fromInputStream(charset)
       .mappingErrors(FromZipFile.Error.AnIOException)
       .butFirst(openZipEntry(_))
@@ -149,7 +150,7 @@ object MakeSource {
     }
   }
 
-  def fromDownloadedZipFile[F[+_, +_] : SyncEffects : DownloadToPath](pathForDownloads: Path, charset: Charset = defaultCharset): MakeSource[F, FromDownloadedZipFile.Error, (URL, FromZipFile.ZipEntryName)] =
+  def fromDownloadedZipFile[F[+_, +_] : Sync : DownloadToPath](pathForDownloads: Path, charset: Charset = defaultCharset): MakeSource[F, FromDownloadedZipFile.Error, (URL, FromZipFile.ZipEntryName)] =
     fromZipFile(charset)
       .mappingErrors(FromDownloadedZipFile.Error.ZipFileReadError)
       .butFirst { case (url, zipEntryName) =>

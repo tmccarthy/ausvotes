@@ -6,23 +6,25 @@ import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.WritesToS3
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.Log._
-import au.id.tmm.ausvotes.shared.io.actions.{EnvVars, Log, Now}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME, _}
+import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, RecountLocations, RecountRequest, RecountResponse}
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync._
+import au.id.tmm.bfect.extraeffects.EnvVars
 import au.id.tmm.utilities.collection.Flyweight
 import com.amazonaws.services.lambda.runtime.Context
 import io.circe.syntax.EncoderOps
-import scalaz.zio.{IO, RTS}
+import scalaz.zio.{DefaultRuntime, IO}
 
 final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse, RecountLambdaError](RecountLambda.rts) {
 
   override def logic(lambdaRequest: RecountRequest, context: Context): IO[RecountLambdaError, RecountResponse] = {
     import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
     import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+    import au.id.tmm.bfect.ziointerop._
 
     for {
       recountDataBucketName <- Configuration.recountDataBucketName
@@ -37,7 +39,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
     } yield result
   }
 
-  private def recountLogic[F[+_, +_] : FetchPreferenceTree : WritesToS3 : Log : Now : EnvVars : SyncEffects : BME]
+  private def recountLogic[F[+_, +_] : FetchPreferenceTree : WritesToS3 : Log : Now : EnvVars : Sync]
   (
     recountRequest: RecountRequest,
     context: Context,
@@ -52,7 +54,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
       countResult <- RunRecount.runRecountRequest(recountRequest)
           .leftMap(RecountLambdaError.RecountComputationError)
 
-      countSummary <- BME.fromEither(CountSummary.from(recountRequest, countResult))
+      countSummary <- Sync.fromEither(CountSummary.from(recountRequest, countResult))
           .leftMap(RecountLambdaError.RecountSummaryError)
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)
@@ -85,7 +87,7 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
 }
 
 object RecountLambda {
-  private lazy val rts: RTS = new RTS {}
+  private lazy val rts: DefaultRuntime = new DefaultRuntime {}
 
   private val preferenceTreeCache: Flyweight[S3BucketName, PreferenceTreeCache] = Flyweight { s3BucketName =>
     rts.unsafeRun {

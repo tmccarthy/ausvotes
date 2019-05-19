@@ -5,12 +5,12 @@ import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.SyncEffects.syncException
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.{CompletedCount, CountParams}
 import au.id.tmm.countstv.rules.RoundingRules
@@ -18,7 +18,7 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 
 object RunRecount {
 
-  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : SyncEffects : Log : Now : BME]
+  def runRecountRequest[F[+_, +_] : FetchPreferenceTree : Sync : Log : Now : BME]
   (
     recountRequest: RecountRequest,
   ): F[RunRecount.Error, ProbabilityMeasure[CompletedCount[SenateCandidate]]] =
@@ -35,7 +35,7 @@ object RunRecount {
           .left.map(Error.InvalidCandidateIds)
       }
 
-      completedCountPossibilities <- syncException {
+      completedCountPossibilities <- Sync.syncException {
         FullCountComputation.runCount[SenateCandidate](
           CountParams[SenateCandidate](
             allCandidates,

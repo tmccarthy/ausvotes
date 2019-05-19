@@ -4,8 +4,10 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path}
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.{Ops, _}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync._
 import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
 import cats.instances.option._
 import cats.syntax.traverse._
@@ -38,7 +40,7 @@ object JsonCache {
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
   // TODO handle the race conditions
-  final class OnDisk[F[+_, +_] : SyncEffects] private (location: Path) extends JsonCache[F] {
+  final class OnDisk[F[+_, +_] : Sync] private (location: Path) extends JsonCache[F] {
 
     private val charset = Charset.forName("UTF-8")
 
@@ -46,7 +48,7 @@ object JsonCache {
       val keyJson = key.asJson
       val keyDigest = keyJson.noSpaces.sha256checksum(charset)
 
-      SyncEffects.syncException(location.resolve(s"${keyDigest.asHexString}.json"))
+      Sync.syncException(location.resolve(s"${keyDigest.asHexString}.json"))
         .leftMap(JsonCache.Error)
     }
 
@@ -54,7 +56,7 @@ object JsonCache {
       for {
         recordPath <- recordPathOf(key)
 
-        recordExists <- SyncEffects.syncException(Files.exists(recordPath))
+        recordExists <- Sync.syncException(Files.exists(recordPath))
           .leftMap(JsonCache.Error)
 
         record <- Some(readRecordAt(recordPath)).filter(_ => recordExists).sequence
@@ -81,7 +83,7 @@ object JsonCache {
 
     private def readRecordAt[V : Decoder](path: Path): F[JsonCache.Error, V] = {
       for {
-        contentsAsString <- SyncEffects.syncException(new String(Files.readAllBytes(path), charset))
+        contentsAsString <- Sync.syncException(new String(Files.readAllBytes(path), charset))
         contentsAsJson <- BME.fromEither(io.circe.parser.parse(contentsAsString))
         record <- BME.fromEither(implicitly[Decoder[V]].decodeJson(contentsAsJson))
       } yield record
@@ -91,15 +93,15 @@ object JsonCache {
       val fileContents = record.asJson.noSpaces
 
       for {
-        _ <- SyncEffects.syncException(Files.createDirectories(path.getParent))
-        _ <- SyncEffects.syncException(Files.deleteIfExists(path))
-        _ <- SyncEffects.syncException(Files.write(path, java.util.Arrays.asList(fileContents), charset))
+        _ <- Sync.syncException(Files.createDirectories(path.getParent))
+        _ <- Sync.syncException(Files.deleteIfExists(path))
+        _ <- Sync.syncException(Files.write(path, java.util.Arrays.asList(fileContents), charset))
       } yield ()
     }.leftMap(JsonCache.Error)
   }
 
   object OnDisk {
-    def apply[F[+_, +_] : SyncEffects](location: Path): OnDisk[F] = new OnDisk(location)
+    def apply[F[+_, +_] : Sync](location: Path): OnDisk[F] = new OnDisk(location)
   }
 
 }

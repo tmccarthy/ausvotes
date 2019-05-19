@@ -6,15 +6,16 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlac
 import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.{DownloadToPath, MakeSource}
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, SyncEffects}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Sync
 
-final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (resourceStoreLocation: Path) {
+final class AecResourceStore[F[+_, +_] : DownloadToPath : Sync] private (resourceStoreLocation: Path) {
 
   implicit val makeSourceForFederalPollingPlaceResource: MakeSource[F, Exception, FederalPollingPlacesResource] =
     MakeSource.fromDownloadedFile(pathForDownloads = resourceStoreLocation).butFirst {
       case FederalPollingPlacesResource(election) =>
-        BifunctorMonadError.fromEither {
+        BME.fromEither {
           s"https://results.aec.gov.au/${election.aecId.asInt}/Website/Downloads/GeneralPollingPlacesDownload-${election.aecId.asInt}.csv".parseUrl
         }
     }
@@ -22,7 +23,7 @@ final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (
   implicit val makeSourceForSenateFirstPreferencesResource: MakeSource[F, Exception, SenateFirstPreferencesResource] =
     MakeSource.fromDownloadedFile(pathForDownloads = resourceStoreLocation).butFirst {
       case SenateFirstPreferencesResource(election) =>
-        BifunctorMonadError.fromEither {
+        BME.fromEither {
           s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/Downloads/SenateFirstPrefsByStateByVoteTypeDownload-${election.federalElection.aecId.asInt}.csv".parseUrl
         }
     }
@@ -31,7 +32,7 @@ final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (
     MakeSource.fromDownloadedZipFile(pathForDownloads = resourceStoreLocation).butFirst {
       case SenateDistributionOfPreferencesResource(SenateElectionForState(election, state)) =>
         for {
-          url <- BifunctorMonadError.fromEither(s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/External/SenateDopDownload-${election.federalElection.aecId.asInt}.zip".parseUrl)
+          url <- BME.fromEither(s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/External/SenateDopDownload-${election.federalElection.aecId.asInt}.zip".parseUrl)
 
           zipEntryName = MakeSource.FromZipFile.ZipEntryName(s"SenateStateDOPDownload-${election.federalElection.aecId.asInt}-${state.abbreviation.toUpperCase}.csv")
         } yield (url, zipEntryName)
@@ -41,7 +42,7 @@ final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (
     MakeSource.fromDownloadedZipFile(pathForDownloads = resourceStoreLocation).butFirst {
       case FormalSenatePreferencesResource(SenateElectionForState(election, state)) =>
         for {
-          url <- BifunctorMonadError.fromEither(s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/External/aec-senate-formalpreferences-${election.federalElection.aecId.asInt}-${state.abbreviation}.zip".parseUrl)
+          url <- BME.fromEither(s"https://results.aec.gov.au/${election.federalElection.aecId.asInt}/Website/External/aec-senate-formalpreferences-${election.federalElection.aecId.asInt}-${state.abbreviation}.zip".parseUrl)
 
           zipEntryName = MakeSource.FromZipFile.ZipEntryName(s"aec-senate-formalpreferences-${election.federalElection.aecId.asInt}-${state.abbreviation}.csv")
         } yield (url, zipEntryName)
@@ -51,7 +52,7 @@ final class AecResourceStore[F[+_, +_] : DownloadToPath : SyncEffects] private (
 
 object AecResourceStore {
 
-  def apply[F[+_, +_] : DownloadToPath : SyncEffects](resourceStoreLocation: Path): AecResourceStore[F] =
+  def apply[F[+_, +_] : DownloadToPath : Sync](resourceStoreLocation: Path): AecResourceStore[F] =
     new AecResourceStore(resourceStoreLocation)
 
 }

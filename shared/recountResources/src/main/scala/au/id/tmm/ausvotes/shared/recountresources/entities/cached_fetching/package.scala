@@ -16,17 +16,17 @@ package object cached_fetching {
                                                   )(
                                                     fetch: IO[E, A]
                                                   ): IO[Nothing, Promise[E, A]] = {
-    cacheMap.get(election).foreach(promise => return IO.point(promise))
+    cacheMap.get(election).foreach(promise => return IO.succeed(promise))
 
     for {
       promise <- Promise.make[E, A]
 
-      fetchAndCompletePromise = fetch.attempt.flatMap {
-        case Right(entity) => promise.complete(entity)
+      fetchAndCompletePromise = fetch.either.flatMap {
+        case Right(entity) => promise.succeed(entity)
         case Left(exception) => mutex.withPermit {
           cacheMap.remove(election)
 
-          promise.error(exception)
+          promise.fail(exception)
         }
       }
 

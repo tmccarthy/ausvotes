@@ -2,14 +2,15 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
 import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
 import fs2.Stream
 
-final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private ()(
+final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
   implicit
   makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
   makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],
@@ -140,7 +141,7 @@ final class FetchRawFederalElectionData[F[+_, +_] : SyncEffects] private ()(
 }
 
 object FetchRawFederalElectionData {
-  def apply[F[+_, +_] : SyncEffects]()(
+  def apply[F[+_, +_] : Sync]()(
     implicit
     makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
     makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],

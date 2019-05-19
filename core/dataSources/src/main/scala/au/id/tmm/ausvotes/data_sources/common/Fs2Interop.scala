@@ -1,20 +1,19 @@
 package au.id.tmm.ausvotes.data_sources.common
 
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{SyncEffects, BifunctorMonadError => BME}
-import cats.effect.{Sync => CatsSync}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Sync
 import fs2.Stream.Compiler
 import scalaz.zio.IO
 
 object Fs2Interop {
 
-  implicit def catsSyncInstance[F[+_, +_] : SyncEffects]: CatsSync[F[Throwable, +?]] = SyncEffects.catsSyncForSyncEffects[F]
-
-  implicit def syncCompiler[F[+_, +_] : SyncEffects]: Compiler[F[Throwable, +?], F[Throwable, +?]] =
-    Compiler.syncInstance[F[Throwable, +?]](catsSyncInstance(implicitly[SyncEffects[F]]))
+  implicit def syncCompiler[F[+_, +_] : Sync]: Compiler[F[Throwable, +?], F[Throwable, +?]] =
+    Compiler.syncInstance[F[Throwable, +?]]
 
   implicit val zioCompiler: Compiler[IO[Throwable, +?], IO[Throwable, +?]] =
-    Compiler.syncInstance[IO[Throwable, +?]](scalaz.zio.interop.catz.taskEffectInstances)
+    Compiler.syncInstance[IO[Throwable, +?]](scalaz.zio.interop.catz.taskConcurrentInstances)
 
   implicit class ThrowableEOps[F[+_, +_] : BME, A](fThrowableA: F[Throwable, A]) {
 

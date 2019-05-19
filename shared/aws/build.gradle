@@ -11,7 +11,8 @@ dependencyManagement {
 }
 
 dependencies {
-    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
+    compile "au.id.tmm.bfect:bfect-core${s}:$bfectVersion"
+    compile "au.id.tmm.bfect:bfect-interop-zio${s}:$bfectVersion"
 
     compile 'com.amazonaws:aws-java-sdk-s3'
     compile 'com.amazonaws:aws-java-sdk-sns'

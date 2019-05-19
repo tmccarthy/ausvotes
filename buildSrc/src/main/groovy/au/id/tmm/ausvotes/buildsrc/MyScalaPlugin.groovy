@@ -66,7 +66,7 @@ class MyScalaPlugin implements Plugin<Project> {
                         '-Xlint:delayedinit-select',         // Selecting member of DelayedInit.
                         '-Xlint:doc-detached',               // A Scaladoc comment appears to be detached from its element.
                         '-Xlint:inaccessible',               // Warn about inaccessible types in method signatures.
-                        '-Xlint:infer-any',                  // Warn when a type argument is inferred to be `Any`.
+//                        '-Xlint:infer-any',                  // Warn when a type argument is inferred to be `Any`. TODO remove this when possible
                         '-Xlint:nullary-override',           // Warn when non-nullary `def f()' overrides nullary `def f'.
                         '-Xlint:nullary-unit',               // Warn when nullary methods return Unit.
                         '-Xlint:option-implicit',            // Option.apply used implicit view.
@@ -79,7 +79,6 @@ class MyScalaPlugin implements Plugin<Project> {
                         '-Ypartial-unification',             // Enable partial unification in type constructor inference
                         '-Ywarn-extra-implicit',             // Warn when more than one implicit parameter section is defined.
                         '-Ywarn-inaccessible',               // Warn about inaccessible types in method signatures.
-                        '-Ywarn-infer-any',                  // Warn when a type argument is inferred to be `Any`.
                         '-Ywarn-nullary-override',           // Warn when non-nullary `def f()' overrides nullary `def f'.
                         '-Ywarn-nullary-unit',               // Warn when nullary methods return Unit.
                         '-Ywarn-unused:imports',             // Warn if an import selector is not referenced.

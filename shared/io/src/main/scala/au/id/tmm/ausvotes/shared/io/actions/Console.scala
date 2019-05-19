@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.shared.io.actions
 
+// TODO move this to bfect
 trait Console[F[+_, +_]] {
 
   def print(string: String): F[Nothing, Unit]
