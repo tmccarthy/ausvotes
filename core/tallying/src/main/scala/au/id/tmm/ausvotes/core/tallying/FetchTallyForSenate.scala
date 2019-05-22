@@ -10,9 +10,9 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
 import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausvotes.shared.io.actions.Log
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.{Ops, _}
-import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{Concurrent, SyncEffects}
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Concurrent.Ops
+import au.id.tmm.bfect.effects.{Concurrent, Sync}
 import cats.instances.list._
 import cats.syntax.traverse._
 
@@ -92,7 +92,7 @@ object FetchTallyForSenate {
       ballotsWithFactsStream = senateBallotsStream.chunkN(5000)
         .parEvalMapUnordered(Runtime.getRuntime.availableProcessors() * 2) { chunk =>
           for {
-            stream <- SyncEffects.sync(
+            stream <- Sync.sync(
               fs2.Stream.emits(
                 BallotFactsComputation.computeFactsFor[SenateElectionForState, FederalBallotJurisdiction, SenateBallotId](
                   electionForState,

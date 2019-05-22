@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import fs2.Stream
 

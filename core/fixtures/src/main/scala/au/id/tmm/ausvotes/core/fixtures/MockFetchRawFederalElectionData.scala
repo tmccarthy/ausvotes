@@ -9,7 +9,8 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionFo
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, SyncEffects}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.utilities.geo.australia.State
 import fs2.Stream
 
@@ -30,15 +31,15 @@ object MockFetchRawFederalElectionData extends FetchRawSenateFirstPreferences[Ba
           case SenateDistributionOfPreferencesResource(SenateElectionForState(SenateElection.`2016`, state)) =>
             MakeSource.fromResource[BasicTestIO]().makeSourceFor(s"/au/id/tmm/ausvotes/core/fixtures/SenateStateDOPDownload-20499-${state.abbreviation}.csv")
 
-          case r => MakeSource.never(implicitly[SyncEffects[BasicTestIO]]).makeSourceFor(r)
+          case r => MakeSource.never(implicitly[Sync[BasicTestIO]]).makeSourceFor(r)
         }
     }
 
   private def makeSourceFor[R](resolveResource: PartialFunction[R, String]): MakeSource[BasicTestIO, Exception, R] =
     MakeSource.fromResource[BasicTestIO]()
       .butFirst[R, Exception](resource => resolveResource.lift(resource) match {
-      case Some(resourceLocation) => BifunctorMonadError[BasicTestIO].pure(resourceLocation)
-      case None => BifunctorMonadError[BasicTestIO].leftPure(new RuntimeException(s"No test data for $resource"))
+      case Some(resourceLocation) => BME[BasicTestIO].pure(resourceLocation)
+      case None => BME[BasicTestIO].leftPure(new RuntimeException(s"No test data for $resource"))
     })
 
   private implicit val makeFederalPollingPlacesResourceSource: MakeSource[BasicTestIO, Exception, FederalPollingPlacesResource] = makeSourceFor[FederalPollingPlacesResource] {

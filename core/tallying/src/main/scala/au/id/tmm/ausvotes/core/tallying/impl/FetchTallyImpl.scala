@@ -4,9 +4,10 @@ import au.id.tmm.ausvotes.core.tallies.redo.BallotTallier
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.{TallyBundle, TallyRequest, TallyRequests}
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop.ThrowableEOps
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.CatsInterop._
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent, SyncEffects}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Concurrent.Ops
+import au.id.tmm.bfect.effects.{Concurrent, Sync}
 import cats.Monoid
 
 final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 5000) extends FetchTally[F] {
@@ -119,9 +120,9 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 500
     ballots.chunkN(chunkSize)
       .parEvalMapUnordered(maxConcurrent = Runtime.getRuntime.availableProcessors()) { chunk =>
         if (chunk.nonEmpty) {
-          SyncEffects.syncThrowable(applyTallyRequests[B](tallyRequests, chunk.toVector))
+          Sync.syncThrowable(applyTallyRequests[B](tallyRequests, chunk.toVector))
         } else {
-          BifunctorMonadError.pure(TallyBundle.empty[B])
+          BME.pure(TallyBundle.empty[B])
         }
       }
       .foldMonoid

@@ -2,13 +2,14 @@ package au.id.tmm.ausvotes.data_sources.common
 
 import java.nio.file.Files
 
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
-import scalaz.zio.{IO, RTS}
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances.zioIsABME
+import scalaz.zio.{DefaultRuntime, IO}
+
 import scala.collection.JavaConverters._
 
-class OnDiskJsonCacheSpec extends ImprovedFlatSpec with NeedsCleanDirectory with RTS {
+class OnDiskJsonCacheSpec extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
   private val cacheUnderTest = JsonCache.OnDisk[IO](cleanDirectory)
 

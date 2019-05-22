@@ -7,9 +7,9 @@ import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 import fs2.Stream
-import scalaz.zio.{IO, RTS}
+import scalaz.zio.{DefaultRuntime, IO}
 
-class AecDataIntegrationTest extends ImprovedFlatSpec with NeedsCleanDirectory with RTS {
+class AecDataIntegrationTest extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
   private val instances = CanonicalFederalAecDataInstances(cleanDirectory)
 

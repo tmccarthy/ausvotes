@@ -8,7 +8,7 @@ import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElect
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError
+import au.id.tmm.bfect.BME
 import fs2.Stream
 
 object MockFetchFederalElectionData extends FetchDivisionsAndFederalPollingPlaces[BasicTestIO]
@@ -19,7 +19,7 @@ object MockFetchFederalElectionData extends FetchDivisionsAndFederalPollingPlace
   implicit val fetchRawData: MockFetchRawFederalElectionData.type = MockFetchRawFederalElectionData
 
   override def divisionsAndFederalPollingPlacesFor(election: FederalElection): BasicTestData.BasicTestIO[FetchDivisionsAndFederalPollingPlaces.Error, DivisionsAndPollingPlaces] =
-    BifunctorMonadError[BasicTestIO].pure(DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces)
+    BME[BasicTestIO].pure(DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces)
 
   override def senateBallotsFor(
                                  election: SenateElectionForState,
@@ -35,9 +35,9 @@ object MockFetchFederalElectionData extends FetchDivisionsAndFederalPollingPlace
     FetchSenateCountDataFromRaw[BasicTestIO].senateCountDataFor(election, groupsAndCandidates)
 
   override def senateGroupsAndCandidatesFor(election: SenateElection): BasicTestData.BasicTestIO[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
-    BifunctorMonadError[BasicTestIO].pure(GroupAndCandidateFixture.ACT.groupsAndCandidates)
+    BME[BasicTestIO].pure(GroupAndCandidateFixture.ACT.groupsAndCandidates)
 
   override def senateGroupsAndCandidatesFor(electionForState: SenateElectionForState): BasicTestData.BasicTestIO[FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
-    BifunctorMonadError[BasicTestIO].pure(GroupAndCandidateFixture.ACT.groupsAndCandidates)
+    BME[BasicTestIO].pure(GroupAndCandidateFixture.ACT.groupsAndCandidates)
 
 }

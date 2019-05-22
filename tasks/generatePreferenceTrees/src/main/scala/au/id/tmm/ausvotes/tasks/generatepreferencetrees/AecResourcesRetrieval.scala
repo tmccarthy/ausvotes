@@ -24,7 +24,7 @@ object AecResourcesRetrieval {
     for {
       valueResources <- retrieveValueResources(election)
 
-      finalResultsPerState <- IO.parTraverse(stateElectionsInOrder) { election =>
+      finalResultsPerState <- IO.foreachPar(stateElectionsInOrder) { election =>
         processResourcesForState(election, valueResources)(resourcesUse)
           .map(election.state -> _)
       }
@@ -36,7 +36,7 @@ object AecResourcesRetrieval {
     fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO],
     fetchDivisionsAndPollingPlaces: FetchDivisionsAndFederalPollingPlaces[IO],
   ): IO[Exception, ValueResources] =
-    (fetchGroupsAndCandidates.senateGroupsAndCandidatesFor(election) par fetchDivisionsAndPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection))
+    (fetchGroupsAndCandidates.senateGroupsAndCandidatesFor(election) zipPar fetchDivisionsAndPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection))
       .map { case (groupsAndCandidates, divisionsAndPollingPlaces) =>
         ValueResources(groupsAndCandidates, divisionsAndPollingPlaces)
       }

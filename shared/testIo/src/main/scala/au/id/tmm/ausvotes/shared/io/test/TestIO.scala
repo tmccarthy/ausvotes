@@ -2,8 +2,10 @@ package au.id.tmm.ausvotes.shared.io.test
 
 import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
 import au.id.tmm.bfect
-import au.id.tmm.bfect.effects.Sync
-import au.id.tmm.bfect.{ExitCase, Failure}
+import au.id.tmm.bfect.effects.Concurrent
+import au.id.tmm.bfect.{ExitCase, Failure, Fibre}
+
+import scala.util.Random
 
 final case class TestIO[D, +E, +A](run: D => Output[D, E, A]) {
   def map[B](f: A => B): TestIO[D, E, B] = {
@@ -48,7 +50,7 @@ object TestIO {
     }
   }
 
-  implicit def testIOIsABME[D]: Sync[TestIO[D, +?, +?]] = new Sync[TestIO[D, +?, +?]] {
+  implicit def testIOIsABME[D]: Concurrent[TestIO[D, +?, +?]] = new Concurrent[TestIO[D, +?, +?]] {
 
     override def rightPure[A](a: A): TestIO[D, Nothing, A] = TestIO.pure(a)
 
@@ -92,5 +94,26 @@ object TestIO {
       case Right(value) => TestIO.pure(value)
       case Left(value) => tailRecM(value)(f)
     }
+
+    private def asFibre[E, A](fea: TestIO[D, E, A]): Fibre[TestIO[D, +?, +?], E, A] = new Fibre[TestIO[D, +?, +?], E, A] {
+      override def cancel: TestIO[D, Nothing, Unit] = TestIO[D, Nothing, Unit](d => TestIO.Output(d, Right(())))
+
+      override def join: TestIO[D, E, A] = fea
+    }
+
+    override def start[E, A](fea: TestIO[D, E, A]): TestIO[D, Nothing, Fibre[TestIO[D, +?, +?], E, A]] = TestIO.pure(asFibre(fea))
+
+    override def racePair[E, A, B](fea: TestIO[D, E, A], feb: TestIO[D, E, B]): TestIO[D, E, Either[(A, Fibre[TestIO[D, +?, +?], E, B]), (Fibre[TestIO[D, +?, +?], E, A], B)]] =
+      if (Random.nextBoolean()) {
+        fea.map(a => Left((a, asFibre(feb))))
+      } else {
+        feb.map(b => Right((asFibre(fea), b)))
+      }
+
+    //noinspection NotImplementedCode
+    override def cancelable[E, A](k: (Either[E, A] => Unit) => TestIO[D, Nothing, _]): TestIO[D, E, A] = ???
+
+    override def asyncF[E, A](k: (Either[E, A] => Unit) => TestIO[D, Nothing, _]): TestIO[D, E, A] = cancelable(k)
   }
+
 }

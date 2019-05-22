@@ -6,8 +6,9 @@ import au.id.tmm.ausvotes.core.tallies.redo.BallotTallier.{UnitBallotTallier => 
 import au.id.tmm.ausvotes.core.tallying.FetchTallyForElection.TallyRequest
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError, Concurrent}
+import au.id.tmm.bfect.BifunctorMonadError
+import au.id.tmm.bfect.effects.Concurrent
+import au.id.tmm.bfect.effects.Concurrent._
 import cats.Monoid
 import io.circe.{Decoder, Encoder}
 

@@ -18,6 +18,7 @@ import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync._
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
@@ -87,7 +88,6 @@ object CompareRecounts extends zio.App {
     val elections: Set[SenateElectionForState] = senateElection.allStateElections
 
     for {
-      /*_*/
       comparisons <- elections.toList
         .sortBy(_.state)(orderStatesByPopulation.reverse)
         .traverse((election: SenateElectionForState) =>
@@ -95,7 +95,6 @@ object CompareRecounts extends zio.App {
         )
 
       _ <- comparisons.flatMap(RenderCountComparison.render).map(Console.println[F]).sequence
-      /*_*/
     } yield ()
   }
 

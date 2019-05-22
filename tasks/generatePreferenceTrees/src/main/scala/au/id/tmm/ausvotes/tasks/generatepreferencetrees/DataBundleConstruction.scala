@@ -5,8 +5,8 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import fs2.Stream

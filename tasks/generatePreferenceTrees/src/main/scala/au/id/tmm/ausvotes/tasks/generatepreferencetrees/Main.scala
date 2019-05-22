@@ -11,15 +11,16 @@ import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.bfect.BME.Ops
+import au.id.tmm.bfect.ziointerop._
 import scalaz.zio.{App, IO}
 
 object Main extends App {
 
-  override def run(args: List[String]): IO[Nothing, Main.ExitStatus] =
+  override def run(args: List[String]): IO[Nothing, Int] =
     applicationLogic(args)
       .timedLog("APP_RUN")
       .attempt.map(_.fold(_ => 1, _ => 0))
-      .map(ExitStatus.ExitNow(_))
 
   private def applicationLogic(rawArgs: List[String]): IO[Exception, Unit] = {
     val dataStorePath = Paths.get("rawData")
