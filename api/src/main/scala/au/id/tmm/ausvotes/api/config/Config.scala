@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.api.config
 
 import au.id.tmm.ausvotes.api.errors.ConfigException
 import au.id.tmm.ausvotes.shared.aws.data.{LambdaFunctionName, S3BucketName}
-import au.id.tmm.ausvotes.shared.io.actions.EnvVars
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.{EitherOps, Ops}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME.{AbsolveOps, Ops}
+import au.id.tmm.bfect.extraeffects.EnvVars
 
 final case class Config(
                          recountDataBucket: S3BucketName,

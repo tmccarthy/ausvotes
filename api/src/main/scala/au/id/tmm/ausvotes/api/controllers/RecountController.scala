@@ -6,10 +6,10 @@ import au.id.tmm.ausvotes.api.model.recount.RecountApiRequest
 import au.id.tmm.ausvotes.core.model.IneligibleCandidates
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
 import au.id.tmm.ausvotes.shared.recountresources.exceptions.InvalidJsonException
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME.Ops
 import cats.syntax.show.toShow
 import com.amazonaws.AmazonServiceException
 import io.circe.Json

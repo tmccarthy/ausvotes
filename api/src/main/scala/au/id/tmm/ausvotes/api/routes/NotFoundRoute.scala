@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.api.routes
 
 import au.id.tmm.ausvotes.api.CompleteRoutes
 import au.id.tmm.ausvotes.api.errors.NotFoundException
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
+import au.id.tmm.bfect.BME
 import unfiltered.request.Path
 
 object NotFoundRoute {

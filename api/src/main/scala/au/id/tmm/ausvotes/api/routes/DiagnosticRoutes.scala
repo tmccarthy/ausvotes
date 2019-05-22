@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.api.routes
 import au.id.tmm.ausvotes.api.PartialRoutes
 import au.id.tmm.ausvotes.api.controllers.DiagnosticController
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
-import au.id.tmm.ausvotes.shared.io.actions.Resources
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME.Ops
+import au.id.tmm.bfect.extraeffects.Resources
 import unfiltered.request.{GET, Path, Seg}
 
 object DiagnosticRoutes {

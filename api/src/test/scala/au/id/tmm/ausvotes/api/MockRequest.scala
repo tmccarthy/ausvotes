@@ -1,6 +1,7 @@
 package au.id.tmm.ausvotes.api
 
 import java.io.{InputStream, Reader}
+import java.nio.charset.Charset
 
 import au.id.tmm.http_constants.{HttpHeader, HttpMethod}
 import org.apache.commons.io.IOUtils
@@ -15,7 +16,7 @@ final case class MockRequest(
                               headers: Map[HttpHeader, List[String]] = Map.empty,
                               body: String = "",
                             ) extends HttpRequest[ReceivedMessage](null) {
-  override def inputStream: InputStream = IOUtils.toInputStream(body)
+  override def inputStream: InputStream = IOUtils.toInputStream(body, Charset.forName("UTF-8"))
 
   override def reader: Reader = new CharSequenceReader(body)
 

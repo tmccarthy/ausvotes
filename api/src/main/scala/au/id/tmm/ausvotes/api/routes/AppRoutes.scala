@@ -7,10 +7,11 @@ import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
 import au.id.tmm.ausvotes.api.{CompleteRoutes, InfallibleRoutes, PartialRoutes}
 import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.ReadsS3
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.actions.{Log, Resources}
-import au.id.tmm.ausvotes.shared.io.typeclasses.{BifunctorMonadError => BME}
-import au.id.tmm.ausvotes.shared.io.typeclasses.BifunctorMonadError.Ops
+import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.BME.Ops
+import au.id.tmm.bfect.extraeffects.Resources
 import unfiltered.netty.ReceivedMessage
 import unfiltered.request.{DelegatingRequest, HttpRequest}
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}
