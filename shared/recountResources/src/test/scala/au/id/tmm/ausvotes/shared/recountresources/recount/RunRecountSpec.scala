@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.shared.recountresources.recount
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
 import au.id.tmm.ausvotes.model.Name
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection}
-import au.id.tmm.ausvotes.shared.io.test.TestIO
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.testing.EntitiesTestData
 import au.id.tmm.countstv.model.CompletedCount
@@ -30,7 +29,7 @@ class RunRecountSpec extends ImprovedFlatSpec {
       doRounding = true,
     )
 
-    val logicUnderTest = RunRecount.runRecountRequest[TestIO[EntitiesTestData, +?, +?]](request)
+    val logicUnderTest = RunRecount.runRecountRequest[EntitiesTestData.TestIO](request)
 
     val testData = EntitiesTestData(
       groups = Map(election -> candidateFixture.groupFixture.groups),
@@ -46,7 +45,7 @@ class RunRecountSpec extends ImprovedFlatSpec {
       })
     )
 
-    val actualResult: Either[RunRecount.Error, ProbabilityMeasure[CompletedCount[SenateCandidate]]] = logicUnderTest.run(testData).result
+    val actualResult: Either[RunRecount.Error, ProbabilityMeasure[CompletedCount[SenateCandidate]]] = logicUnderTest.runEither(testData)
 
     assert(actualResult.map(_.onlyOutcomeUnsafe.outcomes.electedCandidates) === Right(DupelessSeq(
       katyGallagher,

@@ -1,8 +1,7 @@
 package au.id.tmm.ausvotes.shared.io.test.testdata
 
-import au.id.tmm.ausvotes.shared.io.test.TestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
-import au.id.tmm.bfect.extraeffects.EnvVars
+import au.id.tmm.bfect.effects.extra.EnvVars
+import au.id.tmm.bfect.testing.BState
 
 final case class EnvVarTestData(
                                  envVars: Map[String, String],
@@ -12,10 +11,10 @@ object EnvVarTestData {
 
   val empty = EnvVarTestData(Map.empty)
 
-  trait TestIOInstance[D] extends EnvVars[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends EnvVars[BState[D, +?, +?]] {
     protected def envVarsField(data: D): EnvVarTestData
 
-    override def envVars: TestIO[D, Nothing, Map[String, String]] =
-      TestIO(data => Output(data, Right(envVarsField(data).envVars)))
+    override def envVars: BState[D, Nothing, Map[String, String]] =
+      BState(data => (data, Right(envVarsField(data).envVars)))
   }
 }

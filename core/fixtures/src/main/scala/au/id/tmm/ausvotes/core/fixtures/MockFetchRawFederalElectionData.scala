@@ -8,7 +8,6 @@ import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.utilities.geo.australia.State

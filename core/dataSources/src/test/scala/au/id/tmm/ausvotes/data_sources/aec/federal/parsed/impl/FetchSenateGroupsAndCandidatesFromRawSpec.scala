@@ -8,7 +8,6 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name, Party}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
 import au.id.tmm.bfect.BME
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
@@ -60,7 +59,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     val expectedGroup = SenateGroup(`2016`.electionForState(State.ACT).get, BallotGroup.Code("C").right.get, Some(Party("Australian Labor Party"))).right.get
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.groups contains expectedGroup)
@@ -70,7 +69,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     val expectedGroup = SenateGroup(`2016`.electionForState(State.VIC).get, BallotGroup.Code("B").right.get, None).right.get
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.groups contains expectedGroup)
@@ -80,7 +79,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     val expectedCandidate = CandidateFixture.ACT.candidateWithId(28147)
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.candidates contains expectedCandidate)
@@ -90,7 +89,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     val expectedCandidate = CandidateFixture.ACT.candidateWithId(28150)
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.candidates contains expectedCandidate)
@@ -100,7 +99,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     val expectedCandidate = CandidateFixture.NT.candidateWithId(28538)
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.candidates contains expectedCandidate)
@@ -121,7 +120,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
     )
 
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-        .run(BasicTestData()).result
+        .runEither(BasicTestData())
         .right.get
 
     assert(groupsAndCandidates.candidates contains expectedCandidate)
@@ -129,7 +128,7 @@ class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
 
   it should "flyweight generated groups" in {
     val groupsAndCandidates = fetcherUnderTest.senateGroupsAndCandidatesFor(`2016`)
-      .run(BasicTestData()).result
+      .runEither(BasicTestData())
       .right.get
 
     val laborGroup = groupsAndCandidates.groups.filter(_.party.contains(Party("Australian Labor Party"))).head

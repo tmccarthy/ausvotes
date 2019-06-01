@@ -11,7 +11,7 @@ import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME.Ops
-import au.id.tmm.bfect.extraeffects.Resources
+import au.id.tmm.bfect.effects.extra.Resources
 import unfiltered.netty.ReceivedMessage
 import unfiltered.request.{DelegatingRequest, HttpRequest}
 import unfiltered.response.{InternalServerError, NotFound, ResponseFunction}

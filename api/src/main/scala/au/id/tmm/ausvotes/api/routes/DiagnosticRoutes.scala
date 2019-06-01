@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.api.controllers.DiagnosticController
 import au.id.tmm.ausvotes.api.utils.unfiltered.ResponseJson
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME.Ops
-import au.id.tmm.bfect.extraeffects.Resources
+import au.id.tmm.bfect.effects.extra.Resources
 import unfiltered.request.{GET, Path, Seg}
 
 object DiagnosticRoutes {

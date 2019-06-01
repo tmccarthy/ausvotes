@@ -7,7 +7,6 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
 import au.id.tmm.bfect.BME
 import fs2.Stream
 

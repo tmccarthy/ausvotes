@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.shared.aws.actions.LambdaActions.InvokesLambda
 import au.id.tmm.ausvotes.shared.aws.data.LambdaFunctionName
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.LambdaTestData.LambdaInvocation
 import au.id.tmm.ausvotes.shared.io.test.TestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
+import au.id.tmm.bfect.testing.BState
 
 final case class LambdaTestData(
                                  handler: LambdaTestData.Responder,
@@ -27,16 +27,16 @@ object LambdaTestData {
 
   val default = LambdaTestData(handler = alwaysFailHandler)
 
-  trait TestIOInstance[D] extends InvokesLambda[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends InvokesLambda[BState[D, +?, +?]] {
     protected def lambdaTestDataField(data: D): LambdaTestData
     protected def setLambdaTestData(oldData: D, newLambdaTestData: LambdaTestData): D
 
-    override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): TestIO[D, Exception, String] =
+    override def invokeFunction(name: LambdaFunctionName, payload: Option[String]): BState[D, Exception, String] =
       TestIO { oldTestData =>
         val oldLambdaTestData = lambdaTestDataField(oldTestData)
         val (newLambdaTestData, lambdaResult) = oldLambdaTestData.invoke(name, payload)
         val newTestData = setLambdaTestData(oldTestData, newLambdaTestData)
-        Output(newTestData, lambdaResult)
+        (newTestData, lambdaResult)
       }
   }
 

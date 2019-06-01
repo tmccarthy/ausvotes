@@ -14,7 +14,7 @@ class NotFoundRouteSpec extends ImprovedFlatSpec {
   "the diagnostics route" should "respond with the contents of the version file" in {
     val testLogic = logicForRequest(MockRequest(path = "/resource", httpMethod = HttpMethod.GET))
 
-    val resultFunction = testLogic.resultGiven(BasicTestData())
+    val resultFunction = testLogic.runEither(BasicTestData())
 
     assert(resultFunction === Left(NotFoundException("/resource")))
   }

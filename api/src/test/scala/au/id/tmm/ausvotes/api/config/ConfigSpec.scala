@@ -48,7 +48,7 @@ class ConfigSpec extends ImprovedFlatSpec {
   )
 
   private def retrieve[A](configField: Config => A, environment: Map[String, String]): Either[ConfigException, A] =
-    Config.fromEnvironment[BasicTestIO].map(configField).run(BasicTestData(envVarTestData = EnvVarTestData(envVars = environment))).result
+    Config.fromEnvironment[BasicTestIO].map(configField).runEither(BasicTestData(envVarTestData = EnvVarTestData(envVars = environment)))
 
   private val greenPathEnvironment: Map[String, String] = configFieldSpecs.map { spec =>
     val aValidValueForThisField = spec.parsingTests.collect {

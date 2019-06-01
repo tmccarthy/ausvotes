@@ -2,10 +2,11 @@ package au.id.tmm.ausvotes.shared.recountresources.entities.testing
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateGroupsAndCandidates
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.{FetchCanonicalCountSummary, FetchPreferenceTree}
 import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.testing.BState
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import cats.instances.list._
 import cats.kernel.Monoid
@@ -22,12 +23,14 @@ final case class EntitiesTestData(
 
 object EntitiesTestData {
 
+  type TestIO[+E, +A] = BState[EntitiesTestData, E, A]
+
   val empty = EntitiesTestData(groups = Map.empty, candidates = Map.empty, canonicalCountResults = Map.empty, ballots = Map.empty)
 
   trait TestIOInstance[D]
-    extends FetchSenateGroupsAndCandidates[TestIO[D, +?, +?]]
-      with FetchCanonicalCountSummary[TestIO[D, +?, +?]]
-      with FetchPreferenceTree[TestIO[D, +?, +?]]
+    extends FetchSenateGroupsAndCandidates[BState[D, +?, +?]]
+      with FetchCanonicalCountSummary[BState[D, +?, +?]]
+      with FetchPreferenceTree[BState[D, +?, +?]]
       with BasicTestData.TestIOInstance[D] {
     protected def entitiesTestDataField(data: D): EntitiesTestData
     override protected def basicTestDataField(data: D): BasicTestData
@@ -35,8 +38,8 @@ object EntitiesTestData {
 
     override def fetchGroupsCandidatesAndPreferencesFor(
                                                          election: SenateElectionForState,
-                                                       ): TestIO[D, FetchPreferenceTree.FetchPreferenceTreeException, FetchPreferenceTree.GroupsCandidatesAndPreferences] = {
-      TestIO { testData =>
+                                                       ): BState[D, FetchPreferenceTree.FetchPreferenceTreeException, FetchPreferenceTree.GroupsCandidatesAndPreferences] = {
+      BState { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
         val ballots = entitiesTestData.ballots.getOrElse(election, Vector.empty)
@@ -48,7 +51,7 @@ object EntitiesTestData {
         val groupsCandidatesAndPreferences =
           FetchPreferenceTree.GroupsCandidatesAndPreferences(SenateGroupsAndCandidates(groups, candidates), preferenceTree)
 
-        TestIO.Output(testData, Right(groupsCandidatesAndPreferences))
+        (testData, Right(groupsCandidatesAndPreferences))
       }
     }
 
@@ -56,18 +59,18 @@ object EntitiesTestData {
     override def useGroupsCandidatesAndPreferencesWhileCaching[E, A](
                                                                       election: SenateElectionForState,
                                                                     )(
-                                                                      handleEntityFetchError: FetchPreferenceTree.FetchPreferenceTreeException => TestIO[D, E, A],
-                                                                      handleCachePopulationError: FetchPreferenceTree.FetchPreferenceTreeException => TestIO[D, E, Unit],
+                                                                      handleEntityFetchError: FetchPreferenceTree.FetchPreferenceTreeException => BState[D, E, A],
+                                                                      handleCachePopulationError: FetchPreferenceTree.FetchPreferenceTreeException => BState[D, E, Unit],
                                                                     )(
-                                                                      action: FetchPreferenceTree.GroupsCandidatesAndPreferences => TestIO[D, E, A],
-                                                                    ): TestIO[D, E, A] = {
+                                                                      action: FetchPreferenceTree.GroupsCandidatesAndPreferences => BState[D, E, A],
+                                                                    ): BState[D, E, A] = {
       ???
     }
 
     override def senateGroupsAndCandidatesFor(
                                                election: SenateElectionForState,
-                                             ): TestIO[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
-      TestIO { testData =>
+                                             ): BState[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
+      BState { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
         val groupsAndCandidates = SenateGroupsAndCandidates(
@@ -75,24 +78,24 @@ object EntitiesTestData {
           entitiesTestData.candidates.getOrElse(election, Set.empty),
         )
 
-        TestIO.Output(testData, Right(groupsAndCandidates))
+        (testData, Right(groupsAndCandidates))
       }
 
     override def senateGroupsAndCandidatesFor(
                                                election: SenateElection,
-                                             ): TestIO[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
+                                             ): BState[D, FetchSenateGroupsAndCandidates.Error, SenateGroupsAndCandidates] =
       election.allStateElections.toList
         .traverse(senateGroupsAndCandidatesFor)
         .map(Monoid[SenateGroupsAndCandidates].combineAll)
 
     override def fetchCanonicalCountSummaryFor(
                                                 election: SenateElectionForState,
-                                              ): TestIO[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
-      TestIO { testData =>
+                                              ): BState[D, FetchCanonicalCountSummary.FetchCanonicalCountSummaryException, CountSummary] =
+      BState { testData =>
         val entitiesTestData = entitiesTestDataField(testData)
 
         //noinspection NotImplementedCode
-        TestIO.Output(testData, Right(entitiesTestData.canonicalCountResults.getOrElse(election, ???))) // TODO encode the s3 not found behaviour into an error
+        (testData, Right(entitiesTestData.canonicalCountResults.getOrElse(election, ???))) // TODO encode the s3 not found behaviour into an error
       }
   }
 

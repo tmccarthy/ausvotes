@@ -5,15 +5,15 @@ import au.id.tmm.ausvotes.lambdas.utils.LambdaHarness.{ErrorResponseTransformer,
 import au.id.tmm.ausvotes.shared.aws.actions.S3Actions.WritesToS3
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log._
-import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.shared.recountresources.{CountSummary, RecountLocations, RecountRequest, RecountResponse}
-import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.effects.Sync._
-import au.id.tmm.bfect.extraeffects.EnvVars
+import au.id.tmm.bfect.effects.extra.EnvVars
+import au.id.tmm.bfect.effects.{Now, Sync}
 import au.id.tmm.utilities.collection.Flyweight
 import com.amazonaws.services.lambda.runtime.Context
 import io.circe.syntax.EncoderOps
@@ -23,7 +23,6 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
 
   override def logic(lambdaRequest: RecountRequest, context: Context): IO[RecountLambdaError, RecountResponse] = {
     import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
-    import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
     import au.id.tmm.bfect.ziointerop._
 
     for {
@@ -49,12 +48,12 @@ final class RecountLambda extends LambdaHarness[RecountRequest, RecountResponse,
       recountDataBucketName <- Configuration.recountDataBucketName
         .leftMap(e => e: RecountLambdaError)
 
-      _ <- logInfo("RECEIVE_RECOUNT_REQUEST", "recount_request" -> recountRequest)
+      _ <- logInfo[F]("RECEIVE_RECOUNT_REQUEST", "recount_request" -> recountRequest)
 
       countResult <- RunRecount.runRecountRequest(recountRequest)
           .leftMap(RecountLambdaError.RecountComputationError)
 
-      countSummary <- Sync.fromEither(CountSummary.from(recountRequest, countResult))
+      countSummary <- Sync[F].fromEither(CountSummary.from(recountRequest, countResult))
           .leftMap(RecountLambdaError.RecountSummaryError)
 
       recountResultKey = RecountLocations.locationOfRecountFor(recountRequest)

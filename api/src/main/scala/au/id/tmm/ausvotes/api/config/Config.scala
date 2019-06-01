@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.api.errors.ConfigException
 import au.id.tmm.ausvotes.shared.aws.data.{LambdaFunctionName, S3BucketName}
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME.{AbsolveOps, Ops}
-import au.id.tmm.bfect.extraeffects.EnvVars
+import au.id.tmm.bfect.effects.extra.EnvVars
 
 final case class Config(
                          recountDataBucket: S3BucketName,
@@ -15,7 +15,7 @@ final case class Config(
 object Config {
 
   def fromEnvironment[F[+_, +_] : EnvVars : BME]: F[ConfigException, Config] =
-    (EnvVars.envVars: F[ConfigException, Map[String, String]]).map { envVars =>
+    (EnvVars[F].envVars: F[ConfigException, Map[String, String]]).map { envVars =>
       for {
         recountDataBucket <- readS3BucketName(envVars, "RECOUNT_DATA_BUCKET")
           .getOrElse(Right(S3BucketName("recount-data.buckets.ausvotes.info")))

@@ -3,14 +3,14 @@ package au.id.tmm.ausvotes.shared.recountresources.recount
 import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateCandidate
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
-import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree.FetchPreferenceTreeException
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME._
-import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.{Now, Sync}
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.{CompletedCount, CountParams}
 import au.id.tmm.countstv.rules.RoundingRules

@@ -5,7 +5,6 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFederalPollingPla
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.testIOIsABME
 import au.id.tmm.bfect.BME
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import fs2.Stream
@@ -40,7 +39,7 @@ class FetchDivisionsAndFederalPollingPlacesFromRawSpec extends ImprovedFlatSpec 
 
   it should "be able to handle multiple rows of raw data" in {
     val actualPollingPlaces = fetcherUnderTest.divisionsAndFederalPollingPlacesFor(FederalElection.`2016`)
-      .run(BasicTestData()).result
+      .runEither(BasicTestData())
       .map(_.pollingPlaces)
 
     val expectedPollingPlaces = Set(PollingPlaceFixture.ACT.BARTON, PollingPlaceFixture.ACT.HOSPITAL_TEAM_1)

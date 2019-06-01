@@ -63,7 +63,7 @@ class DataBundleWritingSpec extends ImprovedFlatSpec {
     val s3 = S3TestData.InMemoryS3().addBucket(s3BucketName)
     val testData = AwsTestData(s3TestData = S3TestData(s3))
 
-    val testDataAfterWrite = testLogic.testDataGiven(testData)
+    val testDataAfterWrite = testLogic.runS(testData)
 
     val writtenRecountResult = for {
       recountBucket <- testDataAfterWrite.s3TestData.s3Content(s3BucketName)

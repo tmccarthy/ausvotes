@@ -10,7 +10,6 @@ import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData
 import au.id.tmm.ausvotes.shared.aws.testing.AwsTestData.AwsTestIO
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.LambdaTestData.LambdaInvocation
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.{LambdaTestData, S3TestData}
-import au.id.tmm.ausvotes.shared.io.test.TestIO
 import au.id.tmm.ausvotes.shared.io.test.TestIO._
 import au.id.tmm.ausvotes.shared.recountresources.{RecountLocations, RecountRequest}
 import au.id.tmm.utilities.geo.australia.State
@@ -28,7 +27,7 @@ class RecountControllerSpec extends ImprovedFlatSpec {
   private def resultGiven(
                            recountRequest: RecountApiRequest,
                            testData: AwsTestData,
-                         ): TestIO.Output[AwsTestData, RecountException, Json] = {
+                         ): (AwsTestData, Either[RecountException, Json]) = {
     new RecountController(config)
       .recount[AwsTestIO](recountRequest)
       .run(testData)
@@ -60,8 +59,8 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     val output = resultGiven(request, testData)
 
-    assert(output.result === Right(Json.obj()))
-    assert(output.testData.lambdaTestData.invocations === List.empty)
+    assert(output._2 === Right(Json.obj()))
+    assert(output._1.lambdaTestData.invocations === List.empty)
   }
 
   it should "return a performed recount if one is not present in s3" in {
@@ -80,8 +79,8 @@ class RecountControllerSpec extends ImprovedFlatSpec {
 
     val output = resultGiven(request, testData)
 
-    assert(output.result === Right(Json.obj()))
-    assert(output.testData.lambdaTestData.invocations === List(
+    assert(output._2 === Right(Json.obj()))
+    assert(output._1.lambdaTestData.invocations === List(
       LambdaInvocation(config.recountFunction, Some("""{"election":{"election":"2016","state":"ACT"},"vacancies":2,"ineligibleCandidates":[28147],"doRounding":true}"""))
     ))
   }

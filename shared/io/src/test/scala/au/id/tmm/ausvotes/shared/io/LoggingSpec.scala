@@ -4,7 +4,6 @@ import au.id.tmm.ausvotes.shared.io.Logging.{LoggingOps, timedLog}
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import org.scalatest.Assertion
@@ -17,7 +16,7 @@ class LoggingSpec extends ImprovedFlatSpec {
                                  expectedLoggedLevel: Log.Level,
                                  expectedLoggedEvent: LoggedEvent,
                                ): Assertion = {
-    val Output(finalTestData, _) = testLogic.run(initialTestData)
+    val (finalTestData, _) = testLogic.run(initialTestData)
 
     assert(finalTestData.loggingTestData.loggedMessages === Map(expectedLoggedLevel -> List(expectedLoggedEvent)))
   }
@@ -77,7 +76,7 @@ class LoggingSpec extends ImprovedFlatSpec {
 
   "the timed logging of an IO execution" should "log for a successful execution" in {
     testLogging[Nothing, Unit](
-      testLogic = timedLogTestIO(TestIO.pure[Unit, BasicTestData](Unit))("TEST_EVENT", "key" -> "value"),
+      testLogic = timedLogTestIO(TestIO.pure[BasicTestData, Unit](()))("TEST_EVENT", "key" -> "value"),
       expectedLoggedLevel = Log.Level.Info,
       expectedLoggedEvent = LoggedEvent(
         "TEST_EVENT",
@@ -93,7 +92,7 @@ class LoggingSpec extends ImprovedFlatSpec {
 
   it should "log for a failed execution" in {
     testLogging[Unit, Nothing](
-      testLogic = timedLogTestIO(TestIO.leftPure[Unit, BasicTestData](Unit))("TEST_EVENT", "key" -> "value"),
+      testLogic = timedLogTestIO(TestIO.leftPure[BasicTestData, Unit](()))("TEST_EVENT", "key" -> "value"),
       expectedLoggedLevel = Log.Level.Error,
       expectedLoggedEvent = LoggedEvent(
         "TEST_EVENT",
@@ -111,7 +110,7 @@ class LoggingSpec extends ImprovedFlatSpec {
     val exception = new RuntimeException
 
     testLogging[RuntimeException, Nothing](
-      testLogic = timedLogTestIO(TestIO.leftPure[RuntimeException, BasicTestData](exception))("TEST_EVENT", "key" -> "value"),
+      testLogic = timedLogTestIO(TestIO.leftPure[BasicTestData, RuntimeException](exception))("TEST_EVENT", "key" -> "value"),
       expectedLoggedLevel = Log.Level.Error,
       expectedLoggedEvent = LoggedEvent(
         "TEST_EVENT",

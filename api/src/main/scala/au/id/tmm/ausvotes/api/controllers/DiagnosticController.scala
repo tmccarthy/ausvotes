@@ -1,15 +1,16 @@
 package au.id.tmm.ausvotes.api.controllers
 
 import au.id.tmm.ausvotes.api.model.diagnostics.VersionResponse
-import au.id.tmm.bfect.BME
-import au.id.tmm.bfect.BME.Ops
-import au.id.tmm.bfect.extraeffects.Resources
+import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync.Ops
+import au.id.tmm.bfect.effects.extra.Resources
 
 object DiagnosticController {
 
-  def version[F[+_, +_] : BME : Resources]: F[Exception, VersionResponse] = Resources[F].resourceAsString("/version.txt").flatMap {
-    case Some(version) => BME.pure(VersionResponse(version))
-    case None => BME.leftPure(new Exception("Version file missing"))
+  def version[F[+_, +_] : Resources]: F[Exception, VersionResponse] = Resources[F].resourceAsString("/version.txt").attempt.flatMap {
+    case Right(version) => Sync[F].pure(VersionResponse(version)): F[Exception, VersionResponse]
+    case Left(Resources.ResourceStreamError.ResourceNotFound) => Sync[F].leftPure(new Exception("Version file missing")): F[Exception, VersionResponse]
+    case Left(Resources.ResourceStreamError.UseError(e)) => Sync[F].leftPure(e): F[Exception, VersionResponse]
   }
 
 }

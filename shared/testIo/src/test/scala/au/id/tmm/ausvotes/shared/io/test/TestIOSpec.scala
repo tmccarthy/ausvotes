@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.shared.io.test
 import java.io.IOException
 
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
 import au.id.tmm.bfect.BME._
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -16,7 +15,7 @@ class TestIOSpec extends ImprovedFlatSpec {
       case _: IllegalArgumentException => TestIO.pure(5)
     }
 
-    val Output(_, result) = afterCatch.run(BasicTestData())
+    val (_, result) = afterCatch.run(BasicTestData())
 
     assert(result === Right(5))
   }
@@ -29,7 +28,7 @@ class TestIOSpec extends ImprovedFlatSpec {
       case _: IOException => TestIO.pure(5)
     }
 
-    val Output(_, result) = afterCatch.run(BasicTestData())
+    val (_, result) = afterCatch.run(BasicTestData())
 
     assert(result === Left(actualIllegalArgumentException))
   }
@@ -41,7 +40,7 @@ class TestIOSpec extends ImprovedFlatSpec {
       case _: IOException => TestIO.pure(10)
     }
 
-    val Output(_, result) = afterCatch.run(BasicTestData())
+    val (_, result) = afterCatch.run(BasicTestData())
 
     assert(result === Right(5))
   }

@@ -6,8 +6,7 @@ import au.id.tmm.ausvotes.shared.aws.actions.S3Actions
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.S3TestData.InMemoryS3
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.S3TestData.InMemoryS3.{Bucket, S3Object}
-import au.id.tmm.ausvotes.shared.io.test.TestIO
-import au.id.tmm.ausvotes.shared.io.test.TestIO.Output
+import au.id.tmm.bfect.testing.BState
 import com.amazonaws.{AmazonServiceException, SdkClientException}
 
 final case class S3TestData(
@@ -23,12 +22,12 @@ object S3TestData {
 
   val empty = S3TestData(InMemoryS3.empty)
 
-  trait TestIOInstance[D] extends S3Actions.ReadsS3[TestIO[D, +?, +?]] with S3Actions.WritesToS3[TestIO[D, +?, +?]] {
+  trait TestIOInstance[D] extends S3Actions.ReadsS3[BState[D, +?, +?]] with S3Actions.WritesToS3[BState[D, +?, +?]] {
     protected def s3TestDataField(data: D): S3TestData
     protected def setS3TestData(oldData: D, newS3TestData: S3TestData): D
 
-    override def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): TestIO[D, Exception, String] =
-      TestIO { data =>
+    override def readAsString(bucketName: S3BucketName, objectKey: S3ObjectKey): BState[D, Exception, String] =
+      BState { data =>
         val s3TestData = s3TestDataField(data)
 
         val content = for {
@@ -46,13 +45,13 @@ object S3TestData {
           }
         } yield s3Object.content
 
-        Output(data, content)
+        (data, content)
       }
 
     //noinspection NotImplementedCode
-    override def useInputStream[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => TestIO[D, Exception, A]): TestIO[D, Exception, A] = ???
+    override def useInputStream[A](bucketName: S3BucketName, objectKey: S3ObjectKey)(use: InputStream => BState[D, Exception, A]): BState[D, Exception, A] = ???
 
-    override def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): TestIO[D, Exception, Boolean] = TestIO { data =>
+    override def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): BState[D, Exception, Boolean] = BState { data =>
       val s3TestData = s3TestDataField(data)
 
       val hasObject = for {
@@ -60,11 +59,11 @@ object S3TestData {
         hasObject = contentForBucket.hasObject(objectKey)
       } yield hasObject
 
-      Output(data, hasObject)
+      (data, hasObject)
     }
 
-    override def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): TestIO[D, Exception, Unit] =
-      TestIO { oldTestData =>
+    override def putString(bucketName: S3BucketName, objectKey: S3ObjectKey)(content: String, contentType: ContentType): BState[D, Exception, Unit] =
+      BState { oldTestData =>
 
         val oldS3TestData = s3TestDataField(oldTestData)
 
@@ -72,12 +71,12 @@ object S3TestData {
 
         val newTestData = setS3TestData(oldTestData, newS3TestData)
 
-        Output(newTestData, Right(Unit))
+        (newTestData, Right(Unit))
       }
 
     // TODO implement this
-    override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => TestIO[D, Exception, Unit]): TestIO[D, Exception, Unit] =
-      TestIO { oldTestData => Output(oldTestData, Right(Unit)) }
+    override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => BState[D, Exception, Unit]): BState[D, Exception, Unit] =
+      BState { oldTestData => (oldTestData, Right(Unit)) }
   }
 
   final case class InMemoryS3(buckets: Set[InMemoryS3.Bucket]) {

@@ -12,7 +12,6 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.FetchRawFederalElect
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.federal.FederalBallotJurisdiction
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotId, SenateElection, SenateElectionForState}
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
 import au.id.tmm.bfect.ziointerop._
 import scalaz.zio.{DefaultRuntime, IO}
 

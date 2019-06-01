@@ -3,9 +3,10 @@ package au.id.tmm.ausvotes.shared.io
 import java.time.Duration
 
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
-import au.id.tmm.ausvotes.shared.io.actions.{Log, Now}
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME._
+import au.id.tmm.bfect.effects.Now
 
 object Logging {
 
@@ -14,10 +15,10 @@ object Logging {
   implicit class LoggingOps[F[+_, +_] : Log : Now : BME, +E, +A](fea: F[E, A]) {
     def timedLog(eventId: String, kvPairs: (String, Any)*): F[E, A] =
       for {
-        startTime <- Now.systemNanoTime
+        startTime <- Now.now
         resultPreLogging <- fea.attempt
-        endTime <- Now.systemNanoTime
-        duration = Duration.ofNanos(endTime - startTime).toMillis
+        endTime <- Now.now
+        duration = Duration.between(startTime, endTime).toMillis
         _ <- doLog(eventId, kvPairs.toList, duration)(resultPreLogging)
         result <- BME.fromEither(resultPreLogging)
       } yield result
@@ -25,10 +26,10 @@ object Logging {
 
   def timedLog[F[+_, +_] : Log : Now : BME, E, A](eventId: String, kvPairs: (String, Any)*)(action: => Either[E, A]): F[E, A] = {
     for {
-      startTime <- Now.systemNanoTime
+      startTime <- Now.now
       resultPreLogging = action
-      endTime <- Now.systemNanoTime
-      duration = Duration.ofNanos(endTime - startTime).toMillis
+      endTime <- Now.now
+      duration = Duration.between(startTime, endTime).toMillis
       _ <- doLog(eventId, kvPairs.toList, duration)(resultPreLogging)
       result <- BME.fromEither(resultPreLogging)
     } yield result

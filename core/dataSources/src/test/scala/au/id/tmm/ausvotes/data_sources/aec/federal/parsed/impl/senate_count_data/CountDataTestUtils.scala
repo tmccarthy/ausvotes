@@ -24,8 +24,7 @@ private[senate_count_data] final class CountDataTestUtils private(
   private implicit val fetcherUnderTest: FetchSenateCountDataFromRaw[BasicTestIO] = FetchSenateCountDataFromRaw[BasicTestIO]
 
   lazy val actualCountData: SenateCountData = fetcherUnderTest.senateCountDataFor(SenateElectionForState(SenateElection.`2016`, state).right.get, groupsAndCandidates)
-    .run(BasicTestData())
-    .result match {
+    .runEither(BasicTestData()) match {
     case Right(countData) => countData
     case Left(exception) => throw exception
   }

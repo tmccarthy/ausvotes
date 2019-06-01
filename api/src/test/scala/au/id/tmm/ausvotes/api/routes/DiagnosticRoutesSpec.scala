@@ -16,7 +16,7 @@ class DiagnosticRoutesSpec extends ImprovedFlatSpec {
 
     val testData = BasicTestData(resourcesTestData = ResourcesTestData(resources = Map("/version.txt" -> "1.0.0")))
 
-    val resultFunction = testLogic.resultGiven(testData)
+    val resultFunction = testLogic.runEither(testData)
 
     assert(resultFunction.map(MockResponse.from).map(_.content) === Right("""{"version":"1.0.0"}"""))
   }

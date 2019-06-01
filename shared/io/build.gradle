@@ -9,7 +9,6 @@ dependencies {
     compile "commons-io:commons-io:$commonsIoVersion"
 
     compile "au.id.tmm.bfect:bfect-core${s}:$bfectVersion"
-    compile "au.id.tmm.bfect:bfect-extra-effects${s}:$bfectVersion"
     compile "au.id.tmm.bfect:bfect-interop-cats${s}:$bfectVersion"
     compile "au.id.tmm.bfect:bfect-interop-zio${s}:$bfectVersion"
 

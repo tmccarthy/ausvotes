@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.shared.aws.testing
 
 import au.id.tmm.ausvotes.shared.aws.testing.testdata.{LambdaTestData, S3TestData, SnsTestData}
-import au.id.tmm.ausvotes.shared.io.test
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
+import au.id.tmm.bfect.testing.BState
 
 final case class AwsTestData(
                               basicTestData: BasicTestData = BasicTestData(),
@@ -14,7 +14,7 @@ final case class AwsTestData(
 
 object AwsTestData {
 
-  type AwsTestIO[+E, +A] = test.TestIO[AwsTestData, E, A]
+  type AwsTestIO[+E, +A] = BState[AwsTestData, E, A]
 
   trait TestIOInstance[D]
     extends BasicTestData.TestIOInstance[D]

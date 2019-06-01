@@ -5,6 +5,8 @@ apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 dependencies {
     compile project(':shared:io')
 
+    compile "au.id.tmm.bfect:bfect-testing${s}:$bfectVersion"
+
     compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
 
     compile "commons-io:commons-io:$commonsIoVersion"

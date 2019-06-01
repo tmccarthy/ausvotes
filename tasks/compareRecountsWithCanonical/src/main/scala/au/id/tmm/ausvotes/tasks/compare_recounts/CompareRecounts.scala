@@ -9,16 +9,16 @@ import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
-import au.id.tmm.ausvotes.shared.io.actions.{Console, Log, Now}
-import au.id.tmm.ausvotes.shared.io.instances.ZIOInstances._
+import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.actions.FetchPreferenceTree
 import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{GroupsAndCandidatesCache, PreferenceTreeCache}
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.effects.Sync._
+import au.id.tmm.bfect.effects.extra.Console
+import au.id.tmm.bfect.effects.{Now, Sync}
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
@@ -77,7 +77,7 @@ object CompareRecounts extends zio.App {
     errorOrSuccessCode.catchAll { e =>
       val stackTrace = ExceptionUtils.getStackTrace(e)
 
-      Console.print[IO](stackTrace).map(_ => 1)
+      Console[IO].print(stackTrace).map(_ => 1)
     }
   }
 
@@ -94,7 +94,7 @@ object CompareRecounts extends zio.App {
           compareFor[F](election)
         )
 
-      _ <- comparisons.flatMap(RenderCountComparison.render).map(Console.println[F]).sequence
+      _ <- comparisons.flatMap(RenderCountComparison.render).map(Console[F].println).sequence
     } yield ()
   }
 
