@@ -6,7 +6,7 @@ import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
 import cats.data.NonEmptyVector
 
-trait StvElectionContext[E, ElectorateJurisdiction, VcpJurisdiction, BallotJurisdiction, BallotId] {
+trait StvElectionContext[E, ElectorateJurisdiction, BallotJurisdiction, BallotId] {
 
   type CandidateDetails = model.CandidateDetails[E]
   def CandidateDetails(
