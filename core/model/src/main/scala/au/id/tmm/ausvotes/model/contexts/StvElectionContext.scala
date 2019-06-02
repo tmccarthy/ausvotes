@@ -11,6 +11,13 @@ trait StvElectionContext[E, ElectorateJurisdiction, VcpJurisdiction, BallotJuris
   type CandidatePosition = stv.CandidatePosition[E]
 
   type Ballot = stv.Ballot[E, BallotJurisdiction, BallotId]
+  def Ballot(
+              election: E,
+              jurisdiction: BallotJurisdiction,
+              id: BallotId,
+              groupPreferences: Map[Group, Preference],
+              candidatePreferences: Map[Candidate, Preference],
+            ): Ballot = stv.Ballot[E, BallotJurisdiction, BallotId](election, jurisdiction, id, groupPreferences, candidatePreferences)
   type NormalisedBallot = stv.NormalisedBallot[E]
 
   type BallotGroup = stv.BallotGroup[E]

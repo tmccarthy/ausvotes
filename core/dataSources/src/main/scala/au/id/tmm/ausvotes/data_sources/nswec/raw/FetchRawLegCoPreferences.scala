@@ -11,6 +11,9 @@ trait FetchRawLegCoPreferences[F[+_, +_]] {
 }
 
 object FetchRawLegCoPreferences {
+
+  def apply[F[+_, +_] : FetchRawLegCoPreferences]: FetchRawLegCoPreferences[F] = implicitly[FetchRawLegCoPreferences[F]]
+
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause
 
   final case class Row(
