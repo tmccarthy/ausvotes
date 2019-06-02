@@ -9,8 +9,7 @@ package object federal {
                 election: FederalElection,
                 jurisdiction: State,
                 name: String,
-                id: Electorate.Id,
-              ): Division = Electorate(election, jurisdiction, name, id)
+              ): Division = Electorate(election, jurisdiction, name)
 
   type FederalVcp = FederalVoteCollectionPoint
 

@@ -7,16 +7,15 @@ import au.id.tmm.utilities.collection.Flyweight
 object Flyweights {
 
   final class ElectorateFlyweight[E, J] private () {
-    private val underlying: Flyweight[(E, J, String, Electorate.Id), Electorate[E, J]] = Flyweight {
-      case (election, jurisdiction, name, id) => Electorate(election, jurisdiction, name, id)
+    private val underlying: Flyweight[(E, J, String), Electorate[E, J]] = Flyweight {
+      case (election, jurisdiction, name) => Electorate(election, jurisdiction, name)
     }
 
     def make(
               election: E,
               jurisdiction: J,
               name: String,
-              id: Electorate.Id,
-            ): Electorate[E, J] = underlying((election, jurisdiction, name, id))
+            ): Electorate[E, J] = underlying((election, jurisdiction, name))
   }
 
   object ElectorateFlyweight {

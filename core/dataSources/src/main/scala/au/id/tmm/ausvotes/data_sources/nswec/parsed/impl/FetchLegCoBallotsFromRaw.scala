@@ -12,7 +12,7 @@ class FetchLegCoBallotsFromRaw[F[+_, +_] : BME : FetchRawLegCoPreferences] exten
 
     FetchRawLegCoPreferences[F].legCoPreferencesFor(election).map { stream =>
       stream.map { row =>
-        val district = District(election.stateElection, row.districtName, ???)
+        val district = District(election.stateElection, row.districtName)
 
         // TODO really need to separate the "special vcp type" notion out
         val voteCollectionPoint: Nothing = row.venueName match {

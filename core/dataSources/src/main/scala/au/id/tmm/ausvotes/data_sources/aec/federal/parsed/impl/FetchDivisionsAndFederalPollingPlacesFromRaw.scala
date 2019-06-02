@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils
 
 final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Sync] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
 
-  private val divisionFlyweight: Flyweight[(FederalElection, State, String, Electorate.Id), Division] = Flyweight { tuple =>
-    Electorate(tuple._1, tuple._2, tuple._3, tuple._4)
+  private val divisionFlyweight: Flyweight[(FederalElection, State, String), Division] = Flyweight { tuple =>
+    Electorate(tuple._1, tuple._2, tuple._3)
   }
 
   override def divisionsAndFederalPollingPlacesFor(
@@ -66,7 +66,7 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
         case 5 => PollingPlaceType.PrePollVotingCentre
       }
 
-      val division = divisionFlyweight((election, state, row.divisionName, Electorate.Id(row.divisionId)))
+      val division = divisionFlyweight((election, state, row.divisionName))
 
       val pollingPlace = FederalPollingPlace(
         election,

@@ -9,7 +9,6 @@ trait ElectionContext[E, ElectorateJurisdiction] {
                   election: E,
                   jurisdiction: ElectorateJurisdiction,
                   name: String,
-                  id: model.Electorate.Id,
-                ): Electorate = model.Electorate(election, jurisdiction, name, id)
+                ): Electorate = model.Electorate(election, jurisdiction, name)
 
 }

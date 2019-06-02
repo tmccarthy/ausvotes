@@ -9,10 +9,10 @@ import io.circe.syntax.EncoderOps
 
 class ElectorateSpec extends ImprovedFlatSpec {
 
-  private val boothby = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby", Electorate.Id(0))
-  private val mayo = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Mayo", Electorate.Id(0))
-  private val wills = Electorate[FederalElection, State](FederalElection.`2016`, State.VIC, "Wills", Electorate.Id(0))
-  private val boothby2013 = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby", Electorate.Id(0))
+  private val boothby = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby")
+  private val mayo = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Mayo")
+  private val wills = Electorate[FederalElection, State](FederalElection.`2016`, State.VIC, "Wills")
+  private val boothby2013 = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby")
 
   "an stv candidate" can "be encoded to json" in {
     val electorate = boothby
@@ -21,7 +21,6 @@ class ElectorateSpec extends ImprovedFlatSpec {
       "election" -> electorate.election.asJson,
       "jurisdiction" -> electorate.jurisdiction.asJson,
       "name" -> electorate.name.asJson,
-      "id" -> electorate.id.asJson,
     )
 
     assert(electorate.asJson === json)
@@ -34,7 +33,6 @@ class ElectorateSpec extends ImprovedFlatSpec {
       "election" -> electorate.election.asJson,
       "jurisdiction" -> electorate.jurisdiction.asJson,
       "name" -> electorate.name.asJson,
-      "id" -> electorate.id.asJson,
     )
 
     assert(json.as[Electorate[FederalElection, State]] === Right(electorate))
