@@ -2,10 +2,9 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
 import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
-import au.id.tmm.ausvotes.model.VoteCollectionPoint
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.federal.{FederalBallotJurisdiction, FederalElection, FederalVcpJurisdiction}
+import au.id.tmm.ausvotes.model.federal.{FederalBallotJurisdiction, FederalElection, FederalVoteCollectionPoint}
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
@@ -52,7 +51,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
       FederalBallotJurisdiction(
         State.ACT,
         DivisionFixture.ACT.CANBERRA,
-        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Postal, VoteCollectionPoint.Special.Id(2)),
+        FederalVoteCollectionPoint.Special(FederalElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, SpecialVcpType.Postal, FederalVoteCollectionPoint.Special.Id(2)),
       ),
       SenateBallotId(
         1,
@@ -74,7 +73,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
       FederalBallotJurisdiction(
         State.ACT,
         DivisionFixture.ACT.CANBERRA,
-        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Absentee, VoteCollectionPoint.Special.Id(2)),
+        FederalVoteCollectionPoint.Special(FederalElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, SpecialVcpType.Absentee, FederalVoteCollectionPoint.Special.Id(2)),
       ),
       SenateBallotId(
         1,
@@ -96,7 +95,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
       FederalBallotJurisdiction(
         State.ACT,
         DivisionFixture.ACT.CANBERRA,
-        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.PrePoll, VoteCollectionPoint.Special.Id(2)),
+        FederalVoteCollectionPoint.Special(FederalElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, SpecialVcpType.PrePoll, FederalVoteCollectionPoint.Special.Id(2)),
       ),
       SenateBallotId(
         1,
@@ -118,7 +117,7 @@ class BallotGenerationSpec extends ImprovedFlatSpec {
       FederalBallotJurisdiction(
         State.ACT,
         DivisionFixture.ACT.CANBERRA,
-        VoteCollectionPoint.Special(FederalElection.`2016`, FederalVcpJurisdiction(State.ACT, DivisionFixture.ACT.CANBERRA), SpecialVcpType.Provisional, VoteCollectionPoint.Special.Id(2)),
+        FederalVoteCollectionPoint.Special(FederalElection.`2016`, State.ACT, DivisionFixture.ACT.CANBERRA, SpecialVcpType.Provisional, FederalVoteCollectionPoint.Special.Id(2)),
       ),
       SenateBallotId(
         1,

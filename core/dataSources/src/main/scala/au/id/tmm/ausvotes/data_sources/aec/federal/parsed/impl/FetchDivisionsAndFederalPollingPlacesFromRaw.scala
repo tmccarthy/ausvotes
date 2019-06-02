@@ -6,9 +6,9 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.FetchDivisionsAnd
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFederalPollingPlaces
 import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.Electorate
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace.PollingPlaceType
-import au.id.tmm.ausvotes.model.federal.{Division, DivisionsAndPollingPlaces, FederalElection, FederalPollingPlace}
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace.PollingPlaceType
+import au.id.tmm.ausvotes.model.federal.{Division, DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME._
 import au.id.tmm.bfect.effects.Sync
@@ -68,10 +68,11 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
 
       val division = divisionFlyweight((election, state, row.divisionName, Electorate.Id(row.divisionId)))
 
-      val pollingPlace = PollingPlace(
+      val pollingPlace = FederalPollingPlace(
         election,
-        jurisdiction = au.id.tmm.ausvotes.model.federal.FederalVcpJurisdiction(state, division),
-        PollingPlace.Id(row.pollingPlaceId),
+        state,
+        division,
+        FederalPollingPlace.Id(row.pollingPlaceId),
         pollingPlaceType,
         row.pollingPlaceName,
         location,
@@ -81,14 +82,14 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
     }
   }
 
-  private def locationFrom(row: FetchRawFederalPollingPlaces.Row): Either[FetchDivisionsAndFederalPollingPlaces.Error, PollingPlace.Location] = {
+  private def locationFrom(row: FetchRawFederalPollingPlaces.Row): Either[FetchDivisionsAndFederalPollingPlaces.Error, FederalPollingPlace.Location] = {
     row.premisesName.trim match {
-      case "Multiple sites" => Right(PollingPlace.Location.Multiple)
+      case "Multiple sites" => Right(FederalPollingPlace.Location.Multiple)
       case premisesName =>
         premisesAddressFrom(row).map { address =>
           val possibleLatLong = latLongFrom(row)
 
-          PollingPlace.Location.Premises(premisesName, address, possibleLatLong)
+          FederalPollingPlace.Location.Premises(premisesName, address, possibleLatLong)
         }
     }
   }

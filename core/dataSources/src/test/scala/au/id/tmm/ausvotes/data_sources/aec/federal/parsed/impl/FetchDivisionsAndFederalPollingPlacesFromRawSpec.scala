@@ -91,8 +91,8 @@ class FetchDivisionsAndFederalPollingPlacesFromRawSpec extends ImprovedFlatSpec 
 
     {
       for {
-        division1 <- pollingPlace1.map(_.jurisdiction.division)
-        division2 <- pollingPlace2.map(_.jurisdiction.division)
+        division1 <- pollingPlace1.map(_.division)
+        division2 <- pollingPlace2.map(_.division)
       } yield assert(division1 eq division2)
     }.getOrElse(fail())
   }

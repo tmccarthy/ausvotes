@@ -1,6 +1,5 @@
 package au.id.tmm.ausvotes.model
 
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.PollingPlace
 import au.id.tmm.utilities.geo.australia.State
 
 package object federal {
@@ -13,24 +12,6 @@ package object federal {
                 id: Electorate.Id,
               ): Division = Electorate(election, jurisdiction, name, id)
 
-  type FederalVcp = VoteCollectionPoint[FederalElection, FederalVcpJurisdiction]
-
-  type FederalPollingPlace = PollingPlace[FederalElection, FederalVcpJurisdiction]
-  def FederalPollingPlace(
-                           election: FederalElection,
-                           jurisdiction: FederalVcpJurisdiction,
-                           id: PollingPlace.Id,
-                           pollingPlaceType: PollingPlace.PollingPlaceType,
-                           name: String,
-                           location: PollingPlace.Location,
-                         ): FederalPollingPlace =
-    PollingPlace(
-      election,
-      jurisdiction,
-      id,
-      pollingPlaceType,
-      name,
-      location,
-    )
+  type FederalVcp = FederalVoteCollectionPoint
 
 }

@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.model.federal
 
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
 import au.id.tmm.utilities.geo.australia.State
 
 import scala.collection.mutable
@@ -10,7 +11,7 @@ final case class DivisionsAndPollingPlaces(divisions: Set[Division],
   lazy val lookupDivisionByName: Map[String, Division] = divisions.groupBy(_.name).mapValues(_.head)
 
   lazy val lookupPollingPlaceByName: Map[(State, String), FederalPollingPlace] = pollingPlaces
-    .groupBy(pollingPlace => (pollingPlace.jurisdiction.state, pollingPlace.name))
+    .groupBy(pollingPlace => (pollingPlace.state, pollingPlace.name))
     .mapValues(_.head)
 
   def findFor(election: FederalElection, state: State): DivisionsAndPollingPlaces = DivisionsAndPollingPlaces(
@@ -20,7 +21,7 @@ final case class DivisionsAndPollingPlaces(divisions: Set[Division],
       .toSet,
     pollingPlaces = pollingPlaces.toStream
       .filter(_.election == election)
-      .filter(_.jurisdiction.state == state)
+      .filter(_.state == state)
       .toSet
   )
 

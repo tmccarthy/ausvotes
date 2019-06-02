@@ -15,7 +15,7 @@ class FetchLegCoBallotsFromRaw[F[+_, +_] : BME : FetchRawLegCoPreferences] exten
         val district = District(election.stateElection, row.districtName, ???)
 
         // TODO really need to separate the "special vcp type" notion out
-        val voteCollectionPoint: Vcp = row.venueName match {
+        val voteCollectionPoint: Nothing = row.venueName match {
           case "iVote" => ???
           case "Absent" => ???
           case "Postal" => ???

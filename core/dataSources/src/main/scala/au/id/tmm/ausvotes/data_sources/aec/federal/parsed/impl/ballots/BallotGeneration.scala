@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePreferences
-import au.id.tmm.ausvotes.model.VoteCollectionPoint
-import au.id.tmm.ausvotes.model.VoteCollectionPoint.Special.SpecialVcpType
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
+import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateBallotId, SenateElectionForState}
 import au.id.tmm.utilities.geo.australia.State
@@ -28,29 +28,33 @@ object BallotGeneration {
 
     def voteCollectionPointFrom(voteCollectionPointName: String): FederalVcp = {
       voteCollectionPointName match {
-        case absentee(number) => VoteCollectionPoint.Special(
+        case absentee(number) => FederalVoteCollectionPoint.Special(
           federalElection,
-          FederalVcpJurisdiction(election.state, division),
+          election.state,
+          division,
           SpecialVcpType.Absentee,
-          VoteCollectionPoint.Special.Id(number.toInt),
+          FederalVoteCollectionPoint.Special.Id(number.toInt),
         )
-        case postal(number) => VoteCollectionPoint.Special(
+        case postal(number) => FederalVoteCollectionPoint.Special(
           federalElection,
-          FederalVcpJurisdiction(election.state, division),
+          election.state,
+          division,
           SpecialVcpType.Postal,
-          VoteCollectionPoint.Special.Id(number.toInt),
+          FederalVoteCollectionPoint.Special.Id(number.toInt),
         )
-        case prepoll(number) => VoteCollectionPoint.Special(
+        case prepoll(number) => FederalVoteCollectionPoint.Special(
           federalElection,
-          FederalVcpJurisdiction(election.state, division),
+          election.state,
+          division,
           SpecialVcpType.PrePoll,
-          VoteCollectionPoint.Special.Id(number.toInt),
+          FederalVoteCollectionPoint.Special.Id(number.toInt),
         )
-        case provisional(number) => VoteCollectionPoint.Special(
+        case provisional(number) => FederalVoteCollectionPoint.Special(
           federalElection,
-          FederalVcpJurisdiction(election.state, division),
+          election.state,
+          division,
           SpecialVcpType.Provisional,
-          VoteCollectionPoint.Special.Id(number.toInt),
+          FederalVoteCollectionPoint.Special.Id(number.toInt),
         )
         case _ => pollingPlaceNameLookup(state, voteCollectionPointName)
       }
