@@ -21,13 +21,13 @@ object FetchRawLegCoPreferences {
                         districtName: String,
                         voteTypeName: String,
                         venueName: String,
-                        ballotPaperID: Int,
-                        preferenceMark: String,
-                        preferenceNumber: Int,
+                        ballotPaperID: String,
+                        preferenceMark: Option[String],
+                        preferenceNumber: Option[Int],
                         candidateName: Option[String],
                         groupCode: Option[String],
-                        drawOrder: Int,
+                        drawOrder: Option[Int],
                         formal: Boolean,
-                        typeName: String,
+                        typeName: Option[String],
                       )
 }
