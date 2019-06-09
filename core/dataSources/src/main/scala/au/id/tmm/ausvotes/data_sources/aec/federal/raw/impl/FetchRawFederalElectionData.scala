@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
 import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
+import au.id.tmm.ausvotes.data_sources.common.CsvParsing._
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
@@ -123,21 +124,6 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
         }
     }
 
-  private def parsePossibleDouble(string: String): Option[Double] = {
-    if (string.isEmpty) {
-      None
-    } else {
-      Some(string.toDouble)
-    }
-  }
-
-  private def parsePossibleBoolean(string: String): Option[Boolean] = {
-    if (string.isEmpty) {
-      None
-    } else {
-      Some(string.toBoolean)
-    }
-  }
 }
 
 object FetchRawFederalElectionData {

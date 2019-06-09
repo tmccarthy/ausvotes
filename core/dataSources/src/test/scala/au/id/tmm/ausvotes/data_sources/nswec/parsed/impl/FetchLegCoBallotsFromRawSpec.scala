@@ -1,19 +1,27 @@
 package au.id.tmm.ausvotes.data_sources.nswec.parsed.impl
 
 import au.id.tmm.ausvotes.data_sources.nswec.raw.FetchRawLegCoPreferences
+import au.id.tmm.ausvotes.model.Party
+import au.id.tmm.ausvotes.model.nsw.legco._
+import au.id.tmm.ausvotes.model.nsw.{NswElection, _}
+import au.id.tmm.ausvotes.model.stv.BallotGroup
+import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.bfect.testing.BState
+import au.id.tmm.countstv.normalisation.Preference
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import fs2.Stream
 
 class FetchLegCoBallotsFromRawSpec extends ImprovedFlatSpec {
 
-  private type TestIO[E, A] = BState[Vector[FetchRawLegCoPreferences.Row], E, A]
-  private type TestIOTask[A] = TestIO[Throwable, A]
+  private type TestIO[+E, +A] = BState[Vector[FetchRawLegCoPreferences.Row], E, A]
 
   private implicit val fetchRawLegCoPreferences: FetchRawLegCoPreferences[TestIO] =
     _ => BState(rows => (rows, Right(Stream.emits(rows))))
 
   private val rows = Vector(
+    FetchRawLegCoPreferences.Row(1,   "Albury", "PP", "Albury High",           "11304",     Some("1"),  Some(1),    None,                      Some("A"), None,     formal = true, Some("SATL")),
+    FetchRawLegCoPreferences.Row(2,   "Albury", "PP", "Albury High",           "11305",     Some("1"),  Some(1),    None,                      Some("A"), None,     formal = true, Some("SATL")),
+    FetchRawLegCoPreferences.Row(3,   "Albury", "PP", "Albury High",           "11306",     Some("1"),  Some(1),    None,                      Some("A"), None,     formal = true, Some("SATL")),
     FetchRawLegCoPreferences.Row(749, "Albury", "PP", "Albury High",         "2726053",     Some("/"),  None,       None,                      Some("J"), None,     formal = true,  Some("BTL")),
     FetchRawLegCoPreferences.Row(750, "Albury", "PP", "Albury High",         "2726053",     Some("3"),  Some(3),    Some("DONNELLY Greg"),     Some("J"), Some(3),  formal = true,  Some("BTL")),
     FetchRawLegCoPreferences.Row(751, "Albury", "PP", "Albury High",         "2726053",     Some("10"), Some(10),   Some("VO Tri"),            Some("J"), Some(10), formal = true,  Some("BTL")),
@@ -96,6 +104,30 @@ class FetchLegCoBallotsFromRawSpec extends ImprovedFlatSpec {
     FetchRawLegCoPreferences.Row(1772,    "Albury", "PP", "Albury High",     "INF_1124229", Some("1"),  None,       Some("BOURKE William"),    Some("C"), Some(1),  formal = false, None),
   )
 
-  "converting NSW legco rows" should "parse rows correctly" in ???
+  private def parsedRows: Vector[Ballot] = new FetchLegCoBallotsFromRaw[TestIO]
+    .legCoBallotsFor(NswLegCoElection(NswElection.`2019`))
+    .flatMap(_.compile.toVector)
+    .runEither(rows)
+    .fold(fail(_), identity)
+
+  "converting NSW legco rows" should "parse a formal SATL ballot" in {
+    assert(parsedRows contains Ballot(
+      NswLegCoElection(NswElection.`2019`),
+      BallotJurisdiction(
+        District(NswElection.`2019`, "Albury"),
+        NswVoteCollectionPoint.PollingPlace(
+          NswElection.`2019`,
+          District(NswElection.`2019`, "Albury"),
+          "Albury High",
+          NswVoteCollectionPoint.PollingPlace.Type.VotingCentre,
+        ),
+      ),
+      BallotId(1),
+      groupPreferences = Map(
+        Group(NswLegCoElection(NswElection.`2019`), BallotGroup.Code("A").right.get, Some(Party("SHOOTERS, FISHERS AND FARMERS"))).right.get -> Preference.Numbered(0),
+      ),
+      candidatePreferences = Map.empty,
+    ))
+  }
 
 }

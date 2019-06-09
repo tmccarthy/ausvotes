@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.data_sources.nswec.raw.impl
 
+import au.id.tmm.ausvotes.data_sources.common.CsvParsing._
 import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
 import au.id.tmm.ausvotes.data_sources.nswec.raw.FetchRawLegCoPreferences
 import au.id.tmm.ausvotes.data_sources.nswec.resources.LegCoPreferencesResource
@@ -26,14 +27,14 @@ final class FetchRawNswecDataImpl[F[+_, +_] : Sync] private()(
             row(1),
             row(2),
             row(3),
-            row(4).toInt,
-            row(5),
-            row(6).toInt,
+            row(4),
+            parsePossibleString(row(5)),
+            parsePossibleInt(row(6)),
             noneIfBlank(row(7)),
             noneIfBlank(row(8)),
-            row(9).toInt,
+            parsePossibleInt(row(9)),
             row(10) == "Formal",
-            row(11),
+            parsePossibleString(row(11)),
           )
         }
     }

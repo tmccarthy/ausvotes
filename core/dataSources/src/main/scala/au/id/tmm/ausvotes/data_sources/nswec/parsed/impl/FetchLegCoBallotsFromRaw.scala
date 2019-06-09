@@ -16,30 +16,30 @@ class FetchLegCoBallotsFromRaw[F[+_, +_] : BME : FetchRawLegCoPreferences] exten
         val rowsForBallot = rowChunk.toVector
         val headRow = rowsForBallot.head
 
-        val district = District(election.stateElection, headRow.districtName)
+        for {
+          _ <- specialVcpTypeFrom(headRow.venueName)
+          _ <- pollingPlaceFrom(headRow.voteTypeName)
+        } yield ()
 
-        val vcpType: Option[NswVoteCollectionPoint.Special.Type] = headRow.venueName match {
-          case "iVote"                   => Some(NswVoteCollectionPoint.Special.Type.IVote)
-          case "Absent"                  => Some(NswVoteCollectionPoint.Special.Type.Absent)
-          case "Postal"                  => Some(NswVoteCollectionPoint.Special.Type.Postal)
-          case "Enrolment / Provisional" => Some(NswVoteCollectionPoint.Special.Type.EnrolmentOrProvisional)
-          case "Declared Facility"       => Some(NswVoteCollectionPoint.Special.Type.DeclaredFacility)
-        }
-
-        val vcp = vcpType match {
-          case Some(vcpType) => NswVoteCollectionPoint.Special(election.stateElection, district, vcpType)
-          case None          => NswVoteCollectionPoint.PollingPlace(election.stateElection, district, headRow.venueName)
-        }
-
-        Ballot(
-          election = election,
-          jurisdiction = BallotJurisdiction(district, vcp),
-          id = BallotId(???),
-          groupPreferences = ???,
-          candidatePreferences = ???,
-        )
+        ???
       }
     }
+  }
 
+  private def specialVcpTypeFrom(code: String): Either[Unit, NswVoteCollectionPoint.Special.Type] = code match {
+    case "iVote"                   => Right(NswVoteCollectionPoint.Special.Type.IVote)
+    case "Absent"                  => Right(NswVoteCollectionPoint.Special.Type.Absent)
+    case "Postal"                  => Right(NswVoteCollectionPoint.Special.Type.Postal)
+    case "Enrolment / Provisional" => Right(NswVoteCollectionPoint.Special.Type.EnrolmentOrProvisional)
+    case "Declared Facility"       => Right(NswVoteCollectionPoint.Special.Type.DeclaredFacility)
+    case _                         => Left(())
+  }
+
+  private def pollingPlaceFrom(code: String): Either[Unit, NswVoteCollectionPoint.PollingPlace.Type] = code match {
+    case "PP" => Right(NswVoteCollectionPoint.PollingPlace.Type.VotingCentre)
+    case "PR" => Right(NswVoteCollectionPoint.PollingPlace.Type.EarlyVotingCentre)
+    case "DV" => Right(NswVoteCollectionPoint.PollingPlace.Type.DeclarationVote)
+    case "DI" => ???
+    case _    => Left(())
   }
 }
