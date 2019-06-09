@@ -59,6 +59,9 @@ package object senate {
                    party: Option[Party],
                  ): Either[InvalidGroupCode.type, SenateGroup] = Group(election, code, party)
 
+  type SenateGroupsAndCandidates = GroupsAndCandidates[SenateElectionForState]
+  val SenateGroupsAndCandidates: GroupsAndCandidates.type = GroupsAndCandidates
+
   type SenateUngrouped = Ungrouped[SenateElectionForState]
   def SenateUngrouped(electionForState: SenateElectionForState): SenateUngrouped = Ungrouped(electionForState)
 

@@ -57,6 +57,12 @@ trait StvElectionContext[E, ElectorateJurisdiction, BallotJurisdiction, BallotId
              party: Option[model.Party],
            ): Either[stv.Group.InvalidGroupCode.type, Group] = stv.Group(election, code, party)
 
+  type GroupsAndCandidates = stv.GroupsAndCandidates[E]
+  def GroupsAndCandidates(
+                           groups: Set[Group],
+                           candidates: Set[Candidate]
+                         ): GroupsAndCandidates = stv.GroupsAndCandidates(groups, candidates)
+
   type Ungrouped = stv.Ungrouped[E]
   def Ungrouped(election: E): Ungrouped = stv.Ungrouped(election)
 
