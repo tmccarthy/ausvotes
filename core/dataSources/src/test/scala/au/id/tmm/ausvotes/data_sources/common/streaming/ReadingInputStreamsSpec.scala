@@ -7,7 +7,7 @@ import au.id.tmm.bfect.testing.BState
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import com.github.tototoshi.csv
 
-class StreamCsvSpec extends ImprovedFlatSpec {
+class ReadingInputStreamsSpec extends ImprovedFlatSpec {
 
   private type TestIO[+E, +A] = BState[Unit, E, A]
   private type TestIOTask[+A] = TestIO[Throwable, A]
@@ -19,7 +19,7 @@ class StreamCsvSpec extends ImprovedFlatSpec {
       "7,8,9",
     ))
 
-    val rows = StreamCsv.streamCsv(lines, csv.defaultCSVFormat).compile.toVector.runEither(())
+    val rows = ReadingInputStreams.streamCsv(lines, csv.defaultCSVFormat).compile.toVector.runEither(())
 
     assert(rows === Right(Vector(
       List("1", "2", "3"),
@@ -35,7 +35,7 @@ class StreamCsvSpec extends ImprovedFlatSpec {
       """7,8,9""",
     ))
 
-    val rows = StreamCsv.streamCsv(lines, csv.defaultCSVFormat).compile.toVector.runEither(())
+    val rows = ReadingInputStreams.streamCsv(lines, csv.defaultCSVFormat).compile.toVector.runEither(())
 
     assert(rows.left.map(_.getClass) === Left(classOf[IOException]))
     assert(rows.left.map(_.getMessage) === Left("""Invalid line '4,"5,6'"""))

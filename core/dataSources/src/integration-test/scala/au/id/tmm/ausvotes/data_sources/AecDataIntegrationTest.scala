@@ -11,7 +11,7 @@ import scalaz.zio.{DefaultRuntime, IO}
 
 class AecDataIntegrationTest extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
-  private val instances = CanonicalFederalAecDataInstances(cleanDirectory)
+  private val instances = CanonicalFederalAecDataInstances(cleanDirectory, replaceExisting = true)
 
   import instances._
 

@@ -2,12 +2,7 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import java.nio.file.Paths
 
-import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots.FetchSenateBallotsFromRaw
-import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.FetchSenateCountDataFromRaw
-import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.{FetchDivisionsAndFederalPollingPlacesFromRaw, FetchSenateGroupsAndCandidatesFromRaw}
-import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
-import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
-import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
+import au.id.tmm.ausvotes.data_sources.aec.federal.CanonicalFederalAecDataInstances
 import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.bfect.BME.Ops
@@ -24,18 +19,10 @@ object Main extends App {
   private def applicationLogic(rawArgs: List[String]): IO[Exception, Unit] = {
     val dataStorePath = Paths.get("rawData")
 
-    implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
+    implicit val fetchDataInstances: CanonicalFederalAecDataInstances =
+      CanonicalFederalAecDataInstances(dataStorePath, replaceExisting = false)
 
-    implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(dataStorePath)
-
-    import aecResourceStore._
-
-    implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
-
-    implicit val fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO] = FetchSenateGroupsAndCandidatesFromRaw[IO]
-    implicit val fetchDivisions: FetchDivisionsAndFederalPollingPlaces[IO] = FetchDivisionsAndFederalPollingPlacesFromRaw[IO]
-    implicit val fetchCountData: FetchSenateCountData[IO] = FetchSenateCountDataFromRaw[IO]
-    implicit val fetchSenateBallots: FetchSenateBallots[IO] = FetchSenateBallotsFromRaw[IO]
+    import fetchDataInstances._
 
     for {
       args <- IO.fromEither(Args.from(rawArgs))

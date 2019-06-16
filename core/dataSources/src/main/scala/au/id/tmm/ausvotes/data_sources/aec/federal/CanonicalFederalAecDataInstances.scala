@@ -9,22 +9,24 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.{FetchDivisionsAndFederalPollingPlacesFromRaw, FetchSenateGroupsAndCandidatesFromRaw}
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
-import au.id.tmm.ausvotes.data_sources.common.{DownloadToPath, JsonCache}
+import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.bfect.ziointerop._
 import scalaz.zio.IO
 
-class CanonicalFederalAecDataInstances private (dataStorePath: Path) {
+class CanonicalFederalAecDataInstances private (dataStorePath: Path, replaceExisting: Boolean) {
 
   private val jsonCachePath = dataStorePath.resolve("jsonCache")
 
   implicit val jsonCache: JsonCache[IO] = JsonCache.OnDisk(jsonCachePath)
-  implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
 
-  implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(dataStorePath)
+  implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore(dataStorePath, replaceExisting)
 
-  import aecResourceStore._
-
-  implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
+  implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData(
+    aecResourceStore.makeSourceForFederalPollingPlaceResource,
+    aecResourceStore.makeSourceForFormalSenatePreferencesResource,
+    aecResourceStore.makeSourceForSenateDistributionOfPreferencesResource,
+    aecResourceStore.makeSourceForSenateFirstPreferencesResource,
+  )
 
   implicit val fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO] = FetchSenateGroupsAndCandidatesFromRaw[IO]
   implicit val fetchDivisions: FetchDivisionsAndFederalPollingPlaces[IO] = FetchDivisionsAndFederalPollingPlacesFromRaw[IO]
@@ -36,6 +38,7 @@ class CanonicalFederalAecDataInstances private (dataStorePath: Path) {
 
 object CanonicalFederalAecDataInstances {
 
-  def apply(dataStorePath: Path): CanonicalFederalAecDataInstances = new CanonicalFederalAecDataInstances(dataStorePath)
+  def apply(dataStorePath: Path, replaceExisting: Boolean): CanonicalFederalAecDataInstances =
+    new CanonicalFederalAecDataInstances(dataStorePath, replaceExisting: Boolean)
 
 }

@@ -20,7 +20,7 @@ abstract class TallyingAnalysisScript extends DefaultRuntime {
   def main(args: Array[String]): Unit = {
     val dataStorePath = Paths.get("rawData")
 
-    val federalAecDataInstances = CanonicalFederalAecDataInstances(dataStorePath)
+    val federalAecDataInstances = CanonicalFederalAecDataInstances(dataStorePath, replaceExisting = false)
 
     import federalAecDataInstances._
 

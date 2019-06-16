@@ -5,8 +5,7 @@ import java.nio.file.{InvalidPathException, Path, Paths}
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.FetchSenateCountDataFromRaw
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
-import au.id.tmm.ausvotes.data_sources.common.DownloadToPath
-import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElection, SenateElectionForState}
+import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.Log
@@ -16,7 +15,6 @@ import au.id.tmm.ausvotes.shared.recountresources.entities.cached_fetching.{Grou
 import au.id.tmm.ausvotes.shared.recountresources.recount.RunRecount
 import au.id.tmm.ausvotes.tasks.compare_recounts.CountComparison.Mismatch
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Sync._
 import au.id.tmm.bfect.effects.extra.Console
 import au.id.tmm.bfect.effects.{Now, Sync}
 import au.id.tmm.bfect.ziointerop._
@@ -59,12 +57,15 @@ object CompareRecounts extends zio.App {
       preferenceTreeCache <- PreferenceTreeCache(groupsAndCandidatesCache)
 
       _ <- {
-        implicit val downloadToPath: DownloadToPath[IO] = DownloadToPath.IfTargetMissing
+        implicit val aecResourceStore: AecResourceStore[IO] =
+          AecResourceStore[IO](args.aecResourceStorePath, replaceExisting = false)
 
-        implicit val aecResourceStore: AecResourceStore[IO] = AecResourceStore[IO](args.aecResourceStorePath)
-        import aecResourceStore._
-
-        implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData()
+        implicit val fetchRawFederalElectionData: FetchRawFederalElectionData[IO] = FetchRawFederalElectionData(
+          aecResourceStore.makeSourceForFederalPollingPlaceResource,
+          aecResourceStore.makeSourceForFormalSenatePreferencesResource,
+          aecResourceStore.makeSourceForSenateDistributionOfPreferencesResource,
+          aecResourceStore.makeSourceForSenateFirstPreferencesResource,
+        )
 
         implicit val fetchPreferenceTree: FetchPreferenceTree[IO] = preferenceTreeCache
         implicit val fetchGroupsAndCandidates: FetchSenateGroupsAndCandidates[IO] = groupsAndCandidatesCache
@@ -103,8 +104,8 @@ object CompareRecounts extends zio.App {
     election: SenateElectionForState,
   ): F[Exception, CountComparison] = {
     for {
-      groupsAndCandidates <- FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election)
-      canonicalCount <- FetchSenateCountData.senateCountDataFor(election, groupsAndCandidates)
+      groupsAndCandidates <- FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election): F[Exception, SenateGroupsAndCandidates]
+      canonicalCount <- FetchSenateCountData.senateCountDataFor(election, groupsAndCandidates): F[Exception, SenateCountData]
 
       computedCountRequest = RecountRequest(
         election,

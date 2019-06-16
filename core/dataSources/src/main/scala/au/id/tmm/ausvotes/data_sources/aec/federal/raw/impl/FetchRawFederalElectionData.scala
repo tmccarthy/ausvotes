@@ -3,16 +3,15 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
 import au.id.tmm.ausvotes.data_sources.aec.federal.resources.{FederalPollingPlacesResource, FormalSenatePreferencesResource, SenateDistributionOfPreferencesResource, SenateFirstPreferencesResource}
 import au.id.tmm.ausvotes.data_sources.common.CsvParsing._
-import au.id.tmm.ausvotes.data_sources.common.{CsvStreaming, MakeSource}
+import au.id.tmm.ausvotes.data_sources.common.streaming.{MakeSource, ReadingInputStreams}
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
-import au.id.tmm.bfect.BME
-import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Sync.Ops
+import com.github.tototoshi.csv
 import fs2.Stream
 
-final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
-  implicit
+final class FetchRawFederalElectionData[F[+_, +_] : Sync] private (
   makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
   makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],
   makeSenateDistributionOfPreferencesResourceSource: MakeSource[F, Exception, SenateDistributionOfPreferencesResource],
@@ -23,15 +22,16 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
     with FetchRawFederalPollingPlaces[F]
     with FetchRawFormalSenatePreferences[F] {
 
-  private def fetchStreamFor[R](resource: R)(implicit makeSource: MakeSource[F, Exception, R]): Stream[F[Throwable, +?], List[String]] =
-    CsvStreaming.from[F[Throwable, +?]](makeSource.makeSourceFor(resource))
+  private val csvFormat = csv.defaultCSVFormat
 
   override def senateFirstPreferencesFor(
-                                          election: SenateElection,
-                                        ): F[FetchRawSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateFirstPreferences.Row]] =
-    BME.pure {
-      fetchStreamFor(SenateFirstPreferencesResource(election))
-        .drop(2)
+    election: SenateElection,
+  ): F[FetchRawSenateFirstPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateFirstPreferences.Row]] =
+    for {
+      lines <- makeSenateFirstPreferencesResourceSource(SenateFirstPreferencesResource(election))
+        .leftMap(FetchRawSenateFirstPreferences.Error)
+      csvRows = ReadingInputStreams.streamCsv(lines, csvFormat)
+      rows = csvRows.drop(2)
         .map { row =>
           FetchRawSenateFirstPreferences.Row(
             state = row(0),
@@ -48,14 +48,16 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
             totalVotes = row(10).toInt,
           )
         }
-    }
+    } yield rows
 
   override def federalPollingPlacesForElection(
-                                                election: FederalElection,
-                                              ): F[FetchRawFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchRawFederalPollingPlaces.Row]] =
-    BME.pure {
-      fetchStreamFor(FederalPollingPlacesResource(election))
-        .drop(2)
+    election: FederalElection,
+  ): F[FetchRawFederalPollingPlaces.Error, Stream[F[Throwable, +?], FetchRawFederalPollingPlaces.Row]] =
+    for {
+      lines <- makeFederalPollingPlacesResourceSource(FederalPollingPlacesResource(election))
+        .leftMap(FetchRawFederalPollingPlaces.Error)
+      csvRows = ReadingInputStreams.streamCsv(lines, csvFormat)
+      rows = csvRows.drop(2)
         .map { row =>
           FetchRawFederalPollingPlaces.Row(
             state = row(0),
@@ -75,14 +77,16 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
             longitude = parsePossibleDouble(row(14)),
           )
         }
-    }
+    } yield rows
 
   override def senateDistributionOfPreferencesFor(
-                                                   election: SenateElectionForState,
-                                                 ): F[FetchRawSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateDistributionOfPreferences.Row]] =
-    BME.pure {
-      fetchStreamFor(SenateDistributionOfPreferencesResource(election))
-        .drop(1)
+    election: SenateElectionForState,
+  ): F[FetchRawSenateDistributionOfPreferences.Error, Stream[F[Throwable, +?], FetchRawSenateDistributionOfPreferences.Row]] =
+    for {
+      lines <- makeSenateDistributionOfPreferencesResourceSource(SenateDistributionOfPreferencesResource(election))
+        .leftMap(FetchRawSenateDistributionOfPreferences.Error)
+      csvRows = ReadingInputStreams.streamCsv(lines, csvFormat)
+      rows = csvRows.drop(1)
         .map { row =>
           FetchRawSenateDistributionOfPreferences.Row(
             state = row(0),
@@ -104,14 +108,16 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
             comment = row(16),
           )
         }
-    }
+    } yield rows
 
   override def formalSenatePreferencesFor(
-                                           election: SenateElectionForState,
-                                         ): F[FetchRawFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchRawFormalSenatePreferences.Row]] =
-    BME.pure {
-      fetchStreamFor(FormalSenatePreferencesResource(election))
-        .drop(2)
+    election: SenateElectionForState,
+  ): F[FetchRawFormalSenatePreferences.Error, Stream[F[Throwable, +?], FetchRawFormalSenatePreferences.Row]] =
+    for {
+      lines <- makeFormalSenatePreferencesResourceSource(FormalSenatePreferencesResource(election))
+        .leftMap(FetchRawFormalSenatePreferences.Error)
+      csvRows = ReadingInputStreams.streamCsv(lines, csvFormat)
+      rows = csvRows.drop(2)
         .map { row =>
           FetchRawFormalSenatePreferences.Row(
             electorateName = row(0),
@@ -122,17 +128,21 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private ()(
             preferences = row(5),
           )
         }
-    }
+    } yield rows
 
 }
 
 object FetchRawFederalElectionData {
-  def apply[F[+_, +_] : Sync]()(
-    implicit
+  def apply[F[+_, +_] : Sync](
     makeFederalPollingPlacesResourceSource: MakeSource[F, Exception, FederalPollingPlacesResource],
     makeFormalSenatePreferencesResourceSource: MakeSource[F, Exception, FormalSenatePreferencesResource],
     makeSenateDistributionOfPreferencesResourceSource: MakeSource[F, Exception, SenateDistributionOfPreferencesResource],
     makeSenateFirstPreferencesResourceSource: MakeSource[F, Exception, SenateFirstPreferencesResource],
   ): FetchRawFederalElectionData[F] =
-    new FetchRawFederalElectionData()
+    new FetchRawFederalElectionData(
+      makeFederalPollingPlacesResourceSource,
+      makeFormalSenatePreferencesResourceSource,
+      makeSenateDistributionOfPreferencesResourceSource,
+      makeSenateFirstPreferencesResourceSource,
+    )
 }

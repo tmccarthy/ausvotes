@@ -11,4 +11,8 @@ package object streaming {
   private[streaming] def syncCatchIOException[F[+_, +_] : Sync, A](effect: => A): F[IOException, A] = Sync.syncCatch(effect) {
     case e: IOException => e
   }
+
+  type Source[F[+_, +_]] = fs2.Stream[F[Throwable, +?], String]
+  type MakeSource[F[+_, +_], E, K] = K => F[E, Source[F]]
+
 }
