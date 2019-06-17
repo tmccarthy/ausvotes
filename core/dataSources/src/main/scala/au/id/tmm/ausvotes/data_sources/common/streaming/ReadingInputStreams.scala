@@ -40,7 +40,7 @@ object ReadingInputStreams {
   }
 
   def streamExcel[F[+_, +_] : Sync, A](openInputStream: F[IOException, InputStream], sheetIndex: Int)(parseRow: Vector[Cell] => A): F[Exception, Vector[A]] =
-    Sync.bracketCloseable(openInputStream: F[Exception, InputStream]) { inputStream =>
+    Sync[F].bracketCloseable(openInputStream: F[Exception, InputStream]) { inputStream =>
       for {
         workbook <- Sync.syncException(new XSSFWorkbook(inputStream))
 

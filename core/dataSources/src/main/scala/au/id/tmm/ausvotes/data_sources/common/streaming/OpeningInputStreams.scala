@@ -28,11 +28,11 @@ object OpeningInputStreams {
     for {
       alreadyExists <- syncCatchIOException(Files.exists(destination))
       _ <- if (alreadyExists && !replaceExisting) Sync.unit else
-        Sync.bracketCloseable[F, InputStream, IOException, Unit] {
+        Sync[F].bracketCloseable {
           makeStream
         } { stream =>
           syncCatchIOException(Files.copy(stream, destination))
-        }
+        }.unit
     } yield ()
 
   def downloadToDirectory[F[+_, +_] : Sync](
