@@ -41,4 +41,18 @@ class ReadingInputStreamsSpec extends ImprovedFlatSpec {
     assert(rows.left.map(_.getMessage) === Left("""Invalid line '4,"5,6'"""))
   }
 
+  it should "return the whole row even if the last element is empty" in {
+    val lines: fs2.Stream[TestIOTask, String] = fs2.Stream.emits(Vector(
+      """1,2,"3"""",
+      """4,5,""""",
+    ))
+
+    val rows = ReadingInputStreams.streamCsv(lines, csv.defaultCSVFormat).compile.toVector.runEither(())
+
+    assert(rows === Right(Vector(
+      List("1", "2", "3"),
+      List("4", "5", ""),
+    )))
+  }
+
 }

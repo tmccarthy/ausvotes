@@ -3,14 +3,13 @@ package au.id.tmm.ausvotes.core.tallying.impl
 import au.id.tmm.ausvotes.core.tallies.redo.BallotTallier
 import au.id.tmm.ausvotes.core.tallying.FetchTally
 import au.id.tmm.ausvotes.core.tallying.impl.FetchTallyImpl.{TallyBundle, TallyRequest, TallyRequests}
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop.ThrowableEOps
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Concurrent.Ops
-import au.id.tmm.bfect.effects.{Concurrent, Sync}
+import au.id.tmm.bfect.effects.Die.Ops
+import au.id.tmm.bfect.effects.{Async, Bracket, Concurrent, Sync}
 import cats.Monoid
 
-final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 5000) extends FetchTally[F] {
+final class FetchTallyImpl[F[+_, +_] : Concurrent : Async : Bracket] private (chunkSize: Int = 5000) extends FetchTally[F] {
   override def fetchTally1[B, A1 : Monoid](ballots: fs2.Stream[F[Throwable, +?], B])(tallier1: BallotTallier[B, A1]): F[FetchTally.Error, A1] =
     fetchTalliesUnsafe(ballots, TallyRequests(TallyRequest[B, A1](tallier1))).map { bundle =>
       val tally1 = bundle.getTallySafe[A1](tallier1)
@@ -128,7 +127,7 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 500
       .foldMonoid
       .compile
       .lastOrError
-      .swallowThrowablesAndWrapIn(FetchTally.Error)
+      .refineToExceptionOrDie.leftMap(FetchTally.Error)
 
   private def applyTallyRequests[B](tallyRequests: TallyRequests[B], ballots: Vector[B]): TallyBundle[B] = TallyBundle {
     tallyRequests.requests.map { case tallyRequest @ TallyRequest(_) =>
@@ -142,7 +141,7 @@ final class FetchTallyImpl[F[+_, +_] : Concurrent] private (chunkSize: Int = 500
 
 object FetchTallyImpl {
 
-  def apply[F[+_, +_] : Concurrent]: FetchTallyImpl[F] = new FetchTallyImpl()
+  def apply[F[+_, +_] : Concurrent : Async : Bracket]: FetchTallyImpl[F] = new FetchTallyImpl()
 
   private final case class TallyRequest[B, A](tallier: BallotTallier[B, A])(implicit val valueMonoid: Monoid[A])
 

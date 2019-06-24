@@ -3,13 +3,13 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_dat
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchSenateCountData
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.FetchSenateCountDataFromRaw._
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributionOfPreferences
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateCountData, SenateElectionForState, SenateGroupsAndCandidates}
 import au.id.tmm.bfect.BME
-import au.id.tmm.bfect.BME._
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.Die
+import au.id.tmm.bfect.effects.Die.Ops
+import au.id.tmm.bfect.fs2interop.Fs2Compiler
 import au.id.tmm.countstv.model._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
@@ -18,7 +18,7 @@ import au.id.tmm.utilities.collection.DupelessSeq
 import cats.instances.int._
 import fs2.Stream
 
-final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Sync] extends FetchSenateCountData[F] {
+final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Fs2Compiler : Die] extends FetchSenateCountData[F] {
 
   override def senateCountDataFor(election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates): F[FetchSenateCountData.Error, SenateCountData] =
     for {
@@ -28,7 +28,7 @@ final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOf
       rawDopRowsGroupedByCount = rawDopRows.groupAdjacentBy(row => row.count)
 
       rowsForFirstCountStep <- rawDopRowsGroupedByCount.head
-        .compile.lastOrError.swallowThrowablesAndWrapIn(FetchSenateCountData.Error)
+        .compile.lastOrError.refineToExceptionOrDie.leftMap(FetchSenateCountData.Error)
         .map { case (_, firstCountStepRowsChunk) => firstCountStepRowsChunk.toVector }
 
       groupedRowsForOtherCountSteps = rawDopRowsGroupedByCount.tail
@@ -65,7 +65,7 @@ final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOf
       }
 
       finalMetadataAndCounts <- finalMetadataAndCountsStream.compile.lastOrError
-        .swallowThrowablesAndWrapIn(CountError.wrap)
+        .refineToExceptionOrDie.leftMap(CountError.wrap)
 
     } yield SenateCountData(
       election,
@@ -88,7 +88,7 @@ final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOf
 
 object FetchSenateCountDataFromRaw {
 
-  def apply[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Sync]: FetchSenateCountDataFromRaw[F] = new FetchSenateCountDataFromRaw
+  def apply[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Fs2Compiler : Die]: FetchSenateCountDataFromRaw[F] = new FetchSenateCountDataFromRaw
 
   sealed abstract class CountError extends ExceptionCaseClass
 
@@ -102,7 +102,7 @@ object FetchSenateCountDataFromRaw {
     final case class InvalidNumRowsInCount(count: Count) extends CountError
     final case class DistributionSourceError(cause: Exception) extends CountError with ExceptionCaseClass.WithCause
     final case class NoDistributionSource(count: Count) extends CountError
-    final case class UnexpectedException(cause: Exception) extends CountError
+    final case class UnexpectedException(cause: Exception) extends CountError with ExceptionCaseClass.WithCause
 
   }
 

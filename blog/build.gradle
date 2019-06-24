@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.github.jruby-gradle:jruby-gradle-plugin:+"
+        classpath "com.github.jruby-gradle:jruby-gradle-plugin:1.7.0"
     }
 }
 

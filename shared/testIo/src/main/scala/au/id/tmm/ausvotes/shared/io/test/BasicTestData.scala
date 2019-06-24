@@ -1,13 +1,13 @@
 package au.id.tmm.ausvotes.shared.io.test
 
-import au.id.tmm.ausvotes.shared.io.test.testdata.{EnvVarTestData, LoggingTestData, ResourcesTestData, TimerTestData}
+import au.id.tmm.ausvotes.shared.io.test.testdata.{EnvVarTestData, LoggingTestData, TimerTestData}
+import au.id.tmm.bfect.effects.extra.Resources
 import au.id.tmm.bfect.testing.BState
 
 final case class BasicTestData(
                                 currentTimeTestData: TimerTestData = TimerTestData.default,
                                 envVarTestData: EnvVarTestData = EnvVarTestData.empty,
                                 loggingTestData: LoggingTestData = LoggingTestData.empty,
-                                resourcesTestData: ResourcesTestData = ResourcesTestData.empty,
                               )
 
 object BasicTestData {
@@ -27,7 +27,7 @@ object BasicTestData {
       with TimerTestData.TestIOInstance[D]
       with LoggingTestData.TestIOInstance[D]
       with EnvVarTestData.TestIOInstance[D]
-      with ResourcesTestData.TestIOInstance[D] {
+      with Resources.Live[BState[D, +?, +?]] {
 
     protected def basicTestDataField(data: D): BasicTestData
     protected def setBasicTestDataField(oldData: D, newBasicTestData: BasicTestData): D
@@ -35,7 +35,6 @@ object BasicTestData {
     override protected def currentTimeField(data: D): TimerTestData = basicTestDataField(data).currentTimeTestData
     override protected def loggingTestDataField(data: D): LoggingTestData = basicTestDataField(data).loggingTestData
     override protected def envVarsField(data: D): EnvVarTestData = basicTestDataField(data).envVarTestData
-    override protected def resourcesField(data: D): ResourcesTestData = basicTestDataField(data).resourcesTestData
 
     override protected def setCurrentTimeField(oldData: D, newCurrentTestTimeData: TimerTestData): D =
       setBasicTestDataField(oldData, basicTestDataField(oldData).copy(currentTimeTestData = newCurrentTestTimeData))

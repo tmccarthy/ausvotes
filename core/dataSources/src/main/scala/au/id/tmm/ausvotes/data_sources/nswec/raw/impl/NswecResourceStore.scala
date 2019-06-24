@@ -8,10 +8,10 @@ import au.id.tmm.ausvotes.data_sources.common.streaming.MakeSource
 import au.id.tmm.ausvotes.data_sources.nswec.resources.LegCoPreferencesResource
 import au.id.tmm.ausvotes.model.nsw.NswElection
 import au.id.tmm.ausvotes.model.nsw.legco.NswLegCoElection
-import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.effects.Sync.Ops
+import au.id.tmm.bfect.effects.{Bracket, Sync}
 
-final class NswecResourceStore[F[+_, +_] : Sync] private (resourceStoreLocation: Path, replaceExisting: Boolean) {
+final class NswecResourceStore[F[+_, +_] : Sync : Bracket] private (resourceStoreLocation: Path, replaceExisting: Boolean) {
 
   implicit val makeSourceForLegCoPreferencesResource: MakeSource[F, Exception, LegCoPreferencesResource] =
     MakeSource.withZipUrlFrom[F, LegCoPreferencesResource](resourceStoreLocation, replaceExisting) {
@@ -27,6 +27,6 @@ final class NswecResourceStore[F[+_, +_] : Sync] private (resourceStoreLocation:
 }
 
 object NswecResourceStore {
-  def apply[F[+_, +_] : Sync](resourceStoreLocation: Path, replaceExisting: Boolean): NswecResourceStore[F] =
+  def apply[F[+_, +_] : Sync : Bracket](resourceStoreLocation: Path, replaceExisting: Boolean): NswecResourceStore[F] =
     new NswecResourceStore(resourceStoreLocation, replaceExisting)
 }

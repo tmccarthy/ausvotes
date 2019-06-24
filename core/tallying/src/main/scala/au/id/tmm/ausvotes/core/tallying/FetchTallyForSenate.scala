@@ -10,15 +10,17 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
 import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausvotes.shared.io.actions.Log
+import au.id.tmm.bfect.BME.Ops
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Concurrent.Ops
-import au.id.tmm.bfect.effects.{Concurrent, Sync}
+import au.id.tmm.bfect.effects.{Async, Bracket, Concurrent, Sync}
 import cats.instances.list._
 import cats.syntax.traverse._
 
 object FetchTallyForSenate {
 
   def apply[F[+_, +_]](implicit
+                       async: Async[F],
+                       bracket: Bracket[F],
                        concurrent: Concurrent[F],
                        jsonCache: JsonCache[F],
                        log: Log[F],
@@ -34,6 +36,8 @@ object FetchTallyForSenate {
   private def ballotStreamFor[F[+_, +_]](
                                           election: SenateElection,
                                         )(implicit
+                                          async: Async[F],
+                                          bracket: Bracket[F],
                                           concurrent: Concurrent[F],
                                           jsonCache: JsonCache[F],
                                           log: Log[F],
@@ -76,6 +80,8 @@ object FetchTallyForSenate {
                                               divisionsAndPollingPlaces: DivisionsAndPollingPlaces,
                                               htvCards: Set[SenateHtv],
                                             )(implicit
+                                              async: Async[F],
+                                              bracket: Bracket[F],
                                               concurrent: Concurrent[F],
                                               log: Log[F],
                                               fetchCountData: FetchSenateCountData[F],

@@ -4,20 +4,20 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.FetchDivisionsAndFeder
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.CommonParsing._
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.FetchDivisionsAndFederalPollingPlacesFromRaw.DivisionAndPollingPlace
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFederalPollingPlaces
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.Electorate
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace.PollingPlaceType
 import au.id.tmm.ausvotes.model.federal.{Division, DivisionsAndPollingPlaces, FederalElection}
-import au.id.tmm.bfect.BME
-import au.id.tmm.bfect.BME._
-import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.BMonad
+import au.id.tmm.bfect.effects.Die
+import au.id.tmm.bfect.effects.Die.Ops
+import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.utilities.collection.Flyweight
 import au.id.tmm.utilities.geo.LatLong
 import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils
 
-final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Sync] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
+final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Fs2Compiler : Die] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
 
   private val divisionFlyweight: Flyweight[(FederalElection, State, String), Division] = Flyweight { tuple =>
     Electorate(tuple._1, tuple._2, tuple._3)
@@ -30,10 +30,10 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
       pollingPlacesRows <- implicitly[FetchRawFederalPollingPlaces[F]].federalPollingPlacesForElection(election)
         .leftMap(FetchDivisionsAndFederalPollingPlaces.Error)
 
-      divisionsAndPollingPlacesStream = pollingPlacesRows.evalMap(row => BME.fromEither(parseRawRow(election, row)): F[Throwable, DivisionAndPollingPlace])
+      divisionsAndPollingPlacesStream = pollingPlacesRows.evalMap(row => BMonad.fromEither(parseRawRow(election, row)): F[Throwable, DivisionAndPollingPlace])
 
       divisionsAndPollingPlaces <- divisionsAndPollingPlacesStream.compile.toVector
-        .swallowThrowablesAndWrapIn(FetchDivisionsAndFederalPollingPlaces.Error)
+        .refineToExceptionOrDie.leftMap(FetchDivisionsAndFederalPollingPlaces.Error)
     } yield {
       val divisionsBuilder = Set.newBuilder[Division]
       val pollingPlacesBuilder = Set.newBuilder[FederalPollingPlace]
@@ -129,7 +129,7 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
 
 object FetchDivisionsAndFederalPollingPlacesFromRaw {
 
-  def apply[F[+_, +_] : FetchRawFederalPollingPlaces : Sync]: FetchDivisionsAndFederalPollingPlacesFromRaw[F] = new FetchDivisionsAndFederalPollingPlacesFromRaw()
+  def apply[F[+_, +_] : FetchRawFederalPollingPlaces : Fs2Compiler : Die]: FetchDivisionsAndFederalPollingPlacesFromRaw[F] = new FetchDivisionsAndFederalPollingPlacesFromRaw()
 
   private[impl] final case class DivisionAndPollingPlace(division: Division, pollingPlace: FederalPollingPlace)
 

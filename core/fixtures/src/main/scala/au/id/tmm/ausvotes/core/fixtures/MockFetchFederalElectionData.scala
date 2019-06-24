@@ -8,6 +8,7 @@ import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElect
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME
+import au.id.tmm.bfect.fs2interop._
 import fs2.Stream
 
 object MockFetchFederalElectionData extends FetchDivisionsAndFederalPollingPlaces[BasicTestIO]

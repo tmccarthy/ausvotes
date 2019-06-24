@@ -4,8 +4,8 @@ import java.io.{IOException, InputStream}
 import java.nio.charset.Charset
 
 import au.id.tmm.bfect.catsinterop._
-import au.id.tmm.bfect.effects.Sync
-import au.id.tmm.bfect.effects.Sync.Ops
+import au.id.tmm.bfect.effects.Sync.{CloseableOps, Ops}
+import au.id.tmm.bfect.effects.{Bracket, Sync}
 import com.github.tototoshi.csv.{CSVFormat, CSVParser}
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -15,15 +15,24 @@ import scala.io.{Source => ScalaSource}
 
 object ReadingInputStreams {
 
-  def streamLines[F[+_, +_] : Sync](
-                                     makeInputStream: F[IOException, InputStream],
-                                     charset: Charset = defaultCharset,
-                                   ): F[IOException, fs2.Stream[F[Throwable, +?], String]] =
+  def streamLines[F[+_, +_] : Sync : Bracket](
+                                               makeInputStream: F[IOException, InputStream],
+                                               charset: Charset = defaultCharset,
+                                             ): F[IOException, fs2.Stream[F[Throwable, +?], String]] = {
     for {
-      inputStream <- makeInputStream
-      source = ScalaSource.fromInputStream(inputStream)
-      stream <- syncCatchIOException(fs2.Stream.fromIterator(source.getLines()).onFinalize(Sync.sync(source.close())))
-    } yield stream
+      streamOfSource <- syncCatchIOException {
+        fs2.Stream.bracket(
+          for {
+            inputStream <- makeInputStream
+            source = ScalaSource.fromInputStream(inputStream)
+          } yield source
+        )(source => syncCatchIOException(source.close()))
+      }
+
+      streamOfLines = streamOfSource.flatMap(source => fs2.Stream.fromIterator(source.getLines()))
+
+    } yield streamOfLines
+  }
 
   def streamCsv[F[+_, +_] : Sync](
                                    lines: fs2.Stream[F[Throwable, +?], String],
@@ -39,8 +48,8 @@ object ReadingInputStreams {
     }
   }
 
-  def streamExcel[F[+_, +_] : Sync, A](openInputStream: F[IOException, InputStream], sheetIndex: Int)(parseRow: Vector[Cell] => A): F[Exception, Vector[A]] =
-    Sync[F].bracketCloseable(openInputStream: F[Exception, InputStream]) { inputStream =>
+  def streamExcel[F[+_, +_] : Sync : Bracket, A](openInputStream: F[IOException, InputStream], sheetIndex: Int)(parseRow: Vector[Cell] => A): F[Exception, Vector[A]] =
+    openInputStream.bracketCloseable { inputStream =>
       for {
         workbook <- Sync.syncException(new XSSFWorkbook(inputStream))
 

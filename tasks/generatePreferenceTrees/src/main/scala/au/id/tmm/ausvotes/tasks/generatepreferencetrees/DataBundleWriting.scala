@@ -13,11 +13,11 @@ import io.circe.syntax.EncoderOps
 
 object DataBundleWriting {
 
-  def writeToS3Bucket[F[+_, +_] : WritesToS3 : Concurrent](
-                                                                         s3BucketName: S3BucketName,
+  def writeToS3Bucket[F[+_, +_] : WritesToS3 : Concurrent : Sync](
+                                                                   s3BucketName: S3BucketName,
 
-                                                                         dataBundleForElection: DataBundleForElection,
-                                                                       ): F[Exception, Unit] =
+                                                                   dataBundleForElection: DataBundleForElection,
+                                                                 ): F[Exception, Unit] =
     for {
       _ <- Concurrent.par4(
         writePreferenceTree(s3BucketName, dataBundleForElection),
@@ -28,9 +28,9 @@ object DataBundleWriting {
     } yield Unit
 
   private def writePreferenceTree[F[+_, +_] : WritesToS3 : Sync](
-                                                                        s3BucketName: S3BucketName,
-                                                                        dataBundleForElection: DataBundleForElection,
-                                                                      ): F[Exception, Unit] = {
+                                                                  s3BucketName: S3BucketName,
+                                                                  dataBundleForElection: DataBundleForElection,
+                                                                ): F[Exception, Unit] = {
     val key = EntityLocations.locationOfPreferenceTree(dataBundleForElection.election)
 
     WritesToS3.putFromOutputStream(s3BucketName, key) { outputStream =>
@@ -56,9 +56,9 @@ object DataBundleWriting {
   }
 
   private def writeCandidatesFile[F[+_, +_] : WritesToS3 : Sync](
-                                                                        s3BucketName: S3BucketName,
-                                                                        dataBundleForElection: DataBundleForElection,
-                                                                      ): F[Exception, Unit] = {
+                                                                  s3BucketName: S3BucketName,
+                                                                  dataBundleForElection: DataBundleForElection,
+                                                                ): F[Exception, Unit] = {
     val key = EntityLocations.locationOfCandidatesObject(dataBundleForElection.election)
 
     val content = {
@@ -71,9 +71,9 @@ object DataBundleWriting {
   }
 
   private def writeCanonicalRecountFile[F[+_, +_] : WritesToS3 : Sync](
-                                                                              s3BucketName: S3BucketName,
-                                                                              dataBundleForElection: DataBundleForElection,
-                                                                            ): F[Exception, Unit] = {
+                                                                        s3BucketName: S3BucketName,
+                                                                        dataBundleForElection: DataBundleForElection,
+                                                                      ): F[Exception, Unit] = {
     val key = EntityLocations.locationOfCanonicalRecount(dataBundleForElection.election)
 
     val content = dataBundleForElection.canonicalCountResult.asJson.toString

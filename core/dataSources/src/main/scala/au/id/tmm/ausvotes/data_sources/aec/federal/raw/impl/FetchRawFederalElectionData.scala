@@ -8,7 +8,7 @@ import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.effects.Sync.Ops
-import com.github.tototoshi.csv
+import com.github.tototoshi.csv.{DefaultCSVFormat, QUOTE_ALL, Quoting}
 import fs2.Stream
 
 final class FetchRawFederalElectionData[F[+_, +_] : Sync] private (
@@ -22,7 +22,9 @@ final class FetchRawFederalElectionData[F[+_, +_] : Sync] private (
     with FetchRawFederalPollingPlaces[F]
     with FetchRawFormalSenatePreferences[F] {
 
-  private val csvFormat = csv.defaultCSVFormat
+  private val csvFormat = new DefaultCSVFormat {
+    override val quoting: Quoting = QUOTE_ALL
+  }
 
   override def senateFirstPreferencesFor(
     election: SenateElection,

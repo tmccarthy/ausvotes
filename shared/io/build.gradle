@@ -1,15 +1,11 @@
 apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 
 dependencies {
-    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
-
-    compile "org.typelevel:cats-core${s}:$catsVersion"
-    compile "co.fs2:fs2-core${s}:$fs2Version"
-
     compile "commons-io:commons-io:$commonsIoVersion"
 
     compile "au.id.tmm.bfect:bfect-core${s}:$bfectVersion"
     compile "au.id.tmm.bfect:bfect-interop-cats${s}:$bfectVersion"
+    compile "au.id.tmm.bfect:bfect-interop-fs2${s}:$bfectVersion"
     compile "au.id.tmm.bfect:bfect-interop-zio${s}:$bfectVersion"
 
     testCompile project(':shared:testIo')

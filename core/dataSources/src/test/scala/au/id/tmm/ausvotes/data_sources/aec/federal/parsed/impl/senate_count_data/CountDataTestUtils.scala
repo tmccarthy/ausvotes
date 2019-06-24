@@ -5,6 +5,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawSenateDistributio
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCountData, SenateElection, SenateElectionForState, SenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
+import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.countstv.model.CandidateStatus.Remaining
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.utilities.geo.australia.State

@@ -11,7 +11,7 @@ object EnvVarTestData {
 
   val empty = EnvVarTestData(Map.empty)
 
-  trait TestIOInstance[D] extends EnvVars[BState[D, +?, +?]] {
+  trait TestIOInstance[D] extends EnvVars.WithBMonad[BState[D, +?, +?]] with BState.BMEInstance[D] {
     protected def envVarsField(data: D): EnvVarTestData
 
     override def envVars: BState[D, Nothing, Map[String, String]] =

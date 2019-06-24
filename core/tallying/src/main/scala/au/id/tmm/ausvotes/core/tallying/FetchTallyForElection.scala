@@ -6,13 +6,13 @@ import au.id.tmm.ausvotes.core.tallies.redo.BallotTallier.{UnitBallotTallier => 
 import au.id.tmm.ausvotes.core.tallying.FetchTallyForElection.TallyRequest
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.bfect.BifunctorMonadError
+import au.id.tmm.bfect.BMonad._
 import au.id.tmm.bfect.effects.Concurrent
-import au.id.tmm.bfect.effects.Concurrent._
+import au.id.tmm.bfect.{BMonad, BifunctorMonadError}
 import cats.Monoid
 import io.circe.{Decoder, Encoder}
 
-final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTally, E : Encoder, B] private (ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]) {
+final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B] private (ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]) {
 
   def fetchTally1[A1 : Monoid : Encoder : Decoder](election: E)(t1: BallotTallier[B, A1]): F[FetchTallyForElection.Error, A1] =
     fetchTally10[A1, Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit](election)(t1, UT, UT, UT, UT, UT, UT, UT, UT, UT).map {
@@ -157,7 +157,7 @@ final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTall
 
 object FetchTallyForElection {
 
-  def apply[F[+_, +_] : Concurrent : JsonCache : FetchTally, E : Encoder, B](ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]): FetchTallyForElection[F, E, B] =
+  def apply[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B](ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]): FetchTallyForElection[F, E, B] =
     new FetchTallyForElection(ballotsForElection)
 
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause

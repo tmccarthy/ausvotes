@@ -5,9 +5,10 @@ import java.net.URL
 import java.nio.file.{Files, InvalidPathException, Path}
 import java.util.zip.{GZIPInputStream, ZipEntry, ZipFile}
 
-import au.id.tmm.bfect.effects.Sync
-import au.id.tmm.bfect.effects.Sync.Ops
+import au.id.tmm.bfect.BMonad
+import au.id.tmm.bfect.effects.Sync._
 import au.id.tmm.bfect.effects.extra.Resources
+import au.id.tmm.bfect.effects.{Bracket, Sync}
 import org.apache.commons.io.FilenameUtils
 
 object OpeningInputStreams {
@@ -16,30 +17,29 @@ object OpeningInputStreams {
                                                 url: URL,
                                                 destinationDirectory: Path,
                                               ): F[IOException, Path] =
-    Sync.syncException(destinationDirectory.resolve(FilenameUtils.getName(url.getPath))).refineOrDie {
-      case e: InvalidPathException => new IOException(e)
-    }
+    Sync.syncException(destinationDirectory.resolve(FilenameUtils.getName(url.getPath)))
+      .refineOrDie {
+        case e: InvalidPathException => new IOException(e)
+      }
 
-  def streamToPath[F[+_, +_] : Sync](
-                                      makeStream: F[IOException, InputStream],
-                                      destination: Path,
-                                      replaceExisting: Boolean,
-                                    ): F[IOException, Unit] =
+  def streamToPath[F[+_, +_] : Sync : Bracket](
+                                                makeStream: F[IOException, InputStream],
+                                                destination: Path,
+                                                replaceExisting: Boolean,
+                                              ): F[IOException, Unit] =
     for {
       alreadyExists <- syncCatchIOException(Files.exists(destination))
-      _ <- if (alreadyExists && !replaceExisting) Sync.unit else
-        Sync[F].bracketCloseable {
-          makeStream
-        } { stream =>
+      _ <- if (alreadyExists && !replaceExisting) BMonad.unit else
+        makeStream.bracketCloseable { stream =>
           syncCatchIOException(Files.copy(stream, destination))
         }.unit
     } yield ()
 
-  def downloadToDirectory[F[+_, +_] : Sync](
-                                             url: URL,
-                                             destinationDirectory: Path,
-                                             replaceExisting: Boolean,
-                                           ): F[IOException, Path] =
+  def downloadToDirectory[F[+_, +_] : Sync : Bracket](
+                                                       url: URL,
+                                                       destinationDirectory: Path,
+                                                       replaceExisting: Boolean,
+                                                     ): F[IOException, Path] =
     for {
       destination <- destinationInDirectory(url, destinationDirectory)
 
@@ -73,7 +73,7 @@ object OpeningInputStreams {
       inputStream <- syncCatchIOException(zipFile.getInputStream(zipEntry))
     } yield inputStream
 
-  def openResource[F[+_, +_] : Resources](resourceName: String): F[IOException, InputStream] =
+  def openResource[F[+_, +_] : Sync : Resources](resourceName: String): F[IOException, InputStream] =
     Resources[F].getResourceAsStream(resourceName)
       .flatMap {
         case Some(is) => Sync.pure(is): F[IOException, InputStream]

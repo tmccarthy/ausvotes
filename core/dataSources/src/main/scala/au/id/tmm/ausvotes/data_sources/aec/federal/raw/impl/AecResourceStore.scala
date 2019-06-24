@@ -8,9 +8,9 @@ import au.id.tmm.ausvotes.data_sources.common.streaming.MakeSource
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.BME._
-import au.id.tmm.bfect.effects.Sync
+import au.id.tmm.bfect.effects.{Bracket, Sync}
 
-final class AecResourceStore[F[+_, +_] : Sync] private (resourceStoreLocation: Path, replaceExisting: Boolean) {
+final class AecResourceStore[F[+_, +_] : Sync : Bracket] private (resourceStoreLocation: Path, replaceExisting: Boolean) {
 
   val makeSourceForFederalPollingPlaceResource: MakeSource[F, Exception, FederalPollingPlacesResource] =
     MakeSource.withUrlFrom[F, FederalPollingPlacesResource](resourceStoreLocation, replaceExisting) {
@@ -50,7 +50,7 @@ final class AecResourceStore[F[+_, +_] : Sync] private (resourceStoreLocation: P
 
 object AecResourceStore {
 
-  def apply[F[+_, +_] : Sync](resourceStoreLocation: Path, replaceExisting: Boolean): AecResourceStore[F] =
+  def apply[F[+_, +_] : Sync : Bracket](resourceStoreLocation: Path, replaceExisting: Boolean): AecResourceStore[F] =
     new AecResourceStore(resourceStoreLocation, replaceExisting)
 
 }

@@ -2,10 +2,11 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.shared.recountresources.CountSummary
+import au.id.tmm.bfect.effects.Die.Ops
+import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
@@ -61,7 +62,7 @@ object DataBundleConstruction {
         canonicalRecountResult,
         PreferenceTree.fromIterator(candidates, numPapersHint)(ballotsChunk.iterator),
       )
-    }.swallowThrowables
+    }.refineToExceptionOrDie
   }
 
   final case class DataBundleForElection(

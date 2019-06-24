@@ -2,8 +2,9 @@ package au.id.tmm.ausvotes.data_sources
 
 import au.id.tmm.ausvotes.data_sources.aec.federal.CanonicalFederalAecDataInstances
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPlaces, FetchRawFormalSenatePreferences, FetchRawSenateDistributionOfPreferences, FetchRawSenateFirstPreferences}
-import au.id.tmm.ausvotes.data_sources.common.Fs2Interop._
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.bfect.fs2interop._
+import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 import fs2.Stream

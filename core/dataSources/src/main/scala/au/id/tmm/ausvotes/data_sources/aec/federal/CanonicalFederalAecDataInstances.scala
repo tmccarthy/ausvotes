@@ -10,6 +10,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.{FetchDivisionsAn
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
+import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
 import scalaz.zio.IO
 
