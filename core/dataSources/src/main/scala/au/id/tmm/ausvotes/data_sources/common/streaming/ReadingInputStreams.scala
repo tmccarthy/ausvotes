@@ -37,13 +37,13 @@ object ReadingInputStreams {
   def streamCsv[F[+_, +_] : Sync](
                                    lines: fs2.Stream[F[Throwable, +?], String],
                                    csvFormat: CSVFormat,
-                                 ): fs2.Stream[F[Throwable, +?], List[String]] = {
+                                 ): fs2.Stream[F[Throwable, +?], Vector[String]] = {
     val parser: CSVParser = new CSVParser(csvFormat)
 
     lines.evalMap { line =>
       parser.parseLine(line) match {
-        case Some(value) => Sync.pure(value)
-        case None        => Sync.leftPure(new IOException(s"""Invalid line '$line'""")): F[Throwable, List[String]]
+        case Some(value) => Sync.pure(value.toVector)
+        case None        => Sync.leftPure(new IOException(s"""Invalid line '$line'""")): F[Throwable, Vector[String]]
       }
     }
   }
