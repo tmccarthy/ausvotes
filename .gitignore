@@ -48,6 +48,8 @@ gradle-app.setting
 /core/model/out
 /core/dataSources/build
 /core/dataSources/out
+/core/tallying/build/
+/core/tallying/out/
 /lambdas/*/build
 /lambdas/*/out
 /tasks/*/build

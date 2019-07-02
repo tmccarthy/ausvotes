@@ -6,7 +6,7 @@ object RecountLocations {
 
   def locationOfRecountFor(recountRequest: RecountRequest): S3ObjectKey = {
 
-    val sanitisedCandidateIds = recountRequest.ineligibleCandidateAecIds.toList.map(_.asInt).sorted
+    val sanitisedCandidateIds = recountRequest.ineligibleCandidateAecIds.toList.map(_.asLong).sorted
 
     val ineligiblesPathSegment = sanitisedCandidateIds match {
       case ids @ _ :: _ => ids.mkString("-")

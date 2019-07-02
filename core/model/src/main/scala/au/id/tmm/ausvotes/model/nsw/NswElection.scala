@@ -11,9 +11,9 @@ sealed abstract class NswElection(val date: LocalDate, val nswAecId: NswElection
 
 object NswElection {
 
-  case object `2019` extends NswElection(LocalDate.of(23, 3, 2019), Id("SGE2019"))
-  case object `2015` extends NswElection(LocalDate.of(28, 3, 2015), Id("SGE2015"))
-  case object `2011` extends NswElection(LocalDate.of(26, 3, 2011), Id("SGE2011"))
+  case object `2019` extends NswElection(LocalDate.of(2019, 3, 23), Id("SGE2019"))
+  case object `2015` extends NswElection(LocalDate.of(2015, 3, 28), Id("SGE2015"))
+  case object `2011` extends NswElection(LocalDate.of(2011, 3, 26), Id("SGE2011"))
 
   def from(id: Id): Option[NswElection] = id match {
     case `2019`.nswAecId => Some(`2019`)

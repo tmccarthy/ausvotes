@@ -44,7 +44,7 @@ object BallotGroup {
 
       if (asString.length == 1) {
         charValue(asString.charAt(0))
-      } else if (asString == "UG") {
+      } else if (this == Ungrouped.code) {
         Int.MaxValue
       } else {
         (26 * (1 + charValue(asString.charAt(0)))) + charValue(asString.charAt(1))

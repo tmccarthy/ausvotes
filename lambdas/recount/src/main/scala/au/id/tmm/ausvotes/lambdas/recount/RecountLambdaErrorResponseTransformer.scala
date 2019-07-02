@@ -18,7 +18,7 @@ object RecountLambdaErrorResponseTransformer
 
   override def responseFor(error: RecountLambdaError): ApiGatewayLambdaResponse = error match {
     case RecountLambdaError.RecountComputationError(RunRecount.Error.InvalidCandidateIds(invalidCandidateAecIds)) =>
-      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asInt).mkString("[", ", ", "]")}""")
+      badRequestResponse(s"""Invalid candidate ids ${invalidCandidateAecIds.map(_.asLong).mkString("[", ", ", "]")}""")
 
     case RecountLambdaError.RecountComputationError(_) =>
     badRequestResponse("An error occurred while performing the recount computation")

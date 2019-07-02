@@ -1,0 +1,102 @@
+package au.id.tmm.ausvotes.data_sources.nswec.legco
+
+import java.net.URL
+import java.nio.file.Path
+
+import au.id.tmm.ausvotes.data_sources.common.streaming.{OpeningInputStreams, ReadingInputStreams}
+import au.id.tmm.ausvotes.model
+import au.id.tmm.ausvotes.model.nsw.NswElection
+import au.id.tmm.ausvotes.model.nsw.legco._
+import au.id.tmm.ausvotes.model.stv.BallotGroup.{Code => BallotGroupCode}
+import au.id.tmm.ausvotes.model.{Name, Party, stv}
+import au.id.tmm.bfect.effects.Sync.Ops
+import au.id.tmm.bfect.effects.{Bracket, Sync}
+import au.id.tmm.bfect.fs2interop.Fs2Compiler
+import au.id.tmm.utilities.hashing.Pairing
+
+class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLocation: Path, replaceExisting: Boolean) extends NswLegCoData[F] {
+
+  private val namePattern = """^([A-Z\-c\s]+)\s([A-Z][a-z].*)$""".r
+
+  override def fetchGroupsAndCandidatesFor(election: NswLegCoElection): F[Exception, GroupsAndCandidates] =
+    for {
+      url <- election match {
+        case NswLegCoElection(NswElection.`2019`) => Sync.pureCatchException(new URL("https://vtrprodragrsstorage01-secondary.blob.core.windows.net/vtrdata-sg1901/lc/SGE2019%20LC%20Candidates.xlsx?st=2019-03-01T01%3A00%3A00Z&se=2020-03-01T01%3A00%3A00Z&sp=r&sv=2018-03-28&sr=c&sig=KPBiRIYtRCT3aWxdLhdcPWb3qbC3wHubyftHBwIjg2Q%3D"))
+        case _ => Sync.leftPure(new Exception(s"Unsupported election $election"))
+      }
+
+      localPath <- OpeningInputStreams.downloadToDirectory(url, resourceStoreLocation, replaceExisting)
+
+      groupRows = ReadingInputStreams.streamExcel(OpeningInputStreams.openFile(localPath), sheetIndex = 1)
+
+      groups   <- groupRows
+        .drop(1)
+        .evalMap { row =>
+          for {
+            rawCode  <- Sync.syncException(row.getCell(1).getStringCellValue)
+            rawParty <- Sync.syncException(Option(row.getCell(2)).map(_.getStringCellValue))
+            code <- parseGroupCode(rawCode)
+
+            party = rawParty.map(_.trim).filter(_.nonEmpty).map(Party.apply)
+
+            group <- code match {
+              case stv.Ungrouped.code => Sync.pure(Ungrouped(election)): F[Exception, BallotGroup]
+              case groupCode => Sync.fromEither(Group(election, groupCode, party)): F[Exception, BallotGroup]
+            }
+          } yield group
+        }
+        .flatMap {
+          case _: Ungrouped => fs2.Stream.empty
+          case g: Group     => fs2.Stream.emit(g)
+        }
+        .compile.toVector
+        .refineToExceptionOrDie
+
+      groupLookupByCode = groups.groupBy(_.code).mapValues(_.head)
+
+      candidateRows = ReadingInputStreams.streamExcel(OpeningInputStreams.openFile(localPath), sheetIndex = 0)
+
+      candidates    <- candidateRows
+        .drop(1)
+        .evalMap { row =>
+          for {
+            rawBallotPos <- Sync.syncException(row.getCell(0).getNumericCellValue.toInt)
+            rawGroupCode <- Sync.syncException(row.getCell(2).getStringCellValue)
+            rawName      <- Sync.syncException(row.getCell(3).getStringCellValue)
+
+            groupCode    <- parseGroupCode(rawGroupCode)
+            group        <- (groupCode match {
+              case stv.Ungrouped.code => Sync.pure(Ungrouped(election))
+              case groupCode          => Sync.fromOption(groupLookupByCode.get(groupCode), new Exception(s"Group code $groupCode did not appear in groups section of spreadsheet"))
+            }): F[Exception, BallotGroup]
+
+            candidatePos  = CandidatePosition(group, rawBallotPos - 1)
+            party         = group match {
+              case stv.Group(_, _, party) => party
+              case stv.Ungrouped(_)       => None
+            }
+
+            name          = rawName match {
+              case namePattern(surname, givenNames) => Name(givenNames, surname)
+              case _                                => Name("", rawName)
+            }
+            id            = model.CandidateDetails.Id(Pairing.Szudzik.pair(
+              candidatePos.group.code.index,
+              candidatePos.indexInGroup,
+            ))
+          } yield Candidate(election, CandidateDetails(election, name, party, id), candidatePos)
+        }
+        .compile.toVector
+        .refineToExceptionOrDie
+
+    } yield GroupsAndCandidates(groups.toSet, candidates.toSet)
+
+  private def parseGroupCode(rawCode: String): F[Exception, BallotGroupCode] = Sync.fromEither(BallotGroupCode(rawCode))
+    .leftMap { case BallotGroupCode.InvalidCode(badCode) => new Exception(s"Invalid ballot code $badCode") }
+
+  override def fetchPreferencesFor(
+    election: NswLegCoElection,
+    groupsAndCandidates: GroupsAndCandidates,
+  ): F[Exception, fs2.Stream[F[Throwable, +?], Ballot]] = ???
+
+}

@@ -15,10 +15,10 @@ object CandidateDetails {
   implicit def encoder[E : Encoder]: Encoder[CandidateDetails[E]] = Encoder.forProduct4("election", "name", "party", "id")(c => (c.election, c.name, c.party, c.id))
   implicit def decoder[E : Decoder]: Decoder[CandidateDetails[E]] = Decoder.forProduct4("election", "name", "party", "id")(CandidateDetails.apply)
 
-  final case class Id(asInt: Int)
+  final case class Id(asLong: Long)
 
   object Id {
-    implicit val codec: Codec[Id] = Codecs.simpleCodec(_.asInt, Id(_))
+    implicit val codec: Codec[Id] = Codecs.simpleCodec(_.asLong, Id(_))
   }
 
 }
