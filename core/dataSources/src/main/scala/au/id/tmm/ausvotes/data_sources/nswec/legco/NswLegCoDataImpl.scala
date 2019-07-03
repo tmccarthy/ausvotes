@@ -3,19 +3,27 @@ package au.id.tmm.ausvotes.data_sources.nswec.legco
 import java.net.URL
 import java.nio.file.Path
 
+import au.id.tmm.ausvotes.data_sources.common.CsvParsing.{noneIfBlank, parsePossibleInt, parsePossibleString}
+import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
 import au.id.tmm.ausvotes.data_sources.common.streaming.{OpeningInputStreams, ReadingInputStreams}
+import au.id.tmm.ausvotes.data_sources.nswec.legco.NswLegCoDataImpl.PreferencesRow
 import au.id.tmm.ausvotes.model
 import au.id.tmm.ausvotes.model.nsw.NswElection
 import au.id.tmm.ausvotes.model.nsw.legco._
 import au.id.tmm.ausvotes.model.stv.BallotGroup.{Code => BallotGroupCode}
-import au.id.tmm.ausvotes.model.{Name, Party, stv}
+import au.id.tmm.ausvotes.model.{Name, Party, nsw, stv}
 import au.id.tmm.bfect.effects.Sync.Ops
 import au.id.tmm.bfect.effects.{Bracket, Sync}
 import au.id.tmm.bfect.fs2interop.Fs2Compiler
 import au.id.tmm.utilities.hashing.Pairing
+import cats.instances.string.catsKernelStdOrderForString
+import com.github.tototoshi.csv.TSVFormat
 import org.apache.poi.ss.usermodel.{Row => ExcelRow}
 
-class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLocation: Path, replaceExisting: Boolean) extends NswLegCoData[F] {
+class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
+  resourceStoreLocation: Path,
+  replaceExisting: Boolean,
+) extends NswLegCoData[F] {
 
   private val namePattern = """^([A-Z\-c\s]+)\s([A-Z][a-z].*)$""".r
 
@@ -104,6 +112,85 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLo
   override def fetchPreferencesFor(
     election: NswLegCoElection,
     groupsAndCandidates: GroupsAndCandidates,
-  ): F[Exception, fs2.Stream[F[Throwable, +?], Ballot]] = ???
+  ): F[Exception, fs2.Stream[F[Throwable, +?], Ballot]] =
+    for {
+      urlAndZipName <- election match {
+        case NswLegCoElection(NswElection.`2019`) =>
+          for {
+            url <- Sync.fromEither("https://vtrprodragrsstorage01-secondary.blob.core.windows.net/vtrdata-sg1901/lc/SGE2019%20LC%20Pref%20Data%20Statewide.zip?st=2019-03-01T01%3A00%3A00Z&se=2020-03-01T01%3A00%3A00Z&sp=r&sv=2018-03-28&sr=c&sig=KPBiRIYtRCT3aWxdLhdcPWb3qbC3wHubyftHBwIjg2Q%3D".parseUrl): F[Exception, URL]
+            zipEntryName = "SGE2019 LC Pref Data_NA_State.txt"
+          } yield (url, zipEntryName)
 
+        case _ => Sync.leftPure(new RuntimeException(s"Cannot download resource for $election"))
+      }
+
+      url = urlAndZipName._1
+      zipEntryName = urlAndZipName._2
+
+      localPath <- OpeningInputStreams.downloadToDirectory(url, resourceStoreLocation, replaceExisting)
+
+      lines <- ReadingInputStreams.streamLines(OpeningInputStreams.openZipEntry(localPath, zipEntryName))
+
+      csvRows = ReadingInputStreams.streamCsv(lines, new TSVFormat {})
+
+      ballots = csvRows
+        .zipWithIndex
+        .drop(1)
+        .evalMap { case (row, index) =>
+          Sync.pureCatchException {
+            PreferencesRow(
+              row(0).toInt,
+              row(1),
+              row(2),
+              row(3),
+              row(4),
+              parsePossibleString(row(5)),
+              parsePossibleInt(row(6)),
+              noneIfBlank(row(7)),
+              noneIfBlank(row(8)),
+              parsePossibleInt(row(9)),
+              row(10) == "Formal",
+              parsePossibleString(row(11)),
+            )
+          }.leftMap(cause => throw new Exception(s"Error when parsing row $index", cause))
+        }
+        .groupAdjacentBy(_.ballotPaperID)
+        .map { case (_, chunk) =>
+          val rowsForBallot = chunk.toVector
+          val headRow = rowsForBallot.head
+
+            Ballot(
+              election,
+              BallotJurisdiction(
+                nsw.District(
+                  election.stateElection,
+                  headRow.districtName,
+                ),
+                vcp = ???,
+              ),
+              BallotId(headRow.sequenceNumber),
+              groupPreferences = ???,
+              candidatePreferences = ???,
+            )
+        }
+
+    } yield ballots
+
+}
+
+object NswLegCoDataImpl {
+  private final case class PreferencesRow(
+    sequenceNumber: Int,
+    districtName: String,
+    voteTypeName: String,
+    venueName: String,
+    ballotPaperID: String,
+    preferenceMark: Option[String],
+    preferenceNumber: Option[Int],
+    candidateName: Option[String],
+    groupCode: Option[String],
+    drawOrder: Option[Int],
+    formal: Boolean,
+    typeName: Option[String],
+  )
 }

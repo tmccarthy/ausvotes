@@ -15,6 +15,7 @@ import scala.io.{Source => ScalaSource}
 
 object ReadingInputStreams {
 
+  // TODO move the effect handling inside the fs2.Stream
   def streamLines[F[+_, +_] : Sync : Bracket](
     makeInputStream: F[IOException, InputStream],
     charset: Charset = defaultCharset,
