@@ -13,6 +13,7 @@ import au.id.tmm.bfect.effects.Sync.Ops
 import au.id.tmm.bfect.effects.{Bracket, Sync}
 import au.id.tmm.bfect.fs2interop.Fs2Compiler
 import au.id.tmm.utilities.hashing.Pairing
+import org.apache.poi.ss.usermodel.{Row => ExcelRow}
 
 class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLocation: Path, replaceExisting: Boolean) extends NswLegCoData[F] {
 
@@ -31,20 +32,7 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLo
 
       groups   <- groupRows
         .drop(1)
-        .evalMap { row =>
-          for {
-            rawCode  <- Sync.syncException(row.getCell(1).getStringCellValue)
-            rawParty <- Sync.syncException(Option(row.getCell(2)).map(_.getStringCellValue))
-            code <- parseGroupCode(rawCode)
-
-            party = rawParty.map(_.trim).filter(_.nonEmpty).map(Party.apply)
-
-            group <- code match {
-              case stv.Ungrouped.code => Sync.pure(Ungrouped(election)): F[Exception, BallotGroup]
-              case groupCode => Sync.fromEither(Group(election, groupCode, party)): F[Exception, BallotGroup]
-            }
-          } yield group
-        }
+        .evalMap(row => parseGroupRowFromSpreadsheetRow(election, row))
         .flatMap {
           case _: Ungrouped => fs2.Stream.empty
           case g: Group     => fs2.Stream.emit(g)
@@ -56,40 +44,59 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](resourceStoreLo
 
       candidateRows = ReadingInputStreams.streamExcel(OpeningInputStreams.openFile(localPath), sheetIndex = 0)
 
-      candidates    <- candidateRows
+      candidates   <- candidateRows
         .drop(1)
-        .evalMap { row =>
-          for {
-            rawBallotPos <- Sync.syncException(row.getCell(0).getNumericCellValue.toInt)
-            rawGroupCode <- Sync.syncException(row.getCell(2).getStringCellValue)
-            rawName      <- Sync.syncException(row.getCell(3).getStringCellValue)
-
-            groupCode    <- parseGroupCode(rawGroupCode)
-            group        <- (groupCode match {
-              case stv.Ungrouped.code => Sync.pure(Ungrouped(election))
-              case groupCode          => Sync.fromOption(groupLookupByCode.get(groupCode), new Exception(s"Group code $groupCode did not appear in groups section of spreadsheet"))
-            }): F[Exception, BallotGroup]
-
-            candidatePos  = CandidatePosition(group, rawBallotPos - 1)
-            party         = group match {
-              case stv.Group(_, _, party) => party
-              case stv.Ungrouped(_)       => None
-            }
-
-            name          = rawName match {
-              case namePattern(surname, givenNames) => Name(givenNames, surname)
-              case _                                => Name("", rawName)
-            }
-            id            = model.CandidateDetails.Id(Pairing.Szudzik.pair(
-              candidatePos.group.code.index,
-              candidatePos.indexInGroup,
-            ))
-          } yield Candidate(election, CandidateDetails(election, name, party, id), candidatePos)
-        }
+        .evalMap(row => parseCandidateRowFromSpreadsheet(election, groupLookupByCode, row))
         .compile.toVector
         .refineToExceptionOrDie
 
     } yield GroupsAndCandidates(groups.toSet, candidates.toSet)
+
+  private def parseGroupRowFromSpreadsheetRow(election: NswLegCoElection, row: ExcelRow): F[Exception, BallotGroup] =
+    for {
+      rawCode  <- Sync.pureCatchException(row.getCell(1).getStringCellValue)
+      rawParty <- Sync.pureCatchException(Option(row.getCell(2)).map(_.getStringCellValue))
+      code <- parseGroupCode(rawCode)
+
+      party = rawParty.map(_.trim).filter(_.nonEmpty).map(Party.apply)
+
+      group <- code match {
+        case stv.Ungrouped.code => Sync.pure(Ungrouped(election)): F[Exception, BallotGroup]
+        case groupCode => Sync.fromEither(Group(election, groupCode, party)): F[Exception, BallotGroup]
+      }
+    } yield group
+
+  private def parseCandidateRowFromSpreadsheet(
+    election: NswLegCoElection,
+    groupLookupByCode: Map[BallotGroupCode, Group],
+    row: ExcelRow,
+  ): F[Exception, Candidate] =
+    for {
+      rawBallotPos <- Sync.pureCatchException(row.getCell(0).getNumericCellValue.toInt)
+      rawGroupCode <- Sync.pureCatchException(row.getCell(2).getStringCellValue)
+      rawName      <- Sync.pureCatchException(row.getCell(3).getStringCellValue)
+
+      groupCode    <- parseGroupCode(rawGroupCode)
+      group        <- (groupCode match {
+        case stv.Ungrouped.code => Sync.pure(Ungrouped(election))
+        case groupCode          => Sync.fromOption(groupLookupByCode.get(groupCode), new Exception(s"Group code $groupCode did not appear in groups section of spreadsheet"))
+      }): F[Exception, BallotGroup]
+
+      candidatePos  = CandidatePosition(group, rawBallotPos - 1)
+      party         = group match {
+        case stv.Group(_, _, party) => party
+        case stv.Ungrouped(_)       => None
+      }
+
+      name          = rawName match {
+        case namePattern(surname, givenNames) => Name(givenNames, surname)
+        case _                                => Name("", rawName)
+      }
+      id            = model.CandidateDetails.Id(Pairing.Szudzik.pair(
+        candidatePos.group.code.index,
+        candidatePos.indexInGroup,
+      ))
+    } yield Candidate(election, CandidateDetails(election, name, party, id), candidatePos)
 
   private def parseGroupCode(rawCode: String): F[Exception, BallotGroupCode] = Sync.fromEither(BallotGroupCode(rawCode))
     .leftMap { case BallotGroupCode.InvalidCode(badCode) => new Exception(s"Invalid ballot code $badCode") }
