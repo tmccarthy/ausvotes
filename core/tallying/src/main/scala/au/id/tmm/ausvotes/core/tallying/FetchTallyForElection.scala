@@ -12,7 +12,7 @@ import au.id.tmm.bfect.{BMonad, BifunctorMonadError}
 import cats.Monoid
 import io.circe.{Decoder, Encoder}
 
-final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B] private (ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]) {
+final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B] private (ballotsForElection: E => fs2.Stream[F[Throwable, +?], B]) {
 
   def fetchTally1[A1 : Monoid : Encoder : Decoder](election: E)(t1: BallotTallier[B, A1]): F[FetchTallyForElection.Error, A1] =
     fetchTally10[A1, Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit](election)(t1, UT, UT, UT, UT, UT, UT, UT, UT, UT).map {
@@ -135,9 +135,7 @@ final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTall
     t10: BallotTallier[B, A10],
   ): F[Exception, (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] =
     for {
-      ballots <- ballotsForElection(election)
-
-      tallyResults <- implicitly[FetchTally[F]].fetchTally10[B, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](ballots)(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+      tallyResults <- implicitly[FetchTally[F]].fetchTally10(ballotsForElection(election))(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
 
       _ <- Concurrent.par10(
         JsonCache.put(t1, tallyResults._1),
@@ -157,7 +155,7 @@ final class FetchTallyForElection[F[+_, +_] : Concurrent : JsonCache : FetchTall
 
 object FetchTallyForElection {
 
-  def apply[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B](ballotsForElection: E => F[Exception, fs2.Stream[F[Throwable, +?], B]]): FetchTallyForElection[F, E, B] =
+  def apply[F[+_, +_] : Concurrent : JsonCache : FetchTally : BMonad, E : Encoder, B](ballotsForElection: E => fs2.Stream[F[Throwable, +?], B]): FetchTallyForElection[F, E, B] =
     new FetchTallyForElection(ballotsForElection)
 
   final case class Error(cause: Exception) extends ExceptionCaseClass with ExceptionCaseClass.WithCause

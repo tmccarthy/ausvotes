@@ -47,32 +47,34 @@ object FetchTallyForSenate {
                                           fetchSenateBallots: FetchSenateBallots[F],
                                           fetchHtv: FetchSenateHtv[F],
                                           fetchTally: FetchTally[F],
-                                        ): F[Exception, fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]] =
-    for {
-      divisionsPollingPlacesGroupsAndCandidates <- Concurrent.par2(
-        FetchDivisionsAndFederalPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection).leftMap(FetchTally.Error(_)),
-        FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election).leftMap(FetchTally.Error(_)),
-      )
+                                        ): fs2.Stream[F[Throwable, +?], SenateBallotWithFacts] =
+    fs2.Stream.eval {
+      for {
+        divisionsPollingPlacesGroupsAndCandidates <- Concurrent.par2(
+          FetchDivisionsAndFederalPollingPlaces.divisionsAndFederalPollingPlacesFor(election.federalElection).leftMap(FetchTally.Error(_)),
+          FetchSenateGroupsAndCandidates.senateGroupsAndCandidatesFor(election).leftMap(FetchTally.Error(_)),
+        )
 
-      divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
-      groupsAndCandidates = divisionsPollingPlacesGroupsAndCandidates._2
+        divisionsAndPollingPlaces = divisionsPollingPlacesGroupsAndCandidates._1
+        groupsAndCandidates = divisionsPollingPlacesGroupsAndCandidates._2
 
-      htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
-        .leftMap(FetchTally.Error)
+        htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
+          .leftMap(FetchTally.Error)
 
-      stateElectionsInSizeOrder = election.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
+        stateElectionsInSizeOrder = election.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
 
-      htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
+        htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
 
-      ballotWithFactsStreamsInSizeOrder <- stateElectionsInSizeOrder
-        .traverse { electionForState =>
-          ballotsWithFactsFor(electionForState, groupsAndCandidates, divisionsAndPollingPlaces, htvCards.getOrElse(electionForState, Set.empty))
-        }
+        ballotWithFactsStreamsInSizeOrder <- stateElectionsInSizeOrder
+          .traverse { electionForState =>
+            ballotsWithFactsFor(electionForState, groupsAndCandidates, divisionsAndPollingPlaces, htvCards.getOrElse(electionForState, Set.empty))
+          }
 
-      ballotStream = ballotWithFactsStreamsInSizeOrder
-        .reduceOption(_ ++ _)
-        .getOrElse[fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]](fs2.Stream.empty)
-    } yield ballotStream
+        ballotStream = ballotWithFactsStreamsInSizeOrder
+          .reduceOption(_ ++ _)
+          .getOrElse[fs2.Stream[F[Throwable, +?], SenateBallotWithFacts]](fs2.Stream.empty)
+      } yield ballotStream
+    }.flatMap(identity)
 
   private def ballotsWithFactsFor[F[+_, +_]](
                                               electionForState: SenateElectionForState,

@@ -20,12 +20,14 @@ import fs2.Stream
 
 trait NswLegCoData[F[+_, +_]] {
 
+  type FStream[+A] = Stream[F[Throwable, +?], A]
+
   def fetchGroupsAndCandidatesFor(election: NswLegCoElection): F[Exception, GroupsAndCandidates]
 
   def fetchPreferencesFor(
     election: NswLegCoElection,
     groupsAndCandidates: GroupsAndCandidates,
-  ): F[Exception, Stream[F[Throwable, +?], Ballot]]
+  ): FStream[Ballot]
 
 }
 
@@ -128,7 +130,7 @@ object NswLegCoData {
     override def fetchPreferencesFor(
       election: NswLegCoElection,
       groupsAndCandidates: GroupsAndCandidates,
-    ): F[Exception, fs2.Stream[F[Throwable, +?], Ballot]] =
+    ): FStream[Ballot] = Stream.eval {
       for {
         csvRows <- BMonad.pure(streams.preferenceRows(election))
 
@@ -174,6 +176,7 @@ object NswLegCoData {
           }
 
       } yield ballots
+    }.flatten
 
   }
 
