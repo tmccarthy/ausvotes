@@ -9,7 +9,8 @@ import scalaz.zio.{DefaultRuntime, IO}
 
 class NswLegCoDataImplSpec extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
-  private val sut = new NswLegCoDataImpl[IO](cleanDirectory, replaceExisting = true)
+  private val streams = new NswLegCoStreams.Live[IO](cleanDirectory, replaceExisting = false)
+  private val sut = new NswLegCoDataImpl[IO](streams)
 
   "reading the groups and candidates of the nsw legislative assembly" should "get the correct number of candidates" in {
     val logicUnderTest = sut.fetchGroupsAndCandidatesFor(NswLegCoElection(NswElection.`2019`))

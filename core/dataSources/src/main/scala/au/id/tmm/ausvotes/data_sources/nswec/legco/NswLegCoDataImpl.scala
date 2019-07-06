@@ -1,42 +1,30 @@
 package au.id.tmm.ausvotes.data_sources.nswec.legco
 
-import java.net.URL
-import java.nio.file.Path
-
 import au.id.tmm.ausvotes.data_sources.common.CsvParsing.{noneIfBlank, parsePossibleInt, parsePossibleString}
-import au.id.tmm.ausvotes.data_sources.common.UrlUtils.StringOps
-import au.id.tmm.ausvotes.data_sources.common.streaming.{OpeningInputStreams, ReadingInputStreams}
 import au.id.tmm.ausvotes.data_sources.nswec.legco.NswLegCoDataImpl.PreferencesRow
+import au.id.tmm.ausvotes.data_sources.nswec.legco.NswLegCoStreams.SpreadsheetCell
 import au.id.tmm.ausvotes.model
-import au.id.tmm.ausvotes.model.nsw.NswElection
 import au.id.tmm.ausvotes.model.nsw.legco._
 import au.id.tmm.ausvotes.model.stv.BallotGroup.{Code => BallotGroupCode}
 import au.id.tmm.ausvotes.model.{Name, Party, nsw, stv}
-import au.id.tmm.bfect.effects.Sync.Ops
-import au.id.tmm.bfect.effects.{Bracket, Sync}
+import au.id.tmm.bfect.BMonad
+import au.id.tmm.bfect.BMonad.AbsolveOptionOps
+import au.id.tmm.bfect.catsinterop._
+import au.id.tmm.bfect.effects.Die
+import au.id.tmm.bfect.effects.Die.Ops
 import au.id.tmm.bfect.fs2interop.Fs2Compiler
 import au.id.tmm.utilities.hashing.Pairing
+import cats.instances.option._
 import cats.instances.string.catsKernelStdOrderForString
-import com.github.tototoshi.csv.TSVFormat
-import org.apache.poi.ss.usermodel.{Row => ExcelRow}
+import cats.syntax.traverse._
 
-class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
-  resourceStoreLocation: Path,
-  replaceExisting: Boolean,
-) extends NswLegCoData[F] {
+class NswLegCoDataImpl[F[+_, +_] : Die : Fs2Compiler](streams: NswLegCoStreams[F]) extends NswLegCoData[F] {
 
   private val namePattern = """^([A-Z\-c\s]+)\s([A-Z][a-z].*)$""".r
 
   override def fetchGroupsAndCandidatesFor(election: NswLegCoElection): F[Exception, GroupsAndCandidates] =
     for {
-      url <- election match {
-        case NswLegCoElection(NswElection.`2019`) => Sync.pureCatchException(new URL("https://vtrprodragrsstorage01-secondary.blob.core.windows.net/vtrdata-sg1901/lc/SGE2019%20LC%20Candidates.xlsx?st=2019-03-01T01%3A00%3A00Z&se=2020-03-01T01%3A00%3A00Z&sp=r&sv=2018-03-28&sr=c&sig=KPBiRIYtRCT3aWxdLhdcPWb3qbC3wHubyftHBwIjg2Q%3D"))
-        case _ => Sync.leftPure(new Exception(s"Unsupported election $election"))
-      }
-
-      localPath <- OpeningInputStreams.downloadToDirectory(url, resourceStoreLocation, replaceExisting)
-
-      groupRows = ReadingInputStreams.streamExcel(OpeningInputStreams.openFile(localPath), sheetIndex = 1)
+      groupRows <- BMonad.pure(streams.groupRows(election))
 
       groups   <- groupRows
         .drop(1)
@@ -50,7 +38,7 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
 
       groupLookupByCode = groups.groupBy(_.code).mapValues(_.head)
 
-      candidateRows = ReadingInputStreams.streamExcel(OpeningInputStreams.openFile(localPath), sheetIndex = 0)
+      candidateRows = streams.candidateRows(election)
 
       candidates   <- candidateRows
         .drop(1)
@@ -60,34 +48,34 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
 
     } yield GroupsAndCandidates(groups.toSet, candidates.toSet)
 
-  private def parseGroupRowFromSpreadsheetRow(election: NswLegCoElection, row: ExcelRow): F[Exception, BallotGroup] =
+  private def parseGroupRowFromSpreadsheetRow(election: NswLegCoElection, row: Vector[SpreadsheetCell]): F[Exception, BallotGroup] =
     for {
-      rawCode  <- Sync.pureCatchException(row.getCell(1).getStringCellValue)
-      rawParty <- Sync.pureCatchException(Option(row.getCell(2)).map(_.getStringCellValue))
+      rawCode  <- row.lift(1).traverse(takeStringFrom).absolveOption(new Exception("Missing group code"))
+      rawParty <- row.lift(2).traverse(takeStringFrom)
       code <- parseGroupCode(rawCode)
 
       party = rawParty.map(_.trim).filter(_.nonEmpty).map(Party.apply)
 
       group <- code match {
-        case stv.Ungrouped.code => Sync.pure(Ungrouped(election)): F[Exception, BallotGroup]
-        case groupCode => Sync.fromEither(Group(election, groupCode, party)): F[Exception, BallotGroup]
+        case stv.Ungrouped.code => BMonad.pure(Ungrouped(election)): F[Exception, BallotGroup]
+        case groupCode => BMonad.fromEither(Group(election, groupCode, party)): F[Exception, BallotGroup]
       }
     } yield group
 
   private def parseCandidateRowFromSpreadsheet(
     election: NswLegCoElection,
     groupLookupByCode: Map[BallotGroupCode, Group],
-    row: ExcelRow,
+    row: Vector[SpreadsheetCell],
   ): F[Exception, Candidate] =
     for {
-      rawBallotPos <- Sync.pureCatchException(row.getCell(0).getNumericCellValue.toInt)
-      rawGroupCode <- Sync.pureCatchException(row.getCell(2).getStringCellValue)
-      rawName      <- Sync.pureCatchException(row.getCell(3).getStringCellValue)
+      rawBallotPos <- row.lift(0).traverse(takeIntFrom).absolveOption(new Exception("Missing ballot position"))
+      rawGroupCode <- row.lift(2).traverse(takeStringFrom).absolveOption(new Exception("Missing group code"))
+      rawName      <- row.lift(3).traverse(takeStringFrom).absolveOption(new Exception("Missing name"))
 
       groupCode    <- parseGroupCode(rawGroupCode)
       group        <- (groupCode match {
-        case stv.Ungrouped.code => Sync.pure(Ungrouped(election))
-        case groupCode          => Sync.fromOption(groupLookupByCode.get(groupCode), new Exception(s"Group code $groupCode did not appear in groups section of spreadsheet"))
+        case stv.Ungrouped.code => BMonad.pure(Ungrouped(election))
+        case groupCode          => BMonad.fromOption(groupLookupByCode.get(groupCode), new Exception(s"Group code $groupCode did not appear in groups section of spreadsheet"))
       }): F[Exception, BallotGroup]
 
       candidatePos  = CandidatePosition(group, rawBallotPos - 1)
@@ -106,7 +94,19 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
       ))
     } yield Candidate(election, CandidateDetails(election, name, party, id), candidatePos)
 
-  private def parseGroupCode(rawCode: String): F[Exception, BallotGroupCode] = Sync.fromEither(BallotGroupCode(rawCode))
+  private def takeStringFrom(spreadsheetCell: SpreadsheetCell): F[Exception, String] =
+    spreadsheetCell match {
+      case SpreadsheetCell.WithString(string) => BMonad.pure(string)
+      case cell                               => BMonad.leftPure(new Exception(s"Cannot extract string from $cell"))
+    }
+
+  private def takeIntFrom(spreadsheetCell: SpreadsheetCell): F[Exception, Int] =
+    spreadsheetCell match {
+      case SpreadsheetCell.WithDouble(double) => BMonad.pureCatchException(double.toInt)
+      case cell                               => BMonad.leftPure(new Exception(s"Cannot extract int from $cell"))
+    }
+
+  private def parseGroupCode(rawCode: String): F[Exception, BallotGroupCode] = BMonad.fromEither(BallotGroupCode(rawCode))
     .leftMap { case BallotGroupCode.InvalidCode(badCode) => new Exception(s"Invalid ballot code $badCode") }
 
   override def fetchPreferencesFor(
@@ -114,30 +114,13 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
     groupsAndCandidates: GroupsAndCandidates,
   ): F[Exception, fs2.Stream[F[Throwable, +?], Ballot]] =
     for {
-      urlAndZipName <- election match {
-        case NswLegCoElection(NswElection.`2019`) =>
-          for {
-            url <- Sync.fromEither("https://vtrprodragrsstorage01-secondary.blob.core.windows.net/vtrdata-sg1901/lc/SGE2019%20LC%20Pref%20Data%20Statewide.zip?st=2019-03-01T01%3A00%3A00Z&se=2020-03-01T01%3A00%3A00Z&sp=r&sv=2018-03-28&sr=c&sig=KPBiRIYtRCT3aWxdLhdcPWb3qbC3wHubyftHBwIjg2Q%3D".parseUrl): F[Exception, URL]
-            zipEntryName = "SGE2019 LC Pref Data_NA_State.txt"
-          } yield (url, zipEntryName)
-
-        case _ => Sync.leftPure(new RuntimeException(s"Cannot download resource for $election"))
-      }
-
-      url = urlAndZipName._1
-      zipEntryName = urlAndZipName._2
-
-      localPath <- OpeningInputStreams.downloadToDirectory(url, resourceStoreLocation, replaceExisting)
-
-      lines <- ReadingInputStreams.streamLines(OpeningInputStreams.openZipEntry(localPath, zipEntryName))
-
-      csvRows = ReadingInputStreams.streamCsv(lines, new TSVFormat {})
+      csvRows <- BMonad.pure(streams.preferenceRows(election))
 
       ballots = csvRows
         .zipWithIndex
         .drop(1)
         .evalMap { case (row, index) =>
-          Sync.pureCatchException {
+          BMonad.pureCatchException {
             PreferencesRow(
               row(0).toInt,
               row(1),
@@ -159,19 +142,19 @@ class NswLegCoDataImpl[F[+_, +_] : Sync : Bracket : Fs2Compiler](
           val rowsForBallot = chunk.toVector
           val headRow = rowsForBallot.head
 
-            Ballot(
-              election,
-              BallotJurisdiction(
-                nsw.District(
-                  election.stateElection,
-                  headRow.districtName,
-                ),
-                vcp = ???,
+          Ballot(
+            election,
+            BallotJurisdiction(
+              nsw.District(
+                election.stateElection,
+                headRow.districtName,
               ),
-              BallotId(headRow.sequenceNumber),
-              groupPreferences = ???,
-              candidatePreferences = ???,
-            )
+              vcp = ???,
+            ),
+            BallotId(headRow.sequenceNumber),
+            groupPreferences = ???,
+            candidatePreferences = ???,
+          )
         }
 
     } yield ballots

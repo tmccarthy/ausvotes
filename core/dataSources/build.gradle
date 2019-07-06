@@ -27,6 +27,8 @@ dependencies {
     compile 'org.apache.poi:poi:4.1.0'
     compile 'org.apache.poi:poi-ooxml:4.1.0'
 
+    compile "org.typelevel:mouse${s}:0.22"
+
     compile "org.scalaz:scalaz-zio-interop-cats${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
