@@ -14,14 +14,6 @@ object BasicTestData {
 
   type BasicTestIO[+E, +A] = BState[BasicTestData, E, A]
 
-  implicit class Ops[+E, +A](basicTestIO: BasicTestIO[E, A]) {
-    def runUnsafe: A = basicTestIO.run(BasicTestData())._2 match {
-      case Right(value) => value
-      case Left(e: Throwable) => throw e
-      case Left(e) => throw new RuntimeException(e.toString)
-    }
-  }
-
   trait TestIOInstance[D]
     extends BState.TimerInstance[D]
       with TimerTestData.TestIOInstance[D]

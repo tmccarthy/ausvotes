@@ -9,6 +9,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
+import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.utilities.geo.australia.State
 
 final class BallotFactsTestUtils private (val state: State,
@@ -21,7 +22,7 @@ final class BallotFactsTestUtils private (val state: State,
 
   val senateElection: SenateElection = SenateElection.`2016`
   val election: SenateElectionForState = senateElection.electionForState(state).get
-  val countData: SenateCountData = MockFetchFederalElectionData.senateCountDataFor(election, groupsAndCandidates).runUnsafe
+  val countData: SenateCountData = MockFetchFederalElectionData.senateCountDataFor(election, groupsAndCandidates).runUnsafe(BasicTestData())
   val howToVoteCards: Set[SenateHtv] = HowToVoteCardGeneration.from(SenateElection.`2016`, groupsAndCandidates.groups)
 
   val normaliser: BallotNormaliser[SenateElectionForState] = BallotNormaliser(CountRules.normalisationRulesFor(election.election), election, groupsAndCandidates.candidates)

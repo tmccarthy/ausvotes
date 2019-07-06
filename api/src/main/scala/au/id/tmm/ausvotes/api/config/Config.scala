@@ -3,7 +3,8 @@ package au.id.tmm.ausvotes.api.config
 import au.id.tmm.ausvotes.api.errors.ConfigException
 import au.id.tmm.ausvotes.shared.aws.data.{LambdaFunctionName, S3BucketName}
 import au.id.tmm.bfect.BME
-import au.id.tmm.bfect.BME.{AbsolveOps, Ops}
+import au.id.tmm.bfect.BME.Ops
+import au.id.tmm.bfect.BMonad.AbsolveOps
 import au.id.tmm.bfect.effects.extra.EnvVars
 
 final case class Config(
