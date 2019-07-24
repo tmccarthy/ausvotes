@@ -5,7 +5,7 @@ import java.time.Month._
 
 import au.id.tmm.ausvotes.model.Codecs
 import au.id.tmm.ausvotes.model.Codecs.Codec
-import au.id.tmm.utilities.datetime.LocalDateOrdering
+import au.id.tmm.intime._
 
 sealed trait FederalElection {
   val date: LocalDate
@@ -29,7 +29,7 @@ object FederalElection {
     case _ => None
   }
 
-  implicit val ordering: Ordering[FederalElection] = Ordering.by[FederalElection, LocalDate](_.date)(LocalDateOrdering)
+  implicit val ordering: Ordering[FederalElection] = Ordering.by[FederalElection, LocalDate](_.date)
 
   case object `2016` extends FederalElection {
     override val date: LocalDate = LocalDate.of(2016, JULY, 2)

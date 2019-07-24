@@ -4,4 +4,5 @@ dependencies {
     compile "au.id.tmm:countstv${s}:0.1.13"
 
     compile "io.circe:circe-core${s}:$circeVersion"
+    compile "au.id.tmm.intime:intime-core${s}:$intimeVersion"
 }

@@ -5,7 +5,7 @@ import java.time.LocalDate
 import au.id.tmm.ausvotes.model.Codecs._
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType
-import au.id.tmm.utilities.datetime.LocalDateOrdering
+import au.id.tmm.intime._
 import au.id.tmm.utilities.geo.australia.State
 
 sealed trait SenateElection {
@@ -47,7 +47,7 @@ object SenateElection {
     decode = s => from(Id(s)),
   )
 
-  implicit val ordering: Ordering[SenateElection] = Ordering.by[SenateElection, LocalDate](_.date)(LocalDateOrdering)
+  implicit val ordering: Ordering[SenateElection] = Ordering.by[SenateElection, LocalDate](_.date)
 
   case object `2016` extends SenateElection {
     override val federalElection: FederalElection = FederalElection.`2016`

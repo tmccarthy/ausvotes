@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 import au.id.tmm.ausvotes.model.Codecs
 import au.id.tmm.ausvotes.model.Codecs.Codec
-import au.id.tmm.utilities.datetime.LocalDateOrdering
+import au.id.tmm.intime._
 
 sealed abstract class NswElection(val date: LocalDate, val nswAecId: NswElection.Id) {
   def name: String = s"${date.getYear} election"
@@ -31,5 +31,5 @@ object NswElection {
   implicit val codec: Codec[NswElection] = Codecs.partialLiftedCodec[NswElection, Id](_.nswAecId, from)
 
   implicit val ordering: Ordering[NswElection] =
-    Ordering.by[NswElection, LocalDate](_.date)(LocalDateOrdering)
+    Ordering.by[NswElection, LocalDate](_.date)
 }
