@@ -2,7 +2,6 @@ package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType.{FullSenate, HalfSenate}
-import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausgeo.State
 import au.id.tmm.ausgeo.Codecs._
 import au.id.tmm.ausgeo.State.{StateProper, Territory}
@@ -42,7 +41,7 @@ object SenateElectionForState {
 
   implicit val ordering: Ordering[SenateElectionForState] =
     Ordering.by[SenateElectionForState, (SenateElection, State)](e => (e.election, e.state))(
-      ord = Ordering.Tuple2(SenateElection.ordering.reverse, StateInstances.orderStatesByPopulation.reverse)
+      ord = Ordering.Tuple2(SenateElection.ordering.reverse, State.orderBySize.reverse)
     )
 
 }

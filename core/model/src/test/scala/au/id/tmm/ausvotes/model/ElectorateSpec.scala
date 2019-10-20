@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.model
 
 import au.id.tmm.ausvotes.model.federal.FederalElection
-import au.id.tmm.ausvotes.model.instances.StateInstances.codec
+import au.id.tmm.ausgeo.Codecs._
 import au.id.tmm.ausgeo.State
 import io.circe.Json
 import io.circe.syntax.EncoderOps

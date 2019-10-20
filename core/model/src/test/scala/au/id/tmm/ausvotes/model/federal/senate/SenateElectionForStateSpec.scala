@@ -14,7 +14,7 @@ class SenateElectionForStateSpec extends FlatSpec {
   }
 
   it can "be encoded to json" in {
-    val electionForState = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get
+    val electionForState = SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.VIC)
 
     val json = Json.obj(
       "election" -> (SenateElection.`2016`: SenateElection).asJson,
@@ -25,7 +25,7 @@ class SenateElectionForStateSpec extends FlatSpec {
   }
 
   it can "be decoded from json" in {
-    val electionForState = SenateElectionForState(SenateElection.`2016`, State.VIC).right.get
+    val electionForState = SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.VIC)
 
     val json = Json.obj(
       "election" -> (SenateElection.`2016`: SenateElection).asJson,
@@ -46,18 +46,18 @@ class SenateElectionForStateSpec extends FlatSpec {
 
   it can "be ordered" in {
     val list = List(
-      SenateElectionForState(SenateElection.`2014 WA`, State.WA),
-      SenateElectionForState(SenateElection.`2016`, State.NSW),
-      SenateElectionForState(SenateElection.`2016`, State.NT),
-      SenateElectionForState(SenateElection.`2013`, State.VIC),
-    ).map(_.right.get)
+      SenateElectionForState.makeUnsafe(SenateElection.`2014 WA`, State.WA),
+      SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.NSW),
+      SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.NT),
+      SenateElectionForState.makeUnsafe(SenateElection.`2013`, State.VIC),
+    )
 
     val expectedOrdered = List(
-      SenateElectionForState(SenateElection.`2016`, State.NSW),
-      SenateElectionForState(SenateElection.`2016`, State.NT),
-      SenateElectionForState(SenateElection.`2014 WA`, State.WA),
-      SenateElectionForState(SenateElection.`2013`, State.VIC),
-    ).map(_.right.get)
+      SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.NSW),
+      SenateElectionForState.makeUnsafe(SenateElection.`2016`, State.NT),
+      SenateElectionForState.makeUnsafe(SenateElection.`2014 WA`, State.WA),
+      SenateElectionForState.makeUnsafe(SenateElection.`2013`, State.VIC),
+    )
 
     assert(list.sorted === expectedOrdered)
   }
