@@ -19,8 +19,6 @@ dependencies {
     compile project(':core:model')
     compile project(':shared:io')
 
-    def countStvVersion = '0.2.1'
-
     compile "au.id.tmm.countstv:countstv-core${s}:$countStvVersion"
     compile "au.id.tmm.countstv:countstv-circe${s}:$countStvVersion"
 
@@ -31,8 +29,6 @@ dependencies {
     compile 'org.apache.poi:poi-ooxml:4.1.0'
 
     compile "org.typelevel:mouse${s}:0.22"
-
-    compile "org.scalaz:scalaz-zio-interop-cats${s}:$scalazZioVersion"
 
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')

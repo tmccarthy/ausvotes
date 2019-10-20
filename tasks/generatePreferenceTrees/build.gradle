@@ -18,8 +18,6 @@ dependencies {
     compile project(':shared:io')
     compile project(':shared:recountResources')
 
-    compile "org.scalaz:scalaz-zio${s}:$scalazZioVersion"
-
     compile 'com.amazonaws:aws-java-sdk-s3'
 
     testCompile project(':core:fixtures')

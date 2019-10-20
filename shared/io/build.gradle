@@ -8,5 +8,8 @@ dependencies {
     compile "au.id.tmm.bfect:bfect-interop-fs2${s}:$bfectVersion"
     compile "au.id.tmm.bfect:bfect-interop-zio${s}:$bfectVersion"
 
+    compile 'org.apache.commons:commons-lang3:3.9'
+    compile 'org.slf4j:slf4j-api:1.7.28'
+
     testCompile project(':shared:testIo')
 }
