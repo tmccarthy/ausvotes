@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.shared.recountresources.recount
 
 import au.id.tmm.ausvotes.core.fixtures.CandidateFixture
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class CandidateActualisationSpec extends ImprovedFlatSpec {
+class CandidateActualisationSpec extends FlatSpec {
 
   private val candidateFixture = CandidateFixture.NT
 

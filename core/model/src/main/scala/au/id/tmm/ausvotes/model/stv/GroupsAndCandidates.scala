@@ -8,11 +8,11 @@ final case class GroupsAndCandidates[E](groups: Set[Group[E]], candidates: Set[S
   def contains(candidate: StvCandidate[E]): Boolean = candidates.contains(candidate)
 
   def findFor(election: E): GroupsAndCandidates[E] = GroupsAndCandidates(
-    groups = groups.toStream
+    groups = groups.to(LazyList)
       .filter(_.election == election)
       .toSet,
 
-    candidates = candidates.toStream
+    candidates = candidates.to(LazyList)
       .filter(_.election == election)
       .toSet
   )

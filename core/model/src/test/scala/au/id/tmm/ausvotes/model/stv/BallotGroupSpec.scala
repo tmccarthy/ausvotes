@@ -2,11 +2,11 @@ package au.id.tmm.ausvotes.model.stv
 
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class BallotGroupSpec extends ImprovedFlatSpec {
+class BallotGroupSpec extends FlatSpec {
 
   "a grouped ballot group" can "not have a code of UG" in {
     assert(Group(SenateElection.`2016`, Ungrouped.code, party = None) === Left(Group.InvalidGroupCode))

@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.shared.recountresources
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class EntityLocationsSpec extends ImprovedFlatSpec {
+class EntityLocationsSpec extends FlatSpec {
 
   "the groups object" should "have a location" in {
     assert(

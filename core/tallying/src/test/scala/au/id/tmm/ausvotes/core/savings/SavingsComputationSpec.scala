@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.core.savings
 import au.id.tmm.ausvotes.core.computations.savings.SavingsComputation
 import au.id.tmm.ausvotes.core.fixtures.BallotFixture
 import au.id.tmm.ausvotes.core.model.computation.SavingsProvision._
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class SavingsComputationSpec extends ImprovedFlatSpec {
+class SavingsComputationSpec extends FlatSpec {
 
   import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils.ACT._
 

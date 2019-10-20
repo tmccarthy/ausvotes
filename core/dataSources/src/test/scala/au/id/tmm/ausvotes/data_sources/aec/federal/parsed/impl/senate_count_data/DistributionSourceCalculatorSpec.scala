@@ -4,9 +4,9 @@ import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture}
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.countstv.model.values.Count
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class DistributionSourceCalculatorSpec extends ImprovedFlatSpec {
+class DistributionSourceCalculatorSpec extends FlatSpec {
 
   import BallotFixture.ACT.ballotMaker.candidatePosition
   import CountDataTestUtils.ACT._

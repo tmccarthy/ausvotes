@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausvotes.model.ExceptionCaseClass
-import au.id.tmm.ausvotes.model.StateCodec.codec
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType.{FullSenate, HalfSenate}
 import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausgeo.State
+import au.id.tmm.ausgeo.Codecs._
 import au.id.tmm.ausgeo.State.{StateProper, Territory}
 import io.circe.{Decoder, DecodingFailure, Encoder}
 

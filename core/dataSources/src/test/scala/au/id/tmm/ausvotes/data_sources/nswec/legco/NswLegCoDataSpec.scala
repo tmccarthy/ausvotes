@@ -8,9 +8,9 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.ausvotes.model.{Name, Party}
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.testing.BState
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class NswLegCoDataSpec extends ImprovedFlatSpec {
+class NswLegCoDataSpec extends FlatSpec {
 
   private type TestIO[+E, +A] = BState.Stateless[E, A]
 

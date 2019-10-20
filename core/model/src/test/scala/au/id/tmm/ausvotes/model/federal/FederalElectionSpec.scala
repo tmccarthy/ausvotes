@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.model.federal
 
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class FederalElectionSpec extends ImprovedFlatSpec {
+class FederalElectionSpec extends FlatSpec {
 
   "a federal election" should "have a name" in {
     assert(FederalElection.`2016`.name === "2016 election")

@@ -14,10 +14,10 @@ import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.syntax.EncoderOps
 
-class DataBundleWritingSpec extends ImprovedFlatSpec {
+class DataBundleWritingSpec extends FlatSpec {
 
   "the writing of a data bundle" should "write the canonical recount file" in {
     import CandidateFixture.ACT._

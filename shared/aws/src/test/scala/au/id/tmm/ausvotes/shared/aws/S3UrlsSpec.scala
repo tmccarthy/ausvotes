@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.shared.aws
 import java.net.URL
 
 import au.id.tmm.ausvotes.shared.aws.data.{S3BucketName, S3ObjectKey}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class S3UrlsSpec extends ImprovedFlatSpec {
+class S3UrlsSpec extends FlatSpec {
   "an s3 object's URL" can "be built" in {
     val url = S3Urls.objectUrl(
       region = "ap-southeast-2",

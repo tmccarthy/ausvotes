@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.shared.recountresources
 
 import au.id.tmm.ausvotes.model.CandidateDetails
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class RecountResponseSpec extends ImprovedFlatSpec {
+class RecountResponseSpec extends FlatSpec {
 
   "the recount response encoder" can "encode a failure due to a bad request" in {
     val failure: RecountResponse = RecountResponse.Failure.RequestDecodeError("Invalid json", "{")

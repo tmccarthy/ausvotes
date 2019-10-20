@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class SenateElectionSpec extends ImprovedFlatSpec {
+class SenateElectionSpec extends FlatSpec {
 
   "a senate election" should "have a name" in {
     assert(SenateElection.`2016`.name === "2016 election")

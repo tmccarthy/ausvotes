@@ -6,9 +6,9 @@ import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.Special.Speci
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{FederalBallotJurisdiction, FederalElection, FederalVoteCollectionPoint}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class BallotGenerationSpec extends ImprovedFlatSpec {
+class BallotGenerationSpec extends FlatSpec {
 
   private def pollingPlaceLookup = PollingPlaceFixture.ACT.pollingPlaceLookup
   private def divisionLookup = DivisionFixture.ACT.divisionLookup

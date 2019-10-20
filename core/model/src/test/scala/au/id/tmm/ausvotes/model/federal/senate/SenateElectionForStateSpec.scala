@@ -1,12 +1,12 @@
 package au.id.tmm.ausvotes.model.federal.senate
 
-import au.id.tmm.ausvotes.model.StateCodec.codec
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import au.id.tmm.ausgeo.Codecs._
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class SenateElectionForStateSpec extends ImprovedFlatSpec {
+class SenateElectionForStateSpec extends FlatSpec {
 
   "a Senate election for a state" can "not be created invalidly" in {
     assert(SenateElectionForState(SenateElection.`2014 WA`, State.VIC) ===

@@ -1,11 +1,11 @@
 package au.id.tmm.ausvotes.model.instances
 
 import au.id.tmm.utilities.collection.DupelessSeq
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class DupelessSeqCodecSpec extends ImprovedFlatSpec {
+class DupelessSeqCodecSpec extends FlatSpec {
 
   "the dupeless seq encoder" should "encode a dupeless seq" in {
     assert(

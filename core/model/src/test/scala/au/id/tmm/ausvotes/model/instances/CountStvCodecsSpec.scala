@@ -4,11 +4,11 @@ import au.id.tmm.ausvotes.model.instances.CountStvCodecs._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.countstv.normalisation.Preference
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class CountStvCodecsSpec extends ImprovedFlatSpec {
+class CountStvCodecsSpec extends FlatSpec {
 
   "the count codec" should "encode a count" in {
     assert(Count(1).asJson === Json.fromInt(1))

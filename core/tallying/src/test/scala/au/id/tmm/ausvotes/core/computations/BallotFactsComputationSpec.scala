@@ -6,9 +6,9 @@ import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.NormalisedSenateBallot
 import au.id.tmm.ausvotes.model.stv.FirstPreference
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, BallotNormalisationRule}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class BallotFactsComputationSpec extends ImprovedFlatSpec {
+class BallotFactsComputationSpec extends FlatSpec {
   import BallotFactsTestUtils.ACT._
 
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)

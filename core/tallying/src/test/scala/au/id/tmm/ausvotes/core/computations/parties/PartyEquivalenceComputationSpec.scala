@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.core.computations.parties
 
 import au.id.tmm.ausvotes.model.Party
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class PartyEquivalenceComputationSpec extends ImprovedFlatSpec {
+class PartyEquivalenceComputationSpec extends FlatSpec {
 
   "a party" can "be transformed into its national equivalent" in {
     assert(PartyEquivalenceComputation.nationalEquivalentOf(Party("Australian Labor Party (Northern Territory) Branch")) ===

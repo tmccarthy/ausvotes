@@ -1,12 +1,12 @@
 package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.tallies.Tally.Ops._
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import cats.instances.int.catsKernelStdGroupForInt
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class TallySpec extends ImprovedFlatSpec {
+class TallySpec extends FlatSpec {
 
   "a 1 teir tally" can "be added" in {
     val left = Tally("A" -> 1, "B" -> 2)

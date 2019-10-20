@@ -9,9 +9,9 @@ import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class RunRecountSpec extends ImprovedFlatSpec {
+class RunRecountSpec extends FlatSpec {
 
   private val candidateFixture = CandidateFixture.ACT
 

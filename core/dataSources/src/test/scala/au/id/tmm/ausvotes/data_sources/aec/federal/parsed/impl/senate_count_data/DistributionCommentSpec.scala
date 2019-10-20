@@ -1,8 +1,8 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data
 
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class DistributionCommentSpec extends ImprovedFlatSpec {
+class DistributionCommentSpec extends FlatSpec {
 
   "a distribution comment" can "indicate a transfer from an excluded candidate" in {
     val rawComment = "Preferences with a transfer value of 1 will be distributed in count # 17 after the exclusion " +

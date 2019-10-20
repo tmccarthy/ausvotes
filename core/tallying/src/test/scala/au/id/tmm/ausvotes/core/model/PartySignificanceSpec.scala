@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.core.model
 import au.id.tmm.ausvotes.core.computations.parties.PartySignificanceComputation
 import au.id.tmm.ausvotes.model.PartySignificance._
 import au.id.tmm.ausvotes.model.{Party, PartySignificance}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class PartySignificanceSpec extends ImprovedFlatSpec {
+class PartySignificanceSpec extends FlatSpec {
 
   "party significance" should "be 'major' for the ALP" in {
     assert(PartySignificanceComputation.of(Some(Party("Australian Labor Party"))) === Major)

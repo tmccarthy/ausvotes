@@ -3,11 +3,11 @@ package au.id.tmm.ausvotes.model.stv
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
 
-class StvCandidateSpec extends ImprovedFlatSpec {
+class StvCandidateSpec extends FlatSpec {
 
   private val election = SenateElection.`2016`.electionForState(State.VIC).get
   private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).right.get

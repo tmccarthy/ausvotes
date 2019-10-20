@@ -71,12 +71,12 @@ object S3TestData {
 
         val newTestData = setS3TestData(oldTestData, newS3TestData)
 
-        (newTestData, Right(Unit))
+        (newTestData, Right(()))
       }
 
     // TODO implement this
     override def putFromOutputStream(bucketName: S3BucketName, objectKey: S3ObjectKey)(writeToOutputStream: OutputStream => BState[D, Exception, Unit]): BState[D, Exception, Unit] =
-      BState { oldTestData => (oldTestData, Right(Unit)) }
+      BState { oldTestData => (oldTestData, Right(())) }
   }
 
   final case class InMemoryS3(buckets: Set[InMemoryS3.Bucket]) {

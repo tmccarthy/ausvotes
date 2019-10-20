@@ -4,9 +4,9 @@ import au.id.tmm.ausvotes.core.fixtures
 import au.id.tmm.ausvotes.core.fixtures.{DivisionFixture, PollingPlaceFixture}
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalElection}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class DivisionsAndPollingPlacesSpec extends ImprovedFlatSpec {
+class DivisionsAndPollingPlacesSpec extends FlatSpec {
 
   private val sut = fixtures.DivisionAndPollingPlaceFixture.ACT.divisionsAndPollingPlaces
 

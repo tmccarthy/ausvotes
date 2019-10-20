@@ -61,7 +61,8 @@ object BallotGroup {
       case invalidCode => Left(InvalidCode(invalidCode))
     }
 
-    private[model] def unsafeMake(asString: String): Code = Code(asString).right.get
+    private[model] def unsafeMake(asString: String): Code = Code(asString)
+      .getOrElse(throw new AssertionError)
 
     final case class InvalidCode(invalidCode: String) extends ExceptionCaseClass
 

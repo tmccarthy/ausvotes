@@ -5,10 +5,10 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
 // Section references in this spec refer to the Commonwealth Electoral Act 1918
-class BallotNormaliserSpec extends ImprovedFlatSpec {
+class BallotNormaliserSpec extends FlatSpec {
 
   private val ballots = BallotFixture.ACT
 

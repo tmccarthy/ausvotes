@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.analysis
 
 import au.id.tmm.ausvotes.analysis.utilities.data_processing.Joins
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class JoinsSpec extends ImprovedFlatSpec {
+class JoinsSpec extends FlatSpec {
 
   "an inner join" should "return no elements when there are no matches" in {
     val lefts = List(

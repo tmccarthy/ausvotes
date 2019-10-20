@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.model.stv
 
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
 
-class CandidatePositionSpec extends ImprovedFlatSpec {
+class CandidatePositionSpec extends FlatSpec {
 
   private val testGroup = Group("election", BallotGroup.Code.unsafeMake("AA"), party = None).right.get
   private val testUngrouped = Ungrouped("election")

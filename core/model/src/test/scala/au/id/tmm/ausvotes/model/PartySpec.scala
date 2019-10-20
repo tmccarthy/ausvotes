@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.model
 
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class PartySpec extends ImprovedFlatSpec {
+class PartySpec extends FlatSpec {
 
   "a party" can "be encoded to json" in {
     assert(Party("Australian Labor Party").asJson === Json.fromString("Australian Labor Party"))

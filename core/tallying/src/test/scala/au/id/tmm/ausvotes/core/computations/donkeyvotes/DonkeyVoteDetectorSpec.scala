@@ -1,9 +1,9 @@
 package au.id.tmm.ausvotes.core.computations.donkeyvotes
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, BallotMaker, CandidateFixture}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class DonkeyVoteDetectorSpec extends ImprovedFlatSpec {
+class DonkeyVoteDetectorSpec extends FlatSpec {
 
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 

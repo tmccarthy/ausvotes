@@ -3,11 +3,11 @@ package au.id.tmm.ausvotes.model
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.instances.StateInstances.codec
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.scalatest.FlatSpec
 
-class ElectorateSpec extends ImprovedFlatSpec {
+class ElectorateSpec extends FlatSpec {
 
   private val boothby = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby")
   private val mayo = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Mayo")

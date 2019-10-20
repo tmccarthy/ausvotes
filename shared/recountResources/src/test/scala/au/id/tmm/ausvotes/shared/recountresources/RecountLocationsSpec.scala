@@ -4,9 +4,9 @@ import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class RecountLocationsSpec extends ImprovedFlatSpec {
+class RecountLocationsSpec extends FlatSpec {
 
   "The recount location" can "be computed when there are no ineligible candidates" in {
     val recountLocation = RecountLocations.locationOfRecountFor(RecountRequest(

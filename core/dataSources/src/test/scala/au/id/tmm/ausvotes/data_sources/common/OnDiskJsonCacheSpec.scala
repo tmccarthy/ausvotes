@@ -9,7 +9,7 @@ import zio.{DefaultRuntime, IO}
 
 import scala.collection.JavaConverters._
 
-class OnDiskJsonCacheSpec extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
+class OnDiskJsonCacheSpec extends FlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
   private val cacheUnderTest = JsonCache.OnDisk[IO](cleanDirectory)
 

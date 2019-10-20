@@ -7,9 +7,9 @@ import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.model.stv.{FirstPreference, Ungrouped}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {
+class FirstPreferenceCalculatorSpec extends FlatSpec {
 
   private val election = SenateElection.`2016`.electionForState(State.ACT).get
   private val candidates = CandidateFixture.ACT.candidates

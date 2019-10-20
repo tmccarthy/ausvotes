@@ -9,11 +9,11 @@ import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class CountSummarySpec extends ImprovedFlatSpec {
+class CountSummarySpec extends FlatSpec {
 
   import CountSummarySpec.candidateFixture._
 

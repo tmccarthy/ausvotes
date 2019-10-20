@@ -14,7 +14,7 @@ object SnsOps {
     for {
       client <- snsClient
       _ <- Sync[IO].syncException(client.publish(topicArn, messageBody))
-    } yield Unit
+    } yield ()
   }
 
 }

@@ -9,7 +9,7 @@ import au.id.tmm.countstv.model.values._
 import au.id.tmm.countstv.model.{CandidateStatuses, CandidateVoteCounts, VoteCount}
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 
-class FetchSenateCountDataFromRawSpec extends ImprovedFlatSpec with NeedsCleanDirectory {
+class FetchSenateCountDataFromRawSpec extends FlatSpec with NeedsCleanDirectory {
 
   private val ballotMaker = BallotFixture.ACT.ballotMaker
   import ballotMaker.candidateWithPosition

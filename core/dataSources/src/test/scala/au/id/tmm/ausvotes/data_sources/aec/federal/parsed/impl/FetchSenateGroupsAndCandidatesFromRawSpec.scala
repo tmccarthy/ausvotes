@@ -11,10 +11,10 @@ import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import fs2.Stream
 
-class FetchSenateGroupsAndCandidatesFromRawSpec extends ImprovedFlatSpec {
+class FetchSenateGroupsAndCandidatesFromRawSpec extends FlatSpec {
 
   private lazy val rawGroupRow = FetchRawSenateFirstPreferences.Row("ACT", " C", "29663", 0, "C Ticket Votes", "Australian Labor Party",
     73455,1120,527,3509,3640,82251)

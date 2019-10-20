@@ -5,9 +5,9 @@ import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.core.model.computation.BallotExhaustion
 import au.id.tmm.ausvotes.model.federal.senate.SenateBallot
 import au.id.tmm.countstv.model.values.{Count, TransferValue}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class ExhaustionCalculatorSpec extends ImprovedFlatSpec {
+class ExhaustionCalculatorSpec extends FlatSpec {
 
   private def exhaustionOfBallot(ballotFactsTestUtils: BallotFactsTestUtils)(ballot: SenateBallot): BallotExhaustion = {
     val normalisedBallot = ballotFactsTestUtils.normaliser.normalise(ballot)

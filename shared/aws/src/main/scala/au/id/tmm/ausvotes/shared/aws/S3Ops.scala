@@ -76,7 +76,7 @@ object S3Ops {
       }
     }
 
-    readFromSink.zipPar(writeToSource).map(_ => Unit)
+    readFromSink.zipPar(writeToSource).map(_ => ())
   }
 
   def checkObjectExists(bucketName: S3BucketName, objectKey: S3ObjectKey): IO[Exception, Boolean] =

@@ -10,7 +10,7 @@ import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 import fs2.Stream
 import zio.{DefaultRuntime, IO}
 
-class AecDataIntegrationTest extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
+class AecDataIntegrationTest extends FlatSpec with NeedsCleanDirectory with DefaultRuntime {
 
   private val instances = CanonicalFederalAecDataInstances(cleanDirectory, replaceExisting = true)
 

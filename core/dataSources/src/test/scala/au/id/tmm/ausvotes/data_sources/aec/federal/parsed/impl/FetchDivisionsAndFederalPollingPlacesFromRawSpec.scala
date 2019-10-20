@@ -7,10 +7,10 @@ import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.fs2interop._
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import fs2.Stream
 
-class FetchDivisionsAndFederalPollingPlacesFromRawSpec extends ImprovedFlatSpec {
+class FetchDivisionsAndFederalPollingPlacesFromRawSpec extends FlatSpec {
 
   private val pollingPlaceWithLocation = FetchRawFederalPollingPlaces.Row("ACT",101,"Canberra",8829,1,"Barton","Telopea Park School",
     "New South Wales Cres","","","BARTON","ACT","2600",Some(-35.3151),Some(149.135))

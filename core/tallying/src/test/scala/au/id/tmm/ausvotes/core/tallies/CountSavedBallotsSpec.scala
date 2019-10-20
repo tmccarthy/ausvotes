@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.core.tallies
 
 import au.id.tmm.ausvotes.core.fixtures.BallotFixture
 import au.id.tmm.ausvotes.core.tallies.SenateTalliesUtils._
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class CountSavedBallotsSpec extends ImprovedFlatSpec {
+class CountSavedBallotsSpec extends FlatSpec {
 
   import au.id.tmm.ausvotes.core.computations.BallotFactsTestUtils.ACT._
 

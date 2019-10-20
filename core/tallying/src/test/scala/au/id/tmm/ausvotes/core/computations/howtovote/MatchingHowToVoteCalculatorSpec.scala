@@ -3,9 +3,9 @@ package au.id.tmm.ausvotes.core.computations.howtovote
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupFixture}
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv.HowToVoteCardGeneration
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, _}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class MatchingHowToVoteCalculatorSpec extends ImprovedFlatSpec {
+class MatchingHowToVoteCalculatorSpec extends FlatSpec {
 
   private val actHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, GroupFixture.ACT.groups)
   private val sut = MatchingHowToVoteCalculator(actHtvs)

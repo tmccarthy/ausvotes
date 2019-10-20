@@ -2,11 +2,11 @@ package au.id.tmm.ausvotes.model
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
+import org.scalatest.FlatSpec
 
-class CandidateDetailsSpec extends ImprovedFlatSpec {
+class CandidateDetailsSpec extends FlatSpec {
 
   "a candidate" can "be encoded to json" in {
     val candidate = CandidateDetails(

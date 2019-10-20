@@ -2,9 +2,9 @@ package au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.ballots
 
 import au.id.tmm.ausvotes.core.fixtures.{BallotMaker, CandidateFixture, GroupAndCandidateFixture}
 import au.id.tmm.countstv.normalisation.Preference
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class RawPreferenceParserSpec extends ImprovedFlatSpec {
+class RawPreferenceParserSpec extends FlatSpec {
 
   private val sut = RawPreferenceParser(GroupAndCandidateFixture.ACT.election, GroupAndCandidateFixture.ACT.groupsAndCandidates)
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)

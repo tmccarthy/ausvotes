@@ -6,10 +6,10 @@ import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotGroup, SenateElection}
 import au.id.tmm.ausvotes.model.federal.{Division, FederalVcp}
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.syntax.EncoderOps
 
-class SenateElectionTalliersSpec extends ImprovedFlatSpec {
+class SenateElectionTalliersSpec extends FlatSpec {
 
   behaviour of "the ballot counter encoder"
 

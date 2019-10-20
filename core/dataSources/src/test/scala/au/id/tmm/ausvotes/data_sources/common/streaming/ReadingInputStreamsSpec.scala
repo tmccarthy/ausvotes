@@ -4,10 +4,10 @@ import java.io.IOException
 
 import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.bfect.testing.BState
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import com.github.tototoshi.csv
 
-class ReadingInputStreamsSpec extends ImprovedFlatSpec {
+class ReadingInputStreamsSpec extends FlatSpec {
 
   private type TestIO[+E, +A] = BState[Unit, E, A]
   private type TestIOTask[+A] = TestIO[Throwable, A]

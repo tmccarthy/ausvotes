@@ -1,10 +1,10 @@
 package au.id.tmm.ausvotes.model
 
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 
-class NameSpec extends ImprovedFlatSpec {
+class NameSpec extends FlatSpec {
 
   "two names" can "be compared ignoring case" in {
     assert(Name("Jane", "LANE") equalsIgnoreCase Name("JANE", "Lane"))

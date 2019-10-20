@@ -3,23 +3,23 @@ package au.id.tmm.ausvotes.model.federal
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
 import au.id.tmm.ausgeo.State
 
-import scala.collection.mutable
+import scala.collection.{MapView, mutable}
 
 final case class DivisionsAndPollingPlaces(divisions: Set[Division],
                                            pollingPlaces: Set[FederalPollingPlace]) {
 
-  lazy val lookupDivisionByName: Map[String, Division] = divisions.groupBy(_.name).mapValues(_.head)
+  lazy val lookupDivisionByName: MapView[String, Division] = divisions.groupBy(_.name).view.mapValues(_.head)
 
-  lazy val lookupPollingPlaceByName: Map[(State, String), FederalPollingPlace] = pollingPlaces
+  lazy val lookupPollingPlaceByName: MapView[(State, String), FederalPollingPlace] = pollingPlaces
     .groupBy(pollingPlace => (pollingPlace.state, pollingPlace.name))
-    .mapValues(_.head)
+    .view.mapValues(_.head)
 
   def findFor(election: FederalElection, state: State): DivisionsAndPollingPlaces = DivisionsAndPollingPlaces(
-    divisions = divisions.toStream
+    divisions = divisions.to(LazyList)
       .filter(_.election == election)
       .filter(_.jurisdiction == state)
       .toSet,
-    pollingPlaces = pollingPlaces.toStream
+    pollingPlaces = pollingPlaces.to(LazyList)
       .filter(_.election == election)
       .filter(_.state == state)
       .toSet
@@ -30,7 +30,7 @@ final case class DivisionsAndPollingPlaces(divisions: Set[Division],
 object DivisionsAndPollingPlaces {
   final case class DivisionAndPollingPlace(division: Division, pollingPlace: FederalPollingPlace)
 
-  def from(divisionsAndPollingPlaces: TraversableOnce[DivisionAndPollingPlace]): DivisionsAndPollingPlaces = {
+  def from(divisionsAndPollingPlaces: Iterable[DivisionAndPollingPlace]): DivisionsAndPollingPlaces = {
     val divisions = mutable.ArrayBuffer[Division]()
     val pollingPlaces = mutable.ArrayBuffer[FederalPollingPlace]()
 
