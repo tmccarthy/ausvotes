@@ -19,7 +19,6 @@ ext.ecrRepoId = 'au.id.tmm.ecr-repository'
 ext.awsAccountId = '327455522484'
 
 EcrConfig.addEcrTasks(project, awsAccountId, awsRegion, [
-    project(':api').getTasksByName('dockerBuild', false).first(),
     project(':blog').getTasksByName('dockerBuild', false).first(),
 ])
 
@@ -32,9 +31,7 @@ cloudFormation {
     templateFile file('src/app-stack.cf.yaml')
     parameters ([
         DeploymentArtefactBucket: deploymentBucket,
-        RecountLambdaCodeKey: project(':lambdas:recount').ext.deploymentBucketKey,
         RecountDataBucketName: recountDataBucketName,
-        AusvotesApiDockerImage: "$tasks.pushApiImageToEcr.imageName:$tasks.pushApiImageToEcr.tag",
         AusvotesBlogDockerImage: "$tasks.pushBlogImageToEcr.imageName:$tasks.pushBlogImageToEcr.tag",
     ])
 }
@@ -50,7 +47,6 @@ task uploadTemplatesToS3(type: UploadFiles) {
 }
 
 [
-    project(':lambdas:recount').tasks.uploadToDeploymentBucket,
     tasks.uploadTemplatesToS3,
     tasks.pushAllImagesToEcr,
 ].each {

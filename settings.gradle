@@ -15,6 +15,5 @@ include 'core:tallying',
         'shared:testIo',
         'shared:testRecountResources',
         'infrastructure',
-        'api',
         'analysis',
         'blog'

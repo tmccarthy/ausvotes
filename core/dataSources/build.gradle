@@ -19,7 +19,10 @@ dependencies {
     compile project(':core:model')
     compile project(':shared:io')
 
-    compile "au.id.tmm:countstv${s}:0.1.13"
+    def countStvVersion = '0.2.1'
+
+    compile "au.id.tmm.countstv:countstv-core${s}:$countStvVersion"
+    compile "au.id.tmm.countstv:countstv-circe${s}:$countStvVersion"
 
     compile "io.circe:circe-core${s}:$circeVersion"
     compile "io.circe:circe-parser${s}:$circeVersion"

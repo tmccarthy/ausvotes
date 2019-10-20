@@ -37,15 +37,13 @@ class MyScalaPlugin implements Plugin<Project> {
         target.dependencies {
             compile "org.scala-lang:scala-library:$scalaVersion"
 
-            compile "au.id.tmm:tmm-utils${s}:$tmmUtilsVersion"
-
             testCompile "org.scalatest:scalatest${s}:$scalaTestVersion"
-            testCompile "au.id.tmm:tmm-test-utils${s}:$tmmTestUtilsVersion"
+            testCompile "au.id.tmm.tmm-utils:tmm-utils-testing${s}:$tmmTestUtilsVersion"
 
             // Needed to produce scalatest report
             testRuntime 'org.pegdown:pegdown:1.4.2'
 
-            scalaCompilerPlugin "org.spire-math:kind-projector${s}:0.9.7"
+            scalaCompilerPlugin "org.typelevel:kind-projector_2.13.1:0.11.0"
         }
 
         target.tasks.withType(ScalaCompile) {
