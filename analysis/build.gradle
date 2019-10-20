@@ -15,7 +15,7 @@ dependencies {
     compile project(':shared:io')
     compile project(':shared:recountResources')
 
-    compile "org.plotly-scala:plotly-render${s}:0.5.4"
+    compile "org.plotly-scala:plotly-render${s}:0.7.1"
 
     testCompile project(':core:fixtures')
     testCompile project(':shared:testIo')

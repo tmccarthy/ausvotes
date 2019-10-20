@@ -9,8 +9,7 @@ dependencies {
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
 
     compile 'org.slf4j:slf4j-simple:1.7.25'
-    compile "com.typesafe.scala-logging:scala-logging${s}:3.7.2"
+    compile "com.typesafe.scala-logging:scala-logging${s}:3.9.2"
 
     testCompile project(':core:fixtures')
-    testCompile "org.scalamock:scalamock-scalatest-support${s}:$scalaMockVersion"
 }

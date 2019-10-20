@@ -9,5 +9,5 @@ dependencies {
 
     def ausgeoVersion = '0.2.4'
     compile "au.id.tmm.ausgeo:ausgeo-core${s}:$ausgeoVersion"
-    compile "au.id.tmm.ausgeo:ausgeo-circe${s}:$ausgeoVersion"
+    compile "au.id.tmm.ausgeo:ausgeo-codecs${s}:$ausgeoVersion"
 }
