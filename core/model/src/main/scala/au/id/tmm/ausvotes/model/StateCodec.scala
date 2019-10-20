@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.model
 
 import au.id.tmm.ausvotes.model.Codecs._
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object StateCodec {
 

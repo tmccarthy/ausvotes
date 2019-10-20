@@ -4,9 +4,9 @@ import java.io.IOException
 
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME._
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
+import org.scalatest.FlatSpec
 
-class TestIOSpec extends ImprovedFlatSpec {
+class TestIOSpec extends FlatSpec {
 
   "catchLeft" can "handle an error" in {
     val beforeCatch: BasicTestIO[Exception, Nothing] = TestIO.leftPure(new IllegalArgumentException)

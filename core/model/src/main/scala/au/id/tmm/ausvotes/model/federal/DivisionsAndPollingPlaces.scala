@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.model.federal
 
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 import scala.collection.mutable
 

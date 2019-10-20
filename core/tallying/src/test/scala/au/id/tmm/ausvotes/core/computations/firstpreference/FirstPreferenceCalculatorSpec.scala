@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.model.stv.{FirstPreference, Ungrouped}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class FirstPreferenceCalculatorSpec extends ImprovedFlatSpec {

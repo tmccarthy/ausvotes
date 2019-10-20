@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
 import au.id.tmm.ausvotes.shared.recountresources.entities.testing.EntitiesTestData
 import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.utilities.collection.DupelessSeq
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 

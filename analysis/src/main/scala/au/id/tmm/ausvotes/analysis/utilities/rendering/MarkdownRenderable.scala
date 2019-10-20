@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.analysis.utilities.rendering
 
 import au.id.tmm.ausvotes.analysis.models.{PartyGroup, ValueTypes}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 trait MarkdownRenderable[-A] {
 

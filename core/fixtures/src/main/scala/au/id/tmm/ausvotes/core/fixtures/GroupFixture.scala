@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.fixtures
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.stv.BallotGroup
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object GroupFixture {
 

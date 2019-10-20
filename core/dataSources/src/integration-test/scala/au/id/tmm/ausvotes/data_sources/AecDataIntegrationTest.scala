@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.{FetchRawFederalPollingPl
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 import fs2.Stream
 import zio.{DefaultRuntime, IO}

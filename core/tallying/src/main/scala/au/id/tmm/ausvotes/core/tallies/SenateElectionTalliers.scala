@@ -9,7 +9,7 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotGroup, SenateBallotI
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction, FederalVcp}
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.countstv.normalisation.Preference
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import cats.Monoid
 import cats.instances.double._
 import cats.instances.long._

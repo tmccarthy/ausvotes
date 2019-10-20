@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.fixtures
 import au.id.tmm.ausvotes.model.federal
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object DivisionAndPollingPlaceFixture {
 

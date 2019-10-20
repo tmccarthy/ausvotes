@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFede
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.instances.StateInstances
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import fs2.Stream
 import zio.IO
 

@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.FetchRawFormalSenatePrefe
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{FederalBallotJurisdiction, FederalElection, FederalVoteCollectionPoint}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class BallotGenerationSpec extends ImprovedFlatSpec {

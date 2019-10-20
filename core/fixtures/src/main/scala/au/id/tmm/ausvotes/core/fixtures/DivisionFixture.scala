@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.core.fixtures
 
 import au.id.tmm.ausvotes.model.federal.{Division, FederalElection}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object DivisionFixture {
 

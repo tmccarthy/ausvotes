@@ -10,7 +10,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv.HowToVoteCardGener
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 final class BallotFactsTestUtils private (val state: State,
                                           val groupsAndCandidatesFixture: GroupsAndCandidatesFixture,

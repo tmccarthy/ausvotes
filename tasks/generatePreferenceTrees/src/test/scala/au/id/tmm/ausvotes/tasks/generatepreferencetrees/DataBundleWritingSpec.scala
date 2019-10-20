@@ -12,7 +12,7 @@ import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.syntax.EncoderOps

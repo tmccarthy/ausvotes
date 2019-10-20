@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollin
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace.PollingPlaceType
 import au.id.tmm.ausvotes.model.federal.{Division, FederalElection}
 import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
+import au.id.tmm.ausgeo.{Address, Postcode, State}
 
 object PollingPlaceFixture {
 

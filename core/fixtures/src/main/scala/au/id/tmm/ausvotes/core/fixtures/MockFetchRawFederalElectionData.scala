@@ -11,7 +11,7 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionFo
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import fs2.Stream
 
 object MockFetchRawFederalElectionData extends FetchRawSenateFirstPreferences[BasicTestIO]

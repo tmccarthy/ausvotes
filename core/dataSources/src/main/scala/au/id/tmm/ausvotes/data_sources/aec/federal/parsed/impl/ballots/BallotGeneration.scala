@@ -5,7 +5,7 @@ import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollin
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.Special.SpecialVcpType
 import au.id.tmm.ausvotes.model.federal._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateBallotId, SenateElectionForState}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 // TODO make package-private
 object BallotGeneration {

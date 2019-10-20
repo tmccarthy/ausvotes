@@ -6,4 +6,8 @@ dependencies {
 
     compile "io.circe:circe-core${s}:$circeVersion"
     compile "au.id.tmm.intime:intime-core${s}:$intimeVersion"
+
+    def ausgeoVersion = '0.2.4'
+    compile "au.id.tmm.ausgeo:ausgeo-core${s}:$ausgeoVersion"
+    compile "au.id.tmm.ausgeo:ausgeo-circe${s}:$ausgeoVersion"
 }

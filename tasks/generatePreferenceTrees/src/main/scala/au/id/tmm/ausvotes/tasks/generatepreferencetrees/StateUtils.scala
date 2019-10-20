@@ -1,6 +1,6 @@
 package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object StateUtils {
 

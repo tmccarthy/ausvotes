@@ -4,8 +4,8 @@ import au.id.tmm.ausvotes.model.ExceptionCaseClass
 import au.id.tmm.ausvotes.model.StateCodec.codec
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType.{FullSenate, HalfSenate}
 import au.id.tmm.ausvotes.model.instances.StateInstances
-import au.id.tmm.utilities.geo.australia.State
-import au.id.tmm.utilities.geo.australia.State.{StateProper, Territory}
+import au.id.tmm.ausgeo.State
+import au.id.tmm.ausgeo.State.{StateProper, Territory}
 import io.circe.{Decoder, DecodingFailure, Encoder}
 
 final case class SenateElectionForState private (

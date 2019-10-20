@@ -26,7 +26,7 @@ import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotId, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction}
 import au.id.tmm.ausvotes.model.instances.StateInstances
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import cats.Monoid
 import cats.instances.double._
 import cats.instances.long._

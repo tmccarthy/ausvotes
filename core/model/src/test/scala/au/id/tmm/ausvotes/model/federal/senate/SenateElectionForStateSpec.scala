@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.model.federal.senate
 
 import au.id.tmm.ausvotes.model.StateCodec.codec
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps

@@ -2,7 +2,7 @@ package au.id.tmm.ausvotes.model.federal
 
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace.{Location, PollingPlaceType}
 import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.{Address, State}
+import au.id.tmm.ausgeo.{Address, State}
 
 sealed trait FederalVoteCollectionPoint {
   def election: FederalElection

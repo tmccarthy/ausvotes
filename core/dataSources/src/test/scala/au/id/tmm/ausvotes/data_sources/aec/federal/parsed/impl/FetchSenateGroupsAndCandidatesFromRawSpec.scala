@@ -10,7 +10,7 @@ import au.id.tmm.ausvotes.shared.io.test.BasicTestData
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.fs2interop._
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import fs2.Stream
 

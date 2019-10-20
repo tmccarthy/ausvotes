@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.fixtures
 import au.id.tmm.ausvotes.core.fixtures.GroupFixture.GroupFixture
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name, Party}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 object CandidateFixture {
 

@@ -5,10 +5,9 @@ import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import au.id.tmm.ausvotes.shared.io.test.BasicTestData.BasicTestIO
 import au.id.tmm.ausvotes.shared.io.test.{BasicTestData, TestIO}
-import au.id.tmm.utilities.testing.ImprovedFlatSpec
-import org.scalatest.Assertion
+import org.scalatest.{Assertion, FlatSpec}
 
-class LoggingSpec extends ImprovedFlatSpec {
+class LoggingSpec extends FlatSpec {
 
   private def testLogging[E, A](
                                  initialTestData: BasicTestData = BasicTestData(),
@@ -23,7 +22,7 @@ class LoggingSpec extends ImprovedFlatSpec {
 
   "the timed logging of a block" should "log for a successful execution" in {
     testLogging[Nothing, Unit](
-      testLogic = timedLog[BasicTestIO, Nothing, Unit]("TEST_EVENT", "key" -> "value")(Right(Unit)),
+      testLogic = timedLog[BasicTestIO, Nothing, Unit]("TEST_EVENT", "key" -> "value")(Right(())),
       expectedLoggedLevel = Log.Level.Info,
       expectedLoggedEvent = LoggedEvent(
         "TEST_EVENT",
@@ -39,7 +38,7 @@ class LoggingSpec extends ImprovedFlatSpec {
 
   it should "log for a failed execution" in {
     testLogging[Unit, Nothing](
-      testLogic = timedLog[BasicTestIO, Unit, Nothing]("TEST_EVENT", "key" -> "value")(Left(Unit)),
+      testLogic = timedLog[BasicTestIO, Unit, Nothing]("TEST_EVENT", "key" -> "value")(Left(())),
       expectedLoggedLevel = Log.Level.Error,
       expectedLoggedEvent = LoggedEvent(
         "TEST_EVENT",

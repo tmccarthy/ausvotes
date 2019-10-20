@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.model.Codecs._
 import au.id.tmm.ausvotes.model.federal.FederalElection
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.SenateElectionType
 import au.id.tmm.intime._
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 sealed trait SenateElection {
   val federalElection: FederalElection

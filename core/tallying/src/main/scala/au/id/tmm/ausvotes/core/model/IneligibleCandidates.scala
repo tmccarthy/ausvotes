@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.core.model
 import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection.`2016`
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
-import au.id.tmm.utilities.geo.australia.State._
+import au.id.tmm.ausgeo.State._
 
 // TODO move this to the data_sources
 object IneligibleCandidates {

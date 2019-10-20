@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.shared.recountresources
 import au.id.tmm.ausvotes.model.CandidateDetails
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.ausvotes.shared.aws.data.S3ObjectKey
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 class RecountLocationsSpec extends ImprovedFlatSpec {

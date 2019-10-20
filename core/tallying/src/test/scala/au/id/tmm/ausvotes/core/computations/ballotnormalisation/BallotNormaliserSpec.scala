@@ -4,7 +4,7 @@ import au.id.tmm.ausvotes.core.fixtures._
 import au.id.tmm.ausvotes.data_sources.aec.federal.extras.CountRules
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallot, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 
 // Section references in this spec refer to the Commonwealth Electoral Act 1918

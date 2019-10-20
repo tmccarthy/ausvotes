@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateGroup, SenateHtv}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import cats.data.NonEmptyVector
 
 object HowToVoteCardGeneration {

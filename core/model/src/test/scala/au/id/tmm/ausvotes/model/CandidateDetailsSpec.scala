@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.model
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 import au.id.tmm.utilities.testing.ImprovedFlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps

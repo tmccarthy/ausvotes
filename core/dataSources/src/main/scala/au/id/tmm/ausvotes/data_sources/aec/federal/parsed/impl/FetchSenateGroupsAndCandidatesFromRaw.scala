@@ -11,7 +11,7 @@ import au.id.tmm.bfect.effects.Die
 import au.id.tmm.bfect.effects.Die.Ops
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.utilities.collection.Flyweight
-import au.id.tmm.utilities.geo.australia.State
+import au.id.tmm.ausgeo.State
 
 final class FetchSenateGroupsAndCandidatesFromRaw[F[+_, +_] : FetchRawSenateFirstPreferences : Fs2Compiler : Die] private() extends FetchSenateGroupsAndCandidates[F] {
 

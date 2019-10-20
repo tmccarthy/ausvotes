@@ -14,7 +14,7 @@ import au.id.tmm.bfect.effects.Die.Ops
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.utilities.collection.Flyweight
 import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.utilities.geo.australia.{Address, Postcode, State}
+import au.id.tmm.ausgeo.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils
 
 final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFederalPollingPlaces : Fs2Compiler : Die] private() extends FetchDivisionsAndFederalPollingPlaces[F] {
