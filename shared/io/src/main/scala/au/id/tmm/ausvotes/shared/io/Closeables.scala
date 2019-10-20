@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 import au.id.tmm.bfect.effects.Sync.CloseableOps
 import au.id.tmm.bfect.ziointerop._
 import org.apache.commons.io.IOUtils
-import scalaz.zio.IO
+import zio.IO
 
 object Closeables {
 

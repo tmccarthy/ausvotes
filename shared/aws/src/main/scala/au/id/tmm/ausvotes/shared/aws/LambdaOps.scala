@@ -9,7 +9,7 @@ import au.id.tmm.http_constants.HttpResponseCode
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.lambda.model.{InvokeRequest, InvokeResult}
 import com.amazonaws.services.lambda.{AWSLambdaAsync, AWSLambdaAsyncClientBuilder}
-import scalaz.zio.IO
+import zio.IO
 
 object LambdaOps {
 

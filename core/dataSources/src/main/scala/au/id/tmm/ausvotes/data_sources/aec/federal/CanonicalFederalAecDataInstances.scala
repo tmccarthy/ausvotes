@@ -12,7 +12,7 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, F
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
-import scalaz.zio.IO
+import zio.IO
 
 class CanonicalFederalAecDataInstances private (dataStorePath: Path, replaceExisting: Boolean) {
 

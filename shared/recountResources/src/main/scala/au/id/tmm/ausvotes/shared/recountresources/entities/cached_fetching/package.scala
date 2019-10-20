@@ -1,7 +1,7 @@
 package au.id.tmm.ausvotes.shared.recountresources.entities
 
 import au.id.tmm.ausvotes.model.federal.senate.SenateElectionForState
-import scalaz.zio.{IO, Promise, Semaphore}
+import zio.{IO, Promise, Semaphore}
 
 import scala.collection.mutable
 

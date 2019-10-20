@@ -12,7 +12,7 @@ import au.id.tmm.bfect.ziointerop._
 import cats.syntax.show.toShow
 import io.circe.Decoder
 import io.circe.parser._
-import scalaz.zio.{IO, Promise, Semaphore}
+import zio.{IO, Promise, Semaphore}
 
 import scala.collection.mutable
 

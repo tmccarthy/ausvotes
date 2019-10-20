@@ -13,7 +13,7 @@ import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTreeSerialisation
 import org.apache.commons.io.IOUtils
-import scalaz.zio.{Fiber, IO, Promise, Semaphore}
+import zio.{Fiber, IO, Promise, Semaphore}
 
 import scala.collection.mutable
 

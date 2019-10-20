@@ -16,7 +16,7 @@ import cats.kernel.Monoid
 import cats.syntax.show.toShow
 import io.circe.parser._
 import io.circe.{Decoder, Json}
-import scalaz.zio.{IO, Promise, Semaphore}
+import zio.{IO, Promise, Semaphore}
 
 import scala.collection.mutable
 

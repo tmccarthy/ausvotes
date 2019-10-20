@@ -7,7 +7,7 @@ import au.id.tmm.ausvotes.shared.aws.actions.IOInstances._
 import au.id.tmm.ausvotes.shared.io.Logging.LoggingOps
 import au.id.tmm.bfect.BME.Ops
 import au.id.tmm.bfect.ziointerop._
-import scalaz.zio.{App, IO}
+import zio.{App, IO}
 
 object Main extends App {
 

@@ -9,7 +9,7 @@ import au.id.tmm.bfect.ziointerop._
 import com.amazonaws.services.s3.model.{ObjectMetadata, S3Object}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import org.apache.commons.io.IOUtils
-import scalaz.zio.IO
+import zio.IO
 
 object S3Ops {
 

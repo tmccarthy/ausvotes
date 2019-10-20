@@ -4,7 +4,7 @@ import java.io.{InputStream, OutputStream}
 
 import au.id.tmm.ausvotes.shared.aws.data.{ContentType, LambdaFunctionName, S3BucketName, S3ObjectKey}
 import au.id.tmm.ausvotes.shared.aws.{LambdaOps, S3Ops, SnsOps}
-import scalaz.zio.IO
+import zio.IO
 
 object IOInstances {
 

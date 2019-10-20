@@ -8,7 +8,7 @@ import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.utilities.geo.australia.State
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
 import fs2.Stream
-import scalaz.zio.{DefaultRuntime, IO}
+import zio.{DefaultRuntime, IO}
 
 class AecDataIntegrationTest extends ImprovedFlatSpec with NeedsCleanDirectory with DefaultRuntime {
 

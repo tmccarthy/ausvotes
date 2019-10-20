@@ -3,7 +3,7 @@ package au.id.tmm.ausvotes.shared.aws
 import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.ziointerop._
 import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
-import scalaz.zio.IO
+import zio.IO
 
 object SnsOps {
 

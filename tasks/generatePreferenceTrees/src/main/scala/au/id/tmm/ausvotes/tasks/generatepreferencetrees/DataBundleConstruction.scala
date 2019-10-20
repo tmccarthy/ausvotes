@@ -11,7 +11,7 @@ import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTree
 import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import fs2.Stream
-import scalaz.zio.IO
+import zio.IO
 
 object DataBundleConstruction {
 

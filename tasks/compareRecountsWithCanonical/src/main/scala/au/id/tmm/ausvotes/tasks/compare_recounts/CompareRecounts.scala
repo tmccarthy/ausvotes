@@ -26,7 +26,7 @@ import au.id.tmm.utilities.probabilities.ProbabilityMeasure
 import cats.implicits._
 import org.apache.commons.lang3.exception.ExceptionUtils
 import scalaz.zio
-import scalaz.zio.IO
+import zio.IO
 
 import scala.Ordering.Implicits._
 import scala.collection.immutable.SortedMap

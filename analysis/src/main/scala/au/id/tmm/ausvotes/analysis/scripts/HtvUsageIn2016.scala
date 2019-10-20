@@ -30,7 +30,7 @@ import au.id.tmm.utilities.geo.australia.State
 import cats.Monoid
 import cats.instances.double._
 import cats.instances.long._
-import scalaz.zio.IO
+import zio.IO
 
 object HtvUsageIn2016 extends TallyingAnalysisScript {
 

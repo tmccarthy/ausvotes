@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.utilities.geo.australia.State
 import fs2.Stream
-import scalaz.zio.IO
+import zio.IO
 
 object AecResourcesRetrieval {
 

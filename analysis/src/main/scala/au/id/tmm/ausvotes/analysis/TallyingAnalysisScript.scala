@@ -13,7 +13,7 @@ import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.federal.FederalBallotJurisdiction
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotId, SenateElection, SenateElectionForState}
 import au.id.tmm.bfect.ziointerop._
-import scalaz.zio.{DefaultRuntime, IO}
+import zio.{DefaultRuntime, IO}
 
 abstract class TallyingAnalysisScript extends DefaultRuntime {
 

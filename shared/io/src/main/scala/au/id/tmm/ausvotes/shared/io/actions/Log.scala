@@ -6,7 +6,7 @@ import au.id.tmm.ausvotes.shared.io.actions.Log.LoggedEvent
 import org.apache.commons.lang3.StringUtils
 import org.slf4j
 import org.slf4j.LoggerFactory
-import scalaz.zio.IO
+import zio.IO
 
 trait Log[F[+_, +_]] {
 

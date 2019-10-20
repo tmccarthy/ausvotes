@@ -5,7 +5,7 @@ import java.nio.file.Files
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
 import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
-import scalaz.zio.{DefaultRuntime, IO}
+import zio.{DefaultRuntime, IO}
 
 import scala.collection.JavaConverters._
 
