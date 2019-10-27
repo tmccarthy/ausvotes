@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.analysis.models
 import cats.instances.double._
 import cats.instances.int._
 import cats.kernel.CommutativeGroup
+import Ordering.Double.IeeeOrdering
 
 object ValueTypes {
 

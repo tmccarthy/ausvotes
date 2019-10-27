@@ -13,7 +13,7 @@ object RenderCountComparison {
   def render(countComparison: CountComparison): List[String] = {
     List(
       s"Election: ${countComparison.election.election.name}",
-      s"State: ${countComparison.election.state.toNiceString.capitalize}"
+      s"State: ${countComparison.election.state.niceName.capitalize}"
     ) ++ indent(
       renderMismatchesOrSuccess("Candidate status types", countComparison.candidateStatusTypeMismatches.toList) ++
         renderMismatchesOrSuccess("Candidate statuses", countComparison.candidateStatusMismatches.toList) ++

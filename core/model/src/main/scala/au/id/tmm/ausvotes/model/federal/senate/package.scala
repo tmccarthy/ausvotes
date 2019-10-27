@@ -8,6 +8,8 @@ import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
 import cats.data.NonEmptyVector
 
+import scala.collection.immutable.ArraySeq
+
 package object senate {
 
   type SenateCandidateDetails = CandidateDetails[SenateElectionForState]
@@ -43,11 +45,11 @@ package object senate {
   type NormalisedSenateBallot = NormalisedBallot[SenateElectionForState]
   def NormalisedSenateBallot(
                               atl: BallotNormalisation.Result[Group[SenateElectionForState]],
-                              atlCandidateOrder: Option[Vector[SenateCandidate]],
+                              atlCandidateOrder: Option[ArraySeq[SenateCandidate]],
 
                               btl: BallotNormalisation.Result[SenateCandidate],
 
-                              canonicalOrder: Option[Vector[SenateCandidate]],
+                              canonicalOrder: Option[ArraySeq[SenateCandidate]],
                             ): NormalisedSenateBallot = NormalisedBallot(atl, atlCandidateOrder, btl, canonicalOrder)
 
   type SenateBallotGroup = BallotGroup[SenateElectionForState]

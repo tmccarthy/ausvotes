@@ -4,6 +4,7 @@ import au.id.tmm.ausvotes.core.fixtures.{BallotFixture, CandidateFixture}
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.countstv.model.values.Count
+import au.id.tmm.utilities.testing.syntax._
 import org.scalatest.FlatSpec
 
 class DistributionSourceCalculatorSpec extends FlatSpec {
@@ -55,7 +56,7 @@ class DistributionSourceCalculatorSpec extends FlatSpec {
 
     val distributionSource = sut.calculateFor(comment, actualCountData.completedCount.countSteps.truncateAfter(Count(1)))
 
-    assert(distributionSource.right.get.get.candidate ===
+    assert(distributionSource.get.get.candidate ===
       CandidateFixture.ACT.candidateWithName(Name("Katy", "GALLAGHER")))
   }
 

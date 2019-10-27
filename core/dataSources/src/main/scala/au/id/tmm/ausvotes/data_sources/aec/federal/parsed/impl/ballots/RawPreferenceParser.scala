@@ -6,6 +6,8 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.countstv.normalisation.Preference
 import au.id.tmm.countstv.normalisation.Preference.{Cross, Numbered, Tick}
 
+import scala.collection.immutable.ArraySeq
+
 // TODO make package-private
 class RawPreferenceParser private (election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates) {
 
@@ -17,10 +19,9 @@ class RawPreferenceParser private (election: SenateElectionForState, groupsAndCa
 
   private val numGroupsAtl = relevantGroups.size
 
-  private val groupsInOrder: Vector[SenateGroup] = relevantGroups
-    .toStream
+  private val groupsInOrder: ArraySeq[SenateGroup] = relevantGroups
+    .to(ArraySeq)
     .sorted(BallotGroup.ordering(implicitly[Ordering[SenateElectionForState]]))
-    .toVector
 
   private val indexBtlToCandidate: Map[Int, SenateCandidate] = {
     val btlCandidatesInOrder = relevantCandidates.toList.sorted

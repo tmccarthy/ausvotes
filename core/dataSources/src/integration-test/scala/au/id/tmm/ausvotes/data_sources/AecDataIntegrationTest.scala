@@ -6,11 +6,12 @@ import au.id.tmm.ausvotes.model.federal.senate.SenateElection
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
+import au.id.tmm.utilities.testing.NeedsCleanDirectory
 import fs2.Stream
+import org.scalatest.{FlatSpec, OneInstancePerTest}
 import zio.{DefaultRuntime, IO}
 
-class AecDataIntegrationTest extends FlatSpec with NeedsCleanDirectory with DefaultRuntime {
+class AecDataIntegrationTest extends FlatSpec with NeedsCleanDirectory with DefaultRuntime with OneInstancePerTest {
 
   private val instances = CanonicalFederalAecDataInstances(cleanDirectory, replaceExisting = true)
 

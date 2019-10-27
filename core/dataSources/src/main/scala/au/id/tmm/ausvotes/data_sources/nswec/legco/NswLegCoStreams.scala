@@ -14,7 +14,7 @@ import com.github.tototoshi.csv.TSVFormat
 import fs2.Stream
 import org.apache.poi.ss.usermodel.{CellType, Row => ExcelRow}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait NswLegCoStreams[F[+_, +_]] {
 

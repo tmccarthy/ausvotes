@@ -5,4 +5,6 @@ apply plugin: au.id.tmm.ausvotes.buildsrc.MyScalaPlugin
 dependencies {
     compile project(':core:dataSources')
     compile project(':shared:testIo')
+
+    compile "au.id.tmm.tmm-utils:tmm-utils-testing${s}:$tmmTestUtilsVersion"
 }

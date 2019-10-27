@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.core.computations.howtovote
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator.QuickLookupKey
 import au.id.tmm.ausvotes.model.HowToVoteCard
 
+import scala.collection.immutable.ArraySeq
+
 final class MatchingHowToVoteCalculator[E, C] private (howToVoteCards: Set[HowToVoteCard[E, C]]) {
 
   private val quickCandidateCardLookup: QuickLookupKey[E, C] => Set[HowToVoteCard[E, C]] =
@@ -10,7 +12,7 @@ final class MatchingHowToVoteCalculator[E, C] private (howToVoteCards: Set[HowTo
       .groupBy(htvCard => QuickLookupKey(htvCard.election, htvCard.suggestedOrder.head))
       .withDefaultValue(Set())
 
-  def findMatchingHowToVoteCard(ballot: Vector[C], electionForBallot: E): Option[HowToVoteCard[E, C]] =
+  def findMatchingHowToVoteCard(ballot: ArraySeq[C], electionForBallot: E): Option[HowToVoteCard[E, C]] =
     ballot.headOption.flatMap { firstPreferencedCandidate =>
       val quickLookupKey = QuickLookupKey(electionForBallot, firstPreferencedCandidate)
 
@@ -20,7 +22,7 @@ final class MatchingHowToVoteCalculator[E, C] private (howToVoteCards: Set[HowTo
     }
 
   private def matches(
-                       ballot: Vector[C],
+                       ballot: ArraySeq[C],
                        electionForBallot: E,
                        card: HowToVoteCard[E, C],
                      ): Boolean = electionForBallot == card.election && ballot == card.suggestedOrder.toVector

@@ -8,6 +8,7 @@ import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.ausvotes.model.{Name, Party}
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.testing.BState
+import au.id.tmm.utilities.testing.syntax._
 import org.scalatest.FlatSpec
 
 class NswLegCoDataSpec extends FlatSpec {
@@ -53,17 +54,17 @@ class NswLegCoDataSpec extends FlatSpec {
 
   "parsing the groups for a NSW legco election" should "work" in {
     val expectedGroups = Set(
-      Group(election, BallotGroup.Code("A").right.get, Some(Party("Party A"))).right.get,
-      Group(election, BallotGroup.Code("B").right.get, None).right.get,
-      Group(election, BallotGroup.Code("C").right.get, None).right.get,
+      Group(election, BallotGroup.Code("A").get, Some(Party("Party A"))).get,
+      Group(election, BallotGroup.Code("B").get, None).get,
+      Group(election, BallotGroup.Code("C").get, None).get,
     )
 
     assert(sut.fetchGroupsAndCandidatesFor(election).statelessRunUnsafe.groups === expectedGroups)
   }
 
   "parsing the candidates for a NSW legco election" should "work" in {
-    val groupA = Group(election, BallotGroup.Code("A").right.get, Some(Party("Party A"))).right.get
-    val groupB = Group(election, BallotGroup.Code("B").right.get, None).right.get
+    val groupA = Group(election, BallotGroup.Code("A").get, Some(Party("Party A"))).get
+    val groupB = Group(election, BallotGroup.Code("B").get, None).get
 
     val expectedCandidates = Set(
       Candidate(election, CandidateDetails(election, Name("Jane", "DOE"),         Some(Party("Party A")), CandidateId(0)), CandidatePosition(groupA, 0)),

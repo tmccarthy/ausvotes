@@ -9,6 +9,7 @@ import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.countstv.model.CandidateStatus.Remaining
 import au.id.tmm.countstv.model.CandidateStatuses
 import au.id.tmm.ausgeo.State
+import au.id.tmm.utilities.testing.syntax._
 
 private[senate_count_data] final class CountDataTestUtils private(
                                                                    val state: State,
@@ -24,7 +25,7 @@ private[senate_count_data] final class CountDataTestUtils private(
 
   private implicit val fetcherUnderTest: FetchSenateCountDataFromRaw[BasicTestIO] = FetchSenateCountDataFromRaw[BasicTestIO]
 
-  lazy val actualCountData: SenateCountData = fetcherUnderTest.senateCountDataFor(SenateElectionForState(SenateElection.`2016`, state).right.get, groupsAndCandidates)
+  lazy val actualCountData: SenateCountData = fetcherUnderTest.senateCountDataFor(SenateElectionForState(SenateElection.`2016`, state).get, groupsAndCandidates)
     .runEither(BasicTestData()) match {
     case Right(countData) => countData
     case Left(exception) => throw exception

@@ -11,7 +11,7 @@ import io.circe.syntax.EncoderOps
 
 class SenateElectionTalliersSpec extends FlatSpec {
 
-  behaviour of "the ballot counter encoder"
+  behavior of "the ballot counter encoder"
 
   it can "encode a ballot counter that counts FormalBallots" in {
     assert((BallotTallier.FormalBallots: BallotTallier[Long]).asJson === "formal_ballots".asJson)
@@ -53,7 +53,7 @@ class SenateElectionTalliersSpec extends FlatSpec {
     assert((BallotTallier.UsedSavingsProvision: BallotTallier[Long]).asJson === "used_savings_provision".asJson)
   }
 
-  behaviour of "the ballot grouping encoder"
+  behavior of "the ballot grouping encoder"
 
   it can "encode a ballot grouping by SenateElection" in {
     assert((BallotGrouping.SenateElection: BallotGrouping[SenateElection]).asJson === "senate_election".asJson)

@@ -8,7 +8,7 @@ import au.id.tmm.countstv.model.values.{Count, Ordinal}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateStatuses, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
 import au.id.tmm.ausgeo.State
-import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import au.id.tmm.probability.measure.ProbabilityMeasure
 import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps

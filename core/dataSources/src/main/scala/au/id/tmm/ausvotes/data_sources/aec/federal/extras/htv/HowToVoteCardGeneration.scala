@@ -4,12 +4,15 @@ import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateGroup, Sen
 import au.id.tmm.ausgeo.State
 import cats.data.NonEmptyVector
 
+import scala.collection.MapView
+import scala.collection.immutable.ArraySeq
+
 object HowToVoteCardGeneration {
 
   private val htvsFor2016: Map[(State, String), Vector[String]] = {
 
     // Taken from http://www.abc.net.au/news/federal-election-2016/guide/svic/htv/ etc
-    val rawHtvs = Stream(
+    val rawHtvs = ArraySeq(
       (State.WA, "Shooters, Fishers and Farmers") -> "B,P,Q,R,A,X",
       (State.WA, "Australian Labor Party") -> "D,J,S,H,B,F",
       (State.WA, "Socialist Alliance") -> "G,J,M,O,S,N,K,D",
@@ -136,12 +139,12 @@ object HowToVoteCardGeneration {
     val groupCodeLookup = groups
       .filter(_.election.election == SenateElection.`2016`)
       .groupBy(group => (group.election.state, group.code.asString))
-      .mapValues(_.head)
+      .view.mapValues(_.head)
 
     groups.flatMap(htvIn2016For(_, groupCodeLookup))
   }
 
-  private def htvIn2016For(group: SenateGroup, groupCodeLookup: Map[(State, String), SenateGroup]): Option[SenateHtv] =
+  private def htvIn2016For(group: SenateGroup, groupCodeLookup: MapView[(State, String), SenateGroup]): Option[SenateHtv] =
     for {
       htvGroupCodes <- htvsFor2016.get((group.election.state, group.code.asString))
       htvGroupOrder <- NonEmptyVector.fromVector(htvGroupCodes.map(groupCode => groupCodeLookup(group.election.state, groupCode)))

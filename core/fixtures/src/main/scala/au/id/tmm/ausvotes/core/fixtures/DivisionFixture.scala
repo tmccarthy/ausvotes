@@ -12,7 +12,9 @@ object DivisionFixture {
 
     lazy val divisionLookup: Map[String, Division] = divisions
       .groupBy(_.name)
+      .view
       .mapValues(_.head)
+      .toMap
   }
 
   object ACT extends DivisionFixture {

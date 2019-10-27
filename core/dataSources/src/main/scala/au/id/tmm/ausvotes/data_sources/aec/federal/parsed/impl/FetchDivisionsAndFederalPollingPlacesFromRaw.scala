@@ -13,7 +13,7 @@ import au.id.tmm.bfect.effects.Die
 import au.id.tmm.bfect.effects.Die.Ops
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.utilities.collection.Flyweight
-import au.id.tmm.utilities.geo.LatLong
+import au.id.tmm.ausgeo.LatLong
 import au.id.tmm.ausgeo.{Address, Postcode, State}
 import org.apache.commons.lang3.StringUtils
 
@@ -103,17 +103,13 @@ final class FetchDivisionsAndFederalPollingPlacesFromRaw[F[+_, +_] : FetchRawFed
   }
 
   private def premisesAddressFrom(row: FetchRawFederalPollingPlaces.Row): Either[FetchDivisionsAndFederalPollingPlaces.Error, Address] =
-    parseState(row.premisesState).map { state =>
-      Address(
-        lines = addressLinesFrom(row),
-        suburb = row.premisesSuburb.trim,
-        postcode = Postcode(row.premisesPostcode.trim),
-        state = state,
-      )
-    }.left.map(FetchDivisionsAndFederalPollingPlaces.Error)
+    for {
+      postcode <- Postcode(row.premisesPostcode.trim).left.map(FetchDivisionsAndFederalPollingPlaces.Error)
+      state <- parseState(row.premisesState).left.map(FetchDivisionsAndFederalPollingPlaces.Error)
+    } yield Address(addressLinesFrom(row), row.premisesSuburb.trim, postcode, state)
 
   private def addressLinesFrom(row: FetchRawFederalPollingPlaces.Row): Vector[String] = {
-    val addressLines = Stream(row.premisesAddress1, row.premisesAddress2, row.premisesAddress3)
+    val addressLines = LazyList(row.premisesAddress1, row.premisesAddress2, row.premisesAddress3)
       .filterNot(StringUtils.isBlank)
       .map(_.trim)
       .toVector

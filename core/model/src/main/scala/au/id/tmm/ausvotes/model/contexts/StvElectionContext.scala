@@ -6,6 +6,8 @@ import au.id.tmm.countstv.model.CompletedCount
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, Preference}
 import cats.data.NonEmptyVector
 
+import scala.collection.immutable.ArraySeq
+
 trait StvElectionContext[E, ElectorateJurisdiction, BallotJurisdiction, BallotId] {
 
   type CandidateDetails = model.CandidateDetails[E]
@@ -41,11 +43,11 @@ trait StvElectionContext[E, ElectorateJurisdiction, BallotJurisdiction, BallotId
   type NormalisedBallot = stv.NormalisedBallot[E]
   def NormalisedBallot(
                         atl: BallotNormalisation.Result[Group],
-                        atlCandidateOrder: Option[Vector[Candidate]],
+                        atlCandidateOrder: Option[ArraySeq[Candidate]],
 
                         btl: BallotNormalisation.Result[Candidate],
 
-                        canonicalOrder: Option[Vector[Candidate]],
+                        canonicalOrder: Option[ArraySeq[Candidate]],
                       ): NormalisedBallot = stv.NormalisedBallot(atl, atlCandidateOrder, btl, canonicalOrder)
 
   type BallotGroup = stv.BallotGroup[E]

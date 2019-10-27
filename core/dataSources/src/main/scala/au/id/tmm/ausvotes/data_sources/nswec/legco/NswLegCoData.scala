@@ -18,6 +18,8 @@ import cats.instances.string.catsKernelStdOrderForString
 import cats.syntax.traverse._
 import fs2.Stream
 
+import scala.collection.MapView
+
 trait NswLegCoData[F[+_, +_]] {
 
   type FStream[+A] = Stream[F[Throwable, +?], A]
@@ -51,7 +53,7 @@ object NswLegCoData {
           .compile.toVector
           .refineToExceptionOrDie
 
-        groupLookupByCode = groups.groupBy(_.code).mapValues(_.head)
+        groupLookupByCode = groups.groupBy(_.code).view.mapValues(_.head)
 
         candidateRows = streams.candidateRows(election)
 
@@ -82,7 +84,7 @@ object NswLegCoData {
 
     private def parseCandidateRowFromSpreadsheet(
       election: NswLegCoElection,
-      groupLookupByCode: Map[BallotGroupCode, Group],
+      groupLookupByCode: MapView[BallotGroupCode, Group],
       row: Vector[SpreadsheetCell],
     ): F[Exception, Candidate] =
       for {

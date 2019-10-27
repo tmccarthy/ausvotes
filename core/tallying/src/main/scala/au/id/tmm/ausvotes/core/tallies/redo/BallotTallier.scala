@@ -17,7 +17,7 @@ import scala.collection.mutable
 sealed abstract class BallotTallier[-B, A : Monoid] {
   def tally(ballot: B): A
 
-  def tallyAll(ballots: Iterable[B]): A = Monoid.combineAll(ballots.toIterator.map(tally))
+  def tallyAll(ballots: Iterable[B]): A = Monoid.combineAll(ballots.iterator.map(tally))
 
   def groupingBy[G, B1 <: B](ballotGrouper: BallotGrouper[B1, G]): BallotTallier.GroupingTallier[B1, G, A] =
     BallotTallier.GroupingTallier.apply[B1, G, A](ballotGrouper, this)

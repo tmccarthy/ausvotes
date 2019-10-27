@@ -8,6 +8,8 @@ import plotly.element.{Color, Marker, Orientation}
 import plotly.layout.{Axis, BarMode, Font, Layout}
 import plotly.{Bar, Plotly}
 
+import scala.collection.MapView
+
 object HorizontalStackedBar {
 
   def make[T_Y_AXIS_KEY, T_ACTIVE_KEY, T_ACTIVE_COUNT : Monoid : Ordering, T_INACTIVE_COUNT : Monoid]
@@ -53,8 +55,8 @@ object HorizontalStackedBar {
         .groupBy { case ((yAxisKey, activeKey), v) => yAxisKey }
         .map { case (yAxisKey, values) => yAxisKey -> values.map { case ((_, activeKey), (activeCount, _)) => activeKey -> activeCount }}
 
-    val activeCountsPerYAxisKey: Map[T_Y_AXIS_KEY, T_ACTIVE_COUNT] =
-      activeTalliesMap.mapValues(activeCountPerKey => Monoid[T_ACTIVE_COUNT].combineAll(activeCountPerKey.values))
+    val activeCountsPerYAxisKey: MapView[T_Y_AXIS_KEY, T_ACTIVE_COUNT] =
+      activeTalliesMap.view.mapValues(activeCountPerKey => Monoid[T_ACTIVE_COUNT].combineAll(activeCountPerKey.values))
 
     val inactiveTalliesMap: Map[T_Y_AXIS_KEY, T_INACTIVE_COUNT] =
       unorderedUnAggregatedTallies

@@ -9,7 +9,7 @@ class RawPreferenceParserSpec extends FlatSpec {
   private val sut = RawPreferenceParser(GroupAndCandidateFixture.ACT.election, GroupAndCandidateFixture.ACT.groupsAndCandidates)
   private val ballotMaker = BallotMaker(CandidateFixture.ACT)
 
-  behaviour of "the raw preferences parser"
+  behavior of "the raw preferences parser"
 
   it should "parse atl preferences from raw preferences" in {
     val (atlPrefs, _) = sut.preferencesFrom("4,,3,,,1,5,2,6,,,,,,8,9,10,,2,11,1,,3,5,,4,,6,,7,,12")

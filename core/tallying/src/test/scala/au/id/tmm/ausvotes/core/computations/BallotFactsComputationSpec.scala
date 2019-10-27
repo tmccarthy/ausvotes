@@ -8,6 +8,8 @@ import au.id.tmm.ausvotes.model.stv.FirstPreference
 import au.id.tmm.countstv.normalisation.{BallotNormalisation, BallotNormalisationRule}
 import org.scalatest.FlatSpec
 
+import scala.collection.immutable.ArraySeq
+
 class BallotFactsComputationSpec extends FlatSpec {
   import BallotFactsTestUtils.ACT._
 
@@ -28,10 +30,10 @@ class BallotFactsComputationSpec extends FlatSpec {
       ballotMaker.candidateOrder("A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "E0", "E1", "F0", "F1")
 
     val expectedNormalisedBallot = NormalisedSenateBallot(
-      atl = BallotNormalisation.Result.Formal(ballotMaker.groupOrder("A", "B", "C", "D", "E", "F").toVector),
+      atl = BallotNormalisation.Result.Formal(ballotMaker.groupOrder("A", "B", "C", "D", "E", "F").toVector.to(ArraySeq)),
       atlCandidateOrder = Some(expectedNormalisedAtl),
       btl = BallotNormalisation.Result.Informal(
-        normalisedBallot = Vector.empty,
+        normalisedBallot = ArraySeq.empty,
         optionalRulesViolated = Set(BallotNormalisationRule.MinimumPreferences(12)),
         mandatoryRulesViolated = Set(BallotNormalisationRule.MinimumPreferences(6)),
       ),

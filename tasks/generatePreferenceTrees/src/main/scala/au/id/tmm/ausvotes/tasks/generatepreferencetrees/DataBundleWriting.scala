@@ -25,7 +25,7 @@ object DataBundleWriting {
         writeCandidatesFile(s3BucketName, dataBundleForElection),
         writeCanonicalRecountFile(s3BucketName, dataBundleForElection),
       )
-    } yield Unit
+    } yield ()
 
   private def writePreferenceTree[F[+_, +_] : WritesToS3 : Sync](
                                                                   s3BucketName: S3BucketName,

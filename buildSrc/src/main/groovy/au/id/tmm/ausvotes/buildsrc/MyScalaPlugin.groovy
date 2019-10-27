@@ -16,7 +16,6 @@ class MyScalaPlugin implements Plugin<Project> {
         def scalaVersion = target.ext.scalaVersion
         def scalaTestVersion = target.ext.scalaTestVersion
 
-        def tmmUtilsVersion = target.ext.tmmUtilsVersion
         def tmmTestUtilsVersion = target.ext.tmmTestUtilsVersion
 
         target.plugins.apply(ScalaPlugin.class)

@@ -2,11 +2,11 @@ package au.id.tmm.ausvotes.tasks.compare_recounts
 
 import java.nio.file.{InvalidPathException, Path, Paths}
 
+import au.id.tmm.ausgeo.State
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.impl.senate_count_data.FetchSenateCountDataFromRaw
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.{AecResourceStore, FetchRawFederalElectionData}
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.instances.StateInstances.orderStatesByPopulation
 import au.id.tmm.ausvotes.shared.aws.data.S3BucketName
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.ausvotes.shared.recountresources.RecountRequest
@@ -21,15 +21,13 @@ import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.countsteps._
 import au.id.tmm.countstv.model.values.{Count, NumPapers, NumVotes, TransferValue}
 import au.id.tmm.countstv.model.{CandidateStatus, CandidateVoteCounts, CompletedCount, VoteCount}
-import au.id.tmm.utilities.collection.CollectionUtils.Sortable
-import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import au.id.tmm.probability.measure.ProbabilityMeasure
 import cats.implicits._
 import org.apache.commons.lang3.exception.ExceptionUtils
-import scalaz.zio
 import zio.IO
 
 import scala.Ordering.Implicits._
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.{SortedMap, SortedSet}
 
 object CompareRecounts extends zio.App {
 
@@ -90,7 +88,7 @@ object CompareRecounts extends zio.App {
 
     for {
       comparisons <- elections.toList
-        .sortBy(_.state)(orderStatesByPopulation.reverse)
+        .sortBy(_.state)(State.orderBySize.reverse)
         .traverse((election: SenateElectionForState) =>
           compareFor[F](election)
         )
@@ -132,12 +130,12 @@ object CompareRecounts extends zio.App {
           election,
           canonicalCountResult,
           computedCount,
-          mismatches.collect { case m: Mismatch.CandidateStatusType => m }.toSortedSet,
-          mismatches.collect { case m: Mismatch.CandidateStatus => m }.toSortedSet,
+          mismatches.collect { case m: Mismatch.CandidateStatusType => m }.to(SortedSet),
+          mismatches.collect { case m: Mismatch.CandidateStatus => m }.to(SortedSet),
           mismatches.collect { case m: Mismatch.FinalRoundingError => m }.headOption,
           mismatches.collect { case m: Mismatch.FinalExhausted => m }.headOption,
-          mismatches.collect { case m: Mismatch.ActionAtCount => m }.toSortedSet,
-          mismatches.collect { case m: Mismatch.VoteCountAtCount => m }.toSortedSet,
+          mismatches.collect { case m: Mismatch.ActionAtCount => m }.to(SortedSet),
+          mismatches.collect { case m: Mismatch.VoteCountAtCount => m }.to(SortedSet),
         )
       }
       .minBy(_.mismatchSignificance)

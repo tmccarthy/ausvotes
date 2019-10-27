@@ -7,7 +7,10 @@ import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction}
 import au.id.tmm.ausvotes.model.stv.BallotGroup
 import au.id.tmm.countstv.normalisation.Preference
+import au.id.tmm.utilities.testing.syntax._
 import cats.data.NonEmptyVector
+
+import scala.collection.immutable.ArraySeq
 
 case class BallotMaker(candidateFixture: CandidateFixture) {
 
@@ -73,8 +76,8 @@ case class BallotMaker(candidateFixture: CandidateFixture) {
     case u: SenateUngrouped => throw new IllegalArgumentException(u.toString)
   }
 
-  def candidateOrder(candidatesInOrder: String*): Vector[SenateCandidate] = {
-    candidatesInOrder.map(candidateWithPosition).toVector
+  def candidateOrder(candidatesInOrder: String*): ArraySeq[SenateCandidate] = {
+    candidatesInOrder.map(candidateWithPosition).to(ArraySeq)
   }
 
   def groupOrder(firstGroup: String, otherGroupsInOrder: String*): NonEmptyVector[SenateGroup] =
@@ -86,6 +89,6 @@ object BallotMaker {
 
   def candidatePosition(groupFixture: GroupFixture)(positionCode: String): SenateCandidatePosition = positionCode match {
     case candidatePositionCodePattern(groupCode, position) =>
-      SenateCandidatePosition(groupFixture.groupLookup(BallotGroup.Code(groupCode).right.get.asString), position.toInt)
+      SenateCandidatePosition(groupFixture.groupLookup(BallotGroup.Code(groupCode).get.asString), position.toInt)
   }
 }

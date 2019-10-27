@@ -2,6 +2,7 @@ package au.id.tmm.ausvotes.model.stv
 
 import au.id.tmm.ausvotes.model.Party
 import au.id.tmm.ausvotes.model.federal.senate.SenateElection
+import au.id.tmm.utilities.testing.syntax._
 import org.scalatest.FlatSpec
 import io.circe.Json
 import io.circe.syntax.EncoderOps
@@ -17,7 +18,7 @@ class BallotGroupSpec extends FlatSpec {
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("A"),
       Some(Party("Australian Labor Party")),
-    ).right.get
+    ).get
 
     val json = Json.obj(
       "election" -> group.election.asJson,
@@ -33,7 +34,7 @@ class BallotGroupSpec extends FlatSpec {
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("A"),
       Some(Party("Australian Labor Party")),
-    ).right.get
+    ).get
 
     val json = Json.obj(
       "election" -> group.election.asJson,
@@ -76,25 +77,25 @@ class BallotGroupSpec extends FlatSpec {
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("A"),
       Some(Party("Australian Labor Party")),
-    ).right.get
+    ).get
 
     val liberals = Group[SenateElection](
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("B"),
       Some(Party("Liberal Party of Australia")),
-    ).right.get
+    ).get
 
     val greens = Group[SenateElection](
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("AA"),
       Some(Party("Australian Greens")),
-    ).right.get
+    ).get
 
     val centreAlliance = Group[SenateElection](
       SenateElection.`2016`,
       BallotGroup.Code.unsafeMake("ZZ"),
       Some(Party("Centre Alliance")),
-    ).right.get
+    ).get
 
     val ungrouped: Ungrouped[SenateElection] = Ungrouped(SenateElection.`2016`)
 

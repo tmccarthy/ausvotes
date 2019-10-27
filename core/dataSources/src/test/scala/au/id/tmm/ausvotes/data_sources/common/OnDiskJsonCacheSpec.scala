@@ -3,20 +3,22 @@ package au.id.tmm.ausvotes.data_sources.common
 import java.nio.file.Files
 
 import au.id.tmm.bfect.ziointerop._
-import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
-import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
+import au.id.tmm.utilities.codec.digest._
+import au.id.tmm.utilities.codec.binarycodecs._
+import au.id.tmm.utilities.testing.NeedsCleanDirectory
+import org.scalatest.{FlatSpec, OneInstancePerTest}
 import zio.{DefaultRuntime, IO}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
-class OnDiskJsonCacheSpec extends FlatSpec with NeedsCleanDirectory with DefaultRuntime {
+class OnDiskJsonCacheSpec extends FlatSpec with NeedsCleanDirectory with DefaultRuntime with OneInstancePerTest {
 
   private val cacheUnderTest = JsonCache.OnDisk[IO](cleanDirectory)
 
   "the on-disk json cache" should "put a record" in {
     unsafeRun(cacheUnderTest.put("hello", "world"))
 
-    val fileContent = Files.readAllLines(cleanDirectory.resolve("\"hello\"".sha256checksum.asHexString + ".json")).asScala.head
+    val fileContent = Files.readAllLines(cleanDirectory.resolve("\"hello\"".sha256.asHexString + ".json")).asScala.head
 
     assert(fileContent === "\"world\"")
   }

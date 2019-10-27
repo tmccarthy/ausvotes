@@ -7,9 +7,10 @@ import au.id.tmm.countstv.model.CandidateStatus._
 import au.id.tmm.countstv.model.countsteps.{AllocationAfterIneligibles, DistributionCountStep, InitialAllocation}
 import au.id.tmm.countstv.model.values._
 import au.id.tmm.countstv.model.{CandidateStatuses, CandidateVoteCounts, VoteCount}
-import au.id.tmm.utilities.testing.{ImprovedFlatSpec, NeedsCleanDirectory}
+import au.id.tmm.utilities.testing.NeedsCleanDirectory
+import org.scalatest.{FlatSpec, OneInstancePerTest}
 
-class FetchSenateCountDataFromRawSpec extends FlatSpec with NeedsCleanDirectory {
+class FetchSenateCountDataFromRawSpec extends FlatSpec with NeedsCleanDirectory with OneInstancePerTest {
 
   private val ballotMaker = BallotFixture.ACT.ballotMaker
   import ballotMaker.candidateWithPosition

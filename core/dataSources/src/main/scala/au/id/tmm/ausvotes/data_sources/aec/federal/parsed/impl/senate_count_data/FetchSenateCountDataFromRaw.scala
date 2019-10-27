@@ -18,6 +18,8 @@ import au.id.tmm.utilities.collection.DupelessSeq
 import cats.instances.int._
 import fs2.Stream
 
+import scala.collection.immutable.ArraySeq
+
 final class FetchSenateCountDataFromRaw[F[+_, +_] : FetchRawSenateDistributionOfPreferences : Fs2Compiler : Die] extends FetchSenateCountData[F] {
 
   override def senateCountDataFor(election: SenateElectionForState, groupsAndCandidates: SenateGroupsAndCandidates): F[FetchSenateCountData.Error, SenateCountData] =
@@ -158,7 +160,7 @@ object FetchSenateCountDataFromRaw {
 
   private[senate_count_data] def constructBallotPositionLookup(groupsAndCandidates: SenateGroupsAndCandidates): Map[Int, SenateCandidate] = {
     val numGroups = groupsAndCandidates.groups.size
-    val candidatesInBallotOrder = groupsAndCandidates.candidates.toStream
+    val candidatesInBallotOrder = groupsAndCandidates.candidates.to(ArraySeq)
       .sorted
 
     candidatesInBallotOrder.zipWithIndex
@@ -215,10 +217,10 @@ object FetchSenateCountDataFromRaw {
       // allocation after ineligibles.
       initialAllocation = InitialAllocation[SenateCandidate](
         candidateStatuses = CandidateStatuses(
-          asMap = allocationAfterIneligibles.candidateStatuses.asMap.mapValues {
+          asMap = allocationAfterIneligibles.candidateStatuses.asMap.view.mapValues {
             case CandidateStatus.Elected(_, _) => CandidateStatus.Remaining
             case x => x
-          }
+          }.toMap
         ),
         candidateVoteCounts = allocationAfterIneligibles.candidateVoteCounts,
       )
@@ -343,7 +345,7 @@ object FetchSenateCountDataFromRaw {
   private def allElectedCandidatesOf(candidatePositionLookup: Map[Int, SenateCandidate],
                                      candidateTransferRows: Vector[FetchRawSenateDistributionOfPreferences.Row]
                                     ): DupelessSeq[SenateCandidate] = {
-    val candidatesInOrderElected = candidateTransferRows.toStream
+    val candidatesInOrderElected = candidateTransferRows.to(LazyList)
       .filter(_.orderElected != 0)
       .sortBy(_.orderElected)
       .map(row => candidatePositionLookup(row.ballotPosition))
@@ -355,7 +357,7 @@ object FetchSenateCountDataFromRaw {
                                       previouslyExcluded: DupelessSeq[SenateCandidate],
                                       candidateTransferRows: Vector[FetchRawSenateDistributionOfPreferences.Row]
                                      ): DupelessSeq[SenateCandidate] = {
-    val allExcludedCandidatesAtThisStep = candidateTransferRows.toStream
+    val allExcludedCandidatesAtThisStep = candidateTransferRows.to(LazyList)
       .filter(_.status == excludedStatus)
       .map(row => candidatePositionLookup(row.ballotPosition))
 
@@ -365,7 +367,7 @@ object FetchSenateCountDataFromRaw {
   private def newlyElectedCandidatesIn(candidatePositionLookup: Map[Int, SenateCandidate],
                                        candidateTransferRows: Vector[FetchRawSenateDistributionOfPreferences.Row]
                                       ): DupelessSeq[SenateCandidate] = {
-    val newlyElectedCandidates = candidateTransferRows.toStream
+    val newlyElectedCandidates = candidateTransferRows.to(LazyList)
       .filter(_.changed contains true)
       .filter(_.orderElected != 0)
       .sortBy(_.orderElected)
@@ -377,7 +379,7 @@ object FetchSenateCountDataFromRaw {
   private def newlyExcludedCandidateIn(candidatePositionLookup: Map[Int, SenateCandidate],
                                        candidateTransferRows: Vector[FetchRawSenateDistributionOfPreferences.Row]
                                       ): Option[SenateCandidate] = {
-    val newlyExcludedCandidates = candidateTransferRows.toStream
+    val newlyExcludedCandidates = candidateTransferRows.to(LazyList)
       .filter(_.changed contains true)
       .filter(_.status == excludedStatus)
       .map(row => candidatePositionLookup(row.ballotPosition))
@@ -438,9 +440,9 @@ object FetchSenateCountDataFromRaw {
 
     def candidateVoteCountsGivenNoPrevious: CandidateVoteCounts[SenateCandidate] = {
       CandidateVoteCounts(
-        perCandidate = candidateTransfers.mapValues { transfer =>
+        perCandidate = candidateTransfers.view.mapValues { transfer =>
           transfer.asVoteCountGiven(previousVoteCount = VoteCount.zero)
-        },
+        }.toMap,
         exhausted = exhaustedTransfers.asVoteCountGiven(VoteCount.zero),
         roundingError = gainLossTransfers.asVoteCountGiven(VoteCount.zero),
       )

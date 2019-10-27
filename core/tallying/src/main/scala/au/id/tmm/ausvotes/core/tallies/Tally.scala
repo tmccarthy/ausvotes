@@ -16,7 +16,6 @@ final case class Tally[G, A : Monoid](asMap: Map[G, A]) extends PartialFunction[
     val newKeys = this.asMap.keySet ++ that.asMap.keySet
 
     val newUnderlyingMap = newKeys
-      .toStream
       .map { key =>
         val thisValue = this.asMap.getOrElse(key, emptyVal)
         val thatValue = that.asMap.getOrElse(key, emptyVal)

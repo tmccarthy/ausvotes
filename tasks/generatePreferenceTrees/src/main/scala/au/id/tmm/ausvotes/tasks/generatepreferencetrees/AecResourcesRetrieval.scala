@@ -3,7 +3,6 @@ package au.id.tmm.ausvotes.tasks.generatepreferencetrees
 import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFederalPollingPlaces, FetchSenateBallots, FetchSenateCountData, FetchSenateGroupsAndCandidates}
 import au.id.tmm.ausvotes.model.federal.DivisionsAndPollingPlaces
 import au.id.tmm.ausvotes.model.federal.senate._
-import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausgeo.State
 import fs2.Stream
 import zio.IO
@@ -19,7 +18,7 @@ object AecResourcesRetrieval {
     fetchCountData: FetchSenateCountData[IO],
     fetchBallots: FetchSenateBallots[IO],
   ): IO[Exception, Map[State, A]] = {
-    val stateElectionsInOrder = election.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
+    val stateElectionsInOrder = election.allStateElections.toList.sortBy(_.state)(State.orderBySize)
 
     for {
       valueResources <- retrieveValueResources(election)

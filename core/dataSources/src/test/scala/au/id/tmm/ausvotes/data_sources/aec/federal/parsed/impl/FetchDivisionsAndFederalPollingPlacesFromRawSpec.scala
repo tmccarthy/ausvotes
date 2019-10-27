@@ -36,7 +36,7 @@ class FetchDivisionsAndFederalPollingPlacesFromRawSpec extends FlatSpec {
   private val fetcherUnderTest: FetchDivisionsAndFederalPollingPlacesFromRaw[BasicTestIO] =
     FetchDivisionsAndFederalPollingPlacesFromRaw[BasicTestIO]
 
-  behaviour of "the polling place generator"
+  behavior of "the polling place generator"
 
   it should "be able to handle multiple rows of raw data" in {
     val actualPollingPlaces = fetcherUnderTest.divisionsAndFederalPollingPlacesFor(FederalElection.`2016`)

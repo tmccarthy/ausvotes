@@ -5,6 +5,8 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.extras.htv.HowToVoteCardGener
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, _}
 import org.scalatest.FlatSpec
 
+import scala.collection.immutable.ArraySeq
+
 class MatchingHowToVoteCalculatorSpec extends FlatSpec {
 
   private val actHtvs = HowToVoteCardGeneration.from(SenateElection.`2016`, GroupFixture.ACT.groups)
@@ -20,19 +22,19 @@ class MatchingHowToVoteCalculatorSpec extends FlatSpec {
     val expected = SenateHtv(ballotMaker.candidateFixture.election, groupOrder("H").head,
       groupOrder("H", "B", "J", "G", "C", "E"))
 
-    val actual = sut.findMatchingHowToVoteCard(groupOrder("H", "B", "J", "G", "C", "E").toVector, election)
+    val actual = sut.findMatchingHowToVoteCard(groupOrder("H", "B", "J", "G", "C", "E").toVector.to(ArraySeq), election)
 
     assert(actual contains expected)
   }
 
   it should "ignore ballots using the how to vote if they continue numbering" in {
-    val actual = sut.findMatchingHowToVoteCard(groupOrder("H", "B", "J", "G", "C", "E", "D").toVector, election)
+    val actual = sut.findMatchingHowToVoteCard(groupOrder("H", "B", "J", "G", "C", "E", "D").toVector.to(ArraySeq), election)
 
     assert(actual === None)
   }
 
   it should "ignore ballots that did not use the how to vote" in {
-    val actual = sut.findMatchingHowToVoteCard(groupOrder("B", "J", "G", "H", "C", "E", "D").toVector, election)
+    val actual = sut.findMatchingHowToVoteCard(groupOrder("B", "J", "G", "H", "C", "E", "D").toVector.to(ArraySeq), election)
 
     assert(actual === None)
   }

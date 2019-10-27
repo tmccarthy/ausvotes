@@ -1,5 +1,6 @@
 package au.id.tmm.ausvotes.core.tallying
 
+import au.id.tmm.ausgeo.State
 import au.id.tmm.ausvotes.core.computations.ballotnormalisation.BallotNormaliser
 import au.id.tmm.ausvotes.core.computations.howtovote.MatchingHowToVoteCalculator
 import au.id.tmm.ausvotes.core.computations.{BallotFactsComputation, SenateBallotWithFacts}
@@ -8,7 +9,6 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFede
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.federal.senate._
 import au.id.tmm.ausvotes.model.federal.{DivisionsAndPollingPlaces, FederalBallotJurisdiction}
-import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausvotes.shared.io.actions.Log
 import au.id.tmm.bfect.BME.Ops
 import au.id.tmm.bfect.catsinterop._
@@ -61,7 +61,7 @@ object FetchTallyForSenate {
         htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
           .leftMap(FetchTally.Error)
 
-        stateElectionsInSizeOrder = election.allStateElections.toList.sortBy(_.state)(StateInstances.orderStatesByPopulation)
+        stateElectionsInSizeOrder = election.allStateElections.toList.sortBy(_.state)(State.orderBySize)
 
         htvCards <- FetchSenateHtv.fetchFor(election, groupsAndCandidates.groups)
 

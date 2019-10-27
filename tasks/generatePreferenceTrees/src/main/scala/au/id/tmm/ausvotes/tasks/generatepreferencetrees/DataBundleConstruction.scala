@@ -9,7 +9,7 @@ import au.id.tmm.bfect.effects.Die.Ops
 import au.id.tmm.bfect.fs2interop._
 import au.id.tmm.bfect.ziointerop._
 import au.id.tmm.countstv.model.preferences.PreferenceTree
-import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import au.id.tmm.probability.measure.ProbabilityMeasure
 import fs2.Stream
 import zio.IO
 

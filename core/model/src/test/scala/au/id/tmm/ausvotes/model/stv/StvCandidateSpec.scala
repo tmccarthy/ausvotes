@@ -3,6 +3,7 @@ package au.id.tmm.ausvotes.model.stv
 import au.id.tmm.ausvotes.model.federal.senate.{SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.{CandidateDetails, Name}
 import au.id.tmm.ausgeo.State
+import au.id.tmm.utilities.testing.syntax._
 import org.scalatest.FlatSpec
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Json}
@@ -10,7 +11,7 @@ import io.circe.{Decoder, Json}
 class StvCandidateSpec extends FlatSpec {
 
   private val election = SenateElection.`2016`.electionForState(State.VIC).get
-  private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).right.get
+  private val group = Group(election, BallotGroup.Code.unsafeMake("A"), party = None).get
   private implicit val candidatePositionDecoder: Decoder[CandidatePosition[SenateElectionForState]] =
     CandidatePosition.decoderUsing(allGroups = List(group), ungrouped = Ungrouped(election))
 

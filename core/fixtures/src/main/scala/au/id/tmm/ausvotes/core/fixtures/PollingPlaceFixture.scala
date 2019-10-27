@@ -4,8 +4,8 @@ import au.id.tmm.ausvotes.core.fixtures.DivisionFixture.DivisionFixture
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace
 import au.id.tmm.ausvotes.model.federal.FederalVoteCollectionPoint.FederalPollingPlace.PollingPlaceType
 import au.id.tmm.ausvotes.model.federal.{Division, FederalElection}
-import au.id.tmm.utilities.geo.LatLong
-import au.id.tmm.ausgeo.{Address, Postcode, State}
+import au.id.tmm.ausgeo.{Address, Postcode, State, LatLong}
+import au.id.tmm.utilities.testing.syntax._
 
 object PollingPlaceFixture {
 
@@ -20,7 +20,9 @@ object PollingPlaceFixture {
 
     lazy val pollingPlaceLookup: Map[String, FederalPollingPlace] = pollingPlaces
       .groupBy(_.name)
+      .view
       .mapValues(_.head)
+      .toMap
   }
 
   object ACT extends PollingPlaceFixture {
@@ -37,7 +39,7 @@ object PollingPlaceFixture {
       name = "Barton",
       location = FederalPollingPlace.Location.Premises(
         name = "Telopea Park School",
-        address = Address(Vector("New South Wales Cres"), "BARTON", Postcode("2600"), State.ACT),
+        address = Address(Vector("New South Wales Cres"), "BARTON", Postcode("2600").get, State.ACT),
         location = Some(LatLong(-35.3151, 149.135)),
       ))
 
@@ -50,7 +52,7 @@ object PollingPlaceFixture {
       name = "Other Mobile Team 1",
       location = FederalPollingPlace.Location.Premises(
         name = "Alexander Maconachie Centre",
-        address = Address(Vector("10400 Monaro Hwy"), "HUME", Postcode("2620"), State.ACT),
+        address = Address(Vector("10400 Monaro Hwy"), "HUME", Postcode("2620").get, State.ACT),
         location = None,
       ))
 
@@ -73,7 +75,7 @@ object PollingPlaceFixture {
       name = "Woden CANBERRA PPVC",
       location = FederalPollingPlace.Location.Premises(
         name = "15 Bowes St",
-        address = Address(Vector("15 Bowes St"), "PHILLIP", Postcode("2606"), State.ACT),
+        address = Address(Vector("15 Bowes St"), "PHILLIP", Postcode("2606").get, State.ACT),
         location = Some(LatLong(-35.344032, 149.0860283)),
       )
     )
@@ -100,7 +102,7 @@ object PollingPlaceFixture {
       name = "Alice Springs",
       location = FederalPollingPlace.Location.Premises(
         name = "Alice Springs Civic Centre",
-        address = Address(Vector("Cnr Gregory Tce & Todd Street"), "ALICE SPRINGS", Postcode("0870"), State.NT),
+        address = Address(Vector("Cnr Gregory Tce & Todd Street"), "ALICE SPRINGS", Postcode("0870").get, State.NT),
         location = Some(LatLong(-23.7018, 133.882)),
       )
     )
@@ -122,7 +124,7 @@ object PollingPlaceFixture {
       name = "Ashfield",
       location = FederalPollingPlace.Location.Premises(
         name = "Ashfield Primary School",
-        address = Address(Vector("65 Margaret St"), "ASHFIELD", Postcode("6054"), State.WA),
+        address = Address(Vector("65 Margaret St"), "ASHFIELD", Postcode("6054").get, State.WA),
         location = Some(LatLong(-31.9150, 115.9405)),
       )
     )

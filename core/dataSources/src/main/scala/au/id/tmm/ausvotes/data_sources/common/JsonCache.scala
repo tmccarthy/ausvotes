@@ -8,7 +8,8 @@ import au.id.tmm.bfect.BME
 import au.id.tmm.bfect.catsinterop._
 import au.id.tmm.bfect.effects.Sync
 import au.id.tmm.bfect.effects.Sync._
-import au.id.tmm.utilities.hashing.StringHashing.StringHashingImplicits
+import au.id.tmm.utilities.codec.digest._
+import au.id.tmm.utilities.codec.binarycodecs._
 import cats.instances.option._
 import cats.syntax.traverse._
 import io.circe.syntax.EncoderOps
@@ -46,7 +47,7 @@ object JsonCache {
 
     private def recordPathOf[K: Encoder](key: K): F[JsonCache.Error, Path] = {
       val keyJson = key.asJson
-      val keyDigest = keyJson.noSpaces.sha256checksum(charset)
+      val keyDigest = keyJson.noSpaces.sha256
 
       Sync.syncException(location.resolve(s"${keyDigest.asHexString}.json"))
         .leftMap(JsonCache.Error)

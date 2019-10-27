@@ -10,7 +10,7 @@ import com.github.tototoshi.csv.{CSVFormat, CSVParser}
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFWorkbook}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.io.{Source => ScalaSource}
 
 object ReadingInputStreams {

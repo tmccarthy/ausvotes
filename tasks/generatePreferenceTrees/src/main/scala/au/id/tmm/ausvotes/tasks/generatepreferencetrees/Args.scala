@@ -17,7 +17,7 @@ object Args {
 
   def from(rawArgs: List[String]): Either[IllegalArgumentException, Args] = {
     for {
-      _ <- if (rawArgs.length == 3) Right(Unit) else Left(new IllegalArgumentException("Incorrect number of arguments"))
+      _ <- if (rawArgs.length == 3) Right(()) else Left(new IllegalArgumentException("Incorrect number of arguments"))
       dataStorePath <- parsePath(rawArgs(0))
       s3Bucket = S3BucketName(rawArgs(1))
       electionId = SenateElection.Id(rawArgs(2))

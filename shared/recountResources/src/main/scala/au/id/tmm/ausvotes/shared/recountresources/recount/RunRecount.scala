@@ -14,7 +14,7 @@ import au.id.tmm.bfect.effects.{Now, Sync}
 import au.id.tmm.countstv.counting.FullCountComputation
 import au.id.tmm.countstv.model.{CompletedCount, CountParams}
 import au.id.tmm.countstv.rules.RoundingRules
-import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import au.id.tmm.probability.measure.ProbabilityMeasure
 
 object RunRecount {
 

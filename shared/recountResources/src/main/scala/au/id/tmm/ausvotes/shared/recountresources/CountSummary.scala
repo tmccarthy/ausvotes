@@ -2,11 +2,11 @@ package au.id.tmm.ausvotes.shared.recountresources
 
 import au.id.tmm.ausvotes.model.federal.senate.{SenateCandidate, SenateElectionForState}
 import au.id.tmm.ausvotes.model.instances.CountStvCodecs._
-import au.id.tmm.ausvotes.model.instances.ProbabilityMeasureCodec._
 import au.id.tmm.ausvotes.shared.io.exceptions.ExceptionCaseClass
 import au.id.tmm.countstv.model.{CandidateStatuses, CompletedCount, VoteCount}
 import au.id.tmm.utilities.collection.DupelessSeq
-import au.id.tmm.utilities.probabilities.ProbabilityMeasure
+import au.id.tmm.probability.measure.codecs._
+import au.id.tmm.probability.measure.ProbabilityMeasure
 import io.circe.{Decoder, Encoder}
 
 final case class CountSummary(
@@ -27,7 +27,7 @@ object CountSummary {
         case None => Left(CountSummaryConstructionError.MultipleIneligibleCandidatePossibilities())
       }
 
-      _ <- if (ineligibleCandidates.map(_.candidateDetails.id) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(Unit)
+      _ <- if (ineligibleCandidates.map(_.candidateDetails.id) != request.ineligibleCandidateAecIds) Left(CountSummaryConstructionError.RequestedIneligibleCandidatesMismatch()) else Right(())
 
     } yield CountSummary(
       CountSummary.Request(

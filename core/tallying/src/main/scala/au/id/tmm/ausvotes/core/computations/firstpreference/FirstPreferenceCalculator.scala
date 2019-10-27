@@ -3,6 +3,8 @@ package au.id.tmm.ausvotes.core.computations.firstpreference
 import au.id.tmm.ausvotes.model.instances.BallotNormalisationResultInstances.Ops
 import au.id.tmm.ausvotes.model.stv.{FirstPreference, Group, NormalisedBallot, StvCandidate}
 
+import scala.collection.immutable.ArraySeq
+
 object FirstPreferenceCalculator {
 
   def firstPreferenceOf[E](normalisedBallot: NormalisedBallot[E]): FirstPreference[E] = {
@@ -20,11 +22,11 @@ object FirstPreferenceCalculator {
     }
   }
 
-  private def firstPreferenceAtl[E](atlOrder: Vector[Group[E]]): Option[FirstPreference[E]] = atlOrder.headOption.map {
+  private def firstPreferenceAtl[E](atlOrder: ArraySeq[Group[E]]): Option[FirstPreference[E]] = atlOrder.headOption.map {
     g => FirstPreference(g, g.party)
   }
 
-  private def firstPreferenceBtl[E](btlOrder: Vector[StvCandidate[E]]): Option[FirstPreference[E]] = btlOrder.headOption.map {
+  private def firstPreferenceBtl[E](btlOrder: ArraySeq[StvCandidate[E]]): Option[FirstPreference[E]] = btlOrder.headOption.map {
     c => FirstPreference(c.position.group, c.candidateDetails.party)
   }
 

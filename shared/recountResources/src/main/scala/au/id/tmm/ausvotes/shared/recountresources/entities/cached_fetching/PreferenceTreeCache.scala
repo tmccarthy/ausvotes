@@ -67,7 +67,7 @@ final class PreferenceTreeCache(
       election.allStateElections.map { election =>
         fetchGroupsCandidatesAndPreferencesFor(election)
       }
-    }.map(_ => Unit)
+    }.map(_ => ())
   }
 
   override def fetchGroupsCandidatesAndPreferencesFor(

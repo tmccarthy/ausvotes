@@ -22,11 +22,10 @@ import au.id.tmm.ausvotes.data_sources.aec.federal.parsed.{FetchDivisionsAndFede
 import au.id.tmm.ausvotes.data_sources.aec.federal.raw.impl.FetchRawFederalElectionData
 import au.id.tmm.ausvotes.data_sources.common.JsonCache
 import au.id.tmm.ausvotes.model.Party
-import au.id.tmm.ausvotes.model.StateCodec._
 import au.id.tmm.ausvotes.model.federal.senate.{SenateBallotId, SenateElection, SenateElectionForState}
 import au.id.tmm.ausvotes.model.federal.{Division, FederalBallotJurisdiction}
-import au.id.tmm.ausvotes.model.instances.StateInstances
 import au.id.tmm.ausgeo.State
+import au.id.tmm.ausgeo.Codecs._
 import cats.Monoid
 import cats.instances.double._
 import cats.instances.long._
@@ -81,9 +80,9 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
   }
 
   private def analysisNationallyByParty(
-                                         usedHtv: Tally1[Option[Party], Long],
-                                         votedFormally: Tally1[Option[Party], Long],
-                                       ): Unit = {
+    usedHtv: Tally1[Option[Party], Long],
+    votedFormally: Tally1[Option[Party], Long],
+  ): Unit = {
     def prepare[A : Monoid](tally: Tally1[Option[Party], Long])(makeA: Double => A): Map[PartyGroup, A] =
       tally.toVector
         .map { case (party, tally) => PartyGroup.from(party) -> makeA(tally) }
@@ -98,8 +97,8 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
 
     println(MarkdownRendering.render("Party", "Used HTV", "Voted formally", "% used HTV")(preparedTallies))
 
-    val usedHtvTally = prepare(usedHtv)(UsedHtv.Nominal(_)).map { case (party, tally) => (party, ()) -> tally }
-    val votedFormallyTally = prepare(votedFormally)(VotedFormally(_)).map { case (party, tally) => (party, ()) -> (tally.asInt - usedHtvTally((party, ())).asInt).toDouble }
+    val usedHtvTally: Map[(PartyGroup, Unit), UsedHtv.Nominal] = prepare(usedHtv)(UsedHtv.Nominal(_)).map { case (party, tally) => (party, ()) -> tally }
+    val votedFormallyTally: Map[(PartyGroup, Unit), Double] = prepare(votedFormally)(VotedFormally(_)).map { case (party, tally) => (party, ()) -> (tally.asInt - usedHtvTally((party, ())).asInt).toDouble }
 
     HorizontalStackedBar.make[PartyGroup, Unit, UsedHtv.Nominal, Double](
       chartTitle = "How to vote card usage by first-preferenced party",
@@ -144,7 +143,9 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
 
     val talliesForChart = preparedTalliesForTable
       .groupBy { case (state, party, _, _, percentage) => state }
+      .view
       .mapValues { listForParty => listForParty.map { case (state, party, _, _, percentage) => party -> percentage }.toMap }
+      .toMap
 
     VerticalGroupedBar.make[State, PartyGroup, UsedHtv.Percentage](
       chartTitle = "Fraction of voters using a how-to-vote card by state and first-preferenced party",
@@ -156,16 +157,16 @@ object HtvUsageIn2016 extends TallyingAnalysisScript {
       countToDouble = _.asDouble,
       tallies = talliesForChart,
       allBarKeys = PartyGroup.all.toSet,
-      groupOrdering = StateInstances.orderStatesByPopulation,
+      groupOrdering = State.orderBySize,
       barOrdering = PartyGroup.ordering,
       colourForBar = party => Some(PlotlyTheme.colourFor(party)),
     )
   }
 
   def analysisByDivision(
-                          usedHtv_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
-                          votedFormally_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
-                        ): Unit = {
+    usedHtv_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
+    votedFormally_perState_perDivision_perParty: Tally3[State, Division, Option[Party], Long],
+  ): Unit = {
     def prepare[A : Monoid](tally: Tally3[State, Division, Option[Party], Long])(makeA: Double => A): Map[(Division, PartyGroup), A] =
       tally.toVector
         .map { case (state, division, party, tally) => (division, PartyGroup.from(party), makeA(tally)) }
