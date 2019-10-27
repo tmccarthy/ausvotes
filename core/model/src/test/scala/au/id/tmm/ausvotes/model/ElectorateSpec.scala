@@ -12,7 +12,7 @@ class ElectorateSpec extends FlatSpec {
   private val boothby = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby")
   private val mayo = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Mayo")
   private val wills = Electorate[FederalElection, State](FederalElection.`2016`, State.VIC, "Wills")
-  private val boothby2013 = Electorate[FederalElection, State](FederalElection.`2016`, State.SA, "Boothby")
+  private val boothby2013 = Electorate[FederalElection, State](FederalElection.`2013`, State.SA, "Boothby")
 
   "an stv candidate" can "be encoded to json" in {
     val electorate = boothby
@@ -41,7 +41,7 @@ class ElectorateSpec extends FlatSpec {
   it should "have an ordering" in {
     val electorates = List(wills, mayo, boothby2013, boothby)
 
-    val sorted = List(boothby2013, boothby, mayo, wills)
+    val sorted = List(boothby2013, wills, boothby, mayo)
 
     assert(electorates.sorted === sorted)
   }

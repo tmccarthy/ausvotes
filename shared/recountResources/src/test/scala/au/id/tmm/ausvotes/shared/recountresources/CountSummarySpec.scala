@@ -35,12 +35,12 @@ class CountSummarySpec extends FlatSpec {
         Json.obj(
           "probability" -> Json.fromString("1/2"),
           "outcome" -> Json.obj(
-            "elected" -> Json.arr(katyGallagher.asJson, zedSeselja.asJson),
+            "elected" -> Json.arr(zedSeselja.asJson, katyGallagher.asJson),
             "exhaustedVotes" -> VoteCount.zero.asJson,
             "roundingError" -> VoteCount.zero.asJson,
             "candidateOutcomes" -> Json.arr(
               Json.obj(
-                "candidate" -> katyGallagher.asJson,
+                "candidate" -> zedSeselja.asJson,
                 "outcome" -> Json.obj(
                   "status" -> Json.fromString("elected"),
                   "ordinal" -> Json.fromInt(0),
@@ -48,7 +48,7 @@ class CountSummarySpec extends FlatSpec {
                 )
               ),
               Json.obj(
-                "candidate" -> zedSeselja.asJson,
+                "candidate" -> katyGallagher.asJson,
                 "outcome" -> Json.obj(
                   "status" -> Json.fromString("elected"),
                   "ordinal" -> Json.fromInt(1),
@@ -81,12 +81,12 @@ class CountSummarySpec extends FlatSpec {
         Json.obj(
           "probability" -> Json.fromString("1/2"),
           "outcome" -> Json.obj(
-            "elected" -> Json.arr(zedSeselja.asJson, katyGallagher.asJson),
+            "elected" -> Json.arr(katyGallagher.asJson, zedSeselja.asJson),
             "exhaustedVotes" -> VoteCount.zero.asJson,
             "roundingError" -> VoteCount.zero.asJson,
             "candidateOutcomes" -> Json.arr(
               Json.obj(
-                "candidate" -> zedSeselja.asJson,
+                "candidate" -> katyGallagher.asJson,
                 "outcome" -> Json.obj(
                   "status" -> Json.fromString("elected"),
                   "ordinal" -> Json.fromInt(0),
@@ -94,7 +94,7 @@ class CountSummarySpec extends FlatSpec {
                 )
               ),
               Json.obj(
-                "candidate" -> katyGallagher.asJson,
+                "candidate" -> zedSeselja.asJson,
                 "outcome" -> Json.obj(
                   "status" -> Json.fromString("elected"),
                   "ordinal" -> Json.fromInt(1),

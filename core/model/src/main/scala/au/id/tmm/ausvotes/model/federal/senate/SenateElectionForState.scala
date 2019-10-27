@@ -41,7 +41,7 @@ object SenateElectionForState {
 
   implicit val ordering: Ordering[SenateElectionForState] =
     Ordering.by[SenateElectionForState, (SenateElection, State)](e => (e.election, e.state))(
-      ord = Ordering.Tuple2(SenateElection.ordering.reverse, State.orderBySize.reverse)
+      ord = Ordering.Tuple2(SenateElection.ordering.reverse, State.orderBySize)
     )
 
 }
